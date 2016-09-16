@@ -1,0 +1,12 @@
+# lisp junk
+*.FASL
+*.fasl
+*.lisp-temp
+
+# emacs junk
+\#*
+*~
+.\#*
+
+# system dependent junk 
+local/
