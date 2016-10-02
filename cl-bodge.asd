@@ -1,9 +1,9 @@
 (in-package :cl-user)
 
-(defpackage :cl-bodge.package
+(defpackage :cl-bodge.definition
   (:use :cl :asdf))
 
-(in-package :cl-bodge.package)
+(in-package :cl-bodge.definition)
 
 (defsystem cl-bodge
   :description "Bodacious Game Engine"
@@ -11,7 +11,32 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (:cl-opengl :cl-glfw3 :log4cl :bordeaux-threads :trivial-main-thread)
+  :depends-on (alexandria cl-opengl cl-glfw3 cl-muth split-sequence sb-cga
+                          log4cl bordeaux-threads trivial-main-thread)
   :serial t
   :components ((:file "packages")
-               (:file "bootstrap")))
+               (:module utils
+                        :serial t
+                        :components ((:file "utils")))
+               (:module math
+                        :serial t
+                        :components ((:file "types")
+                                     (:file "vector")
+                                     (:file "matrix")))
+               (:module engine
+                        :serial t
+                        :components ((:file "engine")))
+               (:module concurrency
+                        :serial t
+                        :components ((:file "job-queue")))
+               (:module application
+                        :serial t
+                        :components ((:file "application")))
+               (:module graphics
+                        :serial t
+                        :components ((:file "gl")
+                                     (:file "renderable")
+                                     (:file "vertex-array")
+                                     (:file "buffers")
+                                     (:file "shading")
+                                     (:file "graphics")))))
