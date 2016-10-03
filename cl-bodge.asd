@@ -23,15 +23,19 @@
                         :components ((:file "types")
                                      (:file "vector")
                                      (:file "matrix")))
-               (:module engine
-                        :serial t
-                        :components ((:file "engine")))
                (:module concurrency
                         :serial t
                         :components ((:file "job-queue")))
+               (:module engine
+                        :serial t
+                        :components ((:file "engine")))
+               (:module event
+                        :serial t
+                        :components ((:file "system")))
                (:module application
                         :serial t
-                        :components ((:file "application")))
+                        :components ((:file "events")
+                                     (:file "system")))
                (:module graphics
                         :serial t
                         :components ((:file "gl")
@@ -39,4 +43,4 @@
                                      (:file "vertex-array")
                                      (:file "buffers")
                                      (:file "shading")
-                                     (:file "graphics")))))
+                                     (:file "system")))))

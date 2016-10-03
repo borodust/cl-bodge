@@ -6,7 +6,9 @@
    (state-condi-var :initform (make-condition-variable
                                :name "app-sys-state-condi-var"))
    (window :initform nil)
-   (job-queue :initform (make-job-queue))))
+   (eve-sys :initform nil :reader event-system-of)
+   (job-queue :initform (make-job-queue)))
+  (:default-initargs :dependencies '(event-system)))
 
 (defmacro within-main-thread-of ((app-system) &body body)
   (with-gensyms (queue)
@@ -18,14 +20,27 @@
 
 (glfw:def-window-close-callback on-close (window)
   (glfw:hide-window window))
+
+
+(glfw:def-key-callback on-key-action (window key scancode action mod-keys)
+  (declare (special *application*))
+  (post (make-instance 'keyboard-event) (event-system-of *application*)))
+
+
+(glfw:def-mouse-button-callback on-mouse-action (window button action mod-keys)
+  (declare (special *application*))
+  (post (make-instance 'mouse-event) (event-system-of *application*)))
   
 
 ;; if current thread is the main one, this function will block
 (defmethod enable ((this application-system))
-  (with-slots (enabled-p job-queue window state-lock state-condi-var) this
+  (with-slots (enabled-p job-queue window state-lock state-condi-var eve-sys) this
     (with-lock-held (state-lock)
       (when enabled-p
         (error "Application system already enabled"))
+      (register-event-classes (engine-system 'event-system)
+                              'keyboard-event
+                              'mouse-event)
       (with-body-in-main-thread ()
         (log-errors
           (glfw:with-init-window (:title "Scene" :width 640 :height 480
@@ -35,8 +50,11 @@
                                          :opengl-forward-compat t
                                          :samples 4)
             (glfw:set-window-close-callback 'on-close)
+            (glfw:set-key-callback 'on-key-action)
+            (glfw:set-mouse-button-callback 'on-mouse-action)
             (with-lock-held (state-lock)
               (setf window glfw:*window*
+                    eve-sys (engine-system 'event-system)
                     enabled-p t))
             (condition-notify state-condi-var)
             (log:info "Application main loop running")

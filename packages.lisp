@@ -5,7 +5,9 @@
   (:nicknames :bge.util)
   (:use :cl :alexandria)
   (:export log-errors
-           read-file-into-string-list))
+           read-file-into-string-list
+           with-hash-entries
+           make-hash-table-with-entries))
 
 
 (defpackage :cl-bodge.concurrency
@@ -47,15 +49,29 @@
            startup
            shutdown))
 
+(defpackage :cl-bodge.event
+  (:nicknames :bge.eve)
+  (:use :cl-bodge.engine :cl-bodge.utils
+        :cl :alexandria :bordeaux-threads :cl-muth)
+  (:export event-system
+           event
+           register-event-class
+           register-event-classes
+           post
+           subscribe-to))
+
 
 (defpackage :cl-bodge.application
   (:nicknames :bge.app)
-  (:use :cl-bodge.engine :cl-bodge.utils :cl-bodge.concurrency
+  (:use :cl-bodge.engine :cl-bodge.utils :cl-bodge.concurrency :cl-bodge.event
        :cl :bordeaux-threads :alexandria :cl-muth :trivial-main-thread)
   (:export application-system
            
            bind-rendering-context
-           swap-buffers))
+           swap-buffers
+
+           keyboard-event
+           mouse-event))
 
 
 (defpackage :cl-bodge.graphics
