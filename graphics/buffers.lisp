@@ -8,7 +8,7 @@
   (:default-initargs :id (gl:gen-buffer)))
 
 
-(defgeneric attach-buffer (buffer target))
+(defgeneric attach-gpu-buffer (buffer target))
 
 
 (defmacro with-bound-buffer ((buffer) &body body)
@@ -53,7 +53,7 @@
             (gl:buffer-data :array-buffer :static-draw gl-array))))))
 
 
-(defmethod attach-buffer ((buffer array-buffer) (vao vertex-array))
+(defmethod attach-gpu-buffer ((buffer array-buffer) (vao vertex-array))
   (with-bound-vertex-array (vao)
     (with-bound-buffer (buffer)
       (gl:vertex-attrib-pointer (vertex-attribute-index-of buffer)

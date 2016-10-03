@@ -10,6 +10,7 @@
    (job-queue :initform (make-job-queue)))
   (:default-initargs :dependencies '(event-system)))
 
+
 (defmacro within-main-thread-of ((app-system) &body body)
   (with-gensyms (queue)
     `(with-slots ((,queue job-queue)) ,app-system
@@ -23,14 +24,26 @@
 
 
 (glfw:def-key-callback on-key-action (window key scancode action mod-keys)
-  (declare (special *application*))
-  (post (make-instance 'keyboard-event) (event-system-of *application*)))
+  (declare (special *application*) (ignore window))
+  (post (make-keyboard-event) (event-system-of *application*)))
 
 
 (glfw:def-mouse-button-callback on-mouse-action (window button action mod-keys)
-  (declare (special *application*))
-  (post (make-instance 'mouse-event) (event-system-of *application*)))
+  (declare (special *application*) (ignore window))
+  (post (make-mouse-event) (event-system-of *application*)))
+
+
+(glfw:def-framebuffer-size-callback on-framebuffer-size-change (window w h)
+  (declare (special *application*) (ignore window))
+  (post (make-framebuffer-size-change-event w h) (event-system-of *application*)))
   
+
+(defun %register-event-classes ()
+  (register-event-classes (engine-system 'event-system)
+                          'keyboard-event
+                          'mouse-event
+                          'framebuffer-size-change-event))
+
 
 ;; if current thread is the main one, this function will block
 (defmethod enable ((this application-system))
@@ -38,9 +51,7 @@
     (with-lock-held (state-lock)
       (when enabled-p
         (error "Application system already enabled"))
-      (register-event-classes (engine-system 'event-system)
-                              'keyboard-event
-                              'mouse-event)
+      (%register-event-classes)
       (with-body-in-main-thread ()
         (log-errors
           (glfw:with-init-window (:title "Scene" :width 640 :height 480
@@ -87,10 +98,12 @@
 
 
 (defun bind-rendering-context (app-sys)
-  (with-slots (window) app-sys
-    (glfw:make-context-current window)))
+  (with-slots (window state-lock) app-sys
+    (with-lock-held (state-lock)
+      (glfw:make-context-current window))))
 
 
 (defun swap-buffers (app-sys)
-  (with-slots (window) app-sys
-    (glfw:swap-buffers window)))
+  (with-slots (window state-lock) app-sys
+    (with-lock-held (state-lock)
+      (glfw:swap-buffers window))))

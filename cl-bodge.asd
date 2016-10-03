@@ -11,8 +11,8 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (alexandria cl-opengl cl-glfw3 cl-muth split-sequence sb-cga
-                          log4cl bordeaux-threads trivial-main-thread)
+  :depends-on (alexandria cl-opengl cl-glfw3 cl-muth split-sequence sb-cga cffi
+                          log4cl bordeaux-threads trivial-main-thread cl-openal cl-alc)
   :serial t
   :components ((:file "packages")
                (:module utils
@@ -28,7 +28,8 @@
                         :components ((:file "job-queue")))
                (:module engine
                         :serial t
-                        :components ((:file "engine")))
+                        :components ((:file "engine")
+                                     (:file "thread-bound-system")))
                (:module event
                         :serial t
                         :components ((:file "system")))
@@ -43,4 +44,10 @@
                                      (:file "vertex-array")
                                      (:file "buffers")
                                      (:file "shading")
+                                     (:file "system")))
+               (:module audio
+                        :serial t
+                        :components ((:file "al")
+                                     (:file "buffer")
+                                     (:file "source")
                                      (:file "system")))))

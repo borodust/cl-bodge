@@ -4,7 +4,11 @@
 (defclass input-event (event) ())
 
 
-(defclass keyboard-event (input-event) ())
+(defevent keyboard-event (input-event) ())
 
 
-(defclass mouse-event (input-event) ())
+(defevent mouse-event (input-event) ())
+
+
+(defevent framebuffer-size-change-event (event)
+  (width height))

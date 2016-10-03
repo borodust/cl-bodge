@@ -7,7 +7,9 @@
   (:export log-errors
            read-file-into-string-list
            with-hash-entries
-           make-hash-table-with-entries))
+           make-hash-table-with-entries
+           stream->byte-array
+           file->byte-array))
 
 
 (defpackage :cl-bodge.concurrency
@@ -23,8 +25,12 @@
   (:nicknames :bge.math)
   (:use :cl :alexandria)
   (:export vec
+           vec2
+           vec3
            vec4
            vector->array
+           makke-vec3
+           sequence->vec3
 
            matrix
            mat4
@@ -39,12 +45,25 @@
 
 (defpackage :cl-bodge.engine
   (:nicknames :bge.ng)
-  (:use  :cl-bodge.utils
-         :cl :alexandria)
+  (:use :cl-bodge.utils :cl-bodge.concurrency
+        :cl :alexandria :bordeaux-threads :cl-muth)
   (:export system
            enable
            disable
 
+           thread-bound-system
+           initialize-system
+           discard-system
+           make-system-context
+           destroy-system-context
+           execute-looping-action
+           continue-looping-action
+           start-system-loop
+           execute-in-system-thread
+           with-system-context
+           *system-context*
+           check-system-context
+           
            engine-system
            startup
            shutdown))
@@ -55,6 +74,7 @@
         :cl :alexandria :bordeaux-threads :cl-muth)
   (:export event-system
            event
+           defevent
            register-event-class
            register-event-classes
            post
@@ -64,20 +84,21 @@
 (defpackage :cl-bodge.application
   (:nicknames :bge.app)
   (:use :cl-bodge.engine :cl-bodge.utils :cl-bodge.concurrency :cl-bodge.event
-       :cl :bordeaux-threads :alexandria :cl-muth :trivial-main-thread)
+        :cl :bordeaux-threads :alexandria :cl-muth :trivial-main-thread)
   (:export application-system
            
            bind-rendering-context
            swap-buffers
 
            keyboard-event
-           mouse-event))
+           mouse-event
+           framebuffer-size-change-event))
 
 
 (defpackage :cl-bodge.graphics
   (:nicknames :bge.gx)
-  (:use  :cl-bodge.engine :cl-bodge.application :cl-bodge.concurrency :cl-bodge.utils
-         :cl-bodge.math
+  (:use :cl-bodge.engine :cl-bodge.application :cl-bodge.concurrency :cl-bodge.utils
+        :cl-bodge.math :cl-bodge.event
         :cl :alexandria :cl-muth :bordeaux-threads)
   (:export graphics-system
            render-scene
@@ -90,11 +111,31 @@
            make-vertex-array
 
            make-array-buffer
-           attach-buffer
+           attach-gpu-buffer
 
            make-shading-program
            use-shading-program
            program-uniform-variable))
+
+
+(defpackage :cl-bodge.audio
+  (:use :cl-bodge.engine :cl-bodge.math
+        :cl :alexandria :cl-muth)
+  (:nicknames :bge.snd)
+  (:export audio-system
+
+           listener-gain
+           listener-position
+           listener-velocity
+           listener-orientation
+           
+           make-audio-source
+           play-audio
+           pause-audio
+           stop-audio
+
+           make-audio-buffer
+           attach-audio-buffer))
 
 
 (defpackage :cl-bodge

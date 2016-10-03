@@ -18,11 +18,12 @@
 
 
 (defmethod disable ((this event-system))
-  (with-slots (enabled-p lock thread-pool) this
+  (with-slots (enabled-p lock thread-pool handler-table) this
     (with-lock-held (lock)
       (unless enabled-p
         (error "Event system already stopped"))
       (close-pool thread-pool)
+      (clrhash handler-table)
       (setf enabled-p nil))))
 
 
@@ -30,6 +31,21 @@
 ;;;
 ;;;
 (defclass event () ())
+
+
+(defmacro defevent (name (&rest superclass-names) (&rest field-names) &rest class-options)
+  (let ((constructor-name (symbolicate 'make- name)))
+    `(progn
+       (defclass ,name (,@superclass-names)
+         (,@(loop for field-name in field-names collecting
+                 `(,field-name :initarg ,(make-keyword field-name)
+                               :initform (error "~a must be provided" ',field-name)
+                               :reader ,(symbolicate field-name '-of))))
+         ,@class-options)
+       (declaim (inline ,constructor-name))
+       (defun ,constructor-name (,@field-names)
+         (make-instance ',name ,@(loop for field-name in field-names appending
+                                      `(,(make-keyword field-name) ,field-name)))))))
 
 
 (defun event-class-registered-p (event-class event-system)
@@ -40,17 +56,18 @@
         present-p))))
 
 
-(defun register-event-class (event-class event-system)
+(defun register-event-class (event-class-name event-system)
   (with-slots (lock handler-table) event-system
-    (with-recursive-lock-held (lock)
-      (if (event-class-registered-p event-class event-system)
-          (error "Event class ~a already registered" event-class)
-          (setf (gethash event-class handler-table) '())))))
+    (let ((event-class (find-class event-class-name)))
+      (with-recursive-lock-held (lock)
+        (if (event-class-registered-p event-class event-system)
+            (error "Event class ~a already registered" event-class)
+            (setf (gethash event-class handler-table) '()))))))
 
 
 (defun register-event-classes (event-system &rest event-class-names)
   (loop for event-class-name in event-class-names do
-       (register-event-class (find-class event-class-name) event-system)))
+       (register-event-class event-class-name event-system)))
 
 
 (defun %check-event-class-registration (event-class event-system)
