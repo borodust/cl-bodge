@@ -68,7 +68,7 @@
                     eve-sys (engine-system 'event-system)
                     enabled-p t))
             (condition-notify state-condi-var)
-            (log:info "Application main loop running")
+            (log:debug "Application main loop running")
             (let ((*application* this))
               (declare (special *application*))
               (loop while enabled-p
@@ -78,7 +78,7 @@
                           (drain job-queue))
                       (t (e) (log:error "Unhandled error in the event-loop: ~a" e))))
               (condition-notify state-condi-var)))
-          (log:info "Main loop stopped. Application system offline")))
+          (log:debug "Main loop stopped. Application system offline")))
       (loop until enabled-p do
            (condition-wait state-condi-var state-lock)))))
 

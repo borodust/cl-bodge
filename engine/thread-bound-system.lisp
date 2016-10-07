@@ -85,14 +85,14 @@
                       (initialize-system this)
                       (setf thread (current-thread)))
                     (open-latch latch)
-                    (log:trace "Starting ~a loop" system-class-name)
+                    (log:debug "Starting ~a loop" system-class-name)
                     (let ((*system-context* (make-system-context this)))
                       (declare (special *system-context*))
                       (unwind-protect
                            (start-system-loop this)
                         (destroy-system-context *system-context* this))))
                (open-latch latch)
-               (log:trace "~a loop stopped" system-class-name)
+               (log:debug "~a loop stopped" system-class-name)
                (discard-system this))))
          :name (format nil "~a-worker" (string-downcase (string system-class-name))))))))
 

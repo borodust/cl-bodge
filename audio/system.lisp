@@ -9,7 +9,8 @@
 
 
 (defclass audio-system (thread-bound-system)
-  ((queue :initform (make-blocking-queue) :reader queue-of)))
+  ((queue :initform (make-blocking-queue) :reader queue-of))
+  (:default-initargs :dependencies '(bge.app:application-system)))
 
 
 (defmethod continue-looping-action ((this audio-system))
