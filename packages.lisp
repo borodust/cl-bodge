@@ -119,9 +119,14 @@
            add-renderable
 
            make-vertex-array
-
-           make-array-buffer
+           
            attach-gpu-buffer
+           make-array-buffer
+           make-index-buffer
+
+           primitive
+           make-mesh
+           make-indexed-mesh
 
            make-shading-program
            use-shading-program

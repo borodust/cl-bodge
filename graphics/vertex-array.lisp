@@ -1,11 +1,13 @@
 (in-package :cl-bodge.graphics)
 
 (defclass vertex-array (gl-object)
-  ((vertex-count :initform 0 :initarg :vertex-count))
+  ((vertex-count :initform 0 :initarg :vertex-count :reader vertex-count-of))
   (:default-initargs :id (gl:gen-vertex-array)))
+
 
 (defun make-vertex-array (vertex-count)
   (make-instance 'vertex-array :vertex-count vertex-count))
+
 
 (defmacro with-bound-vertex-array ((vertex-array) &body body)
   `(unwind-protect
@@ -14,7 +16,12 @@
           ,@body)
      (gl:bind-vertex-array 0)))
 
-(defmethod render ((this vertex-array))
-  (with-bound-vertex-array (this)
-    (with-slots (vertex-count) this
-      (gl:draw-arrays :triangle-strip 0 vertex-count))))
+
+(defmethod attach-gpu-buffer ((buffer array-buffer) (vao vertex-array))
+  (when (/= (vertex-count-of vao) (vertex-count-of buffer))
+    (error "Vertex count of vertex array is different fron vertex count of buffer"))
+  (with-bound-vertex-array (vao)
+    (with-bound-buffer (buffer)
+      (gl:vertex-attrib-pointer (vertex-attribute-index-of buffer)
+                                (attribute-size-of buffer) :float nil 0 0))
+    (gl:enable-vertex-attrib-array (vertex-attribute-index-of buffer))))

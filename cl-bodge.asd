@@ -46,8 +46,9 @@
                         :serial t
                         :components ((:file "gl")
                                      (:file "renderable")
-                                     (:file "vertex-array")
                                      (:file "buffers")
+                                     (:file "vertex-array")
+                                     (:file "mesh")
                                      (:file "shading")
                                      (:file "system")))
                (:module audio
