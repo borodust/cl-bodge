@@ -138,6 +138,13 @@
            attach-audio-buffer))
 
 
+(defpackage :cl-bodge.physics
+  (:use :cl-bodge.engine 
+        :cl :alexandria)
+  (:nicknames :bge.phx)
+  (:export physics-system))
+
+
 (defpackage :cl-bodge
   (:use :cl)
   (:nicknames :bge)

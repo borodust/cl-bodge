@@ -11,7 +11,7 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (alexandria cl-opengl cl-glfw3 cl-muth split-sequence sb-cga cffi
+  :depends-on (alexandria cl-opengl cl-glfw3 cl-muth split-sequence sb-cga cffi cl-ode
                           log4cl bordeaux-threads trivial-main-thread cl-openal cl-alc)
   :serial t
   :components ((:file "packages")
@@ -50,4 +50,7 @@
                         :components ((:file "al")
                                      (:file "buffer")
                                      (:file "source")
-                                     (:file "system")))))
+                                     (:file "system")))
+               (:module physics
+                        :serial t
+                        :components ((:file "system")))))
