@@ -5,34 +5,31 @@
   (:default-initargs :id (gl:create-program)))
 
 
-(Defun read-file-into-string-list (pathname)
-  (split-sequence:split-sequence "#\Newline" (read-file-into-string pathname)))
 
-
-(defun compile-shader (type source-pathname)
-  (let* ((shader-src (read-file-into-string-list source-pathname))
-	 (shader (gl:create-shader type)))
-    (gl:shader-source shader shader-src)
+(defun compile-shader (type source)
+  (let ((shader (gl:create-shader type)))
+    (gl:shader-source shader source)
     (gl:compile-shader shader)
-    (log:debug "Compilation log for ~a:~%~a" source-pathname (gl:get-shader-info-log shader))
+    (log:trace "Compilation log for ~a:~%~a" shader (gl:get-shader-info-log shader))
     shader))
 
 
-(defun make-program (program shader-path-alist)
-  (let* ((shaders (loop for (shader-type . source-path) in shader-path-alist collect
-		       (compile-shader shader-type source-path))))
+(defun make-program (program shader-sources)
+  (let* ((shaders (loop for src in shader-sources collect
+		       (compile-shader (shader-type-of src) (shader-text-of src)))))
     (loop for shader in shaders do (gl:attach-shader program shader))
     (gl:link-program program)
-    (log:debug "Program log:~%~a" (gl:get-program-info-log program))
+    (log:trace "Program log:~%~a" (gl:get-program-info-log program))
     (loop for shader in shaders do (gl:delete-shader shader))))
 
 
-(defmethod initialize-instance :after ((this shading-program) &key shader-path-alist)
-  (make-program (id-of this) shader-path-alist))
+(defmethod initialize-instance :after ((this shading-program) &key shader-sources)
+  (make-program (id-of this) shader-sources))
 
 
-(defun make-shading-program (shader-path-alist)
-  (make-instance 'shading-program :shader-path-alist shader-path-alist))
+(declaim (inline make-shading-program))
+(defun make-shading-program (&rest shader-sources)
+  (make-instance 'shading-program :shader-sources shader-sources))
 
 
 (defun use-shading-program (program)

@@ -1,11 +1,12 @@
 (in-package :cl-bodge.engine)
 
 ;;
-(defclass engine ()
+(defclass bodge-engine ()
   ((systems :initform nil)
+   (properties :initform '())
    (disabling-order :initform '())))
+(defvar *engine* (make-instance 'bodge-engine))
 
-(defvar *engine* (make-instance 'engine))
 
 (defun engine-system (system-name)
   (with-slots (systems) *engine*
@@ -50,17 +51,28 @@
          (cons system-class result))
         (t result)))))
 
+
 (defun enable-requested-systems (sys-table)
   (loop for system-class being the hash-key in sys-table
      with order = '() do
        (setf order (enable-system system-class sys-table order))
      finally (return order)))
+
+
+(defun property (key &optional (default-value nil))
+  (with-slots (properties) *engine*
+    (%get-property key properties default-value)))
   
 
-(defun startup (&rest system-class-names)
-  (with-slots (systems disabling-order) *engine*
-    (setf systems (alist-hash-table (instantiate-systems system-class-names))
-          disabling-order (enable-requested-systems systems))))
+(defun startup (properties-pathspec)
+  (with-slots (systems properties disabling-order) *engine*
+    (setf properties (%load-properties properties-pathspec))
+    (let ((system-class-names (property :systems
+                                        (lambda ()
+                                          (error ":systems property should be defined")))))
+      (setf systems (alist-hash-table (instantiate-systems system-class-names))
+            disabling-order (enable-requested-systems systems)))))
+
 
 (defun shutdown ()
   (with-slots (systems disabling-order) *engine*

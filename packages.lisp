@@ -5,7 +5,6 @@
   (:nicknames :bge.util)
   (:use :cl :alexandria)
   (:export log-errors
-           read-file-into-string-list
            with-hash-entries
            make-hash-table-with-entries
            stream->byte-array
@@ -43,6 +42,16 @@
            m*))
 
 
+(defpackage :cl-bodge.resources
+  (:nicknames :bge.rsc)
+  (:use :cl :alexandria)
+  (:export read-file-into-string-list
+           
+           load-shader-source
+           shader-type-of
+           shader-text-of))
+
+
 (defpackage :cl-bodge.engine
   (:nicknames :bge.ng)
   (:use :cl-bodge.utils :cl-bodge.concurrency
@@ -63,8 +72,9 @@
            with-system-context
            *system-context*
            check-system-context
-           
+
            engine-system
+           property
            startup
            shutdown))
 
@@ -98,7 +108,7 @@
 (defpackage :cl-bodge.graphics
   (:nicknames :bge.gx)
   (:use :cl-bodge.engine :cl-bodge.application :cl-bodge.concurrency :cl-bodge.utils
-        :cl-bodge.math :cl-bodge.event
+        :cl-bodge.math :cl-bodge.event :cl-bodge.resources
         :cl :alexandria :cl-muth :bordeaux-threads)
   (:export graphics-system
            render-scene

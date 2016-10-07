@@ -6,10 +6,6 @@
      (t (e) (log:error "Unhandled error: ~a" e))))
 
 
-(defun read-file-into-string-list (pathname)
-  (split-sequence:split-sequence "#\Newline" (read-file-into-string pathname)))
-
-
 (defmacro with-hash-entries ((&rest keys) hash-table &body body)
   (once-only (hash-table)
     `(symbol-macrolet (,@(loop for key in keys collecting

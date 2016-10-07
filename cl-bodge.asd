@@ -12,7 +12,8 @@
   :mailto "dev@borodust.org"
   :license "MIT"
   :depends-on (alexandria cl-opengl cl-glfw3 cl-muth split-sequence sb-cga cffi cl-ode
-                          log4cl bordeaux-threads trivial-main-thread cl-openal cl-alc)
+                          log4cl bordeaux-threads trivial-main-thread cl-openal cl-alc
+                          cl-fad)
   :serial t
   :components ((:file "packages")
                (:module utils
@@ -26,9 +27,13 @@
                (:module concurrency
                         :serial t
                         :components ((:file "job-queue")))
+               (:module resources
+                        :serial t
+                        :components ((:file "shader-source")))
                (:module engine
                         :serial t
-                        :components ((:file "engine")
+                        :components ((:file "properties")
+                                     (:file "engine")
                                      (:file "thread-bound-system")))
                (:module event
                         :serial t
