@@ -24,24 +24,35 @@
 
 
 (glfw:def-key-callback on-key-action (window key scancode action mod-keys)
-  (declare (special *application*) (ignore window))
-  (post (make-keyboard-event) (event-system-of *application*)))
+  (declare (special *application*) (ignore window scancode mod-keys))
+  (post (make-keyboard-event (glfw-enumval->keyboard-key key)
+                             (glfw-enumval->button-state action))
+        (event-system-of *application*)))
 
 
 (glfw:def-mouse-button-callback on-mouse-action (window button action mod-keys)
+  (declare (special *application*) (ignore window mod-keys))
+  (post (make-mouse-event (glfw-enumval->mouse-button button)
+                          (glfw-enumval->button-state action))
+        (event-system-of *application*)))
+
+
+(glfw:def-cursor-pos-callback on-cursor-movement (window x y)
   (declare (special *application*) (ignore window))
-  (post (make-mouse-event) (event-system-of *application*)))
+  (post (make-cursor-event x y)
+        (event-system-of *application*)))
 
 
 (glfw:def-framebuffer-size-callback on-framebuffer-size-change (window w h)
   (declare (special *application*) (ignore window))
   (post (make-framebuffer-size-change-event w h) (event-system-of *application*)))
-  
+
 
 (defun %register-event-classes ()
   (register-event-classes (engine-system 'event-system)
                           'keyboard-event
                           'mouse-event
+                          'cursor-event
                           'framebuffer-size-change-event))
 
 
@@ -63,6 +74,7 @@
             (glfw:set-window-close-callback 'on-close)
             (glfw:set-key-callback 'on-key-action)
             (glfw:set-mouse-button-callback 'on-mouse-action)
+            (glfw:set-cursor-position-callback 'on-cursor-movement)
             (with-lock-held (state-lock)
               (setf window glfw:*window*
                     eve-sys (engine-system 'event-system)

@@ -86,7 +86,6 @@
         (loop for handler in (gethash (class-of event) handler-table) do
              (within-pool (thread-pool)
                (funcall handler event)))))))
-      
 
 
 (declaim (ftype (function (symbol (function (event) *) event-system) *) subscribe-to))
@@ -99,3 +98,10 @@
         (with-recursive-lock-held (lock)
           (with-hash-entries ((handlers event-class)) handler-table
             (pushnew handler handlers)))))))
+
+
+(defmacro subscribe-with-handler-body-to (event-class event-system
+                                          (&optional (event-var (gensym)))
+                                          &body body)
+  `(subscribe-to ',event-class (lambda (,event-var)
+                                 (declare (ignorable ,event-var)) ,@body) ,event-system))

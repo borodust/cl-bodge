@@ -5,10 +5,14 @@
   (:nicknames :bge.util)
   (:use :cl :alexandria)
   (:export log-errors
+
            with-hash-entries
            make-hash-table-with-entries
+
            stream->byte-array
-           file->byte-array))
+           file->byte-array
+
+           defenum))
 
 
 (defpackage :cl-bodge.concurrency
@@ -46,7 +50,7 @@
   (:nicknames :bge.rsc)
   (:use :cl :alexandria)
   (:export read-file-into-string-list
-           
+
            load-shader-source
            shader-type-of
            shader-text-of))
@@ -88,7 +92,8 @@
            register-event-class
            register-event-classes
            post
-           subscribe-to))
+           subscribe-to
+           subscribe-with-handler-body-to))
 
 
 (defpackage :cl-bodge.application
@@ -96,12 +101,13 @@
   (:use :cl-bodge.engine :cl-bodge.utils :cl-bodge.concurrency :cl-bodge.event
         :cl :bordeaux-threads :alexandria :cl-muth :trivial-main-thread)
   (:export application-system
-           
+
            bind-rendering-context
            swap-buffers
 
            keyboard-event
            mouse-event
+           cursor-event
            framebuffer-size-change-event))
 
 
@@ -119,7 +125,7 @@
            add-renderable
 
            make-vertex-array
-           
+
            attach-gpu-buffer
            make-array-buffer
            make-index-buffer
@@ -143,7 +149,7 @@
            listener-position
            listener-velocity
            listener-orientation
-           
+
            make-audio-source
            play-audio
            pause-audio
@@ -154,7 +160,7 @@
 
 
 (defpackage :cl-bodge.physics
-  (:use :cl-bodge.engine 
+  (:use :cl-bodge.engine
         :cl :alexandria)
   (:nicknames :bge.phx)
   (:export physics-system))

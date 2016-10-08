@@ -47,3 +47,17 @@
 (defun file->byte-array (pathname &optional (element-type '(unsigned-byte 8)))
   (with-input-from-file (stream pathname :element-type element-type)
     (stream->byte-array stream)))
+
+
+(defmacro defenum (name &body values)
+  (with-gensyms (value)
+    (let ((enum-values-constant (symbolicate '+ name '-values+))
+          (predicate (symbolicate name '-p)))
+      `(progn
+         (deftype ,name ()
+           '(member ,@values))
+         (define-constant ,enum-values-constant ',values :test #'equal)
+         (declaim (ftype (function (,name) boolean) ,predicate)
+                  (inline ,predicate))
+         (defun ,predicate (,value)
+           (not (null (member ,value ,enum-values-constant :test #'eql))))))))
