@@ -43,6 +43,12 @@
         (event-system-of *application*)))
 
 
+(glfw:def-scroll-callback on-scroll (window x y)
+  (declare (special *application*) (ignore window))
+  (post (make-scroll-event x y)
+        (event-system-of *application*)))
+
+
 (glfw:def-framebuffer-size-callback on-framebuffer-size-change (window w h)
   (declare (special *application*) (ignore window))
   (post (make-framebuffer-size-change-event w h) (event-system-of *application*)))
@@ -53,6 +59,7 @@
                           'keyboard-event
                           'mouse-event
                           'cursor-event
+                          'scroll-event
                           'framebuffer-size-change-event))
 
 
@@ -75,6 +82,7 @@
             (glfw:set-key-callback 'on-key-action)
             (glfw:set-mouse-button-callback 'on-mouse-action)
             (glfw:set-cursor-position-callback 'on-cursor-movement)
+            (glfw:set-scroll-callback 'on-scroll)
             (with-lock-held (state-lock)
               (setf window glfw:*window*
                     eve-sys (engine-system 'event-system)

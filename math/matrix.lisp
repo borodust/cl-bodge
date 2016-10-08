@@ -45,5 +45,5 @@
         (z3 (/ (* 2 far near) (- near far))))
     (sb-cga:matrix x0   0f0  0f0  0f0
                    0f0  y1   0f0  0f0
-                   0f0  0f0  z2   -1f0
-                   0f0  0f0  z3   0f0)))
+                   0f0  0f0  z2   z3
+                   0f0  0f0  -1f0 0f0)))

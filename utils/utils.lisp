@@ -61,3 +61,15 @@
                   (inline ,predicate))
          (defun ,predicate (,value)
            (not (null (member ,value ,enum-values-constant :test #'eql))))))))
+
+
+(declaim (ftype (function (*) single-float) f)
+         (inline f))
+(defun f (obj)
+  (coerce obj 'single-float))
+
+
+(set-dispatch-macro-character #\# #\f
+                              (lambda (stream key arg)
+                                (declare (ignore key arg))
+                                `(bge.util:f ,(read stream t nil t))))

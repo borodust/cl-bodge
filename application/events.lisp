@@ -76,7 +76,7 @@
 
 
 (defevent mouse-event (input-event)
-  (key state))
+  (button state))
 
 
 (defevent cursor-event (input-event)
@@ -85,3 +85,7 @@
 
 (defevent framebuffer-size-change-event (event)
   (width height))
+
+
+(defevent scroll-event (input-event)
+  (x-offset y-offset))

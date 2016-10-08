@@ -12,7 +12,8 @@
            stream->byte-array
            file->byte-array
 
-           defenum))
+           defenum
+           f))
 
 
 (defpackage :cl-bodge.concurrency
@@ -105,9 +106,17 @@
            bind-rendering-context
            swap-buffers
 
+           state-of
            keyboard-event
+           key-of
            mouse-event
+           button-of
            cursor-event
+           x-of
+           y-of
+           scroll-event
+           x-offset-of
+           y-offset-of
            framebuffer-size-change-event))
 
 
