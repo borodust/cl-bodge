@@ -3,17 +3,17 @@
 
 (defpackage :cl-bodge.utils
   (:nicknames :bge.util)
-  (:use :cl :alexandria)
+  (:use :cl :alexandria :local-time)
   (:export log-errors
-
            with-hash-entries
            make-hash-table-with-entries
-
            stream->byte-array
            file->byte-array
-
            defenum
-           f))
+           f
+           epoch-seconds-of
+           definline
+           copy-memory))
 
 
 (defpackage :cl-bodge.concurrency
@@ -27,23 +27,27 @@
 
 (defpackage :cl-bodge.math
   (:nicknames :bge.math)
-  (:use :cl :alexandria)
+  (:use :cl :alexandria :cl-bodge.utils)
   (:export vec
            vec2
            vec3
            vec4
-           vector->array
-           makke-vec3
+           vec->array
+           make-vec3
            sequence->vec3
+           vref
 
-           matrix
+           mat
            mat4
-           matrix->array
-           identity-matrix
-           rotation-matrix
-           translation-matrix
-           scaling-matrix
-           perspective-projection-matrix
+           mref
+           mat->array
+           identity-mat4
+           rotation-mat4
+           rotation-mat4*
+           translation-mat4
+           translation-mat4*
+           scaling-mat4*
+           perspective-projection-mat
            m*))
 
 
@@ -77,6 +81,7 @@
            with-system-context
            *system-context*
            check-system-context
+           declare-system-context
 
            engine-system
            property
@@ -97,32 +102,34 @@
            subscribe-with-handler-body-to))
 
 
-(defpackage :cl-bodge.application
-  (:nicknames :bge.app)
+(defpackage :cl-bodge.host
+  (:nicknames :bge.host)
   (:use :cl-bodge.engine :cl-bodge.utils :cl-bodge.concurrency :cl-bodge.event
         :cl :bordeaux-threads :alexandria :cl-muth :trivial-main-thread)
-  (:export application-system
+  (:export host-system
 
            bind-rendering-context
            swap-buffers
 
-           state-of
+           state-from
            keyboard-event
-           key-of
+           key-from
            mouse-event
-           button-of
+           button-from
            cursor-event
-           x-of
-           y-of
+           x-from
+           y-from
            scroll-event
-           x-offset-of
-           y-offset-of
-           framebuffer-size-change-event))
+           x-offset-from
+           y-offset-from
+           framebuffer-size-change-event
+           width-from
+           height-from))
 
 
 (defpackage :cl-bodge.graphics
   (:nicknames :bge.gx)
-  (:use :cl-bodge.engine :cl-bodge.application :cl-bodge.concurrency :cl-bodge.utils
+  (:use :cl-bodge.engine :cl-bodge.host :cl-bodge.concurrency :cl-bodge.utils
         :cl-bodge.math :cl-bodge.event :cl-bodge.resources
         :cl :alexandria :cl-muth :bordeaux-threads)
   (:export graphics-system
@@ -169,10 +176,33 @@
 
 
 (defpackage :cl-bodge.physics
-  (:use :cl-bodge.engine
-        :cl :alexandria)
+  (:use :cl-bodge.engine :cl-bodge.utils :cl-bodge.math
+        :cl :alexandria :local-time)
   (:nicknames :bge.phx)
-  (:export physics-system))
+  (:export physics-system
+
+           make-rigid-body
+           position-of
+           rotation-of
+           linear-velocity-of
+           angular-velocity-of
+           mass-of
+
+           make-ball-joint
+           make-hinge-joint
+           make-slider-joint
+           make-universal-joint
+           make-double-hinge-joint
+           make-angular-motor-joint
+
+           make-sphere-geom
+           make-box-geom
+           make-plane-geom
+           make-capped-cylinder-geom
+           make-ray-geom
+           bind-geom
+
+           make-box-mass))
 
 
 (defpackage :cl-bodge

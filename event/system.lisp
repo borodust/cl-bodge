@@ -40,7 +40,7 @@
          (,@(loop for field-name in field-names collecting
                  `(,field-name :initarg ,(make-keyword field-name)
                                :initform (error "~a must be provided" ',field-name)
-                               :reader ,(symbolicate field-name '-of))))
+                               :reader ,(symbolicate field-name '-from))))
          ,@class-options)
        (declaim (inline ,constructor-name))
        (defun ,constructor-name (,@field-names)

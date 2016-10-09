@@ -49,5 +49,5 @@
   (when-let ((variable-idx (gl:get-uniform-location (id-of program) variable-name)))
     (etypecase value
       (single-float (gl:uniformf variable-idx value))
-      (vec (gl:uniformfv variable-idx (vector->array value)))
-      (mat4 (gl:uniform-matrix variable-idx 4 (vector (matrix->array value)) nil)))))
+      (vec (gl:uniformfv variable-idx (vec->array value)))
+      (mat4 (gl:uniform-matrix variable-idx 4 (vector (mat->array value)) nil)))))

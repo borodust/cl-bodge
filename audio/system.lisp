@@ -10,7 +10,7 @@
 
 (defclass audio-system (thread-bound-system)
   ((queue :initform (make-blocking-queue) :reader queue-of))
-  (:default-initargs :dependencies '(bge.app:application-system)))
+  (:default-initargs :dependencies '(cl-bodge.host:host-system)))
 
 
 (defmethod continue-looping-action ((this audio-system))
@@ -46,7 +46,7 @@
          (inline (setf listener-gain)))
 (defun (setf listener-gain) (value)
   (check-system-context)
-  (al:listener :gain (vector->array value)))
+  (al:listener :gain (vec->array value)))
 
 
 (declaim (ftype (function () vec3) listener-position)
@@ -69,8 +69,3 @@
   (let ((result (al:get-listener :orientation)))
     (list (sequence->vec3 result)
           (sequence->vec3 (subseq result 3)))))
-
-
-
-
-

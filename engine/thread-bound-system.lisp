@@ -1,6 +1,9 @@
 (in-package :cl-bodge.engine)
 
 
+(proclaim '(special *system-context*))
+
+
 (defclass thread-bound-system (system)
   ((thread :initform nil)
    (job-queue :initform (make-job-queue) :reader job-queue-of)
@@ -31,7 +34,7 @@
 
 (defgeneric destroy-system-context (context system)
   (:method (context system) (declare (ignore context system))))
-  
+
 
 (defgeneric execute-looping-action (system)
   (:method (system) (declare (ignore system))))

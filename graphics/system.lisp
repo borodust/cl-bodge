@@ -6,14 +6,14 @@
   (scene nil))
 
 (defclass graphics-system (thread-bound-system)
-  ((app-sys :initform nil))
-  (:default-initargs :dependencies '(application-system)))
+  ((host-sys :initform nil))
+  (:default-initargs :dependencies '(host-system)))
 
 
 (defmethod initialize-system :after ((this graphics-system))
-  (with-slots (app-sys) this
-    (setf app-sys (engine-system 'application-system))
-    (bind-rendering-context app-sys)
+  (with-slots (host-sys) this
+    (setf host-sys (engine-system 'host-system))
+    (bind-rendering-context host-sys)
     (log:info "~%GL version: ~a~%GLSL version: ~a~%GL vendor: ~a~%GL renderer: ~a"
               (gl:get* :version)
               (gl:get* :shading-language-version)
@@ -27,10 +27,10 @@
 
 (defmethod execute-looping-action :after ((this graphics-system))
   (declare (special *system-context*))
-  (with-slots (app-sys) this
+  (with-slots (host-sys) this
     (when-let ((scene (rc-scene *system-context*)))
       (render scene))
-    (swap-buffers app-sys)
+    (swap-buffers host-sys)
     (sleep 0.01)))
 
 

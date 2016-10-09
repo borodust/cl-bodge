@@ -11,9 +11,9 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (alexandria cl-opengl cl-glfw3 cl-muth split-sequence sb-cga cffi cl-ode
+  :depends-on (alexandria cl-opengl cl-glfw3 cl-muth split-sequence sb-cga cffi clode
                           log4cl bordeaux-threads trivial-main-thread cl-openal cl-alc
-                          cl-fad)
+                          cl-fad local-time)
   :serial t
   :components ((:file "packages")
                (:module utils
@@ -38,7 +38,7 @@
                (:module event
                         :serial t
                         :components ((:file "system")))
-               (:module application
+               (:module host
                         :serial t
                         :components ((:file "events")
                                      (:file "system")))
@@ -59,4 +59,9 @@
                                      (:file "system")))
                (:module physics
                         :serial t
-                        :components ((:file "system")))))
+                        :components ((:file "universe")
+                                     (:file "system")
+                                     (:file "mass")
+                                     (:file "rigid-body")
+                                     (:file "joints")
+                                     (:file "geometry")))))

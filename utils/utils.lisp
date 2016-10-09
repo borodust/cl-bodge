@@ -1,5 +1,21 @@
 (in-package :cl-bodge.utils)
 
+
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (declaim (ftype (function (*) single-float) f)
+           (inline f))
+  (defun f (obj)
+    (coerce obj 'single-float))
+
+  (set-dispatch-macro-character #\# #\f
+                                (lambda (stream key arg)
+                                  (declare (ignore key arg))
+                                  (let ((sexp (read stream t nil t)))
+                                    (if (numberp sexp)
+                                        (f sexp)
+                                        `(bge.util:f ,sexp))))))
+
+
 (defmacro log-errors (&body body)
   `(handler-case
        (progn ,@body)
@@ -63,13 +79,21 @@
            (not (null (member ,value ,enum-values-constant :test #'eql))))))))
 
 
-(declaim (ftype (function (*) single-float) f)
-         (inline f))
-(defun f (obj)
-  (coerce obj 'single-float))
+(defun epoch-seconds-of (timestamp)
+  (+ (timestamp-to-unix timestamp) (/ (nsec-of timestamp) 1000000000)))
 
 
-(set-dispatch-macro-character #\# #\f
-                              (lambda (stream key arg)
-                                (declare (ignore key arg))
-                                `(bge.util:f ,(read stream t nil t))))
+(defmacro definline (name lambda-list &body body)
+  `(progn
+     (declaim (inline ,name))
+     (defun ,name ,lambda-list ,@body)))
+
+
+(cffi:defcfun ("memcpy" %copy-memory) :pointer
+  (destination :pointer)
+  (source :pointer)
+  (size :int))
+
+
+(defun copy-memory (destination source type &optional (count 1))
+  (%copy-memory destination source (* (cffi:foreign-type-size type) count)))

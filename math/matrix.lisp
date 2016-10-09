@@ -6,39 +6,46 @@
   (apply #'sb-cga:matrix* matricies))
 
 
-(declaim (inline matrix-dimensions))
-(defun matrix-dimensions (matrix)
+(definline mat-dimensions (matrix)
   (array-dimensions matrix))
 
 
-(declaim (inline matrix->array))
-(defun matrix->array (mat)
+(definline mat->array (mat)
   mat)
 
 
-(declaim (inline identity-matrix))
-(defun identity-matrix ()
+(definline mref (mat row column)
+  (sb-cga:mref mat row column))
+
+
+(definline (setf mref) (value mat row column)
+  (setf (sb-cga:mref mat row column) value))
+
+
+(definline identity-mat4 ()
   (sb-cga:identity-matrix))
 
 
-(declaim (inline rotation-matrix))
-(defun rotation-matrix (x y z)
+(definline rotation-mat4* (x y z)
   (sb-cga:rotate* x y z))
 
 
-(declaim (inline translation-matrix))
-(defun translation-matrix (x y z)
+(definline translation-mat4* (x y z)
   (sb-cga:translate* x y z))
 
 
-(declaim (inline scaling-matrix))
-(defun scaling-matrix (x y z)
+(definline translation-mat4 (vec)
+  (sb-cga:translate vec))
+
+
+(definline scaling-mat4* (x y z)
   (sb-cga:scale* x y z))
 
+
 (declaim (ftype (function (single-float single-float single-float single-float) mat4)
-                perspective-projection-matrix)
-         (inline perspective-projection-matrix))
-(defun perspective-projection-matrix (width height near far)
+                perspective-projection-mat)
+         (inline perspective-projection-mat))
+(defun perspective-projection-mat (width height near far)
   (let ((x0 (/ near width 1/2))
         (y1 (/ near height 1/2))
         (z2 (/ (+ near far) (- near far)))
