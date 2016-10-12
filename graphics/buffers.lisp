@@ -74,6 +74,3 @@
          (inline make-index-buffer))
 (defun make-index-buffer (index-array)
   (make-instance 'index-buffer :index-array index-array))
-
-
-

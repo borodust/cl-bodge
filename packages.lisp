@@ -69,6 +69,16 @@
            m*))
 
 
+(defpackage :cl-bodge.memory
+  (:nicknames :bge.mem)
+  (:use :cl-bodge.utils
+        :cl :alexandria :trivial-garbage)
+  (:export define-destructor
+           dispose
+           disposable
+           disposable-container))
+
+
 (defpackage :cl-bodge.resources
   (:nicknames :bge.rsc)
   (:use :cl :alexandria)
@@ -149,7 +159,7 @@
 (defpackage :cl-bodge.graphics
   (:nicknames :bge.gx)
   (:use :cl-bodge.engine :cl-bodge.host :cl-bodge.concurrency :cl-bodge.utils
-        :cl-bodge.math :cl-bodge.event :cl-bodge.resources
+        :cl-bodge.math :cl-bodge.event :cl-bodge.resources :cl-bodge.memory
         :cl :alexandria :cl-muth :bordeaux-threads)
   (:export graphics-system
            render-scene
