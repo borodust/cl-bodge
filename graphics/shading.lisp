@@ -5,6 +5,10 @@
   (:default-initargs :id (gl:create-program)))
 
 
+(define-destructor shading-program ((id id-of) (sys system-of))
+  (-> sys
+    (gl:delete-program id)))
+
 
 (defun compile-shader (type source)
   (let ((shader (gl:create-shader type)))
@@ -28,8 +32,8 @@
 
 
 (declaim (inline make-shading-program))
-(defun make-shading-program (&rest shader-sources)
-  (make-instance 'shading-program :shader-sources shader-sources))
+(defun make-shading-program (system &rest shader-sources)
+  (make-instance 'shading-program :system system :shader-sources shader-sources))
 
 
 (defun use-shading-program (program)

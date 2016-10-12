@@ -97,3 +97,10 @@
 
 (defun copy-memory (destination source type &optional (count 1))
   (%copy-memory destination source (* (cffi:foreign-type-size type) count)))
+
+
+(defmacro ensure-not-null (value)
+  (once-only ((v value))
+    `(if (null ,v)
+         (error "Value of ~a must not be null" ',value)
+       ,v)))

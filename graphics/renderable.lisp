@@ -8,8 +8,9 @@
 (defclass rendering-group ()
   ((renderables :initform '() :reader renderables-of)))
 
+
 (defmethod render ((this rendering-group))
-  (loop for renderable in (renderables-of this) do
+  (loop for renderable in (renderables-of this) collecting
        (render renderable)))
 
 (defgeneric add-renderable (renderable rendering-group)

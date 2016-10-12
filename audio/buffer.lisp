@@ -10,12 +10,17 @@
   '(member 8 16))
 
 
-(deftype channel-format ()
-  '(member :mono :stereo))
-    
+(defenum channel-format
+  :mono :stereo)
+
 
 (defclass audio-buffer (al-object) ()
   (:default-initargs :id (al:gen-buffer)))
+
+
+(define-destructor audio-buffer ((id id-of) (sys system-of))
+  (-> sys
+    (al:delete-buffer id)))
 
 
 (defmethod initialize-instance :after ((this audio-buffer)
@@ -27,12 +32,13 @@
         (foreign-size (* (/ sample-depth 8) (length pcm-data))))
     (cffi:with-foreign-array (raw-data pcm-data (list :array foreign-type (length pcm-data)))
       (al:buffer-data (id-of this) pcm-format raw-data foreign-size sampling-rate))))
-  
 
-(declaim (ftype (function (pcm-data channel-format sample-depth integer) *) make-audio-buffer)
+
+(declaim (ftype (function (* pcm-data channel-format sample-depth integer) *) make-audio-buffer)
          (inline make-audio-buffer))
-(defun make-audio-buffer (pcm-data channel-format sample-depth sampling-rate)
+(defun make-audio-buffer (system pcm-data channel-format sample-depth sampling-rate)
   (make-instance 'audio-buffer
+                 :system system
                  :channel-format channel-format
                  :sample-depth sample-depth
                  :sampling-rate sampling-rate

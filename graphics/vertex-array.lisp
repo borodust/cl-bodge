@@ -5,8 +5,13 @@
   (:default-initargs :id (gl:gen-vertex-array)))
 
 
-(defun make-vertex-array (vertex-count)
-  (make-instance 'vertex-array :vertex-count vertex-count))
+(define-destructor vertex-array ((id id-of) (sys system-of))
+  (-> sys
+    (gl:delete-vertex-arrays (list id))))
+
+
+(defun make-vertex-array (system vertex-count)
+  (make-instance 'vertex-array :system system :vertex-count vertex-count))
 
 
 (defmacro with-bound-vertex-array ((vertex-array) &body body)

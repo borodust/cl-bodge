@@ -9,17 +9,8 @@
 
 
 (defclass audio-system (thread-bound-system)
-  ((queue :initform (make-blocking-queue) :reader queue-of))
+  ()
   (:default-initargs :dependencies '(cl-bodge.host:host-system)))
-
-
-(defmethod continue-looping-action ((this audio-system))
-  (put-into (queue-of this) nil))
-
-
-(defmethod execute-looping-action :after ((this audio-system))
-  (when-let ((fn (pop-from (queue-of this))))
-    (funcall fn)))
 
 
 (defmethod make-system-context ((this audio-system))
@@ -38,34 +29,29 @@
 (declaim (ftype (function () vec3) listener-gain)
          (inline listener-gain))
 (defun listener-gain ()
-  (check-system-context)
   (sequence->vec3 (al:get-listener :gain)))
 
 
 (declaim (ftype (function (vec3) *) (setf listener-gain))
          (inline (setf listener-gain)))
 (defun (setf listener-gain) (value)
-  (check-system-context)
   (al:listener :gain (vec->array value)))
 
 
 (declaim (ftype (function () vec3) listener-position)
          (inline listener-position))
 (defun listener-position ()
-  (check-system-context)
   (sequence->vec3 (al:get-listener :position)))
 
 
-  (declaim (ftype (function () vec3) listener-velocity)
-           (inline listener-velocity))
+(declaim (ftype (function () vec3) listener-velocity)
+         (inline listener-velocity))
 (defun listener-velocity ()
-  (check-system-context)
   (sequence->vec3 (al:get-listener :velocity)))
 
 
 (declaim (inline listener-orientation))
 (defun listener-orientation ()
-  (check-system-context)
   (let ((result (al:get-listener :orientation)))
     (list (sequence->vec3 result)
           (sequence->vec3 (subseq result 3)))))

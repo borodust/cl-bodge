@@ -13,7 +13,7 @@
          finally (setf (slot-value obj 'finalized-p) t))))
 
 
-(definline ensure-not-null (value)
+(definline %ensure-not-null (value)
   (if (null value)
       (error "Value of slot used in destructor can't be null.
 Check define-destructor documentation.")
@@ -25,8 +25,8 @@ Check define-destructor documentation.")
     `(defmethod bge.mem::destructor-of ((,this ,class-name))
        (let ,(loop for slot in slots collecting
                   (if (listp slot)
-                      `(,(first slot) (ensure-not-null (slot-value ,this ',(second slot))))
-                      `(,slot (ensure-not-null (slot-value ,this ',slot)))))
+                      `(,(first slot) (%ensure-not-null (,(second slot) ,this)))
+                      `(,slot (%ensure-not-null (slot-value ,this ',slot)))))
          (let ((,finalized-p-holder (slot-value ,this 'finalized-p)))
            (cons (lambda () (unless (holder-value ,finalized-p-holder)
                               ,@body))
@@ -50,6 +50,15 @@ Check define-destructor documentation.")
   (if-let ((destructor (destructor-of this)))
     (loop for finalizer in (destructor-of this) do
          (finalize this finalizer))))
+
+
+(defmacro with-disposable ((var) obj &body body)
+  (once-only (obj)
+    `(let ((,var ,obj))
+       (unwind-protect
+            (progn
+              ,@body)
+         (dispose ,var)))))
 
 
 (defclass disposable-container ()

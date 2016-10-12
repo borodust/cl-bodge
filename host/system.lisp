@@ -16,9 +16,14 @@
 
 (defmethod execute ((this host-system) fn)
   (with-slots (job-queue) this
-    (with-system-lock-held (this)
-      (push-job fn job-queue)
-      (glfw:post-empty-event))))
+    (with-promise (resolve reject)
+      (with-system-lock-held (this)
+        (push-job (lambda ()
+                    (handler-case
+                        (resolve (funcall fn))
+                      (t (e) (log:error e) (reject e))))
+                  job-queue)
+        (glfw:post-empty-event)))))
 
 
 (glfw:def-window-close-callback on-close (window)
@@ -87,7 +92,7 @@
             (glfw:set-cursor-position-callback 'on-cursor-movement)
             (glfw:set-scroll-callback 'on-scroll)
             (glfw:set-framebuffer-size-callback 'on-framebuffer-size-change)
-            (with-lock-held (state-lock)
+            (with-system-lock-held (this)
               (setf window glfw:*window*
                     eve-sys (engine-system 'event-system)
                     enabled-p t))
@@ -113,9 +118,8 @@
       (unless enabled-p
         (error "Host system already disabled"))
       (-> this
-        (with-slots (enabled-p) this
-          (with-lock-held (state-lock)
-            (setf enabled-p nil))))
+        (with-system-lock-held (this)
+          (setf enabled-p nil)))
       (loop while enabled-p do
            (condition-wait state-condi-var state-lock)))))
 

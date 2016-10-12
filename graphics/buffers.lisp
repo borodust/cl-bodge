@@ -8,6 +8,11 @@
   (:default-initargs :id (gl:gen-buffer)))
 
 
+(define-destructor buffer ((id id-of) (sys system-of))
+  (-> sys
+    (gl:delete-buffers (list id))))
+
+
 (defgeneric attach-gpu-buffer (buffer target))
 
 
@@ -30,8 +35,9 @@
   (:default-initargs :target :array-buffer))
 
 
-(defun make-array-buffer (vertex-attribute-index vertex-attribute-data)
+(defun make-array-buffer (system vertex-attribute-index vertex-attribute-data)
   (make-instance 'array-buffer
+                 :system system
                  :vertex-attribute-data vertex-attribute-data
                  :vertex-attribute-index vertex-attribute-index))
 
@@ -70,7 +76,7 @@
         (gl:buffer-data :element-array-buffer :static-draw gl-array)))))
 
 
-(declaim (ftype (function ((simple-array integer (*))) *) make-index-buffer)
+(declaim (ftype (function (* (simple-array integer (*))) *) make-index-buffer)
          (inline make-index-buffer))
-(defun make-index-buffer (index-array)
-  (make-instance 'index-buffer :index-array index-array))
+(defun make-index-buffer (system index-array)
+  (make-instance 'index-buffer :system system :index-array index-array))

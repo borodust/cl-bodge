@@ -39,18 +39,19 @@
   (cffi:with-foreign-object (contact-points-ptr '(:struct ode:contact-geom)
                                                 *contact-points-per-collision*)
       (let ((contact-count (ode:collide g1 g2 *contact-points-per-collision* contact-points-ptr
-                                      (cffi:foreign-type-size '(:struct ode:contact-geom)))))
-        (cffi:with-foreign-slots ((joint-group world) data-ptr (:struct collision-data))
-          (cffi:with-foreign-object (contacts-ptr '(:struct ode:contact) contact-count)
-            (loop for i from 0 below contact-count do
-                 (let* ((contact-ptr (initialize-contact
-                                      (cffi:mem-aptr contacts-ptr '(:struct ode:contact) i)
-                                      (cffi:mem-aptr contact-points-ptr
-                                                     '(:struct ode:contact-geom) i)))
-                        (joint (ode:joint-create-contact world joint-group contact-ptr))
-                        (b1 (ode:geom-get-body g1))
-                        (b2 (ode:geom-get-body g2)))
-                 (ode:joint-attach joint b1 b2))))))))
+                                        (cffi:foreign-type-size '(:struct ode:contact-geom)))))
+        (when (> contact-count 0)
+          (cffi:with-foreign-slots ((joint-group world) data-ptr (:struct collision-data))
+            (cffi:with-foreign-object (contacts-ptr '(:struct ode:contact) contact-count)
+              (loop for i from 0 below contact-count do
+                   (let* ((contact-ptr (initialize-contact
+                                        (cffi:mem-aptr contacts-ptr '(:struct ode:contact) i)
+                                        (cffi:mem-aptr contact-points-ptr
+                                                       '(:struct ode:contact-geom) i)))
+                          (joint (ode:joint-create-contact world joint-group contact-ptr))
+                          (b1 (ode:geom-get-body g1))
+                          (b2 (ode:geom-get-body g2)))
+                     (ode:joint-attach joint b1 b2)))))))))
 
 
 (defun detect-collisions (universe)
@@ -73,7 +74,7 @@
          (ode:joint-group-destroy ,var)))))
 
 
-(defun observe-universe (universe seconds-since-last-observation)
+(defun %observe-universe (universe seconds-since-last-observation)
   (with-slots (world) universe
     (with-contact-joint-group () universe
       (ode:world-step world #f seconds-since-last-observation))))

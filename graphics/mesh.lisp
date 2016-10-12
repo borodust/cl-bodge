@@ -1,14 +1,18 @@
 (in-package :cl-bodge.graphics)
 
 
-(deftype primitive ()
-  '(member :point :line :triangle-strip
-    :lines-adjacency :triangles-adjacency))
+(defenum primitive
+  :point :line :triangle-strip
+  :lines-adjacency :triangles-adjacency)
 
 
-(defclass mesh ()
+(defclass mesh (disposable)
   ((vertex-array :initarg :vertex-array)
    (primitive-type :initarg :primitive-type :type primitive)))
+
+
+(define-destructor mesh (vertex-array)
+  (dispose vertex-array))
 
 
 (defun make-mesh (vertex-array primitive-type)

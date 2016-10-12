@@ -77,12 +77,11 @@
 (defun post (event event-system)
   (with-slots (thread-pool handler-table) event-system
     (with-system-lock-held (event-system)
-      (%check-event-class-registration (class-of event) event-system))
-    (within-pool (thread-pool)
-      (with-system-lock-held (event-system)
-        (loop for handler in (gethash (class-of event) handler-table) do
-             (within-pool (thread-pool)
-               (funcall handler event)))))))
+      (%check-event-class-registration (class-of event) event-system)
+      (within-pool (thread-pool)
+        (loop for handler in (with-system-lock-held (event-system)
+                               (gethash (class-of event) handler-table)) do
+             (funcall handler event))))))
 
 
 (declaim (ftype (function (symbol (function (event) *) event-system) *) subscribe-to))
@@ -90,11 +89,11 @@
   (let ((event-class (find-class event-class-name)))
     (with-slots (thread-pool handler-table) event-system
       (with-system-lock-held (event-system)
-        (%check-event-class-registration event-class event-system))
-      (within-pool (thread-pool)
-        (with-system-lock-held (event-system)
-          (with-hash-entries ((handlers event-class)) handler-table
-            (pushnew handler handlers)))))))
+        (%check-event-class-registration event-class event-system)
+        (within-pool (thread-pool)
+          (with-system-lock-held (event-system)
+            (with-hash-entries ((handlers event-class)) handler-table
+              (pushnew handler handlers))))))))
 
 
 (defmacro subscribe-with-handler-body-to (event-class event-system

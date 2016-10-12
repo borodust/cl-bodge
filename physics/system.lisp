@@ -30,9 +30,8 @@
   (destroy-universe (pc-universe *system-context*)))
 
 
-(defmethod execute-looping-action ((this physics-system))
+(defun observe-universe ()
   (let ((current-time (epoch-seconds-of (now))))
-    (observe-universe (universe)
-                      (- current-time (pc-last-world-step-time *system-context*)))
-    (setf (pc-last-world-step-time *system-context*) current-time))
-  (sleep 0.01))
+    (%observe-universe (universe)
+                       (- current-time (pc-last-world-step-time *system-context*)))
+    (setf (pc-last-world-step-time *system-context*) current-time)))

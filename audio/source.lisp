@@ -5,8 +5,8 @@
   (:default-initargs :id (al:gen-source)))
 
 
-(defun make-audio-source ()
-  (make-instance 'audio-source))
+(defun make-audio-source (system)
+  (make-instance 'audio-source :system system))
 
 
 (declaim (ftype (function (audio-buffer audio-source) *) attach-buffer)

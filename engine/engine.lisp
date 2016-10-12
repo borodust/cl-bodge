@@ -97,4 +97,22 @@
                     (lambda ()
                       (handler-case
                           (resolve (funcall fn))
-                        (t (e) (reject e))))))))
+                        (t (e) (log:error e)
+                           (reject e))))))))
+
+
+;;
+(defgeneric system-of (obj))
+
+(defclass system-object ()
+  (system))
+
+
+(defmethod system-of ((this system-object))
+  (with-slots (system) this
+    (tg:weak-pointer-value system)))
+
+
+(defmethod initialize-instance :after ((this system-object) &key system)
+  (with-slots ((this-system system)) this
+    (setf this-system (tg:make-weak-pointer (ensure-not-null system)))))

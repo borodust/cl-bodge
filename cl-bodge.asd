@@ -26,7 +26,8 @@
                                      (:file "matrix")))
                (:module concurrency
                         :serial t
-                        :components ((:file "execution")
+                        :components ((:file "async")
+                                     (:file "execution")
                                      (:file "job-queue")))
                (:module memory
                         :serial t
@@ -66,6 +67,7 @@
                         :serial t
                         :components ((:file "universe")
                                      (:file "system")
+                                     (:file "ode")
                                      (:file "mass")
                                      (:file "rigid-body")
                                      (:file "joints")

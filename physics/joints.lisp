@@ -1,17 +1,21 @@
 (in-package :cl-bodge.physics)
 
 
-(defclass joint ()
-  ((id :initarg :id :reader id-of)))
+(defclass joint (ode-object) ())
+
+
+(define-destructor joint ((id id-of) (sys system-of))
+  (-> sys
+    (ode:joint-destroy id)))
 
 
 (declaim (inline make-joint))
-(defun make-joint (joint-ctor class-name universe this-body that-body)
+(defun make-joint (system joint-ctor class-name universe this-body that-body)
   (let ((joint (funcall joint-ctor (world-of universe) 0)))
     (ode:joint-attach joint (id-of this-body) (if (null that-body)
                                                   (cffi:null-pointer)
                                                   (id-of that-body)))
-    (make-instance class-name :id joint)))
+    (make-instance class-name :system system :id joint)))
 
 
 (defmacro define-joint-class (class-name joint-ctor-name)
@@ -19,8 +23,8 @@
     `(progn
        (defclass ,class-name (joint) ())
        (declaim (inline ,class-ctor-name))
-       (defun ,class-ctor-name (this-body &optional that-body)
-         (make-joint #',joint-ctor-name ',class-name (universe) this-body that-body)))))
+       (defun ,class-ctor-name (system this-body &optional that-body)
+         (make-joint system #',joint-ctor-name ',class-name (universe) this-body that-body)))))
 
 
 (define-joint-class ball-joint ode:joint-create-ball)

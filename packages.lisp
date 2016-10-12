@@ -13,7 +13,9 @@
            f
            epoch-seconds-of
            definline
-           copy-memory))
+           copy-memory
+
+           ensure-not-null))
 
 
 (defpackage :cl-bodge.concurrency
@@ -36,6 +38,8 @@
            catcher
            tap
            finally
+           when-all
+           when-all*
            alet
            alet*
            aif
@@ -76,7 +80,8 @@
   (:export define-destructor
            dispose
            disposable
-           disposable-container))
+           disposable-container
+           with-disposable))
 
 
 (defpackage :cl-bodge.resources
@@ -97,6 +102,8 @@
            enable
            disable
            enabledp
+           system-object
+           system-of
 
            generic-system
            with-system-lock-held
@@ -106,11 +113,11 @@
            thread-bound-system
            make-system-context
            destroy-system-context
-           execute-looping-action
-           continue-looping-action
+           continue-looping
            start-system-loop
            *system-context*
            check-system-context
+           thread-bound-object
 
            engine-system
            property
@@ -162,8 +169,6 @@
         :cl-bodge.math :cl-bodge.event :cl-bodge.resources :cl-bodge.memory
         :cl :alexandria :cl-muth :bordeaux-threads)
   (:export graphics-system
-           render-scene
-           within-rendering-context
 
            render
            rendering-group
@@ -185,7 +190,8 @@
 
 
 (defpackage :cl-bodge.audio
-  (:use :cl-bodge.engine :cl-bodge.math
+  (:use :cl-bodge.engine :cl-bodge.math :cl-bodge.memory :cl-bodge.concurrency
+        :cl-bodge.utils
         :cl :alexandria :cl-muth)
   (:nicknames :bge.snd)
   (:export audio-system
@@ -205,10 +211,12 @@
 
 
 (defpackage :cl-bodge.physics
-  (:use :cl-bodge.engine :cl-bodge.utils :cl-bodge.math
+  (:use :cl-bodge.engine :cl-bodge.utils :cl-bodge.math :cl-bodge.memory
+        :cl-bodge.concurrency :cl-bodge.utils
         :cl :alexandria :local-time)
   (:nicknames :bge.phx)
   (:export physics-system
+           observe-universe
 
            make-rigid-body
            position-of

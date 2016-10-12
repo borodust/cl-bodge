@@ -21,7 +21,7 @@
 (defmacro with-system-lock-held ((system &optional lock-var) &body body)
   (once-only (system)
     `(let ,(unless (null lock-var)
-           `((,lock-var (bge.ng::lock-of ,system))))
+                   `((,lock-var (bge.ng::lock-of ,system))))
        (with-recursive-lock-held ((bge.ng::lock-of ,system))
          ,@body))))
 

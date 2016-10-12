@@ -15,6 +15,8 @@
 
 
 (defun drain (job-queue)
-  (with-guarded-reference (queue (job-queue-queue job-queue))
-    (loop until (null queue) for job = (pop queue)
-       do (funcall job))))
+  (loop for count = 0 then (1+ count)
+     for job = (with-guarded-reference (queue (job-queue-queue job-queue))
+                 (pop queue))
+     until (null job) do (funcall job)
+     finally (return count)))

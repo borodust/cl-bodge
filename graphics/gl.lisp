@@ -1,6 +1,7 @@
 (in-package :cl-bodge.graphics)
 
-(defclass gl-object ()
+
+(defclass gl-object (disposable thread-bound-object)
   ((id :initarg :id :reader id-of)))
 
 
@@ -14,4 +15,3 @@
                   (setf (gl:glaref gl-array (+ (* i attrib-size) j))
                         (aref array i j)))
              (setf (gl:glaref gl-array i) (aref array i))))))
-               
