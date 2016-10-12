@@ -17,12 +17,30 @@
 
 
 (defpackage :cl-bodge.concurrency
-  (:nicknames :bge.muth)
-  (:use :cl :alexandria :bordeaux-threads :cl-muth)
+  (:nicknames :bge.mt)
+  (:use :cl :alexandria :bordeaux-threads :cl-muth :blackbird)
   (:export make-job-queue
            push-job
            push-body-into
-           drain))
+           drain
+
+           ->
+           execute
+
+           promisep
+           promise-finished-p
+           create-promise
+           with-promise
+           promisify
+           attach
+           catcher
+           tap
+           finally
+           alet
+           alet*
+           aif
+           multiple-promise-bind
+           all))
 
 
 (defpackage :cl-bodge.math
@@ -68,20 +86,21 @@
   (:export system
            enable
            disable
+           enabledp
 
-           thread-bound-system
+           generic-system
+           with-system-lock-held
            initialize-system
            discard-system
+
+           thread-bound-system
            make-system-context
            destroy-system-context
            execute-looping-action
            continue-looping-action
            start-system-loop
-           execute-in-system-thread
-           with-system-context
            *system-context*
            check-system-context
-           declare-system-context
 
            engine-system
            property

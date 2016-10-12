@@ -26,7 +26,6 @@
 
 
 (defmethod execute-looping-action :after ((this graphics-system))
-  (declare (special *system-context*))
   (with-slots (host-sys) this
     (when-let ((scene (rc-scene *system-context*)))
       (render scene))

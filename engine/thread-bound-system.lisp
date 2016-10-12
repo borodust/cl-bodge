@@ -4,26 +4,16 @@
 (proclaim '(special *system-context*))
 
 
-(defclass thread-bound-system (system)
+(defclass thread-bound-system (generic-system)
   ((thread :initform nil)
    (job-queue :initform (make-job-queue) :reader job-queue-of)
-   (context :initform nil)
-   (state-lock :initform (make-recursive-lock "tb-sys-state-lock"))
-   (state-condi-var :initform (make-condition-variable
-                               :name "tb-sys-state-condi-var"))))
-
-(declaim (inline %tbs-enabled-p))
-(defun %tbs-enabled-p (system)
-  (with-slots (thread) system
-    (not (null thread))))
+   (context :initform nil)))
 
 
-(defgeneric initialize-system (system)
-  (:method (system) (declare (ignore system))))
-
-
-(defgeneric discard-system (system)
-  (:method (system) (declare (ignore system))))
+(defmethod enabledp ((this thread-bound-system))
+  (with-slots (thread state-lock) this
+    (with-recursive-lock-held (state-lock)
+      (not (null thread)))))
 
 
 (defgeneric make-system-context (system)
@@ -46,45 +36,36 @@
 
 (defgeneric start-system-loop (system)
   (:method ((this thread-bound-system))
-    (loop while (%tbs-enabled-p this) do
+    (loop while (enabledp this) do
          (log-errors
            (execute-looping-action this))
          (log-errors
            (drain (job-queue-of this))))))
 
 
-(defun execute-in-system-thread (system fn)
-  (push-job fn (job-queue-of system))
-  (continue-looping-action system)
-  nil)
-
-
-(defmacro with-system-context ((&optional (ctx-var (gensym "ctx"))
-                                          (sys-var (gensym "sys"))) sys
-                               &body body)
-  (once-only (sys)
-    `(execute-in-system-thread ,sys
-                               (lambda ()
-                                 (declare (special *system-context*))
-                                 (let ((,ctx-var *system-context*)
-                                       (,sys-var ,sys))
-                                   (declare (ignorable ,ctx-var ,sys-var))
-                                   ,@body)))))
+(defmethod execute ((this thread-bound-system) fn)
+  (with-system-lock-held (this)
+    (with-promise (resolve reject)
+      (push-job (lambda ()
+                  (handler-case
+                      (resolve (funcall fn))
+                    (t (e) (reject e))))
+                (job-queue-of this))
+      (continue-looping-action this))))
 
 
 (defmethod enable ((this thread-bound-system))
-  (with-slots (thread state-lock) this
+  (with-slots (thread) this
     (let ((system-class-name (class-name (class-of this))))
-      (with-recursive-lock-held (state-lock)
-        (when (%tbs-enabled-p this)
-          (error "~a already enabled" system-class-name)))
+      (when (enabledp this)
+        (error "~a already enabled" system-class-name))
       (wait-with-latch (latch)
         (bt:make-thread
          (lambda ()
            (log-errors
              (unwind-protect
                   (progn
-                    (with-recursive-lock-held (state-lock)
+                    (with-system-lock-held (this)
                       (initialize-system this)
                       (setf thread (current-thread)))
                     (open-latch latch)
@@ -101,12 +82,12 @@
 
 
 (defmethod disable ((this thread-bound-system))
-  (with-slots (thread state-lock) this
+  (with-slots (thread) this
     (let ((system-thread thread))
-      (with-recursive-lock-held (state-lock)
-        (unless (%tbs-enabled-p this)
+      (with-system-lock-held (this)
+        (unless (enabledp this)
           (error "~a already disabled" (class-name (class-of this))))
-        (with-system-context () this
+        (-> this
           (setf thread nil))
         (continue-looping-action this))
       (join-thread system-thread))))

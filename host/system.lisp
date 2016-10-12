@@ -1,8 +1,7 @@
 (in-package :cl-bodge.host)
 
-(defclass host-system (system)
+(defclass host-system (generic-system)
   ((enabled-p :initform nil)
-   (state-lock :initform (make-lock "host-sys-state-lock"))
    (state-condi-var :initform (make-condition-variable
                                :name "host-sys-state-condi-var"))
    (window :initform nil)
@@ -11,12 +10,15 @@
   (:default-initargs :dependencies '(event-system)))
 
 
-(defmacro within-main-thread-of ((host-system) &body body)
-  (with-gensyms (queue)
-    `(with-slots ((,queue job-queue)) ,host-system
-       (push-body-into (,queue)
-         ,@body)
-       (glfw:post-empty-event))))
+(defmethod enabledp ((this host-system))
+  (slot-value this 'enabled-p))
+
+
+(defmethod execute ((this host-system) fn)
+  (with-slots (job-queue) this
+    (with-system-lock-held (this)
+      (push-job fn job-queue)
+      (glfw:post-empty-event))))
 
 
 (glfw:def-window-close-callback on-close (window)
@@ -65,8 +67,8 @@
 
 ;; if current thread is the main one, this function will block
 (defmethod enable ((this host-system))
-  (with-slots (enabled-p job-queue window state-lock state-condi-var eve-sys) this
-    (with-lock-held (state-lock)
+  (with-slots (enabled-p job-queue window state-condi-var eve-sys) this
+    (with-system-lock-held (this state-lock)
       (when enabled-p
         (error "Host system already enabled"))
       (%register-event-classes)
@@ -105,13 +107,12 @@
            (condition-wait state-condi-var state-lock)))))
 
 
-
 (defmethod disable ((this host-system))
-  (with-slots (enabled-p state-lock state-condi-var) this
-    (with-lock-held (state-lock)
+  (with-slots (enabled-p state-condi-var) this
+    (with-system-lock-held (this state-lock)
       (unless enabled-p
         (error "Host system already disabled"))
-      (within-main-thread-of (this)
+      (-> this
         (with-slots (enabled-p) this
           (with-lock-held (state-lock)
             (setf enabled-p nil))))
@@ -120,12 +121,12 @@
 
 
 (defun bind-rendering-context (host-sys)
-  (with-slots (window state-lock) host-sys
-    (with-lock-held (state-lock)
+  (with-slots (window) host-sys
+    (with-system-lock-held (host-sys)
       (glfw:make-context-current window))))
 
 
 (defun swap-buffers (host-sys)
-  (with-slots (window state-lock) host-sys
-    (with-lock-held (state-lock)
+  (with-slots (window) host-sys
+    (with-system-lock-held (host-sys)
       (glfw:swap-buffers window))))

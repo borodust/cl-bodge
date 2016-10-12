@@ -1,30 +1,27 @@
 (in-package :cl-bodge.event)
 
 
-(defclass event-system (system)
+(defclass event-system (generic-system)
   ((enabled-p :initform nil)
    (handler-table :initform (make-hash-table))
-   (lock :initform (make-recursive-lock "event-sys-lock"))
    (thread-pool :initform (make-thread-pool 4))))
 
 
-(defmethod enable ((this event-system))
-  (with-slots (enabled-p lock thread-pool) this
-    (with-lock-held (lock)
-      (when enabled-p
-        (error "Event system already running"))
-      (open-pool thread-pool)
-      (setf enabled-p t))))
+(defmethod enabledp ((this event-system))
+  (slot-value this 'enabled-p))
 
 
-(defmethod disable ((this event-system))
-  (with-slots (enabled-p lock thread-pool handler-table) this
-    (with-lock-held (lock)
-      (unless enabled-p
-        (error "Event system already stopped"))
-      (close-pool thread-pool)
-      (clrhash handler-table)
-      (setf enabled-p nil))))
+(defmethod initialize-system ((this event-system))
+  (with-slots (enabled-p thread-pool) this
+    (open-pool thread-pool)
+    (setf enabled-p t)))
+
+
+(defmethod discard-system ((this event-system))
+  (with-slots (enabled-p thread-pool handler-table) this
+    (close-pool thread-pool)
+    (clrhash handler-table)
+    (setf enabled-p nil)))
 
 
 ;;;
@@ -49,17 +46,17 @@
 
 
 (defun event-class-registered-p (event-class event-system)
-  (with-slots (lock handler-table) event-system
-    (with-recursive-lock-held (lock)
+  (with-slots (handler-table) event-system
+    (with-system-lock-held (event-system)
       (multiple-value-bind (handler-list present-p) (gethash event-class handler-table)
         (declare (ignore handler-list))
         present-p))))
 
 
 (defun register-event-class (event-class-name event-system)
-  (with-slots (lock handler-table) event-system
+  (with-slots (handler-table) event-system
     (let ((event-class (find-class event-class-name)))
-      (with-recursive-lock-held (lock)
+      (with-system-lock-held (event-system)
         (if (event-class-registered-p event-class event-system)
             (error "Event class ~a already registered" event-class)
             (setf (gethash event-class handler-table) '()))))))
@@ -78,11 +75,11 @@
 
 (declaim (ftype (function (event event-system) *) post))
 (defun post (event event-system)
-  (with-slots (thread-pool lock handler-table) event-system
-    (with-recursive-lock-held (lock)
+  (with-slots (thread-pool handler-table) event-system
+    (with-system-lock-held (event-system)
       (%check-event-class-registration (class-of event) event-system))
     (within-pool (thread-pool)
-      (with-recursive-lock-held (lock)
+      (with-system-lock-held (event-system)
         (loop for handler in (gethash (class-of event) handler-table) do
              (within-pool (thread-pool)
                (funcall handler event)))))))
@@ -91,11 +88,11 @@
 (declaim (ftype (function (symbol (function (event) *) event-system) *) subscribe-to))
 (defun subscribe-to (event-class-name handler event-system)
   (let ((event-class (find-class event-class-name)))
-    (with-slots (thread-pool lock handler-table) event-system
-      (with-recursive-lock-held (lock)
+    (with-slots (thread-pool handler-table) event-system
+      (with-system-lock-held (event-system)
         (%check-event-class-registration event-class event-system))
       (within-pool (thread-pool)
-        (with-recursive-lock-held (lock)
+        (with-system-lock-held (event-system)
           (with-hash-entries ((handlers event-class)) handler-table
             (pushnew handler handlers)))))))
 

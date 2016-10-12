@@ -13,7 +13,7 @@
   :license "MIT"
   :depends-on (alexandria cl-opengl cl-glfw3 cl-muth split-sequence sb-cga cffi clode
                           log4cl bordeaux-threads trivial-main-thread cl-openal cl-alc
-                          cl-fad local-time)
+                          cl-fad local-time blackbird)
   :serial t
   :components ((:file "packages")
                (:module utils
@@ -26,7 +26,8 @@
                                      (:file "matrix")))
                (:module concurrency
                         :serial t
-                        :components ((:file "job-queue")))
+                        :components ((:file "execution")
+                                     (:file "job-queue")))
                (:module resources
                         :serial t
                         :components ((:file "shader-source")))
@@ -34,6 +35,7 @@
                         :serial t
                         :components ((:file "properties")
                                      (:file "engine")
+                                     (:file "generic-system")
                                      (:file "thread-bound-system")))
                (:module event
                         :serial t

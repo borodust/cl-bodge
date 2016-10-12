@@ -4,16 +4,20 @@
 (defclass bodge-engine ()
   ((systems :initform nil)
    (properties :initform '())
+   (thread-pool :initform nil)
    (disabling-order :initform '())))
 (defvar *engine* (make-instance 'bodge-engine))
 
+
+(definline engine ()
+  *engine*)
 
 (defun engine-system (system-name)
   (with-slots (systems) *engine*
     (if-let ((system (gethash system-name systems)))
       system
       (error (format nil "~a not found" system-name)))))
-      
+
 ;;
 (defclass system ()
   ((dependencies :initarg :dependencies :initform '() :reader dependencies-of)))
@@ -22,6 +26,8 @@
 (defgeneric enable (system))
 
 (defgeneric disable (system))
+
+(defgeneric enabledp (system))
 
 ;;
 (defun instantiate-systems (system-class-names &optional sys-alist)
@@ -33,7 +39,7 @@
                 (instantiate-systems (dependencies-of system)
                                      (acons class-name system result))))
        finally (return result)))
-  
+
 
 (defun enable-system (system-class sys-table &optional order)
   (flet ((system-enabled-p (system-class)
@@ -62,11 +68,13 @@
 (defun property (key &optional (default-value nil))
   (with-slots (properties) *engine*
     (%get-property key properties default-value)))
-  
+
 
 (defun startup (properties-pathspec)
-  (with-slots (systems properties disabling-order) *engine*
-    (setf properties (%load-properties properties-pathspec))
+  (with-slots (systems properties disabling-order thread-pool) *engine*
+    (setf properties (%load-properties properties-pathspec)
+          thread-pool (make-thread-pool (property :engine-thread-pool-size 4)))
+    (open-pool thread-pool)
     (let ((system-class-names (property :systems
                                         (lambda ()
                                           (error ":systems property should be defined")))))
@@ -75,7 +83,18 @@
 
 
 (defun shutdown ()
-  (with-slots (systems disabling-order) *engine*
+  (with-slots (systems disabling-order thread-pool) *engine*
     (loop for system-class in disabling-order do
          (log:debug "Disabling ~a" system-class)
-         (disable (gethash system-class systems)))))
+         (disable (gethash system-class systems)))
+    (close-pool thread-pool)))
+
+
+(defmethod execute ((this bodge-engine) fn)
+  (with-slots (thread-pool) this
+    (with-promise (resolve reject)
+      (push-to-pool thread-pool
+                    (lambda ()
+                      (handler-case
+                          (resolve (funcall fn))
+                        (t (e) (reject e))))))))
