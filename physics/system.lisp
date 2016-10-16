@@ -2,8 +2,7 @@
 
 (defstruct (physics-context
              (:conc-name pc-))
-  (universe (make-universe) :read-only t)
-  (last-world-step-time (epoch-seconds-of (now))))
+  (universe (make-universe) :read-only t))
 
 
 (declaim (inline universe))
@@ -30,8 +29,5 @@
   (destroy-universe (pc-universe *system-context*)))
 
 
-(defun observe-universe ()
-  (let ((current-time (epoch-seconds-of (now))))
-    (%observe-universe (universe)
-                       (- current-time (pc-last-world-step-time *system-context*)))
-    (setf (pc-last-world-step-time *system-context*) current-time)))
+(defun observe-universe (timestep)
+  (%observe-universe (universe) timestep))
