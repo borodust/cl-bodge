@@ -17,6 +17,7 @@
 
 
 (defmacro with-bound-buffer ((buffer) &body body)
+  "Do not nest: rebinds to 0 after body execution."
   (once-only (buffer)
     `(unwind-protect
           (progn

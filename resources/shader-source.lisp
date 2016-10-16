@@ -1,17 +1,17 @@
 (in-package :cl-bodge.resources)
 
 
-(deftype shader-source-type ()
-  `(member :vertex-shader
-           :tessellation-control-shader
-           :tessellation-evaluation-shader
-           :geometry-shader
-           :fragment-shader))
+(defenum shader-source-type
+  :vertex-shader
+  :tessellation-control-shader
+  :tessellation-evaluation-shader
+  :geometry-shader
+  :fragment-shader)
 
 
 (defclass shader-source ()
-  ((type :initarg :type :reader shader-type-of)
-   (text :initarg :text :reader shader-text-of)))
+  ((type :initarg :type :reader ge.gx.rsc:shader-type-of)
+   (text :initarg :text :reader ge.gx.rsc:shader-text-of)))
 
 
 (declaim (inline read-file-into-string-list))

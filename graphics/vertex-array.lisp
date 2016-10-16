@@ -15,6 +15,7 @@
 
 
 (defmacro with-bound-vertex-array ((vertex-array) &body body)
+  "Do not nest: rebinds to 0 after body execution."
   `(unwind-protect
         (progn
           (gl:bind-vertex-array (id-of ,vertex-array))

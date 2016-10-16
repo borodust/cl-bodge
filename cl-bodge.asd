@@ -13,7 +13,7 @@
   :license "MIT"
   :depends-on (alexandria cl-opengl cl-glfw3 cl-muth split-sequence sb-cga cffi clode
                           log4cl bordeaux-threads trivial-main-thread cl-openal cl-alc
-                          cl-fad local-time blackbird trivial-garbage)
+                          cl-fad local-time blackbird trivial-garbage opticl)
   :serial t
   :components ((:file "packages")
                (:module utils
@@ -32,9 +32,6 @@
                (:module memory
                         :serial t
                         :components ((:file "disposable")))
-               (:module resources
-                        :serial t
-                        :components ((:file "shader-source")))
                (:module engine
                         :serial t
                         :components ((:file "properties")
@@ -51,11 +48,13 @@
                (:module graphics
                         :serial t
                         :components ((:file "gl")
+                                     (:file "resources")
                                      (:file "renderable")
                                      (:file "buffers")
                                      (:file "vertex-array")
                                      (:file "mesh")
                                      (:file "shading")
+                                     (:file "textures")
                                      (:file "system")))
                (:module audio
                         :serial t
@@ -71,4 +70,8 @@
                                      (:file "mass")
                                      (:file "rigid-body")
                                      (:file "joints")
-                                     (:file "geometry")))))
+                                     (:file "geometry")))
+               (:module resources
+                        :serial t
+                        :components ((:file "shader-source")
+                                     (:file "image")))))

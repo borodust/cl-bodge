@@ -13,7 +13,7 @@
                                   (let ((sexp (read stream t nil t)))
                                     (if (numberp sexp)
                                         (f sexp)
-                                        `(bge.util:f ,sexp))))))
+                                        `(ge.util:f ,sexp))))))
 
 
 (defmacro log-errors (&body body)

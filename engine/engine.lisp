@@ -97,8 +97,9 @@
                     (lambda ()
                       (handler-case
                           (resolve (funcall fn))
-                        (t (e) (log:error e)
-                           (reject e))))))))
+                        (t (e)
+                          (log:error e)
+                          (reject e))))))))
 
 
 ;;

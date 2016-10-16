@@ -22,7 +22,7 @@ Check define-destructor documentation.")
 
 (defmacro define-destructor (class-name (&rest slots) &body body)
   (with-gensyms (this finalized-p-holder)
-    `(defmethod bge.mem::destructor-of ((,this ,class-name))
+    `(defmethod ge.mem::destructor-of ((,this ,class-name))
        (let ,(loop for slot in slots collecting
                   (if (listp slot)
                       `(,(first slot) (%ensure-not-null (,(second slot) ,this)))

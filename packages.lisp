@@ -2,7 +2,7 @@
 
 
 (defpackage :cl-bodge.utils
-  (:nicknames :bge.util)
+  (:nicknames :ge.util)
   (:use :cl :alexandria :local-time)
   (:export log-errors
            with-hash-entries
@@ -19,7 +19,7 @@
 
 
 (defpackage :cl-bodge.concurrency
-  (:nicknames :bge.mt)
+  (:nicknames :ge.mt)
   (:use :cl :alexandria :bordeaux-threads :cl-muth :blackbird)
   (:export make-job-queue
            push-job
@@ -48,7 +48,7 @@
 
 
 (defpackage :cl-bodge.math
-  (:nicknames :bge.math)
+  (:nicknames :ge.math)
   (:use :cl :alexandria :cl-bodge.utils)
   (:export vec
            vec2
@@ -74,7 +74,7 @@
 
 
 (defpackage :cl-bodge.memory
-  (:nicknames :bge.mem)
+  (:nicknames :ge.mem)
   (:use :cl-bodge.utils
         :cl :alexandria :trivial-garbage)
   (:export define-destructor
@@ -84,18 +84,9 @@
            with-disposable))
 
 
-(defpackage :cl-bodge.resources
-  (:nicknames :bge.rsc)
-  (:use :cl :alexandria)
-  (:export read-file-into-string-list
-
-           load-shader-source
-           shader-type-of
-           shader-text-of))
-
 
 (defpackage :cl-bodge.engine
-  (:nicknames :bge.ng)
+  (:nicknames :ge.ng)
   (:use :cl-bodge.utils :cl-bodge.concurrency
         :cl :alexandria :bordeaux-threads :cl-muth)
   (:export system
@@ -125,7 +116,7 @@
            shutdown))
 
 (defpackage :cl-bodge.event
-  (:nicknames :bge.eve)
+  (:nicknames :ge.eve)
   (:use :cl-bodge.engine :cl-bodge.utils
         :cl :alexandria :bordeaux-threads :cl-muth)
   (:export event-system
@@ -139,7 +130,7 @@
 
 
 (defpackage :cl-bodge.host
-  (:nicknames :bge.host)
+  (:nicknames :ge.host)
   (:use :cl-bodge.engine :cl-bodge.utils :cl-bodge.concurrency :cl-bodge.event
         :cl :bordeaux-threads :alexandria :cl-muth :trivial-main-thread)
   (:export host-system
@@ -163,10 +154,24 @@
            height-from))
 
 
+(defpackage :cl-bodge.graphics.resources
+  (:nicknames :ge.gx.rsc)
+  (:use :cl-bodge.utils
+        :cl)
+  (:export pixel-format
+
+           pixel-format-of
+           image->array
+           size-of
+
+           shader-text-of
+           shader-type-of))
+
+
 (defpackage :cl-bodge.graphics
-  (:nicknames :bge.gx)
+  (:nicknames :ge.gx)
   (:use :cl-bodge.engine :cl-bodge.host :cl-bodge.concurrency :cl-bodge.utils
-        :cl-bodge.math :cl-bodge.event :cl-bodge.resources :cl-bodge.memory
+        :cl-bodge.math :cl-bodge.event :cl-bodge.memory :cl-bodge.graphics.resources
         :cl :alexandria :cl-muth :bordeaux-threads)
   (:export graphics-system
 
@@ -186,14 +191,17 @@
 
            make-shading-program
            use-shading-program
-           program-uniform-variable))
+           program-uniform-variable
+
+           with-bound-texture
+           make-2d-texture))
 
 
 (defpackage :cl-bodge.audio
   (:use :cl-bodge.engine :cl-bodge.math :cl-bodge.memory :cl-bodge.concurrency
         :cl-bodge.utils
         :cl :alexandria :cl-muth)
-  (:nicknames :bge.snd)
+  (:nicknames :ge.snd)
   (:export audio-system
 
            listener-gain
@@ -214,7 +222,7 @@
   (:use :cl-bodge.engine :cl-bodge.utils :cl-bodge.math :cl-bodge.memory
         :cl-bodge.concurrency :cl-bodge.utils
         :cl :alexandria :local-time)
-  (:nicknames :bge.phx)
+  (:nicknames :ge.phx)
   (:export physics-system
            observe-universe
 
@@ -240,6 +248,15 @@
            bind-geom
 
            make-box-mass))
+
+
+(defpackage :cl-bodge.resources
+  (:nicknames :ge.rsc)
+  (:use :cl-bodge.utils
+        :cl :alexandria)
+  (:export load-shader-source
+           load-png-image))
+
 
 
 (defpackage :cl-bodge
