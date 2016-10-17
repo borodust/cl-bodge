@@ -1,7 +1,6 @@
 (in-package :cl-bodge.graphics)
 
-(defclass shading-program (gl-object)
-  ()
+(defclass shading-program (gl-object) ()
   (:default-initargs :id (gl:create-program)))
 
 
@@ -18,22 +17,32 @@
     shader))
 
 
-(defun make-program (program shader-sources)
-  (let* ((shaders (loop for src in shader-sources collect
-		       (compile-shader (shader-type-of src) (shader-text-of src)))))
+(defun make-program (this shader-sources)
+  (let ((program (id-of this))
+        (shaders (loop for src in shader-sources collect
+                      (compile-shader (shader-type-of src) (shader-text-of src)))))
     (loop for shader in shaders do (gl:attach-shader program shader))
     (gl:link-program program)
     (log:trace "Program log:~%~a" (gl:get-program-info-log program))
-    (loop for shader in shaders do (gl:delete-shader shader))))
+    (loop for shader in shaders do
+         (gl:detach-shader program shader)
+         (gl:delete-shader shader))))
 
 
-(defmethod initialize-instance :after ((this shading-program) &key shader-sources)
-  (make-program (id-of this) shader-sources))
+(defmethod initialize-instance :after ((this shading-program) &key shader-sources separable-p)
+  (gl:program-parameteri (id-of this) :program-separable separable-p)
+  (make-program this shader-sources))
 
 
 (declaim (inline make-shading-program))
 (defun make-shading-program (system &rest shader-sources)
   (make-instance 'shading-program :system system :shader-sources shader-sources))
+
+
+(declaim (inline make-separable-shading-program))
+(defun make-separable-shading-program (system &rest shader-sources)
+  (make-instance 'shading-program :system system :shader-sources shader-sources
+                 :separable-p t))
 
 
 (defun use-shading-program (program)
@@ -52,6 +61,37 @@
 (defun (setf program-uniform-variable) (value program variable-name)
   (when-let ((variable-idx (gl:get-uniform-location (id-of program) variable-name)))
     (etypecase value
-      (single-float (gl:uniformf variable-idx value))
-      (vec (gl:uniformfv variable-idx (vec->array value)))
-      (mat4 (gl:uniform-matrix variable-idx 4 (vector (mat->array value)) nil)))))
+      (single-float (gl:program-uniformf (id-of program) variable-idx value))
+      (vec (gl:program-uniformfv (id-of program) variable-idx (vec->array value)))
+      (mat4 (gl:program-uniform-matrix (id-of program) variable-idx 4
+                                       (vector (mat->array value)) nil)))))
+
+
+;;;
+;;; Shading program pipeline
+;;;
+(defclass shading-pipeline (gl-object) ()
+  (:default-initargs :id (gl:gen-program-pipeline)))
+
+
+(define-destructor shading-pipeline ((id id-of) (sys system-of))
+  (-> sys
+    (gl:delete-program-pipelines (list id))))
+
+
+(defun make-shading-pipeline (system)
+  (make-instance 'shading-pipeline :system system))
+
+(defmacro with-bound-shading-pipeline ((pipeline &optional previous) &body body)
+  (once-only (previous)
+    `(unwind-protect
+          (progn
+            (gl:bind-program-pipeline (id-of ,pipeline))
+            ,@body)
+       (if (null ,previous)
+           (gl:bind-program-pipeline 0)
+           (gl:bind-program-pipeline (id-of ,previous))))))
+
+
+(defun use-shading-program-stages (pipeline program &rest stages)
+  (apply #'gl:use-program-stages (id-of pipeline) (id-of program) stages))

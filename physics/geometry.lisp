@@ -1,8 +1,8 @@
 (in-package :cl-bodge.physics)
 
 
-(defclass geom (ode-object) ())
-
+(defclass geom (ode-object)
+  ())
 
 
 (define-destructor geom ((id id-of) (sys system-of))
@@ -10,13 +10,20 @@
     (ode:geom-destroy id)))
 
 
-(defun bind-geom (geom rigid-body)
-    (ode:geom-set-body (id-of geom) (id-of rigid-body)))
+;;;
+;;;
+;;;
+(defclass volume-geom (geom) ())
+
+
+(defgeneric bind-geom (geom rigid-body)
+  (:method ((this volume-geom) rigid-body)
+    (ode:geom-set-body (id-of this) (id-of rigid-body))))
 
 ;;;
 ;;;
 ;;;
-(defclass sphere-geom (geom) ())
+(defclass sphere-geom (volume-geom) ())
 
 
 (defun make-sphere-geom (system radius)
@@ -28,7 +35,7 @@
 ;;;
 ;;;
 ;;;
-(defclass box-geom (geom) ())
+(defclass box-geom (volume-geom) ())
 
 
 (defun make-box-geom (system x y z)
@@ -52,7 +59,7 @@
 ;;;
 ;;;
 ;;;
-(defclass capped-cylinder-geom (geom) ())
+(defclass capped-cylinder-geom (volume-geom) ())
 
 
 (defun make-capped-cylinder-geom (system radius length)

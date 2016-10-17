@@ -30,6 +30,10 @@
   (sb-cga:rotate* x y z))
 
 
+(definline rotation-mat4 (vec)
+  (sb-cga:rotate vec))
+
+
 (definline translation-mat4* (x y z)
   (sb-cga:translate* x y z))
 

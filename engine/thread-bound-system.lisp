@@ -35,17 +35,14 @@
 
 
 (defmethod execute ((this thread-bound-system) fn)
-  (with-system-lock-held (this)
-    (unless (enabledp this)
-      (error "Can't execute tasks. System ~a disabled" (class-name (class-of this))))
-    (with-promise (resolve reject)
-      (handler-case
-          (put-into (%job-queue-of this)
-                    (lambda ()
-                      (handler-case
-                          (resolve (funcall fn))
-                        (t (e) (log:error e) (reject e)))))
-        (interrupted ()))))) ; just continue execution
+  (with-promise (resolve reject)
+    (handler-case
+        (put-into (%job-queue-of this)
+                  (lambda ()
+                    (handler-case
+                        (resolve (funcall fn))
+                      (t (e) (log:error e) (reject e)))))
+      (interrupted ())))) ; just continue execution
 
 
 (defmethod enable ((this thread-bound-system))
@@ -60,7 +57,7 @@
              (unwind-protect
                   (progn
                     (with-system-lock-held (this)
-                      (setf (%job-queue-of this) (make-blocking-queue 512))
+                      (setf (%job-queue-of this) (make-blocking-queue 256))
                       (initialize-system this)
                       (setf thread (current-thread)))
                     (open-latch latch)

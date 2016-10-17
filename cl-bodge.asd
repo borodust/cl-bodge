@@ -74,4 +74,7 @@
                (:module resources
                         :serial t
                         :components ((:file "shader-source")
-                                     (:file "image")))))
+                                     (:file "image")))
+               (:module scene
+                        :serial t
+                        :components ((:file "scene")))))

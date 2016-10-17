@@ -2,19 +2,19 @@
 
 
 (defenum texture-format
-  :gray :rgb :rgba)
+  :grey :rgb :rgba)
 
 
 (defun %pixel-format->external-format (value)
   (ecase value
-    (:gray :red)
+    (:grey :red)
     (:rgb :rgb)
     (:rgba :rgba)))
 
 
 (defun %texture-format->internal-format (value)
   (ecase value
-    (:gray :r8)
+    (:grey :r8)
     (:rgb :rgb8)
     (:rgba :rgba8)))
 

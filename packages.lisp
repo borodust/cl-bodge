@@ -15,7 +15,8 @@
            definline
            copy-memory
 
-           ensure-not-null))
+           ensure-not-null
+           if-unbound))
 
 
 (defpackage :cl-bodge.concurrency
@@ -190,11 +191,16 @@
            make-indexed-mesh
 
            make-shading-program
+           make-separable-shading-program
            use-shading-program
            program-uniform-variable
 
            with-bound-texture
-           make-2d-texture))
+           make-2d-texture
+
+           make-shading-pipeline
+           use-shading-program-stages
+           with-bound-shading-pipeline))
 
 
 (defpackage :cl-bodge.audio
@@ -257,6 +263,37 @@
   (:export load-shader-source
            load-png-image))
 
+
+(defpackage :cl-bodge.scene
+  (:nicknames :ge.sg)
+  (:use :cl-bodge.utils :cl-bodge.engine :cl-bodge.graphics :cl-bodge.physics
+        :cl-bodge.math :cl-bodge.concurrency :cl-bodge.host
+        :cl :alexandria)
+  (:export scene
+           animate
+           adopt
+
+           *scene*
+           *projection-matrix*
+           *transform-matrix*
+
+           node
+           find-node
+           simulate
+           body-transform-node
+           shading-pipeline-node
+           texture-node
+           mesh-node
+           projection-node
+           update-projection
+           camera-node
+           translate-camera
+           rotate-camera
+           shading-program-node
+           shading-parameters-node
+           transform-node
+
+           scenegraph))
 
 
 (defpackage :cl-bodge

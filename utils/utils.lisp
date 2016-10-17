@@ -24,12 +24,17 @@
 
 (defmacro with-hash-entries ((&rest keys) hash-table &body body)
   (once-only (hash-table)
-    `(symbol-macrolet (,@(loop for key in keys collecting
-			      (if (listp key)
-				  (destructuring-bind (key-name key-value) key
-				    `(,key-name (gethash ,key-value ,hash-table)))
-				  `(,key (gethash ,(make-keyword key) ,hash-table)))))
-       ,@body)))
+    (multiple-value-bind (lets mlets)
+        (loop for key in keys
+           for (val-name key-name key-value) = (if (listp key)
+                                                            (append key (list (gensym)))
+                                                            (list key key (gensym)))
+           collecting `(,val-name (gethash ,key-value ,hash-table)) into mlets
+           collecting `(,key-value ,key-name) into lets
+           finally (return (values lets mlets)))
+      `(let ,lets
+         (symbol-macrolet ,mlets
+           ,@body)))))
 
 
 (defmacro make-hash-table-with-entries ((&rest keys) (&rest initargs) &body body)
@@ -104,3 +109,7 @@
     `(if (null ,v)
          (error "Value of ~a must not be null" ',value)
        ,v)))
+
+
+(defmacro if-unbound (symbol value)
+  `(if (boundp ',symbol) ,symbol ,value))

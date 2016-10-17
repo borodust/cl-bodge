@@ -14,7 +14,7 @@
 (defun load-png-image (path)
   (let* ((data (opticl:read-png-file path))
          (format (typecase data
-                   (opticl:8-bit-gray-image :gray)
+                   (opticl:8-bit-gray-image :grey)
                    (opticl:8-bit-rgb-image :rgb)
                    (opticl:8-bit-rgba-image :rgba))))
     (opticl:with-image-bounds (w h) data
@@ -33,7 +33,7 @@
   (loop with width = (width-of this)
      and height = (height-of this)
      and channels = (ecase (ge.gx.rsc:pixel-format-of this)
-                      (:gray 1)
+                      (:grey 1)
                       (:rgb 3)
                       (:rgba 4))
      and data = (pixels-of this)
