@@ -7,7 +7,7 @@
 
 (defsystem cl-bodge
   :description "Bodacious Game Engine"
-  :version "0.0.1"
+  :version "0.1.0"
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
