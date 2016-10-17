@@ -25,6 +25,7 @@
            push-job
            push-body-into
            drain
+           clearup
 
            ->
            execute
@@ -104,7 +105,6 @@
            thread-bound-system
            make-system-context
            destroy-system-context
-           continue-looping
            start-system-loop
            *system-context*
            check-system-context

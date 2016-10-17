@@ -6,9 +6,7 @@
 
 (defclass thread-bound-system (generic-system)
   ((thread :initform nil)
-   (job-queue :initform (make-job-queue) :reader %job-queue-of)
-   (loop-lock :initform (make-lock "tbs-loop-lock"))
-   (loop-condition :initform (make-condition-variable :name "tbs-loop-condition"))
+   (job-queue :initform nil :accessor %job-queue-of)
    (context :initform nil)))
 
 
@@ -27,32 +25,27 @@
   (:method (context system) (declare (ignore context system))))
 
 
-(defgeneric continue-looping (system)
-  (:method ((this thread-bound-system))
-    (with-slots (loop-condition) this
-      (condition-notify loop-condition))))
-
-
 (defgeneric start-system-loop (system)
   (:method ((this thread-bound-system))
-    (with-slots (loop-lock loop-condition job-queue) this
-     (with-lock-held (loop-lock)
-       (loop while (enabledp this)
-          with i = 0
-          for count = (drain (%job-queue-of this))
-          when (= 0 count) do (incf i) else do (setf i 0)
-          when (> i 1000) do (condition-wait loop-condition loop-lock))))))
+    (loop while (enabledp this) do
+         (handler-case
+             (funcall (pop-from (%job-queue-of this)))
+           (interrupted ()) ; just continue execution
+           (t (e) (log:error "Unexpected error during task execution: ~a" e))))))
 
 
 (defmethod execute ((this thread-bound-system) fn)
   (with-system-lock-held (this)
+    (unless (enabledp this)
+      (error "Can't execute tasks. System ~a disabled" (class-name (class-of this))))
     (with-promise (resolve reject)
-      (push-job (lambda ()
-                  (handler-case
-                      (resolve (funcall fn))
-                    (t (e) (log:error e) (reject e))))
-                (%job-queue-of this))
-      (continue-looping this))))
+      (handler-case
+          (put-into (%job-queue-of this)
+                    (lambda ()
+                      (handler-case
+                          (resolve (funcall fn))
+                        (t (e) (log:error e) (reject e)))))
+        (interrupted ()))))) ; just continue execution
 
 
 (defmethod enable ((this thread-bound-system))
@@ -67,6 +60,7 @@
              (unwind-protect
                   (progn
                     (with-system-lock-held (this)
+                      (setf (%job-queue-of this) (make-blocking-queue 512))
                       (initialize-system this)
                       (setf thread (current-thread)))
                     (open-latch latch)
@@ -88,8 +82,8 @@
       (with-system-lock-held (this)
         (unless (enabledp this)
           (error "~a already disabled" (class-name (class-of this))))
-        (-> this
-          (setf thread nil)))
+        (setf thread nil)
+        (interrupt (%job-queue-of this)))
       (join-thread system-thread))))
 
 

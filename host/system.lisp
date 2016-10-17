@@ -113,13 +113,14 @@
 
 
 (defmethod disable ((this host-system))
-  (with-slots (enabled-p state-condi-var) this
+  (with-slots (enabled-p state-condi-var job-queue) this
     (with-system-lock-held (this state-lock)
       (unless enabled-p
         (error "Host system already disabled"))
       (-> this
         (with-system-lock-held (this)
-          (setf enabled-p nil)))
+          (setf enabled-p nil)
+          (clearup job-queue)))
       (loop while enabled-p do
            (condition-wait state-condi-var state-lock)))))
 

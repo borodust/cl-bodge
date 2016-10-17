@@ -20,3 +20,8 @@
                  (pop queue))
      until (null job) do (funcall job)
      finally (return count)))
+
+
+(defun clearup (job-queue)
+  (with-guarded-reference (queue (job-queue-queue job-queue))
+    (setf queue '())))
