@@ -13,7 +13,6 @@
   (let ((shader (gl:create-shader type)))
     (gl:shader-source shader source)
     (gl:compile-shader shader)
-    (log:trace "Compilation log for ~a:~%~a" shader (gl:get-shader-info-log shader))
     shader))
 
 
@@ -23,7 +22,16 @@
                       (compile-shader (shader-type-of src) (shader-text-of src)))))
     (loop for shader in shaders do (gl:attach-shader program shader))
     (gl:link-program program)
-    (log:trace "Program log:~%~a" (gl:get-program-info-log program))
+    (unless (gl:get-program program :link-status)
+      (let ((shader-logs (apply #'concatenate 'string
+                                (loop for shader in shaders collecting
+                                     (format nil "~%~a:~%~a"
+                                             (cffi:foreign-enum-keyword
+                                              '%gl:enum
+                                              (gl:get-shader shader :shader-type))
+                                             (gl:get-shader-info-log shader)))))
+            (program-log (gl:get-program-info-log program)))
+        (error "Program linking failed. Logs:~%~a~%~a" shader-logs program-log)))
     (loop for shader in shaders do
          (gl:detach-shader program shader)
          (gl:delete-shader shader))))
@@ -53,18 +61,21 @@
   (and (not (null program)) (gl:is-program (id-of program))))
 
 
+#|
+;; fixme: find out appropriate return type
 (defun program-uniform-variable (program variable-name)
   (when-let ((variable-idx (gl:get-uniform-location (id-of program) variable-name)))
     (gl:get-active-uniform (id-of program) variable-idx)))
-
+|#
 
 (defun (setf program-uniform-variable) (value program variable-name)
   (when-let ((variable-idx (gl:get-uniform-location (id-of program) variable-name)))
     (etypecase value
       (single-float (gl:program-uniformf (id-of program) variable-idx value))
       (vec (gl:program-uniformfv (id-of program) variable-idx (vec->array value)))
-      (mat4 (gl:program-uniform-matrix (id-of program) variable-idx 4
-                                       (vector (mat->array value)) nil)))))
+      (square-mat (gl:program-uniform-matrix (id-of program) variable-idx
+                                                (square-matrix-size value)
+                                                (vector (mat->array value)) nil)))))
 
 
 ;;;

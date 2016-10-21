@@ -39,10 +39,10 @@
     (handler-case
         (put-into (%job-queue-of this)
                   (lambda ()
-                    (handler-case
-                        (resolve (funcall fn))
-                      (t (e) (log:error e) (reject e)))))
-      (interrupted ())))) ; just continue execution
+                    (handler-bind ((t (lambda (e) (log:error "~a" e) (break) (reject e))))
+                      (resolve (funcall fn)))))
+      (interrupted () (error "Cannot execute task: ~a offline."
+                             (class-name (class-of this)))))))
 
 
 (defmethod enable ((this thread-bound-system))

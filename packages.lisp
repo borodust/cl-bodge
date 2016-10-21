@@ -62,7 +62,11 @@
            vref
 
            mat
+           square-mat
+           mat2
+           mat3
            mat4
+           square-matrix-size
            mref
            mat->array
            identity-mat4
@@ -71,8 +75,11 @@
            translation-mat4
            translation-mat4*
            scaling-mat4*
+           mat4->mat3
+           make-mat3
            perspective-projection-mat
-           m*))
+           m*
+           mv*))
 
 
 (defpackage :cl-bodge.memory
@@ -268,7 +275,7 @@
   (:nicknames :ge.sg)
   (:use :cl-bodge.utils :cl-bodge.engine :cl-bodge.graphics :cl-bodge.physics
         :cl-bodge.math :cl-bodge.concurrency :cl-bodge.host
-        :cl :alexandria)
+        :cl :alexandria :cl-muth)
   (:export scene
            animate
            adopt
@@ -279,7 +286,8 @@
 
            node
            find-node
-           simulate
+           simulation-pass
+           rendering-pass
            body-transform-node
            shading-pipeline-node
            texture-node
@@ -291,7 +299,7 @@
            rotate-camera
            shading-program-node
            shading-parameters-node
-           transform-node
+           directional-light-node
 
            scenegraph))
 

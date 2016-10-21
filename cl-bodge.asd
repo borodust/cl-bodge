@@ -23,7 +23,8 @@
                         :serial t
                         :components ((:file "types")
                                      (:file "vector")
-                                     (:file "matrix")))
+                                     (:file "matrix")
+                                     (:file "matvec")))
                (:module concurrency
                         :serial t
                         :components ((:file "async")
@@ -77,4 +78,8 @@
                                      (:file "image")))
                (:module scene
                         :serial t
-                        :components ((:file "scene")))))
+                        :components ((:file "node")
+                                     (:file "scene")
+                                     (:file "transformations")
+                                     (:file "rendering")
+                                     (:file "lighting")))))
