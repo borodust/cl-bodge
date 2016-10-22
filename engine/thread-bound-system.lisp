@@ -25,24 +25,38 @@
   (:method (context system) (declare (ignore context system))))
 
 
+(defmacro %log-unexpected-error (block-name)
+  `(lambda (e)
+     (log:error "Unexpected error during task execution: ~a" e)
+     (break)
+     (return-from ,block-name)))
+
+
 (defgeneric start-system-loop (system)
   (:method ((this thread-bound-system))
-    (loop while (enabledp this) do
-         (handler-case
-             (funcall (pop-from (%job-queue-of this)))
-           (interrupted ()) ; just continue execution
-           (t (e) (log:error "Unexpected error during task execution: ~a" e))))))
+      (loop while (enabledp this) do
+           (block interruptible
+             (handler-bind ((interrupted (lambda (e)
+                                           (declare (ignore e))
+                                           (return-from interruptible))) ; leave loop
+                            (t (%log-unexpected-error interruptible)))
+               (funcall (pop-from (%job-queue-of this))))))))
 
 
 (defmethod execute ((this thread-bound-system) fn)
   (with-promise (resolve reject)
-    (handler-case
-        (put-into (%job-queue-of this)
-                  (lambda ()
+    (handler-bind ((interrupted (lambda (e)
+                                  (declare (ignore e))
+                                  (error "Cannot execute task: ~a offline."
+                                         (class-name (class-of this)))))
+                   (t (lambda (e) (reject e))))
+      (let ((task (lambda ()
                     (handler-bind ((t (lambda (e) (log:error "~a" e) (break) (reject e))))
-                      (resolve (funcall fn)))))
-      (interrupted () (error "Cannot execute task: ~a offline."
-                             (class-name (class-of this)))))))
+                      (resolve (funcall fn))))))
+        (with-slots (thread) this
+          (if (eq (bt:current-thread) (with-system-lock-held (this) thread))
+              (funcall task)
+              (put-into (%job-queue-of this) task)))))))
 
 
 (defmethod enable ((this thread-bound-system))

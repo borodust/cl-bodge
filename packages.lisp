@@ -16,12 +16,30 @@
            copy-memory
 
            ensure-not-null
-           if-unbound))
+           if-unbound
+
+           class-name-of
+           dolines))
 
 
 (defpackage :cl-bodge.concurrency
   (:nicknames :ge.mt)
-  (:use :cl :alexandria :bordeaux-threads :cl-muth :blackbird)
+  (:use :cl :alexandria :bordeaux-threads :cl-muth)
+  (:import-from :blackbird
+                promisep
+                promise-finished-p
+                create-promise
+                with-promise
+                promisify
+                attach
+                catcher
+                tap
+                finally
+                alet
+                alet*
+                aif
+                multiple-promise-bind
+                all)
   (:export make-job-queue
            push-job
            push-body-into
@@ -42,6 +60,7 @@
            finally
            when-all
            when-all*
+           wait-for
            alet
            alet*
            aif
@@ -197,8 +216,12 @@
            make-mesh
            make-indexed-mesh
 
+           compile-shader
            make-shading-program
            make-separable-shading-program
+           link-separable-shading-program
+           build-separable-shading-program
+
            use-shading-program
            program-uniform-variable
 
@@ -265,10 +288,13 @@
 
 (defpackage :cl-bodge.resources
   (:nicknames :ge.rsc)
-  (:use :cl-bodge.utils
-        :cl :alexandria)
+  (:use :cl-bodge.utils :cl-bodge.graphics :cl-bodge.graphics.resources
+        :cl-bodge.concurrency :cl-bodge.memory
+        :cl :alexandria :cl-muth)
   (:export load-shader-source
-           load-png-image))
+           load-png-image
+           build-shading-program))
+
 
 
 (defpackage :cl-bodge.scene

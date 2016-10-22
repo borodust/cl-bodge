@@ -11,7 +11,7 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (alexandria cl-opengl cl-glfw3 cl-muth split-sequence sb-cga cffi clode
+  :depends-on (alexandria cl-opengl cl-glfw3 cl-muth sb-cga cffi clode
                           log4cl bordeaux-threads trivial-main-thread cl-openal cl-alc
                           cl-fad local-time blackbird trivial-garbage opticl)
   :serial t
@@ -75,7 +75,11 @@
                (:module resources
                         :serial t
                         :components ((:file "shader-source")
-                                     (:file "image")))
+                                     (:file "shader-library")
+                                     (:file "image")
+                                     (:module shaders
+                                              :components
+                                              ((:file "lighting")))))
                (:module scene
                         :serial t
                         :components ((:file "node")

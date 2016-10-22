@@ -1,5 +1,33 @@
 (in-package :cl-bodge.graphics)
 
+
+(defclass shader (gl-object)
+  ((type :initarg :type :reader shader-type-of)))
+
+
+(define-destructor shader ((id id-of) (sys system-of))
+  (-> sys
+    (gl:delete-shader id)))
+
+
+(defun %compile-shader (type source)
+  (let ((shader (gl:create-shader type)))
+    (gl:shader-source shader source)
+    (gl:compile-shader shader)
+    shader))
+
+
+(defmethod initialize-instance ((this shader) &key type source system)
+  (call-next-method this :id (%compile-shader type source) :system system :type type))
+
+
+(definline compile-shader (system type source)
+  (make-instance 'shader :type type :source source :system system))
+
+
+;;;
+;;;
+;;;
 (defclass shading-program (gl-object) ()
   (:default-initargs :id (gl:create-program)))
 
@@ -9,48 +37,54 @@
     (gl:delete-program id)))
 
 
-(defun compile-shader (type source)
-  (let ((shader (gl:create-shader type)))
-    (gl:shader-source shader source)
-    (gl:compile-shader shader)
-    shader))
+(defun %make-program (this shader-sources precompiled-shaders)
+  (let* ((program (id-of this))
+         (shaders (loop for src in shader-sources collect
+                       (compile-shader (system-of this)
+                                       (shader-type-of src)
+                                       (shader-text-of src))))
+         (all-shaders (append precompiled-shaders shaders)))
+    (unwind-protect
+         (loop for shader in all-shaders do
+              (gl:attach-shader program (id-of shader)))
+      (gl:link-program program)
+      (unless (gl:get-program program :link-status)
+        (let ((shader-logs (apply #'concatenate 'string
+                                  (loop for shader in all-shaders collecting
+                                       (format nil "~%~a:~%~a"
+                                               (shader-type-of shader)
+                                               (gl:get-shader-info-log (id-of shader))))))
+              (program-log (gl:get-program-info-log program)))
+          (error "Program linking failed. Logs:~%~a~%~a" shader-logs program-log)))
+      (loop for shader in all-shaders do
+           (gl:detach-shader program (id-of shader)))
+      (loop for shader in shaders do
+           (dispose shader)))))
 
 
-(defun make-program (this shader-sources)
-  (let ((program (id-of this))
-        (shaders (loop for src in shader-sources collect
-                      (compile-shader (shader-type-of src) (shader-text-of src)))))
-    (loop for shader in shaders do (gl:attach-shader program shader))
-    (gl:link-program program)
-    (unless (gl:get-program program :link-status)
-      (let ((shader-logs (apply #'concatenate 'string
-                                (loop for shader in shaders collecting
-                                     (format nil "~%~a:~%~a"
-                                             (cffi:foreign-enum-keyword
-                                              '%gl:enum
-                                              (gl:get-shader shader :shader-type))
-                                             (gl:get-shader-info-log shader)))))
-            (program-log (gl:get-program-info-log program)))
-        (error "Program linking failed. Logs:~%~a~%~a" shader-logs program-log)))
-    (loop for shader in shaders do
-         (gl:detach-shader program shader)
-         (gl:delete-shader shader))))
-
-
-(defmethod initialize-instance :after ((this shading-program) &key shader-sources separable-p)
+(defmethod initialize-instance :after ((this shading-program)
+                                       &key shader-sources shaders separable-p)
   (gl:program-parameteri (id-of this) :program-separable separable-p)
-  (make-program this shader-sources))
+  (%make-program this shader-sources shaders))
 
 
-(declaim (inline make-shading-program))
-(defun make-shading-program (system &rest shader-sources)
+(definline make-shading-program (system &rest shader-sources)
   (make-instance 'shading-program :system system :shader-sources shader-sources))
 
 
-(declaim (inline make-separable-shading-program))
-(defun make-separable-shading-program (system &rest shader-sources)
+(definline make-separable-shading-program (system &rest shader-sources)
   (make-instance 'shading-program :system system :shader-sources shader-sources
                  :separable-p t))
+
+
+(definline link-separable-shading-program (system &rest shaders)
+  (make-instance 'shading-program :system system :shaders shaders
+                 :separable-p t))
+
+
+(definline build-separable-shading-program (system shader-sources shaders)
+  (make-instance 'shading-program :system system :shaders shaders
+                 :shader-sources shader-sources :separable-p t))
 
 
 (defun use-shading-program (program)
@@ -74,8 +108,8 @@
       (single-float (gl:program-uniformf (id-of program) variable-idx value))
       (vec (gl:program-uniformfv (id-of program) variable-idx (vec->array value)))
       (square-mat (gl:program-uniform-matrix (id-of program) variable-idx
-                                                (square-matrix-size value)
-                                                (vector (mat->array value)) nil)))))
+                                             (square-matrix-size value)
+                                             (vector (mat->array value)) nil)))))
 
 
 ;;;

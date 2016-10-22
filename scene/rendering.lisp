@@ -107,12 +107,16 @@
 ;;;
 (defclass shading-program-node (node)
   ((program :initarg :program)
+   (stages :initarg :stages :initform :all-shader)
    (parameters :initarg :parameters)))
 
 
 (defmethod rendering-pass ((this shading-program-node))
-  (with-slots (program parameters) this
-    (use-shading-program-stages *shading-pipeline* program :all-shader)
+  (with-slots (program parameters stages) this
+    (apply #'use-shading-program-stages (append (list *shading-pipeline* program)
+                                                (if (listp stages)
+                                                    stages
+                                                    (list stages))))
     (with-bound-parameters (parameters program)
       (call-next-method))))
 

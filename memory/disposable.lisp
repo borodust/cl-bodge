@@ -5,12 +5,31 @@
   (:method (obj) '()))
 
 
+(defstruct holder
+  (value nil :type boolean))
+
+
+(defclass disposable ()
+  ((finalized-p :initform (make-holder))))
+
+
+(defun finalizedp (disposable)
+  (holder-value (slot-value disposable 'finalized-p)))
+
+
+(defmethod initialize-instance :around ((this disposable) &key)
+  (call-next-method)
+  (if-let ((destructor (destructor-of this)))
+    (loop for finalizer in (destructor-of this) do
+         (finalize this finalizer))))
+
+
 (definline dispose (obj)
   (if (finalizedp obj)
       (error "Attempt to dispose already finalized object.")
       (loop for finalizer in (destructor-of obj) do
            (funcall finalizer)
-         finally (setf (slot-value obj 'finalized-p) t))))
+         finally (setf (holder-value (slot-value obj 'finalized-p)) t))))
 
 
 (definline %ensure-not-null (value)
@@ -31,25 +50,6 @@ Check define-destructor documentation.")
            (cons (lambda () (unless (holder-value ,finalized-p-holder)
                               ,@body))
                  (call-next-method)))))))
-
-
-(defstruct holder
-  (value nil :type boolean))
-
-
-(defclass disposable ()
-  ((finalized-p :initform (make-holder))))
-
-
-(defun finalizedp (disposable)
-  (holder-value (slot-value disposable 'finalized-p)))
-
-
-(defmethod initialize-instance :around ((this disposable) &key)
-  (call-next-method)
-  (if-let ((destructor (destructor-of this)))
-    (loop for finalizer in (destructor-of this) do
-         (finalize this finalizer))))
 
 
 (defmacro with-disposable ((var) obj &body body)

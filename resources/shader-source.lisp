@@ -10,16 +10,12 @@
 
 
 (defclass shader-source ()
-  ((type :initarg :type :reader ge.gx.rsc:shader-type-of)
-   (text :initarg :text :reader ge.gx.rsc:shader-text-of)))
-
-
-(declaim (inline read-file-into-string-list))
-(defun read-file-into-string-list (pathname)
-  (split-sequence:split-sequence "#\Newline" (read-file-into-string pathname)))
+  ((type :initarg :type :reader shader-type-of)
+   (text :initarg :text :reader shader-text-of)))
 
 
 (declaim (ftype (function (shader-source-type *) *) load-shader-source)
          (inline load-shader-source))
 (defun load-shader-source (type pathspec)
-  (make-instance 'shader-source :type type :text (read-file-into-string-list pathspec)))
+  (make-instance 'shader-source :type type
+                 :text (read-file-into-string pathspec)))
