@@ -1,33 +1,32 @@
 (in-package :cl-bodge.physics)
 
 (defstruct (physics-context
-             (:conc-name pc-))
+             (:conc-name ctx-))
   (universe (make-universe) :read-only t))
 
 
 (declaim (inline universe))
 (defun universe ()
-  (pc-universe *system-context*))
+  (ctx-universe *system-context*))
 
 
 (defclass physics-system (thread-bound-system) ())
 
 
-(defmethod initialize-system :after ((this physics-system))
-  (ode:init-ode))
-
-
-(defmethod discard-system :after ((this physics-system))
-  (ode:close-ode))
-
-
 (defmethod make-system-context ((this physics-system))
+  (ode:init-ode)
   (make-physics-context))
 
 
 (defmethod destroy-system-context (ctx (this physics-system))
-  (destroy-universe (pc-universe *system-context*)))
+  (destroy-universe (ctx-universe *system-context*))
+  (ode:close-ode))
 
 
 (defun observe-universe (timestep)
   (%observe-universe (universe) timestep))
+
+
+(defun (setf gravity) (vec)
+  (ode:world-set-gravity (world-of (universe))
+                         (vref vec 0) (vref vec 1) (vref vec 2)))

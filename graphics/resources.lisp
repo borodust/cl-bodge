@@ -19,3 +19,5 @@
 ;;;
 (defgeneric shader-text-of (resource))
 (defgeneric shader-type-of (resource))
+(defgeneric shader-name-of (resource))
+(defgeneric reload-shader-text (resource))

@@ -17,9 +17,13 @@
 
 
 (defmacro log-errors (&body body)
-  `(handler-case
-       (progn ,@body)
-     (t (e) (log:error "Unhandled error: ~a" e))))
+  (with-gensyms (name)
+    `(block ,name
+       (handler-bind ((t (lambda (e)
+                           (log:error "Unhandled error: ~a" e)
+                           (break)
+                           (return-from ,name))))
+         (progn ,@body)))))
 
 
 (defmacro with-hash-entries ((&rest keys) hash-table &body body)
@@ -37,7 +41,7 @@
            ,@body)))))
 
 
-(defmacro make-hash-table-with-entries ((&rest keys) (&rest initargs) &body body)
+(defmacro make-hash-table-with-entries ((&rest initargs) (&rest keys) &body body)
   (with-gensyms (table)
     `(let ((,table (make-hash-table ,@initargs)))
        (with-hash-entries (,@keys) ,table
@@ -129,3 +133,46 @@
           do (progn ,@body (setf ,line-start (1+ ,line-end)))
           until (= ,line-end ,slen)
           finally (return ,result-form)))))
+
+
+;;;
+;;;
+;;;
+(defclass parent ()
+  ((children :initform '() :reader children-of)))
+
+
+(defgeneric adopt (parent child)
+  (:method ((this parent) child)
+    (with-slots (children) this
+      (nconcf children (list child)))))
+
+
+(defgeneric abandon (parent child)
+  (:method ((this parent) child)
+    (with-slots (children) this
+      (deletef children child))))
+
+
+(defmacro dochildren ((var parent) &body body)
+  `(dolist (,var (children-of ,parent))
+     ,@body))
+
+
+(defun %do-tree-preorder (root action)
+  (funcall action root)
+  (dochildren (ch root)
+    (%do-tree-preorder ch action)))
+
+
+(defun %do-tree-postorder (root action)
+  (dochildren (ch root)
+    (%do-tree-postorder ch action))
+  (funcall action root))
+
+
+(defmacro dotree ((var root &optional (order :pre)) &body body)
+  (let ((fn (ecase order
+              (:pre '%do-tree-preorder)
+              (:post '%do-tree-preorder))))
+    `(,fn ,root (lambda (,var) ,@body))))

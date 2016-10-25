@@ -19,7 +19,14 @@
            if-unbound
 
            class-name-of
-           dolines))
+           dolines
+
+           parent
+           adopt
+           abandon
+           dochildren
+           children-of
+           dotree))
 
 
 (defpackage :cl-bodge.concurrency
@@ -60,7 +67,8 @@
            finally
            when-all
            when-all*
-           wait-for
+           wait-let
+           wait
            alet
            alet*
            aif
@@ -77,7 +85,11 @@
            vec4
            vec->array
            make-vec3
+           make-vec3*
+           make-vec2*
+           make-vec4*
            sequence->vec3
+           v+
            vref
 
            mat
@@ -192,7 +204,9 @@
            size-of
 
            shader-text-of
-           shader-type-of))
+           shader-type-of
+           shader-name-of
+           reload-shader-text))
 
 
 (defpackage :cl-bodge.graphics
@@ -201,10 +215,9 @@
         :cl-bodge.math :cl-bodge.event :cl-bodge.memory :cl-bodge.graphics.resources
         :cl :alexandria :cl-muth :bordeaux-threads)
   (:export graphics-system
+           in-wireframe-mode
 
            render
-           rendering-group
-           add-renderable
 
            make-vertex-array
 
@@ -214,7 +227,7 @@
 
            primitive
            make-mesh
-           make-indexed-mesh
+           make-patch-mesh
 
            compile-shader
            make-shading-program
@@ -296,36 +309,58 @@
            build-shading-program))
 
 
+(defpackage :cl-bodge.animation
+  (:nicknames :ge.ani)
+  (:use :cl-bodge.utils
+        :cl :alexandria)
+  (:export))
+
 
 (defpackage :cl-bodge.scene
   (:nicknames :ge.sg)
   (:use :cl-bodge.utils :cl-bodge.engine :cl-bodge.graphics :cl-bodge.physics
-        :cl-bodge.math :cl-bodge.concurrency :cl-bodge.host
+        :cl-bodge.math :cl-bodge.concurrency :cl-bodge.host :cl-bodge.memory
+        :cl-bodge.resources
         :cl :alexandria :cl-muth)
-  (:export scene
+  (:export node
+           find-node
+           node-attaching
+           node-detached
+           parent-of
+
+           make-scene
+           root-of
+           simulation-pass
+           rendering-pass
            animate
-           adopt
+           node-enabled-p
+           initialize-node
+           discard-node
 
            *scene*
            *projection-matrix*
            *transform-matrix*
 
-           node
-           find-node
-           simulation-pass
-           rendering-pass
            body-transform-node
            shading-pipeline-node
            texture-node
+
            mesh-node
+           make-node-mesh
+
            projection-node
            update-projection
+
            camera-node
            translate-camera
            rotate-camera
+
            shading-program-node
            shading-parameters-node
            directional-light-node
+
+           model
+           make-model-graph
 
            scenegraph))
 

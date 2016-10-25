@@ -96,8 +96,7 @@
               (pushnew handler handlers))))))))
 
 
-(defmacro subscribe-with-handler-body-to (event-class event-system
-                                          (&optional (event-var (gensym)))
-                                          &body body)
+(defmacro subscribe-with-handler-body-to (event-class (&optional (event-var (gensym)))
+                                                         event-system &body body)
   `(subscribe-to ',event-class (lambda (,event-var)
                                  (declare (ignorable ,event-var)) ,@body) ,event-system))

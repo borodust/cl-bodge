@@ -62,29 +62,29 @@
 (defmethod enable ((this thread-bound-system))
   (with-slots (thread) this
     (let ((system-class-name (class-name (class-of this))))
-      (when (enabledp this)
-        (error "~a already enabled" system-class-name))
-      (wait-with-latch (latch)
-        (bt:make-thread
-         (lambda ()
-           (log-errors
-             (unwind-protect
-                  (progn
-                    (with-system-lock-held (this)
-                      (setf (%job-queue-of this) (make-blocking-queue 256))
-                      (initialize-system this)
-                      (setf thread (current-thread)))
-                    (open-latch latch)
-                    (log:debug "Starting ~a loop" system-class-name)
-                    (let ((*system-context* (make-system-context this)))
-                      (declare (special *system-context*))
-                      (unwind-protect
-                           (start-system-loop this)
-                        (destroy-system-context *system-context* this))))
-               (open-latch latch)
-               (log:debug "~a loop stopped" system-class-name)
-               (discard-system this))))
-         :name (format nil "~a-worker" (string-downcase (string system-class-name))))))))
+      (with-system-lock-held (this)
+        (when (enabledp this)
+          (error "~a already enabled" system-class-name))
+        (setf (%job-queue-of this) (make-blocking-queue 256))
+        (initialize-system this)
+        (wait-with-latch (latch)
+          (bt:make-thread
+           (lambda ()
+             (log-errors
+               (unwind-protect
+                    (progn
+                      (setf thread (current-thread))
+                      (open-latch latch)
+                      (log:debug "Starting ~a loop" system-class-name)
+                      (let ((*system-context* (make-system-context this)))
+                        (declare (special *system-context*))
+                        (unwind-protect
+                             (start-system-loop this)
+                          (destroy-system-context *system-context* this))))
+                 (open-latch latch)
+                 (log:debug "~a loop stopped" system-class-name)
+                 (discard-system this))))
+           :name (format nil "~a-worker" (string-downcase (string system-class-name)))))))))
 
 
 (defmethod disable ((this thread-bound-system))

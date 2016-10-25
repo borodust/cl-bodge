@@ -23,12 +23,11 @@
 (defun unbind-parameter (name)
   (with-slots (bindings) *shading-parameters*
     (with-hash-entries ((programs name)) bindings
-      (if (null programs)
-          (error "No bindings found for parameter '~a'" name))
-          (let ((prog-list programs))
-            (if (null (rest prog-list))
-                (remhash name bindings)
-                (setf programs (rest prog-list)))))))
+      (when (null programs)
+        (error "No bindings found for parameter '~a'" name))
+      (pop programs)
+      (when (null programs)
+        (remhash name bindings)))))
 
 
 (defmacro with-bound-parameters ((parameters program) &body body)
@@ -63,7 +62,25 @@
 ;;;
 ;;;
 (defclass shading-pipeline-node (node)
-  ((pipeline :initarg :pipeline)))
+  ((pipeline :initform nil)))
+
+
+(defmethod node-enabled-p ((this shading-pipeline-node))
+  (with-slots (pipeline) this
+    (not (null pipeline))))
+
+
+(defmethod initialize-node :after ((this shading-pipeline-node)
+                                   (sys graphics-system))
+  (with-slots (pipeline) this
+    (setf pipeline (make-shading-pipeline sys))))
+
+
+(defmethod discard-node :after ((this shading-pipeline-node))
+  (with-slots (pipeline) this
+    (let ((p pipeline))
+      (setf pipeline nil)
+      (dispose p))))
 
 
 (defmethod rendering-pass ((this shading-pipeline-node))
@@ -93,7 +110,20 @@
 ;;;
 ;;;
 (defclass mesh-node (node)
-  ((mesh :initarg :mesh)))
+  ((mesh :initform nil)))
+
+
+(defgeneric make-node-mesh (node graphics-system))
+
+
+(defmethod node-enabled-p ((this mesh-node))
+  (with-slots (mesh) this
+    (not (null mesh))))
+
+
+(defmethod initialize-node :after ((this mesh-node) (sys graphics-system))
+  (with-slots (mesh) this
+    (setf mesh (make-node-mesh this sys))))
 
 
 (defmethod rendering-pass ((this mesh-node))
@@ -102,21 +132,42 @@
     (call-next-method)))
 
 
+(defmethod discard-node :before ((this mesh-node))
+  (with-slots (mesh) this
+    (let ((m mesh))
+      (setf mesh nil)
+      (dispose m))))
+
 ;;;
 ;;;
 ;;;
 (defclass shading-program-node (node)
-  ((program :initarg :program)
-   (stages :initarg :stages :initform :all-shader)
-   (parameters :initarg :parameters)))
+  ((program :initform nil)
+   (sources :initarg :sources)
+   (parameters :initarg :parameters :initform '())))
+
+
+(defmethod node-enabled-p ((this shading-program-node))
+  (with-slots (program) this
+    (not (null program))))
+
+
+(defmethod initialize-node :after ((this shading-program-node)
+                                   (sys graphics-system))
+  (with-slots (program sources) this
+    (setf program (apply #'build-shading-program (cons sys sources)))))
+
+
+(defmethod discard-node :after ((this shading-program-node))
+  (with-slots (program) this
+    (let ((p program))
+      (setf program nil)
+      (dispose p))))
 
 
 (defmethod rendering-pass ((this shading-program-node))
-  (with-slots (program parameters stages) this
-    (apply #'use-shading-program-stages (append (list *shading-pipeline* program)
-                                                (if (listp stages)
-                                                    stages
-                                                    (list stages))))
+  (with-slots (program parameters) this
+    (use-shading-program-stages *shading-pipeline* program :all-shader)
     (with-bound-parameters (parameters program)
       (call-next-method))))
 

@@ -24,7 +24,7 @@
          (finalize this finalizer))))
 
 
-(definline dispose (obj)
+(defun dispose (obj)
   (if (finalizedp obj)
       (error "Attempt to dispose already finalized object.")
       (loop for finalizer in (destructor-of obj) do
@@ -52,13 +52,13 @@ Check define-destructor documentation.")
                  (call-next-method)))))))
 
 
-(defmacro with-disposable ((var) obj &body body)
-  (once-only (obj)
-    `(let ((,var ,obj))
-       (unwind-protect
-            (progn
-              ,@body)
-         (dispose ,var)))))
+(defmacro with-disposable ((&rest bindings) &body body)
+  `(let* ,(loop for (name value) in bindings collecting `(,name ,value))
+     (unwind-protect
+          (progn
+            ,@body)
+       ,@(loop for b in (reverse bindings) collecting
+              `(dispose ,(first b))))))
 
 
 (defclass disposable-container ()

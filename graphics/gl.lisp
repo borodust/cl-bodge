@@ -1,6 +1,9 @@
 (in-package :cl-bodge.graphics)
 
 
+(defgeneric render (renderable))
+
+
 (defclass gl-object (disposable thread-bound-object)
   ((id :initarg :id :reader id-of)))
 

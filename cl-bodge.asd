@@ -50,13 +50,15 @@
                         :serial t
                         :components ((:file "gl")
                                      (:file "resources")
-                                     (:file "renderable")
                                      (:file "buffers")
                                      (:file "vertex-array")
                                      (:file "mesh")
                                      (:file "shading")
                                      (:file "textures")
                                      (:file "system")))
+               (:module animation
+                        :serial t
+                        :components ((:file "skeleton")))
                (:module audio
                         :serial t
                         :components ((:file "al")
@@ -79,11 +81,14 @@
                                      (:file "image")
                                      (:module shaders
                                               :components
-                                              ((:file "lighting")))))
+                                              ((:file "lighting")
+                                               (:file "skeleton")))))
                (:module scene
                         :serial t
                         :components ((:file "node")
                                      (:file "scene")
                                      (:file "transformations")
                                      (:file "rendering")
-                                     (:file "lighting")))))
+                                     (:file "lighting")
+                                     (:file "animation")
+                                     (:file "model")))))

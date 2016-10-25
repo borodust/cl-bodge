@@ -43,20 +43,22 @@
       (call-next-method))))
 
 
-(defun translate-camera (camera-node x y z)
-  (with-slots (camera-mat) camera-node
-    (setf camera-mat (m* (translation-mat4* (- x) (- y) (- z)) camera-mat))))
+(defgeneric translate-camera (camera-node x y z)
+  (:method ((this camera-node) x y z)
+    (with-slots (camera-mat) this
+      (setf camera-mat (m* (translation-mat4* #f(- x) #f(- y) #f(- z)) camera-mat)))))
 
 
-(defun rotate-camera (camera-node x y z)
-  (with-slots (camera-mat) camera-node
-    (setf camera-mat (m* (rotation-mat4* (- x) (- y) (- z)) camera-mat))))
+(defgeneric rotate-camera (camera-node x y z)
+  (:method ((this camera-node) x y z)
+    (with-slots (camera-mat) this
+      (setf camera-mat (m* (rotation-mat4* #f(- x) #f(- y) #f(- z)) camera-mat)))))
 
 ;;;
 ;;;
 ;;;c
 (defclass body-transform-node (node)
-  ((position :initform (make-vec3))
+  ((position :initform (make-vec3*))
    (rotation :initform (identity-mat4))
    (body :initarg :body)))
 

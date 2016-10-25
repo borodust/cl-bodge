@@ -28,43 +28,6 @@
    (shader-alist :initform nil)))
 
 
-
-(flet ((load-source (path base)
-         (read-file-into-string
-          (if (fad:pathname-absolute-p path)
-              (fad:canonical-pathname path)
-              (fad:merge-pathnames-as-file base path)))))
-
-  (defgeneric header-of (library)
-    (:method ((this shader-library))
-      (with-slots (header-path) this
-        (if header-path
-            (load-source header-path (path-to this))
-            (list "")))))
-
-
-  (defgeneric source-of (library)
-    (:method ((this shader-library))
-      (with-slots (source-path) this
-        (load-source source-path (path-to this))))))
-
-
-(defmacro define-shader-library (name &key ((:name glsl-name)) (types :any-shader)
-                                        header source uniforms)
-  `(progn
-     (defclass ,(symbolicate name) (shader-library) ()
-       (:default-initargs :descriptor-path ,(or *compile-file-truename* *load-truename*)
-         :name ,glsl-name
-         :shader-types ,types
-         :header-path ,header
-         :source-path ,source
-         :uniforms ',uniforms))
-     (register-library ',name)))
-
-
-;;;
-;;;
-;;;
 (defun process-include (line)
   (let ((start (position #\< line))
         (end (position #\> line)))
@@ -109,17 +72,55 @@
           (error "Library ~a doesn't support compilation for ~a" lib-name shader-type))))
 
 
+(flet ((load-source (path base)
+         (preprocess (read-file-into-string
+                      (if (fad:pathname-absolute-p path)
+                          (fad:canonical-pathname path)
+                          (fad:merge-pathnames-as-file base path))))))
+
+  (defgeneric header-of (library)
+    (:method ((this shader-library))
+      (with-slots (header-path) this
+        (if header-path
+            (load-source header-path (path-to this))
+            (list "")))))
+
+
+  (defgeneric shader-source (library &optional type)
+    (:method ((this shader-library) &optional type)
+      (with-slots (source-path types) this
+        (let* ((shader-types (if (listp types) types (list types)))
+               (type (%select-shader-type (class-name-of this) type shader-types)))
+          (make-instance 'shader-source
+                        :path source-path
+                        :type type
+                        :text (load-source source-path (path-to this))))))))
+
+
+(defmacro define-shader-library (name &key ((:name glsl-name)) (types :any-shader)
+                                        header source uniforms)
+  `(progn
+     (defclass ,(symbolicate name) (shader-library) ()
+       (:default-initargs :descriptor-path ,(or *compile-file-truename* *load-truename*)
+         :name ,glsl-name
+         :shader-types ,types
+         :header-path ,header
+         :source-path ,source
+         :uniforms ',uniforms))
+     (register-library ',name)))
+
+
+;;;
+;;;
+;;;
 ;; TODO unload shaders later
 (defun load-shader (gx-sys library &optional shader-type)
   (with-slots (name types shader-alist) library
-    (let* ((shader-types (if (listp types) types (list types)))
-           (type (%select-shader-type (class-name-of library)
-                                      shader-type shader-types))
-           (shader (assoc (cons name type) shader-alist :test #'equal)))
+    (let* ((source (shader-source library shader-type))
+           (shader (assoc (cons name (shader-type-of source)) shader-alist :test #'equal)))
       (if (null shader)
-          (cdar (push (cons (cons name type)
-                            (compile-shader gx-sys type
-                                            (preprocess (source-of library))))
+          (cdar (push (cons (cons name (shader-type-of source))
+                            (compile-shader gx-sys source))
                       shader-alist))
           (cdr shader)))))
 
@@ -139,14 +140,31 @@
   (gethash name (sm-libs *shader-manager*)))
 
 
+(defun clear-library-cache (library)
+  (with-slots (shader-alist) library
+    (loop for (type . shader) in shader-alist
+       do (dispose shader)
+       finally (setf shader-alist '()))))
+
+
+(defun clear-all-library-caches ()
+  (loop for lib being the hash-value in (sm-libs *shader-manager*)
+     do (clear-library-cache lib)
+     finally (clrhash (sm-libs *shader-manager*))))
+
+
 (defun build-shading-program (gx-sys &rest shader-sources)
   (loop with libs and processed-sources
      for source in shader-sources
      for type = (shader-type-of source)
      do
-       (multiple-value-bind (source used-lib-names) (preprocess (shader-text-of source))
+       (multiple-value-bind (text used-lib-names) (preprocess (shader-text-of source))
          (loop for name in used-lib-names do
               (pushnew (load-shader gx-sys (library-by-name name) type) libs))
-         (push (make-instance 'shader-source :text source :type type) processed-sources))
+         (push (make-instance 'shader-source
+                              :text text
+                              :path (shader-path-of source)
+                              :type type)
+               processed-sources))
      finally
        (return (build-separable-shading-program gx-sys processed-sources libs))))

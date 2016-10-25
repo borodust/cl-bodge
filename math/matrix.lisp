@@ -7,7 +7,7 @@
                    (apply #'sb-cga:matrix*
                           (loop for mat in matricies
                              collecting (value-of mat) into mats
-                             finally (return (push (value-of this) mats)))))))
+                             finally (return (cons (value-of this) mats)))))))
 
 
 (defgeneric mat-dimensions (matrix))

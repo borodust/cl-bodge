@@ -1,6 +1,13 @@
 (in-package :cl-bodge.graphics)
 
 
+(defun shader-type->gl (type)
+  (ecase type
+    ((:vertex-shader :geometry-shader :fragment-shader) type)
+    (:tessellation-control-shader :tess-control-shader)
+    (:tessellation-evaluation-shader :tess-evaluation-shader)))
+
+
 (defclass shader (gl-object)
   ((type :initarg :type :reader shader-type-of)))
 
@@ -10,19 +17,30 @@
     (gl:delete-shader id)))
 
 
-(defun %compile-shader (type source)
-  (let ((shader (gl:create-shader type)))
-    (gl:shader-source shader source)
-    (gl:compile-shader shader)
-    shader))
+(defun %compile-shader (type source name)
+  (let ((shader (gl:create-shader (shader-type->gl type))))
+    (handler-bind ((t (lambda (c) (declare (ignore c)) (gl:delete-shader shader))))
+      (gl:shader-source shader source)
+      (gl:compile-shader shader)
+      (unless (gl:get-shader shader :compile-status)
+        (error "~a '~a' (id = ~a) compilation failed:~%~a"
+               type name shader (gl:get-shader-info-log shader)))
+      shader)))
 
 
-(defmethod initialize-instance ((this shader) &key type source system)
-  (call-next-method this :id (%compile-shader type source) :system system :type type))
+(defmethod initialize-instance ((this shader) &key type source system (name ""))
+  (call-next-method this :id (%compile-shader type source name) :system system :type type))
 
 
-(definline compile-shader (system type source)
-  (make-instance 'shader :type type :source source :system system))
+(defun compile-shader (system shader-source)
+  (restart-case
+      (make-instance 'shader
+                     :type (shader-type-of shader-source)
+                     :name (shader-name-of shader-source)
+                     :source (shader-text-of shader-source)
+                     :system system)
+    (reload-source-and-compile ()
+      (compile-shader system (reload-shader-text shader-source)))))
 
 
 ;;;
@@ -40,22 +58,14 @@
 (defun %make-program (this shader-sources precompiled-shaders)
   (let* ((program (id-of this))
          (shaders (loop for src in shader-sources collect
-                       (compile-shader (system-of this)
-                                       (shader-type-of src)
-                                       (shader-text-of src))))
+                       (compile-shader (system-of this) src)))
          (all-shaders (append precompiled-shaders shaders)))
     (unwind-protect
          (loop for shader in all-shaders do
               (gl:attach-shader program (id-of shader)))
       (gl:link-program program)
       (unless (gl:get-program program :link-status)
-        (let ((shader-logs (apply #'concatenate 'string
-                                  (loop for shader in all-shaders collecting
-                                       (format nil "~%~a:~%~a"
-                                               (shader-type-of shader)
-                                               (gl:get-shader-info-log (id-of shader))))))
-              (program-log (gl:get-program-info-log program)))
-          (error "Program linking failed. Logs:~%~a~%~a" shader-logs program-log)))
+        (error "Program linking failed:~%~a" (gl:get-program-info-log program)))
       (loop for shader in all-shaders do
            (gl:detach-shader program (id-of shader)))
       (loop for shader in shaders do
@@ -105,6 +115,7 @@
 (defun (setf program-uniform-variable) (value program variable-name)
   (when-let ((variable-idx (gl:get-uniform-location (id-of program) variable-name)))
     (etypecase value
+      (integer (gl:program-uniformi (id-of program) variable-idx value))
       (single-float (gl:program-uniformf (id-of program) variable-idx value))
       (vec (gl:program-uniformfv (id-of program) variable-idx (vec->array value)))
       (square-mat (gl:program-uniform-matrix (id-of program) variable-idx

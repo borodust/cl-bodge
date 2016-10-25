@@ -13,7 +13,7 @@
      ,@body))
 
 
-(defmacro wait-for ((&rest bindings) &body body)
+(defmacro wait-let ((&rest bindings) &body body)
   (with-gensyms (latch condition c)
     (let ((gensymed (loop for b in bindings
                        for (name value) = (if (atom b)
@@ -39,3 +39,7 @@
          (let (,@(loop for (name . g1) in gensymed collect
                       (list name (first g1))))
            ,@body)))))
+
+
+(defun wait (promise)
+  (wait-let ((r promise)) r))

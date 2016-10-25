@@ -3,37 +3,42 @@
 ;;;
 ;;;
 ;;;
-(defclass parent ()
-  ((children :initform '() :reader children-of)))
-
-
-(defgeneric adopt (child parent)
-  (:method (child (this parent))
-    (with-slots (children) this
-      (nconcf children (list child)))))
-
-
-(defmacro dochildren ((var parent) &body body)
-  `(dolist (,var (children-of ,parent))
-     ,@body))
-
-;;;
-;;;
-;;;
 (defclass node (parent)
-  ((name :initarg :name :initform nil :reader name-of)))
+  ((name :initarg :name :initform nil :reader name-of)
+   (parent :initform nil)))
 
 
-(defgeneric simulation-pass (node)
-  (:method ((this node))
-    (dochildren (child this)
-      (simulation-pass child))))
+(defgeneric parent-of (node)
+  (:method ((child node))
+    (with-slots (parent) child
+      (unless (null parent)
+        (tg:weak-pointer-value parent)))))
 
 
-(defgeneric rendering-pass (node)
-  (:method((this node))
-    (dochildren (child this)
-      (rendering-pass child))))
+(defgeneric node-attaching (this-node new-node)
+  (:method ((this node) (new node))
+    (when-let ((parent (parent-of this)))
+      (node-attaching parent new))))
+
+
+(defgeneric node-detached (this-node removed-node)
+  (:method ((this node) (removed node))
+    (when-let ((parent (parent-of this)))
+      (node-detached parent removed))))
+
+
+(defmethod adopt :before ((parent node) (child node))
+  (when-let ((prev-parent (parent-of child)))
+    (abandon parent child))
+  (with-slots ((child-parent parent)) child
+    (setf child-parent (tg:make-weak-pointer parent)))
+  (node-attaching parent child))
+
+
+(defmethod abandon :after ((parent node) (child node))
+  (with-slots ((child-parent parent)) child
+    (setf child-parent nil))
+  (node-detached parent child))
 
 
 (labels ((%find-nodes (root name)
@@ -54,7 +59,7 @@
                                                 (list ctor-def))
       `(let ((node (make-instance ',class ,@plist)))
          ,@(loop for child-def in children collecting
-                `(adopt (%parse-node ,child-def) node))
+                `(adopt node (%parse-node ,child-def)))
          node))))
 ;;;
 ;;;
