@@ -351,11 +351,16 @@
            projection-node
            update-projection
 
+           transform-node
+           rotate-node
+           translate-node
+
            camera-node
            translate-camera
            rotate-camera
 
            shading-program-node
+           shading-parameter
            shading-parameters-node
            directional-light-node
 

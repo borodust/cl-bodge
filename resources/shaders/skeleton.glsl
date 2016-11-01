@@ -2,12 +2,11 @@
 
 
 struct Bone {
-  int id;
-  mat3 rotation;
+  mat4 transform;
 };
 
 uniform Bone bones[2];
 
-vec3 skinMesh(vec3 position, float weight0, float weight1) {
-  return position;
+vec4 weightedPosition(vec4 pos, float w0, float w1) {
+  return (bones[0].transform * w0 + bones[1].transform * w1) * pos;
 }

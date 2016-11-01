@@ -89,12 +89,13 @@
   (defgeneric shader-source (library &optional type)
     (:method ((this shader-library) &optional type)
       (with-slots (source-path types) this
-        (let* ((shader-types (if (listp types) types (list types)))
-               (type (%select-shader-type (class-name-of this) type shader-types)))
-          (make-instance 'shader-source
-                        :path source-path
-                        :type type
-                        :text (load-source source-path (path-to this))))))))
+        (unless (null source-path)
+          (let* ((shader-types (if (listp types) types (list types)))
+                 (type (%select-shader-type (class-name-of this) type shader-types)))
+            (make-instance 'shader-source
+                           :path source-path
+                           :type type
+                           :text (load-source source-path (path-to this)))))))))
 
 
 (defmacro define-shader-library (name &key ((:name glsl-name)) (types :any-shader)
@@ -116,13 +117,13 @@
 ;; TODO unload shaders later
 (defun load-shader (gx-sys library &optional shader-type)
   (with-slots (name types shader-alist) library
-    (let* ((source (shader-source library shader-type))
-           (shader (assoc (cons name (shader-type-of source)) shader-alist :test #'equal)))
-      (if (null shader)
-          (cdar (push (cons (cons name (shader-type-of source))
-                            (compile-shader gx-sys source))
-                      shader-alist))
-          (cdr shader)))))
+    (when-let ((source (shader-source library shader-type)))
+      (let ((shader (assoc (cons name (shader-type-of source)) shader-alist :test #'equal)))
+        (if (null shader)
+            (cdar (push (cons (cons name (shader-type-of source))
+                              (compile-shader gx-sys source))
+                        shader-alist))
+            (cdr shader))))))
 
 
 ;;;
@@ -159,8 +160,9 @@
      for type = (shader-type-of source)
      do
        (multiple-value-bind (text used-lib-names) (preprocess (shader-text-of source))
-         (loop for name in used-lib-names do
-              (pushnew (load-shader gx-sys (library-by-name name) type) libs))
+         (loop for name in used-lib-names
+            for shader = (load-shader gx-sys (library-by-name name) type)
+            unless (null shader) do (pushnew shader libs))
          (push (make-instance 'shader-source
                               :text text
                               :path (shader-path-of source)

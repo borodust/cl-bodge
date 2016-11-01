@@ -33,6 +33,29 @@
 ;;;
 ;;;
 ;;;
+(defclass transform-node (node)
+  ((mat :initform (identity-mat4))))
+
+
+(defgeneric translate-node (node x y z)
+  (:method ((this transform-node) x y z)
+    (with-slots (mat) this
+      (setf mat (m* (translation-mat4* #f x #f y #f z) mat)))))
+
+
+(defgeneric rotate-node (node x y z)
+  (:method ((this transform-node) x y z)
+    (with-slots (mat) this
+      (setf mat (m* (rotation-mat4* #f x #f y #f z) mat)))))
+
+
+(defmethod rendering-pass ((this transform-node))
+  (with-slots (mat) this
+    (let ((*transform-matrix* (m* *transform-matrix* mat)))
+      (call-next-method))))
+;;;
+;;;
+;;;
 (defclass camera-node (node)
   ((camera-mat :initform (identity-mat4))))
 

@@ -81,7 +81,8 @@
                                      (:file "image")
                                      (:module shaders
                                               :components
-                                              ((:file "lighting")
+                                              ((:file "math")
+                                               (:file "lighting")
                                                (:file "skeleton")))))
                (:module scene
                         :serial t
