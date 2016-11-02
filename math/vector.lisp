@@ -49,3 +49,9 @@
             others
             :initial-value (value-of sum))
     sum))
+
+
+(defmethod lerp ((this vec3) (that vec3) f)
+  (let* ((that-val (value-of that))
+         (this-val (value-of this)))
+    (make-instance 'vec3 :value (sb-cga:vec-lerp this-val that-val f))))

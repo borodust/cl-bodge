@@ -2,18 +2,14 @@
 
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (declaim (ftype (function (*) single-float) f)
-           (inline f))
-  (defun f (obj)
-    (coerce obj 'single-float))
-
-  (set-dispatch-macro-character #\# #\f
-                                (lambda (stream key arg)
-                                  (declare (ignore key arg))
-                                  (let ((sexp (read stream t nil t)))
-                                    (if (numberp sexp)
-                                        (f sexp)
-                                        `(ge.util:f ,sexp))))))
+  (set-dispatch-macro-character
+   #\# #\f
+   (lambda (stream key arg)
+     (declare (ignore key arg))
+     (let ((sexp (read stream t nil t)))
+       (if (numberp sexp)
+           (float sexp 0f0)
+           `(float ,sexp 0f0))))))
 
 
 (defmacro log-errors (&body body)
@@ -49,7 +45,6 @@
        ,table)))
 
 
-;; alexandria paste
 (defun stream->byte-array (stream &key (initial-size 4096))
   (check-type initial-size positive-integer)
   (do ((buffer (make-array initial-size :element-type (stream-element-type stream)))
@@ -176,3 +171,22 @@
               (:pre '%do-tree-preorder)
               (:post '%do-tree-preorder))))
     `(,fn ,root (lambda (,var) ,@body))))
+
+
+(defun search-sorted (value sorted-array &key (test #'eql) (predicate #'<) (key #'identity))
+  (labels ((%aref (idx)
+             (aref sorted-array idx))
+           (%compare (idx)
+             (funcall predicate value (funcall key (%aref idx))))
+           (%test (idx)
+             (funcall test value (funcall key (%aref idx))))
+           (%search (start end)
+             (if (= start end)
+                 (values nil end)
+               (let ((idx (floor (/ (+ start end) 2))))
+                 (if (%test idx)
+                     (values (%aref idx) idx)
+                     (if (%compare idx)
+                         (%search start idx)
+                         (%search (1+ idx) end)))))))
+    (%search 0 (length sorted-array))))

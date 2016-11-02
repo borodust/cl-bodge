@@ -51,3 +51,6 @@
     (mat2 2)
     (mat3 3)
     (mat4 4)))
+
+
+(defgeneric lerp (this that f))

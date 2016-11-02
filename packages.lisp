@@ -3,8 +3,40 @@
 
 (defpackage :cl-bodge.utils
   (:nicknames :ge.util)
-  (:use :cl :alexandria :local-time)
-  (:export log-errors
+  (:use :cl :local-time)
+  (:import-from :alexandria
+                with-gensyms
+                once-only
+                symbolicate
+                make-keyword
+                when-let
+                when-let*
+                if-let
+                switch
+                define-constant
+                alist-hash-table
+                read-file-into-string
+                nconcf
+                starts-with-subseq
+                positive-integer
+                copy-array)
+  (:export with-gensyms
+           once-only
+           symbolicate
+           make-keyword
+           when-let
+           when-let*
+           if-let
+           switch
+           define-constant
+           alist-hash-table
+           read-file-into-string
+           nconcf
+           starts-with-subseq
+           positive-integer
+           copy-array
+
+           log-errors
            with-hash-entries
            make-hash-table-with-entries
            stream->byte-array
@@ -26,12 +58,15 @@
            abandon
            dochildren
            children-of
-           dotree))
+           dotree
+
+           search-sorted))
 
 
 (defpackage :cl-bodge.concurrency
   (:nicknames :ge.mt)
-  (:use :cl :alexandria :bordeaux-threads :cl-muth)
+  (:use :cl-bodge.utils
+        :cl :bordeaux-threads :cl-muth)
   (:import-from :blackbird
                 promisep
                 promise-finished-p
@@ -78,8 +113,9 @@
 
 (defpackage :cl-bodge.math
   (:nicknames :ge.math)
-  (:use :cl :alexandria :cl-bodge.utils)
-  (:export vec
+  (:use :cl :cl-bodge.utils)
+  (:export interpolate
+           vec
            vec2
            vec3
            vec4
@@ -116,7 +152,7 @@
 (defpackage :cl-bodge.memory
   (:nicknames :ge.mem)
   (:use :cl-bodge.utils
-        :cl :alexandria :trivial-garbage)
+        :cl :trivial-garbage)
   (:export define-destructor
            dispose
            disposable
@@ -128,7 +164,7 @@
 (defpackage :cl-bodge.engine
   (:nicknames :ge.ng)
   (:use :cl-bodge.utils :cl-bodge.concurrency
-        :cl :alexandria :bordeaux-threads :cl-muth)
+        :cl :bordeaux-threads :cl-muth)
   (:export system
            enable
            disable
@@ -157,7 +193,7 @@
 (defpackage :cl-bodge.event
   (:nicknames :ge.eve)
   (:use :cl-bodge.engine :cl-bodge.utils
-        :cl :alexandria :bordeaux-threads :cl-muth)
+        :cl :bordeaux-threads :cl-muth)
   (:export event-system
            event
            defevent
@@ -171,7 +207,7 @@
 (defpackage :cl-bodge.host
   (:nicknames :ge.host)
   (:use :cl-bodge.engine :cl-bodge.utils :cl-bodge.concurrency :cl-bodge.event
-        :cl :bordeaux-threads :alexandria :cl-muth :trivial-main-thread)
+        :cl :bordeaux-threads :cl-muth :trivial-main-thread)
   (:export host-system
 
            bind-rendering-context
@@ -213,7 +249,7 @@
   (:nicknames :ge.gx)
   (:use :cl-bodge.engine :cl-bodge.host :cl-bodge.concurrency :cl-bodge.utils
         :cl-bodge.math :cl-bodge.event :cl-bodge.memory :cl-bodge.graphics.resources
-        :cl :alexandria :cl-muth :bordeaux-threads)
+        :cl :cl-muth :bordeaux-threads)
   (:export graphics-system
            in-wireframe-mode
 
@@ -249,7 +285,7 @@
 (defpackage :cl-bodge.audio
   (:use :cl-bodge.engine :cl-bodge.math :cl-bodge.memory :cl-bodge.concurrency
         :cl-bodge.utils
-        :cl :alexandria :cl-muth)
+        :cl :cl-muth)
   (:nicknames :ge.snd)
   (:export audio-system
 
@@ -270,7 +306,7 @@
 (defpackage :cl-bodge.physics
   (:use :cl-bodge.engine :cl-bodge.utils :cl-bodge.math :cl-bodge.memory
         :cl-bodge.concurrency :cl-bodge.utils
-        :cl :alexandria :local-time)
+        :cl :local-time)
   (:nicknames :ge.phx)
   (:export physics-system
            observe-universe
@@ -303,7 +339,7 @@
   (:nicknames :ge.rsc)
   (:use :cl-bodge.utils :cl-bodge.graphics :cl-bodge.graphics.resources
         :cl-bodge.concurrency :cl-bodge.memory
-        :cl :alexandria :cl-muth)
+        :cl :cl-muth)
   (:export load-shader-source
            load-png-image
            build-shading-program))
@@ -311,9 +347,11 @@
 
 (defpackage :cl-bodge.animation
   (:nicknames :ge.ani)
-  (:use :cl-bodge.utils
-        :cl :alexandria)
-  (:export))
+  (:use :cl-bodge.utils :cl-bodge.math
+        :cl)
+  (:export make-keyframe
+           make-keyframe-sequence
+           rotation-at))
 
 
 (defpackage :cl-bodge.scene
@@ -321,7 +359,7 @@
   (:use :cl-bodge.utils :cl-bodge.engine :cl-bodge.graphics :cl-bodge.physics
         :cl-bodge.math :cl-bodge.concurrency :cl-bodge.host :cl-bodge.memory
         :cl-bodge.resources
-        :cl :alexandria :cl-muth)
+        :cl :cl-muth)
   (:export node
            find-node
            node-attaching
