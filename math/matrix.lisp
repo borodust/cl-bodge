@@ -1,27 +1,8 @@
 (in-package :cl-bodge.math)
 
 
-(defgeneric m* (mat &rest matricies)
-  (:method ((this mat4) &rest matricies)
-    (make-instance 'mat4 :value
-                   (apply #'sb-cga:matrix*
-                          (loop for mat in matricies
-                             collecting (value-of mat) into mats
-                             finally (return (cons (value-of this) mats)))))))
-
-
-(defgeneric mat-dimensions (matrix))
-
-(defmethod mat-dimensions ((this mat2))
-  '(2 2))
-
-
-(defmethod mat-dimensions ((this mat3))
-  '(3 3))
-
-
-(defmethod mat-dimensions ((this mat4))
-  '(4 4))
+(defmethod multiply ((this mat4) (that mat4))
+  (make-instance 'mat4 :value (sb-cga:matrix* (value-of this) (value-of that))))
 
 
 (definline mat->array (mat)

@@ -39,16 +39,8 @@
   (setf (aref (value-of vec) idx) value))
 
 
-(defgeneric v+ (vec &rest vectors))
-
-
-(defmethod v+ ((this vec3) &rest others)
-  (let ((sum (make-vec3 this)))
-    (reduce (lambda (result val)
-              (sb-cga:%vec+ result result (value-of val)))
-            others
-            :initial-value (value-of sum))
-    sum))
+(defmethod summarize ((this vec3) (that vec3))
+  (make-instance 'vec3 :value (sb-cga:vec+ (value-of this) (value-of that))))
 
 
 (defmethod lerp ((this vec3) (that vec3) f)

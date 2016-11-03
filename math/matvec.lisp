@@ -1,10 +1,7 @@
 (in-package :cl-bodge.math)
 
 
-(defgeneric mv* (mat vec))
-
-
-(defmethod mv* ((this-mat mat3) (this-vec vec3))
+(defmethod multiply ((this-mat mat3) (this-vec vec3))
   (macrolet ((mul (m v r)
                (once-only (m v r)
                  `(progn

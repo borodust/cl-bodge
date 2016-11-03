@@ -1,7 +1,26 @@
 (in-package :cl-bodge.math)
 
-;;; Vectors
+(defgeneric lerp (this that f))
+(defgeneric multiply (this that))
+(defgeneric summarize (this that))
+(defgeneric divide (this that))
+(defgeneric subtract (this that))
 
+
+(macrolet ((defreduced (name generic)
+             `(defun ,name (arg0 &rest args)
+                (reduce (lambda (this that) (,generic this that))
+                        args :initial-value arg0))))
+
+  (defreduced mult multiply)
+  (defreduced sum summarize)
+  (defreduced div divide)
+  (defreduced subt subtract))
+
+
+;;;
+;;; Vectors
+;;;
 (defclass vec () ())
 
 
@@ -19,9 +38,9 @@
   ((value :initarg :value :initform (sb-cga:vec4 #f0 #f0 #f0 #f0) :type sb-cga:vec4
           :reader value-of)))
 
-
+;;;
 ;;; Matricies
-
+;;;
 (defclass mat () ())
 
 
@@ -53,4 +72,8 @@
     (mat4 4)))
 
 
-(defgeneric lerp (this that f))
+;;;
+;;; Quaternions
+;;;
+(defclass quaternion ()
+  ((value :initarg :value :type (simple-array single-float (4)))))

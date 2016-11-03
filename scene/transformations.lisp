@@ -40,18 +40,18 @@
 (defgeneric translate-node (node x y z)
   (:method ((this transform-node) x y z)
     (with-slots (mat) this
-      (setf mat (m* (translation-mat4* #f x #f y #f z) mat)))))
+      (setf mat (mult (translation-mat4* #f x #f y #f z) mat)))))
 
 
 (defgeneric rotate-node (node x y z)
   (:method ((this transform-node) x y z)
     (with-slots (mat) this
-      (setf mat (m* (rotation-mat4* #f x #f y #f z) mat)))))
+      (setf mat (mult (rotation-mat4* #f x #f y #f z) mat)))))
 
 
 (defmethod rendering-pass ((this transform-node))
   (with-slots (mat) this
-    (let ((*transform-matrix* (m* *transform-matrix* mat)))
+    (let ((*transform-matrix* (mult *transform-matrix* mat)))
       (call-next-method))))
 ;;;
 ;;;
@@ -62,20 +62,20 @@
 
 (defmethod rendering-pass ((this camera-node))
   (with-slots (camera-mat) this
-    (let ((*transform-matrix* (m* *transform-matrix* camera-mat)))
+    (let ((*transform-matrix* (mult *transform-matrix* camera-mat)))
       (call-next-method))))
 
 
 (defgeneric translate-camera (camera-node x y z)
   (:method ((this camera-node) x y z)
     (with-slots (camera-mat) this
-      (setf camera-mat (m* (translation-mat4* #f(- x) #f(- y) #f(- z)) camera-mat)))))
+      (setf camera-mat (mult (translation-mat4* #f(- x) #f(- y) #f(- z)) camera-mat)))))
 
 
 (defgeneric rotate-camera (camera-node x y z)
   (:method ((this camera-node) x y z)
     (with-slots (camera-mat) this
-      (setf camera-mat (m* (rotation-mat4* #f(- x) #f(- y) #f(- z)) camera-mat)))))
+      (setf camera-mat (mult (rotation-mat4* #f(- x) #f(- y) #f(- z)) camera-mat)))))
 
 ;;;
 ;;;
@@ -94,7 +94,7 @@
 
 (defmethod rendering-pass ((this body-transform-node))
   (with-slots (position rotation) this
-    (let ((*transform-matrix* (m* *transform-matrix*
-                                  (translation-mat4 position)
-                                  rotation)))
+    (let ((*transform-matrix* (mult *transform-matrix*
+                                    (translation-mat4 position)
+                                    rotation)))
       (call-next-method))))

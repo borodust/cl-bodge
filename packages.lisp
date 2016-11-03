@@ -114,7 +114,12 @@
 (defpackage :cl-bodge.math
   (:nicknames :ge.math)
   (:use :cl :cl-bodge.utils)
-  (:export interpolate
+  (:export lerp
+           mult
+           sum
+           div
+           subt
+
            vec
            vec2
            vec3
@@ -125,7 +130,6 @@
            make-vec2*
            make-vec4*
            sequence->vec3
-           v+
            vref
 
            mat
@@ -144,9 +148,7 @@
            scaling-mat4*
            mat4->mat3
            make-mat3
-           perspective-projection-mat
-           m*
-           mv*))
+           perspective-projection-mat))
 
 
 (defpackage :cl-bodge.memory
