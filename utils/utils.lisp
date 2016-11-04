@@ -83,7 +83,7 @@
            (not (null (member ,value ,enum-values-constant :test #'eql))))))))
 
 
-(defun epoch-seconds-of (timestamp)
+(defun epoch-seconds (&optional (timestamp (now)))
   (+ (timestamp-to-unix timestamp) (/ (nsec-of timestamp) 1000000000)))
 
 

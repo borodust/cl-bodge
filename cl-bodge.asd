@@ -7,11 +7,11 @@
 
 (defsystem cl-bodge
   :description "Bodacious Game Engine"
-  :version "0.1.0"
+  :version "0.2.0"
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (alexandria cl-opengl cl-glfw3 cl-muth sb-cga cffi clode
+  :depends-on (alexandria cl-opengl cl-glfw3 cl-muth rtg-math cffi clode
                           log4cl bordeaux-threads trivial-main-thread cl-openal cl-alc
                           cl-fad local-time blackbird trivial-garbage opticl)
   :serial t
@@ -24,7 +24,8 @@
                         :components ((:file "types")
                                      (:file "vector")
                                      (:file "matrix")
-                                     (:file "matvec")))
+                                     (:file "matvec")
+                                     (:file "quaternion")))
                (:module concurrency
                         :serial t
                         :components ((:file "async")

@@ -3,23 +3,7 @@
 
 (defpackage :cl-bodge.utils
   (:nicknames :ge.util)
-  (:use :cl :local-time)
-  (:import-from :alexandria
-                with-gensyms
-                once-only
-                symbolicate
-                make-keyword
-                when-let
-                when-let*
-                if-let
-                switch
-                define-constant
-                alist-hash-table
-                read-file-into-string
-                nconcf
-                starts-with-subseq
-                positive-integer
-                copy-array)
+  (:use :cl :local-time :alexandria)
   (:export with-gensyms
            once-only
            symbolicate
@@ -35,6 +19,7 @@
            starts-with-subseq
            positive-integer
            copy-array
+           deletef
 
            log-errors
            with-hash-entries
@@ -43,7 +28,7 @@
            file->byte-array
            defenum
            f
-           epoch-seconds-of
+           epoch-seconds
            definline
            copy-memory
 
@@ -115,10 +100,12 @@
   (:nicknames :ge.math)
   (:use :cl :cl-bodge.utils)
   (:export lerp
+           nlerp
            mult
            sum
            div
            subt
+           normalize
 
            vec
            vec2
@@ -147,8 +134,14 @@
            translation-mat4*
            scaling-mat4*
            mat4->mat3
-           make-mat3
-           perspective-projection-mat))
+           make-mat3*
+           perspective-projection-mat
+
+           quat
+           make-quat*
+           make-quat-from-euler-axis
+           quat->rotation-mat3
+           quat->rotation-mat4))
 
 
 (defpackage :cl-bodge.memory

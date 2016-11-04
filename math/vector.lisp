@@ -6,19 +6,19 @@
 
 
 (definline make-vec3* (&optional (x #f0) (y #f0) (z #f0))
-  (make-instance 'vec3 :value (sb-cga:vec x y z)))
+  (make-instance 'vec3 :value (v3:make x y z)))
 
 
 (definline make-vec4* (&optional (x #f0) (y #f0) (z #f0) (w #f0))
-  (make-instance 'vec4 :value (sb-cga:vec4 x y z w)))
+  (make-instance 'vec4 :value (v4:make x y z w)))
 
 
 (definline make-vec2* (&optional (x #f0) (y #f0))
-  (make-instance 'vec2 :value (sb-cga:vec2 x y)))
+  (make-instance 'vec2 :value (v2:make x y)))
 
 
 (definline make-vec3 (vec)
-  (make-instance 'vec3 :value (copy-array (value-of vec))))
+  (make-instance 'vec3 :value (v3:make (vref vec 0) (vref vec 1) (vref vec 2))))
 
 
 (definline sequence->vec3 (seq)
@@ -27,23 +27,25 @@
               (elt seq 2)))
 
 
-(declaim (ftype (function (vec (integer 0 3)) single-float) vref)
-         (inline vref))
 (defun vref (vec idx)
-  (aref (value-of vec) idx))
+  (ecase idx
+    (0 (v:x vec))
+    (1 (v:y vec))
+    (2 (v:z vec))
+    (3 (v:w vec))))
 
 
-(declaim (ftype (function (single-float vec (integer 0 3)) single-float) (setf vref))
-         (inline (setf vref)))
 (defun (setf vref) (value vec idx)
-  (setf (aref (value-of vec) idx) value))
+  (ecase idx
+    (0 (setf (v:x vec) value))
+    (1 (setf (v:y vec) value))
+    (2 (setf (v:z vec) value))
+    (3 (setf (v:w vec) value))))
 
 
 (defmethod summarize ((this vec3) (that vec3))
-  (make-instance 'vec3 :value (sb-cga:vec+ (value-of this) (value-of that))))
+  (make-instance 'vec3 :value (v3:+ (value-of this) (value-of that))))
 
 
 (defmethod lerp ((this vec3) (that vec3) f)
-  (let* ((that-val (value-of that))
-         (this-val (value-of this)))
-    (make-instance 'vec3 :value (sb-cga:vec-lerp this-val that-val f))))
+  (make-instance 'vec3 :value (v3:lerp (value-of this) (value-of that) f)))

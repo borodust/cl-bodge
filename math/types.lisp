@@ -1,6 +1,9 @@
 (in-package :cl-bodge.math)
 
 (defgeneric lerp (this that f))
+(defgeneric normalize (this))
+
+
 (defgeneric multiply (this that))
 (defgeneric summarize (this that))
 (defgeneric divide (this that))
@@ -8,7 +11,7 @@
 
 
 (macrolet ((defreduced (name generic)
-             `(defun ,name (arg0 &rest args)
+             `(definline ,name (arg0 &rest args)
                 (reduce (lambda (this that) (,generic this that))
                         args :initial-value arg0))))
 
@@ -18,6 +21,9 @@
   (defreduced subt subtract))
 
 
+(definline nlerp (this that f)
+  (normalize (lerp this that f)))
+
 ;;;
 ;;; Vectors
 ;;;
@@ -25,17 +31,17 @@
 
 
 (defclass vec2 (vec)
-  ((value :initarg :value :initform (sb-cga:vec2 #f0 #f0) :type sb-cga:vec2
+  ((value :initarg :value :initform (v2:make #f0 #f0) :type rtg-math.types:vec2
           :reader value-of)))
 
 
 (defclass vec3 (vec)
-  ((value :initarg :value :initform (sb-cga:vec #f0 #f0 #f0) :type sb-cga:vec
+  ((value :initarg :value :initform (v3:make #f0 #f0 #f0) :type rtg-math.types:vec3
           :reader value-of)))
 
 
 (defclass vec4 (vec)
-  ((value :initarg :value :initform (sb-cga:vec4 #f0 #f0 #f0 #f0) :type sb-cga:vec4
+  ((value :initarg :value :initform (v4:make #f0 #f0 #f0 #f0) :type rtg-math.types:vec4
           :reader value-of)))
 
 ;;;
@@ -54,14 +60,12 @@
 
 
 (defclass mat3 (square-mat)
-  ((value :initarg :value
-          :initform (make-array 9 :element-type 'single-float :initial-element #f0)
-          :type (simple-array single-float (9)) :reader value-of)))
+  ((value :initarg :value :initform (m3:0!) :type rtg-math.types:mat3 :reader value-of)))
 
 
 (defclass mat4 (square-mat)
-  ((value :initarg :value
-          :initform (sb-cga:zero-matrix) :type sb-cga:matrix :reader value-of)))
+  ((value :initarg :value :initform (m4:0!) :type rtg-math.types:mat4 :reader value-of)))
+
 
 
 (declaim (ftype (function (square-mat) (integer 2 4)) square-matrix-size))
@@ -75,5 +79,5 @@
 ;;;
 ;;; Quaternions
 ;;;
-(defclass quaternion ()
-  ((value :initarg :value :type (simple-array single-float (4)))))
+(defclass quat ()
+  ((value :initarg :value :initform (q:0!) :type rtg-math.types:quaternion :reader value-of)))

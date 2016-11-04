@@ -37,7 +37,7 @@
                       (this-timestamp (timestamp-of this))
                       (f #f(/ (- timestamp this-timestamp)
                               (- (timestamp-of that) this-timestamp))))
-                 (interpolate (rotation-of this) (rotation-of that) f))))
+                 (nlerp (rotation-of this) (rotation-of that) f))))
         (multiple-value-bind (frame idx) (search-sorted timestamp kframes :key #'%timestamp)
           (let* ((len (length kframes)))
             (if (null frame)
@@ -48,9 +48,5 @@
                 (rotation-of frame))))))))
 
 
-(defun make-keyframe-sequence (&rest frames)
+(defun make-keyframe-sequence (frames)
   (make-instance 'keyframe-sequence :sequence frames))
-
-
-(defclass keyframed-skeleton-animation ()
-  ((bones :initform (make-hash-table))))
