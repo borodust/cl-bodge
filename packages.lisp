@@ -20,6 +20,7 @@
            positive-integer
            copy-array
            deletef
+           alist-hash-table
 
            log-errors
            with-hash-entries
@@ -34,6 +35,7 @@
 
            ensure-not-null
            if-unbound
+           when-bound
 
            class-name-of
            dolines
@@ -346,14 +348,20 @@
         :cl)
   (:export make-keyframe
            make-keyframe-sequence
-           rotation-at))
+           rotation-at
+           make-keyframed-animation
+           frame-at
+           frame-rotation-of
+           start-animation
+           reset-animation
+           keyframed))
 
 
 (defpackage :cl-bodge.scene
   (:nicknames :ge.sg)
   (:use :cl-bodge.utils :cl-bodge.engine :cl-bodge.graphics :cl-bodge.physics
         :cl-bodge.math :cl-bodge.concurrency :cl-bodge.host :cl-bodge.memory
-        :cl-bodge.resources
+        :cl-bodge.resources :cl-bodge.animation
         :cl :cl-muth)
   (:export node
            find-node
@@ -399,6 +407,17 @@
 
            model
            make-model-graph
+
+           *bones*
+           animation-node
+           start-node-animation
+           reset-node-animation
+           skeleton-node
+           bone-node
+           rotate-bone
+           translate-bone
+           bone-to-world-transform-node
+           animated-bone-node
 
            scenegraph))
 

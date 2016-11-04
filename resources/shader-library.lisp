@@ -150,8 +150,8 @@
 
 (defun clear-all-library-caches ()
   (loop for lib being the hash-value in (sm-libs *shader-manager*)
-     do (clear-library-cache lib)
-     finally (clrhash (sm-libs *shader-manager*))))
+     do (clear-library-cache lib)))
+
 
 
 (defun build-shading-program (gx-sys &rest shader-sources)

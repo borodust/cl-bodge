@@ -114,6 +114,11 @@
   `(if (boundp ',symbol) ,symbol ,value))
 
 
+(defmacro when-bound (symbol &body body)
+  `(when (boundp ',symbol)
+     ,@body))
+
+
 (definline class-name-of (obj)
   (class-name (class-of obj)))
 
