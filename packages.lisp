@@ -21,6 +21,7 @@
            copy-array
            deletef
            alist-hash-table
+           ensure-list
 
            log-errors
            with-hash-entries
@@ -339,7 +340,17 @@
         :cl :cl-muth)
   (:export load-shader-source
            load-png-image
-           build-shading-program))
+           build-shading-program
+
+           load-resource
+
+           simple-model-chunks-of
+
+           mesh-chunks-of
+           mesh-chunk-id
+           mesh-chunk-face
+           mesh-chunk-arrays
+           mesh-chunk-indexes))
 
 
 (defpackage :cl-bodge.animation

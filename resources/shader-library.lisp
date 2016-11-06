@@ -154,19 +154,23 @@
 
 
 
-(defun build-shading-program (gx-sys &rest shader-sources)
-  (loop with libs and processed-sources
-     for source in shader-sources
-     for type = (shader-type-of source)
-     do
-       (multiple-value-bind (text used-lib-names) (preprocess (shader-text-of source))
-         (loop for name in used-lib-names
-            for shader = (load-shader gx-sys (library-by-name name) type)
-            unless (null shader) do (pushnew shader libs))
-         (push (make-instance 'shader-source
-                              :text text
-                              :path (shader-path-of source)
-                              :type type)
-               processed-sources))
-     finally
-       (return (build-separable-shading-program gx-sys processed-sources libs))))
+(defun build-shading-program (gx-sys shader-sources)
+  (restart-case
+      (loop with libs and processed-sources
+         for source in shader-sources
+         for type = (shader-type-of source)
+         do
+           (multiple-value-bind (text used-lib-names) (preprocess (shader-text-of source))
+             (loop for name in used-lib-names
+                for shader = (load-shader gx-sys (library-by-name name) type)
+                unless (null shader) do (pushnew shader libs))
+             (push (make-instance 'shader-source
+                                  :text text
+                                  :path (shader-path-of source)
+                                  :type type)
+                   processed-sources))
+         finally
+           (return (build-separable-shading-program gx-sys processed-sources libs)))
+    (reload-sources-and-build ()
+      (build-shading-program gx-sys (loop for source in shader-sources collecting
+                                         (reload-shader-text source))))))

@@ -80,6 +80,9 @@
                         :components ((:file "shader-source")
                                      (:file "shader-library")
                                      (:file "image")
+                                     (:file "resource-loader")
+                                     (:file "basic-chunks")
+                                     (:file "simple-model-chunk")
                                      (:module shaders
                                               :components
                                               ((:file "math")

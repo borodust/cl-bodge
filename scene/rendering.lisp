@@ -155,7 +155,7 @@
 (defmethod initialize-node :after ((this shading-program-node)
                                    (sys graphics-system))
   (with-slots (program sources) this
-    (setf program (apply #'build-shading-program (cons sys sources)))))
+    (setf program (build-shading-program sys sources))))
 
 
 (defmethod discard-node :after ((this shading-program-node))

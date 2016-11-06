@@ -1,7 +1,7 @@
 (in-package :cl-bodge.graphics)
 
 
-(defenum primitive
+(defenum face-type
   :points :lines :line-strip :triangles :triangle-strip
   :lines-adjacency :triangles-adjacency)
 
@@ -32,7 +32,7 @@
 
 
 (defun make-mesh (system vertex-count primitive-type &optional index-array)
-  (declare (type primitive primitive-type))
+  (declare (type face-type primitive-type))
   (if (null index-array)
       (make-instance 'mesh
                      :vertex-array (make-vertex-array system vertex-count)
