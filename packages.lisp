@@ -169,6 +169,7 @@
            enabledp
            system-object
            system-of
+           enableable
 
            generic-system
            with-system-lock-held
@@ -336,9 +337,10 @@
 (defpackage :cl-bodge.resources
   (:nicknames :ge.rsc)
   (:use :cl-bodge.utils :cl-bodge.graphics :cl-bodge.graphics.resources
-        :cl-bodge.concurrency :cl-bodge.memory
+        :cl-bodge.concurrency :cl-bodge.memory :cl-bodge.engine
         :cl :cl-muth)
-  (:export load-shader-source
+  (:export resource-system
+           load-shader-source
            load-png-image
            build-shading-program
 

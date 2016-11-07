@@ -87,7 +87,8 @@
                                               :components
                                               ((:file "math")
                                                (:file "lighting")
-                                               (:file "skeleton")))))
+                                               (:file "skeleton")))
+                                     (:file "system")))
                (:module scene
                         :serial t
                         :components ((:file "node")

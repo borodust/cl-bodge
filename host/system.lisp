@@ -7,7 +7,7 @@
    (window :initform nil)
    (eve-sys :initform nil :reader event-system-of)
    (job-queue :initform (make-job-queue)))
-  (:default-initargs :dependencies '(event-system)))
+  (:default-initargs :depends-on '(event-system)))
 
 
 (defmethod enabledp ((this host-system))

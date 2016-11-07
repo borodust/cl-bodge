@@ -10,7 +10,7 @@
 
 (defclass audio-system (thread-bound-system)
   ()
-  (:default-initargs :dependencies '(cl-bodge.host:host-system)))
+  (:default-initargs :depends-on '(cl-bodge.host:host-system)))
 
 
 (defmethod make-system-context ((this audio-system))

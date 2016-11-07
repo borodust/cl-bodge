@@ -20,7 +20,7 @@
 
 ;;
 (defclass system ()
-  ((dependencies :initarg :dependencies :initform '() :reader dependencies-of)))
+  ((dependencies :initarg :depends-on :initform '() :reader dependencies-of)))
 
 
 (defgeneric enable (system))
@@ -117,3 +117,27 @@
 (defmethod initialize-instance :after ((this system-object) &key system)
   (with-slots ((this-system system)) this
     (setf this-system (tg:make-weak-pointer (ensure-not-null system)))))
+
+
+;;;
+;;;
+;;;
+(defclass enableable ()
+  ((enabled-p :initform nil)))
+
+
+(defmethod enabledp ((this enableable))
+  (with-slots (enabled-p) this
+    enabled-p))
+
+
+(defmethod enable ((this enableable))
+  (call-next-method)
+  (with-slots (enabled-p) this
+    (setf enabled-p t)))
+
+
+(defmethod disable ((this enableable))
+  (call-next-method)
+  (with-slots (enabled-p) this
+    (setf enabled-p nil)))

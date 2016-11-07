@@ -3,7 +3,7 @@
 
 (defclass graphics-system (thread-bound-system)
   ((host-sys :initform nil))
-  (:default-initargs :dependencies '(host-system)))
+  (:default-initargs :depends-on '(host-system)))
 
 
 (defmethod initialize-system :after ((this graphics-system))
