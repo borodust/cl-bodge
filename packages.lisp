@@ -358,7 +358,12 @@
            skeleton-chunks-of
            skeleton-children
            skeleton-bone-children
-           skeleton-bone-transform))
+           skeleton-bone-transform
+
+           animation-chunks-of
+           animation-chunk-children
+           keyframe-sequence-bone
+           keyframe-sequence-children))
 
 
 (defpackage :cl-bodge.animation

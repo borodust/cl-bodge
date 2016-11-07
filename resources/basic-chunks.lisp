@@ -51,3 +51,21 @@
 
 (defun skeleton-chunks-of (resource)
   (chunks-by-type resource :skeleton))
+
+;;;
+;;;
+;;;
+
+(define-chunk-structure (keyframe-sequence t)
+  (bone :reference))
+
+
+(define-chunk-structure (animation-chunk t keyframe-sequence))
+
+
+(defmethod parse-chunk ((this (eql :animation)) params data)
+  (make-animation-chunk data))
+
+
+(defun animation-chunks-of (resource)
+  (chunks-by-type resource :animation))
