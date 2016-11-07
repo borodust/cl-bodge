@@ -115,10 +115,8 @@
            vec3
            vec4
            vec->array
-           make-vec3
-           make-vec3*
-           make-vec2*
-           make-vec4*
+           sequence->vec3
+           sequence->vec4
            sequence->vec3
            vref
 
@@ -131,19 +129,21 @@
            mref
            mat->array
            identity-mat4
-           rotation-mat4
-           rotation-mat4*
-           rotation-mat4-from-euler-axis
+           sequence->rotation-mat4
+           euler-axis->mat4
+           euler-angles->mat4
            translation-mat4
-           translation-mat4*
-           scaling-mat4*
+           sequence->translation-mat4
+           vec->translation-mat4
+           scaling-mat4
            mat4->mat3
-           make-mat3*
            perspective-projection-mat
 
            quat
-           make-quat*
-           make-quat-from-euler-axis
+           make-quat
+           sequence->quat
+           euler-axis>-quat
+           euler-angles->quat
            quat->rotation-mat3
            quat->rotation-mat4))
 
@@ -356,11 +356,14 @@
            mesh-chunk-indexes
 
            skeleton-chunks-of
+           skeleton-chunk-id
            skeleton-children
+           skeleton-bone-id
            skeleton-bone-children
            skeleton-bone-transform
 
            animation-chunks-of
+           animation-chunk-id
            animation-chunk-children
            keyframe-sequence-bone
            keyframe-sequence-children))

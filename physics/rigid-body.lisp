@@ -31,7 +31,7 @@
 (defmethod position-of ((this rigid-body))
   (let ((ode-pos (ode:body-get-position (id-of this))))
     (flet ((el (idx) #f(cffi:mem-aref ode-pos 'ode:real idx)))
-      (make-vec3* (el 0) (el 1) (el 2)))))
+      (vec3 (el 0) (el 1) (el 2)))))
 
 
 (defmethod (setf mass-of) (value (this rigid-body))

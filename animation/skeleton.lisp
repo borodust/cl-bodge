@@ -79,7 +79,7 @@
 
 (defmacro keyframed (&body sequences)
   (labels ((parse-frame (frame)
-             `(make-keyframe ,(first frame) (make-quat* ,@(second frame))))
+             `(make-keyframe ,(first frame) (euler-angles->quat ,@(second frame))))
            (parse-seq (seq)
              `(cons ,(first seq)
                     (make-keyframe-sequence

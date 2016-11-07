@@ -1,12 +1,23 @@
 (in-package :cl-bodge.math)
 
 
-(defun make-quat* (x y z)
+(defun quat (x y z s)
+  (make-instance 'quat :value (q:q! x y z s)))
+
+
+(defun sequence->quat (sequence)
+  (quat (elt sequence 0)
+        (elt sequence 1)
+        (elt sequence 2)
+        (elt sequence 3)))
+
+
+(defun euler-axis->quat (a vec3)
+  (make-instance 'quat :value (q:from-axis-angle (value-of vec3) a)))
+
+
+(defun euler-angles->quat (x y z)
   (make-instance 'quat :value (q:from-fixed-angles x y z)))
-
-
-(defun make-quat-from-euler-axis (a x y z)
-  (make-instance 'quat :value (q:from-axis-angle (v3:make x y z) a)))
 
 
 (defmethod normalize ((this quat))

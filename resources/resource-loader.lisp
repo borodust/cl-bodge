@@ -29,7 +29,7 @@
   (flet ((%get-object (ref-id)
            (if-let ((ref (gethash ref-id *objects*)))
              ref
-             (warn "Cannot resolve reference: object '~a' undefined" ref-id))))
+             (log:warn "Cannot resolve reference: object '~a' undefined" ref-id))))
     (prog1 nil
       (push (lambda ()
               (let ((refs (remove-if #'null (mapcar #'%get-object (ensure-list ref-ids)))))

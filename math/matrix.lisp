@@ -23,36 +23,46 @@
   (make-instance 'mat4 :value (m4:identity)))
 
 
-(definline rotation-mat4* (x y z)
-  (make-instance 'mat4 :value (m4:rotation-from-euler (v3:make x y z))))
-
-
-(definline rotation-mat4-from-euler-axis (a vec3)
+(definline euler-axis->mat4 (a vec3)
   (make-instance 'mat4 :value (m4:rotation-from-axis-angle (value-of vec3) a)))
 
 
-(definline rotation-mat4 (vec)
-  (make-instance 'mat4 :value (m4:rotation-from-euler (value-of vec))))
+(definline euler-angles->mat4 (vec3)
+  (make-instance 'mat4 :value (m4:rotation-from-euler (value-of vec3))))
 
 
-(definline translation-mat4* (x y z)
+(definline sequence->rotation-mat4 (sequence)
+  (make-instance 'mat4 :value (m4:rotation-from-euler (v3:make (elt sequence 0)
+                                                               (elt sequence 1)
+                                                               (elt sequence 2)))))
+
+
+(definline translation-mat4 (x y z)
   (make-instance 'mat4 :value (m4:translation (v3:make x y z))))
 
 
-(definline translation-mat4 (vec)
-  (make-instance 'mat4 :value (m4:translation (value-of vec))))
+(definline sequence->translation-mat4 (sequence)
+  (translation-mat4 (elt sequence 0)
+                    (elt sequence 1)
+                    (elt sequence 2)))
 
 
-(definline scaling-mat4* (x y z)
+(definline vec->translation-mat4 (vec)
+ (translation-mat4 (vref vec 0)
+                   (vref vec 1)
+                   (vref vec 2)))
+
+
+(definline scaling-mat4 (x y z)
   (make-instance 'mat4 :value (m4:scale (v3:make x y z))))
 
 
-(defun make-mat3* (m11 m12 m13
-                   m21 m22 m23
-                   m31 m32 m33)
-  (make-instance 'mat3 :value (m3:make m11 m21 m31
-                                       m12 m22 m32
-                                       m13 m23 m33)))
+(defun mat3 (m11 m12 m13
+             m21 m22 m23
+             m31 m32 m33)
+  (make-instance 'mat3 :value (m3:make m11 m12 m13
+                                       m21 m22 m23
+                                       m31 m32 m33)))
 
 
 (defun mat4->mat3 (mat4)

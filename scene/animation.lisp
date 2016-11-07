@@ -53,14 +53,10 @@
   (with-slots (rot transl) this
     (setf transl (if (null translation)
                      (identity-mat4)
-                     (translation-mat4* (elt translation 0)
-                                        (elt translation 1)
-                                        (elt translation 2)))
+                     (sequence->translation-mat4 translation))
           rot (if (null rotation)
                   (identity-mat4)
-                  (rotation-mat4* (elt translation 0)
-                                  (elt translation 1)
-                                  (elt translation 2))))))
+                  (euler-angles->mat4 (sequence->vec3 rotation))))))
 
 
 (defgeneric mat-of (bone-node)
@@ -79,12 +75,12 @@
 
 (defun rotate-bone (bone x y z)
   (with-slots (rot) bone
-    (setf rot (mult (rotation-mat4* x y z) rot))))
+    (setf rot (mult (euler-angles->mat4 (vec3 x y z)) rot))))
 
 
 (defun translate-bone (bone x y z)
   (with-slots (transl) bone
-    (setf transl (mult (translation-mat4* x y z) transl))))
+    (setf transl (mult (translation-mat4 x y z) transl))))
 
 
 ;;;

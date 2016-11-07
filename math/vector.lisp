@@ -5,26 +5,26 @@
   (value-of vec))
 
 
-(definline make-vec3* (&optional (x #f0) (y #f0) (z #f0))
+(definline vec3 (&optional (x #f0) (y #f0) (z #f0))
   (make-instance 'vec3 :value (v3:make x y z)))
 
 
-(definline make-vec4* (&optional (x #f0) (y #f0) (z #f0) (w #f0))
+(definline vec4 (&optional (x #f0) (y #f0) (z #f0) (w #f0))
   (make-instance 'vec4 :value (v4:make x y z w)))
 
 
-(definline make-vec2* (&optional (x #f0) (y #f0))
+(definline vec2 (&optional (x #f0) (y #f0))
   (make-instance 'vec2 :value (v2:make x y)))
 
 
-(definline make-vec3 (vec)
+(definline copy-vec3 (vec)
   (make-instance 'vec3 :value (v3:make (vref vec 0) (vref vec 1) (vref vec 2))))
 
 
 (definline sequence->vec3 (seq)
-  (make-vec3* (elt seq 0)
-              (elt seq 1)
-              (elt seq 2)))
+  (vec3 (elt seq 0)
+        (elt seq 1)
+        (elt seq 2)))
 
 
 (defun vref (vec idx)

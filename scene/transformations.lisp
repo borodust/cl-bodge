@@ -40,13 +40,13 @@
 (defgeneric translate-node (node x y z)
   (:method ((this transform-node) x y z)
     (with-slots (mat) this
-      (setf mat (mult (translation-mat4* #f x #f y #f z) mat)))))
+      (setf mat (mult (translation-mat4 #f x #f y #f z) mat)))))
 
 
 (defgeneric rotate-node (node x y z)
   (:method ((this transform-node) x y z)
     (with-slots (mat) this
-      (setf mat (mult (rotation-mat4* #f x #f y #f z) mat)))))
+      (setf mat (mult (euler-angles->mat4 (vec3 #f x #f y #f z)) mat)))))
 
 
 (defmethod rendering-pass ((this transform-node))
@@ -69,19 +69,19 @@
 (defgeneric translate-camera (camera-node x y z)
   (:method ((this camera-node) x y z)
     (with-slots (camera-mat) this
-      (setf camera-mat (mult (translation-mat4* #f(- x) #f(- y) #f(- z)) camera-mat)))))
+      (setf camera-mat (mult (translation-mat4 #f(- x) #f(- y) #f(- z)) camera-mat)))))
 
 
 (defgeneric rotate-camera (camera-node x y z)
   (:method ((this camera-node) x y z)
     (with-slots (camera-mat) this
-      (setf camera-mat (mult (rotation-mat4* #f(- x) #f(- y) #f(- z)) camera-mat)))))
+      (setf camera-mat (mult (euler-angles->mat4 (vec3 #f(- x) #f(- y) #f(- z))) camera-mat)))))
 
 ;;;
 ;;;
 ;;;
 (defclass body-transform-node (node)
-  ((position :initform (make-vec3*))
+  ((position :initform (vec3))
    (rotation :initform (identity-mat4))
    (body :initarg :body)))
 
@@ -95,6 +95,6 @@
 (defmethod rendering-pass ((this body-transform-node))
   (with-slots (position rotation) this
     (let ((*transform-matrix* (mult *transform-matrix*
-                                    (translation-mat4 position)
+                                    (vec->translation-mat4 position)
                                     rotation)))
       (call-next-method))))
