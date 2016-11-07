@@ -28,19 +28,21 @@
 
 
 (defun vref (vec idx)
-  (ecase idx
-    (0 (v:x vec))
-    (1 (v:y vec))
-    (2 (v:z vec))
-    (3 (v:w vec))))
+  (let ((vec (value-of vec)))
+    (ecase idx
+      (0 (v:x vec))
+      (1 (v:y vec))
+      (2 (v:z vec))
+      (3 (v:w vec)))))
 
 
 (defun (setf vref) (value vec idx)
-  (ecase idx
-    (0 (setf (v:x vec) value))
-    (1 (setf (v:y vec) value))
-    (2 (setf (v:z vec) value))
-    (3 (setf (v:w vec) value))))
+  (let ((vec (value-of vec)))
+    (ecase idx
+      (0 (setf (v:x vec) value))
+      (1 (setf (v:y vec) value))
+      (2 (setf (v:z vec) value))
+      (3 (setf (v:w vec) value)))))
 
 
 (defmethod summarize ((this vec3) (that vec3))

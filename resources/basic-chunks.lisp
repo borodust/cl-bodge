@@ -32,3 +32,22 @@
 
 (defun text-shader-chunks-of (resource)
   (chunks-by-type resource :text-shader))
+
+
+;;;
+;;;
+;;;
+
+(define-chunk-structure (skeleton-bone t skeleton-bone)
+  transform)
+
+
+(define-chunk-structure (skeleton-chunk t skeleton-bone))
+
+
+(defmethod parse-chunk ((this (eql :skeleton)) params data)
+  (make-skeleton-chunk data))
+
+
+(defun skeleton-chunks-of (resource)
+  (chunks-by-type resource :skeleton))

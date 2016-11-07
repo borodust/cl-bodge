@@ -79,7 +79,7 @@
 
 ;;;
 ;;;
-;;;c
+;;;
 (defclass body-transform-node (node)
   ((position :initform (make-vec3*))
    (rotation :initform (identity-mat4))

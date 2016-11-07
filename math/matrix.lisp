@@ -27,6 +27,10 @@
   (make-instance 'mat4 :value (m4:rotation-from-euler (v3:make x y z))))
 
 
+(definline rotation-mat4-from-euler-axis (a vec3)
+  (make-instance 'mat4 :value (m4:rotation-from-axis-angle (value-of vec3) a)))
+
+
 (definline rotation-mat4 (vec)
   (make-instance 'mat4 :value (m4:rotation-from-euler (value-of vec))))
 

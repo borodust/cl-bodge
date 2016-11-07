@@ -133,6 +133,7 @@
            identity-mat4
            rotation-mat4
            rotation-mat4*
+           rotation-mat4-from-euler-axis
            translation-mat4
            translation-mat4*
            scaling-mat4*
@@ -352,7 +353,12 @@
            mesh-chunk-id
            mesh-chunk-face
            mesh-chunk-arrays
-           mesh-chunk-indexes))
+           mesh-chunk-indexes
+
+           skeleton-chunks-of
+           skeleton-children
+           skeleton-bone-children
+           skeleton-bone-transform))
 
 
 (defpackage :cl-bodge.animation
