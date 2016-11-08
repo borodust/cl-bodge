@@ -4,7 +4,8 @@
 ;;;
 ;;;
 ;;;
-(declaim (special *animation-frame*))
+(declaim (special *animation-frame*
+                  *skeleton*))
 
 (defclass animation-node (node)
   ((animation :initarg :frames :initform (error ":frames initarg missing"))))
@@ -31,77 +32,42 @@
 ;;;
 ;;;
 ;;;
-(declaim (special *bones*))
-
-(defclass skeleton-node (node) ())
-
-
-(defmethod rendering-pass ((this skeleton-node))
-  (let ((*bones* '()))
-    (call-next-method)))
-
-
-;;;
-;;;
-;;;
 (defclass bone-node (node)
-  ((rot :initform nil :reader rotation-of)
-   (transl :initform nil :reader translation-of)))
+  ((transform :initarg :transform :initform (identity-mat4) :reader transform-of)))
 
 
-(defmethod initialize-instance :after ((this bone-node) &key translation rotation)
-  (with-slots (rot transl) this
-    (setf transl (if (null translation)
-                     (identity-mat4)
-                     (sequence->translation-mat4 translation))
-          rot (if (null rotation)
-                  (identity-mat4)
-                  (euler-angles->mat4 (sequence->vec3 rotation))))))
+(defclass animated-skeleton-node (node)
+  ((root :initarg :root-bone :initform (error ":root-bone initarg missing") :reader root-bone-of)
+   (bones :initform (make-hash-table :test 'equal))))
 
 
-(defgeneric mat-of (bone-node)
-  (:method ((this bone-node))
-    (mult (translation-of this) (rotation-of this))))
+(defmethod initialize-instance :after ((this animated-skeleton-node) &key)
+  (with-slots (root bones) this
+    (labels ((%flatten (node)
+               (with-hash-entries ((n (name-of node))) bones
+                 (unless (null n)
+                   (error "Bone '~a' duplicate found" (name-of node)))
+                 (setf n node))
+               (dochildren (child node)
+                 (%flatten child))))
+      (%flatten root))))
 
 
-(defmethod rendering-pass ((this bone-node))
-  (with-accessors ((mat mat-of)) this
-    (let ((bone (if (null *bones*) mat (mult (first *bones*) mat))))
-      (push bone *bones*)
-      (unwind-protect
-           (call-next-method)
-        (pop *bones*)))))
+(defun bone-transform (bone-name)
+  ;; todo: cache results
+  (labels ((%transform-for (bone)
+             (if (null bone)
+                 (identity-mat4)
+                 (let ((parent (%transform-for (parent-of bone))))
+                   (if-let ((animated (frame-transform-of *animation-frame* (name-of bone))))
+                     (mult parent animated)
+                     (mult parent (transform-of bone)))))))
+    (with-slots (bones) *skeleton*
+      (if-let ((bone (gethash bone-name bones)))
+        (%transform-for bone)
+        (error "Bone '~a' missing" bone-name)))))
 
 
-(defun rotate-bone (bone x y z)
-  (with-slots (rot) bone
-    (setf rot (mult (euler-angles->mat4 (vec3 x y z)) rot))))
-
-
-(defun translate-bone (bone x y z)
-  (with-slots (transl) bone
-    (setf transl (mult (translation-mat4 x y z) transl))))
-
-
-;;;
-;;;
-;;;
-(defclass bone-to-world-transform-node (node) ())
-
-
-(defmethod rendering-pass ((this bone-to-world-transform-node))
-  (let ((*transform-matrix* (mult *transform-matrix* (first *bones*))))
+(defmethod rendering-pass ((this animated-skeleton-node))
+  (let ((*skeleton* this))
     (call-next-method)))
-
-;;;
-;;;
-;;;
-(defclass animated-bone-node (bone-node)
-  ((seq-id :initarg :sequence :initform (error ":sequence initarg missing"))))
-
-
-(defmethod rotation-of ((this animated-bone-node))
-  (with-slots (seq-id) this
-    (if-let ((mat (frame-rotation-of *animation-frame* seq-id)))
-      (mult mat (call-next-method))
-      (call-next-method))))

@@ -22,6 +22,7 @@
                (:module math
                         :serial t
                         :components ((:file "types")
+                                     (:file "scalar")
                                      (:file "vector")
                                      (:file "matrix")
                                      (:file "matvec")

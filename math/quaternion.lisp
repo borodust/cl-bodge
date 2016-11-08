@@ -5,6 +5,10 @@
   (make-instance 'quat :value (q:q! x y z s)))
 
 
+(defun identity-quat ()
+  (make-instance 'quat :value (q:identity)))
+
+
 (defun sequence->quat (sequence)
   (quat (elt sequence 0)
         (elt sequence 1)

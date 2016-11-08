@@ -44,10 +44,12 @@
 
 (defun (setf shading-parameter) (value name)
   (with-slots (bindings) *shading-parameters*
-    (with-hash-entries ((programs name)) bindings
-      (when (null programs)
-        (error "Parameter with name '~a' is unbound" name))
-      (setf (program-uniform-variable (first programs) name) value))))
+    (let* ((bracket-pos (position #\[ name))
+           (registration-name (if (null bracket-pos) name (subseq name 0 bracket-pos))))
+      (with-hash-entries ((programs registration-name)) bindings
+        (when (null programs)
+          (error "Parameter with name '~a' is unbound" name))
+        (setf (program-uniform-variable (first programs) name) value)))))
 
 #++
 (defun shading-parameter (name)

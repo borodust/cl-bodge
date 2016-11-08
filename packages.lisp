@@ -109,6 +109,7 @@
            div
            subt
            normalize
+           inverse
 
            vec
            vec2
@@ -129,6 +130,7 @@
            mref
            mat->array
            identity-mat4
+           sequence->mat4
            sequence->rotation-mat4
            euler-axis->mat4
            euler-angles->mat4
@@ -136,11 +138,12 @@
            sequence->translation-mat4
            vec->translation-mat4
            scaling-mat4
+           vec->scaling-mat4
            mat4->mat3
            perspective-projection-mat
 
            quat
-           make-quat
+           identity-quat
            sequence->quat
            euler-axis>-quat
            euler-angles->quat
@@ -354,10 +357,12 @@
            mesh-chunk-face
            mesh-chunk-arrays
            mesh-chunk-indexes
+           mesh-chunk-bones
+           mesh-bone-index
+           mesh-bone-offset
+           mesh-bone-bone
 
            skeleton-chunks-of
-           skeleton-chunk-id
-           skeleton-children
            skeleton-bone-id
            skeleton-bone-children
            skeleton-bone-transform
@@ -375,10 +380,10 @@
         :cl)
   (:export make-keyframe
            make-keyframe-sequence
-           rotation-at
-           make-keyframed-animation
+           transform-at
+           make-keyframe-animation
            frame-at
-           frame-rotation-of
+           frame-transform-of
            start-animation
            reset-animation
            keyframed))
@@ -435,16 +440,15 @@
            model
            make-model-graph
 
-           *bones*
            animation-node
            start-node-animation
            reset-node-animation
-           skeleton-node
+
+           *skeleton*
+           animated-skeleton-node
+           bone-transform
            bone-node
-           rotate-bone
-           translate-bone
-           bone-to-world-transform-node
-           animated-bone-node
+           root-bone-of
 
            scenegraph))
 

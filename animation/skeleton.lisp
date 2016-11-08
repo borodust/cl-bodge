@@ -1,15 +1,43 @@
 (in-package :cl-bodge.animation)
 
 
+;;;
+;;;
+;;;
+
 (defclass keyframe ()
   ((timestamp :initarg :timestamp :reader timestamp-of)
-   (rotation :initarg :rotation :reader rotation-of)))
+   (rotation :initarg :rotation :initform (identity-quat) :reader rotation-of)
+   (translation :initarg :translation :initform (vec3) :reader translation-of)
+   (scale :initarg :scale :initform (vec3 1.0 1.0 1.0) :reader scale-of)))
 
 
-(defun make-keyframe (timestamp rotation)
-  (make-instance 'keyframe :timestamp timestamp :rotation rotation))
+(defun make-keyframe (timestamp &key (rotation (identity-quat))
+                                  (translation (vec3))
+                                  (scale (vec3 1.0 1.0 1.0)))
+  (make-instance 'keyframe :timestamp timestamp
+                 :rotation rotation
+                 :translation translation
+                 :scale scale))
 
 
+(defgeneric transform-of (frame)
+  (:method ((this keyframe))
+    (mult (vec->translation-mat4 (translation-of this))
+          (quat->rotation-mat4 (rotation-of this))
+          (vec->scaling-mat4 (scale-of this)))))
+
+
+(defmethod lerp ((this keyframe) (that keyframe) f)
+  (make-instance 'keyframe
+                 :timestamp (lerp (timestamp-of this) (timestamp-of that) f)
+                 :rotation (nlerp (rotation-of this) (rotation-of that) f)
+                 :translation (lerp (translation-of this) (translation-of that) f)
+                 :scale (lerp (scale-of this) (scale-of that) f)))
+
+;;;
+;;;
+;;;
 (defclass keyframe-sequence ()
   ((frames :initform #() :initarg :frames :reader keyframes-of)))
 
@@ -23,7 +51,7 @@
                         :initial-contents (sort sequence #'< :key #'%timestamp)))))
 
 
-  (defun rotation-at (animation-sequence timestamp)
+  (defun transform-at (animation-sequence timestamp)
     (let ((kframes (keyframes-of animation-sequence)))
       (flet ((%interpolate (this-idx that-idx)
                (let* ((this (aref kframes this-idx))
@@ -31,28 +59,28 @@
                       (this-timestamp (timestamp-of this))
                       (f #f(/ (- timestamp this-timestamp)
                               (- (timestamp-of that) this-timestamp))))
-                 (nlerp (rotation-of this) (rotation-of that) f))))
+                 (transform-of (lerp this that f)))))
         (multiple-value-bind (frame idx) (search-sorted timestamp kframes :key #'%timestamp)
           (let* ((len (length kframes)))
             (if (null frame)
                 (cond
-                  ((= idx 0) (rotation-of (aref kframes 0)))
-                  ((= idx len) (rotation-of (aref kframes (1- len))))
+                  ((= idx 0) (transform-of (aref kframes 0)))
+                  ((= idx len) (transform-of (aref kframes (1- len))))
                   (t (%interpolate (1- idx) idx)))
-                (rotation-of frame))))))))
+                (transform-of frame))))))))
 
 
 (defun make-keyframe-sequence (frames)
   (make-instance 'keyframe-sequence :sequence frames))
 
 
-(defclass keyframed-animation ()
+(defclass keyframe-animation ()
   ((sequences :initarg :sequence-alist :initform (error "Keyframe sequences must be supplied"))
    (started-at :initform nil)))
 
 
-(defun make-keyframed-animation (sequence-alist)
-  (make-instance 'keyframed-animation :sequence-alist sequence-alist))
+(defun make-keyframe-animation (sequence-alist)
+  (make-instance 'keyframe-animation :sequence-alist sequence-alist))
 
 
 (defun frame-at (animation &optional (timestamp (local-time:now)))
@@ -60,10 +88,10 @@
     (unless (null started-at)
       (let ((delta (max (- (epoch-seconds timestamp) started-at) 0.0)))
         (loop for (id . seq) in sequences collecting
-             (cons id (quat->rotation-mat4 (rotation-at seq delta))))))))
+             (cons id (transform-at seq delta)))))))
 
 
-(defun frame-rotation-of (frame id)
+(defun frame-transform-of (frame id)
   (cdr (assoc id frame :test #'equal)))
 
 
@@ -79,7 +107,7 @@
 
 (defmacro keyframed (&body sequences)
   (labels ((parse-frame (frame)
-             `(make-keyframe ,(first frame) (euler-angles->quat ,@(second frame))))
+             `(make-keyframe ,(first frame) :rotation (euler-angles->quat ,@(second frame))))
            (parse-seq (seq)
              `(cons ,(first seq)
                     (make-keyframe-sequence
@@ -87,4 +115,4 @@
                                   (parse-frame frame)))))))
     (let ((sequence-alist `(list ,@(loop for seq in sequences collecting
                                         (parse-seq seq)))))
-      `(make-keyframed-animation ,sequence-alist))))
+      `(make-keyframe-animation ,sequence-alist))))

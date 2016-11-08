@@ -32,8 +32,9 @@
              (log:warn "Cannot resolve reference: object '~a' undefined" ref-id))))
     (prog1 nil
       (push (lambda ()
-              (let ((refs (remove-if #'null (mapcar #'%get-object (ensure-list ref-ids)))))
-                (funcall accessor refs (gethash cur-id *objects*))))
+              (when-let ((refs (remove-if #'null (mapcar #'%get-object (ensure-list ref-ids)))))
+                (funcall accessor (if (listp ref-ids) refs (first refs))
+                         (gethash cur-id *objects*))))
             *resolvers*))))
 
 

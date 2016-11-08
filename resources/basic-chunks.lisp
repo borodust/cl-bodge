@@ -3,8 +3,15 @@
 ;;;
 ;;;
 ;;;
+(define-chunk-structure (mesh-bone)
+  index
+  offset
+  (bone :reference))
+
+
 (define-chunk-structure (mesh-chunk)
-  face arrays indexes)
+  face arrays indexes
+  (bones mesh-bone))
 
 
 (defmethod parse-chunk ((this (eql :mesh)) params data)
@@ -42,11 +49,8 @@
   transform)
 
 
-(define-chunk-structure (skeleton-chunk t skeleton-bone))
-
-
 (defmethod parse-chunk ((this (eql :skeleton)) params data)
-  (make-skeleton-chunk data))
+  (make-skeleton-bone data))
 
 
 (defun skeleton-chunks-of (resource)

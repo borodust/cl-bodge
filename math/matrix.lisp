@@ -27,6 +27,10 @@
   (make-instance 'mat4 :value (m4:rotation-from-axis-angle (value-of vec3) a)))
 
 
+(defmethod inverse ((this mat4))
+  (make-instance 'mat4 :value (m4:inverse (value-of this))))
+
+
 (definline euler-angles->mat4 (vec3)
   (make-instance 'mat4 :value (m4:rotation-from-euler (value-of vec3))))
 
@@ -35,6 +39,20 @@
   (make-instance 'mat4 :value (m4:rotation-from-euler (v3:make (elt sequence 0)
                                                                (elt sequence 1)
                                                                (elt sequence 2)))))
+
+(definline sequence->mat4 (sequence)
+  "row major"
+  (let ((val (m4:0!)))
+    (macrolet ((%array->m4 (arr)
+                 (once-only (arr)
+                   `(setf
+                     ,@(loop for i from 0 below 4 append
+                            (loop for j from 0 below 4 append
+                                 `((m4:melm val ,i ,j) (aref ,arr ,(+ (* i 4) j)))))))))
+      (if (listp sequence)
+          (%array->m4 (make-array 16 :initial-contents sequence))
+          (%array->m4 sequence)))
+    (make-instance 'mat4 :value val)))
 
 
 (definline translation-mat4 (x y z)
@@ -55,6 +73,12 @@
 
 (definline scaling-mat4 (x y z)
   (make-instance 'mat4 :value (m4:scale (v3:make x y z))))
+
+
+(definline vec->scaling-mat4 (vec)
+  (scaling-mat4 (vref vec 0)
+                (vref vec 1)
+                (vref vec 2)))
 
 
 (defun mat3 (m11 m12 m13

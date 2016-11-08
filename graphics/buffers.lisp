@@ -48,16 +48,24 @@
                      (simple-array * (* 1))
                      (simple-array * (* 2))
                      (simple-array * (* 3))
-                     (simple-array * (* 4))) vertex-attribute-data))
-  (destructuring-bind (data-vertex-count &optional (data-attrib-size 1))
+                     (simple-array * (* 4)))
+                 vertex-attribute-data))
+  (destructuring-bind (data-vertex-count &optional (data-attrib-size 1 attrib-size-provided-p))
       (array-dimensions vertex-attribute-data)
-    (with-slots (attribute-size vertex-count) this
-      (setf attribute-size data-attrib-size
-            vertex-count data-vertex-count)
-        (gl:with-gl-array (gl-array :float :count (* vertex-count attribute-size))
+    (flet ((component-type ()
+             (let ((c (if attrib-size-provided-p
+                          (aref vertex-attribute-data 0 0)
+                          (aref vertex-attribute-data 0 ))))
+               (etypecase c
+                 (integer :int)
+                 (single-float :float)))))
+      (with-slots (attribute-size vertex-count) this
+        (setf attribute-size data-attrib-size
+              vertex-count data-vertex-count)
+        (gl:with-gl-array (gl-array (component-type) :count (* vertex-count attribute-size))
           (map-to-gl-array vertex-attribute-data gl-array)
           (with-bound-buffer (this)
-            (gl:buffer-data :array-buffer :static-draw gl-array))))))
+            (gl:buffer-data :array-buffer :static-draw gl-array)))))))
 
 
 ;;;
