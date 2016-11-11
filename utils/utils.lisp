@@ -195,3 +195,19 @@
                          (%search start idx)
                          (%search (1+ idx) end)))))))
     (%search 0 (length sorted-array))))
+
+
+(defun list->array (list &rest dimensions)
+  (let ((element (if (null dimensions)
+                     (car list)
+                     (loop repeat (length dimensions)
+                        for el = list then (car el)
+                        finally (return (car el)))))
+        (dimensions (or dimensions (length list))))
+    (typecase element
+      (integer
+       (make-array dimensions :element-type 'integer
+                   :initial-contents list))
+      (single-float
+       (make-array dimensions :element-type 'single-float
+                   :initial-contents list)))))

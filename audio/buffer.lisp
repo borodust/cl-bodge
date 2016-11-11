@@ -1,17 +1,6 @@
 (in-package :cl-bodge.audio)
 
 
-(deftype pcm-data ()
-  '(or (simple-array (unsigned-byte 8) (*))
-    (simple-array (signed-byte 16) (*))))
-
-
-(deftype sample-depth ()
-  '(member 8 16))
-
-
-(defenum channel-format
-  :mono :stereo)
 
 
 (defclass audio-buffer (al-object) ()
@@ -34,12 +23,11 @@
       (al:buffer-data (id-of this) pcm-format raw-data foreign-size sampling-rate))))
 
 
-(declaim (ftype (function (* pcm-data channel-format sample-depth integer) *) make-audio-buffer)
-         (inline make-audio-buffer))
-(defun make-audio-buffer (system pcm-data channel-format sample-depth sampling-rate)
+
+(definline make-audio-buffer (system resource)
   (make-instance 'audio-buffer
                  :system system
-                 :channel-format channel-format
-                 :sample-depth sample-depth
-                 :sampling-rate sampling-rate
-                 :pcm-data pcm-data))
+                 :channel-format (audio-channel-format-of resource)
+                 :sample-depth (audio-sample-depth-of resource)
+                 :sampling-rate (audio-sampling-rate-of resource)
+                 :pcm-data (pcm-audio-data-of resource)))

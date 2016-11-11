@@ -48,7 +48,8 @@
            children-of
            dotree
 
-           search-sorted))
+           search-sorted
+           list->array))
 
 
 (defpackage :cl-bodge.concurrency
@@ -285,9 +286,23 @@
            with-bound-shading-pipeline))
 
 
+(defpackage :cl-bodge.audio.resources
+  (:nicknames :ge.snd.rsc)
+  (:use :cl-bodge.utils
+        :cl)
+  (:export pcm-data
+           sample-depth
+           channel-format
+
+           pcm-audio-data-of
+           audio-channel-format-of
+           audio-sample-depth-of
+           audio-sampling-rate-of))
+
+
 (defpackage :cl-bodge.audio
   (:use :cl-bodge.engine :cl-bodge.math :cl-bodge.memory :cl-bodge.concurrency
-        :cl-bodge.utils
+        :cl-bodge.utils :cl-bodge.audio.resources
         :cl :cl-muth)
   (:nicknames :ge.snd)
   (:export audio-system
@@ -341,11 +356,12 @@
 (defpackage :cl-bodge.resources
   (:nicknames :ge.rsc)
   (:use :cl-bodge.utils :cl-bodge.graphics :cl-bodge.graphics.resources
-        :cl-bodge.concurrency :cl-bodge.memory :cl-bodge.engine
-        :cl :cl-muth)
+        :cl-bodge.concurrency :cl-bodge.memory :cl-bodge.engine :cl-bodge.audio.resources
+        :cl :cl-muth :bodge-sndfile)
   (:export resource-system
            load-shader-source
            load-png-image
+           load-ogg-vorbis-audio
            build-shading-program
 
            load-resource
@@ -443,12 +459,14 @@
            animation-node
            start-node-animation
            reset-node-animation
+           chunk->animation
 
            *skeleton*
            animated-skeleton-node
            bone-transform
            bone-node
            root-bone-of
+           chunk->skeleton
 
            scenegraph))
 

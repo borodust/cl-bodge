@@ -11,7 +11,7 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (alexandria cl-opengl cl-glfw3 cl-muth rtg-math cffi clode
+  :depends-on (alexandria cl-opengl cl-glfw3 cl-muth rtg-math cffi clode bodge-sndfile
                           log4cl bordeaux-threads trivial-main-thread cl-openal cl-alc
                           cl-fad local-time blackbird trivial-garbage opticl)
   :serial t
@@ -63,7 +63,8 @@
                         :components ((:file "skeleton")))
                (:module audio
                         :serial t
-                        :components ((:file "al")
+                        :components ((:file "resources")
+                                     (:file "al")
                                      (:file "buffer")
                                      (:file "source")
                                      (:file "system")))
@@ -78,12 +79,13 @@
                                      (:file "geometry")))
                (:module resources
                         :serial t
-                        :components ((:file "shader-source")
-                                     (:file "shader-library")
-                                     (:file "image")
-                                     (:file "resource-loader")
+                        :components ((:file "resource-loader")
                                      (:file "basic-chunks")
                                      (:file "simple-model-chunk")
+                                     (:file "shader-source")
+                                     (:file "shader-library")
+                                     (:file "image")
+                                     (:file "audio")
                                      (:module shaders
                                               :components
                                               ((:file "math")
@@ -92,7 +94,8 @@
                                      (:file "system")))
                (:module scene
                         :serial t
-                        :components ((:file "node")
+                        :components ((:file "utils")
+                                     (:file "node")
                                      (:file "scene")
                                      (:file "transformations")
                                      (:file "rendering")
