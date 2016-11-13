@@ -14,13 +14,13 @@
 
 
 (defmethod make-system-context ((this physics-system))
-  (ode:init-ode)
+  (%ode:init-ode)
   (make-physics-context))
 
 
 (defmethod destroy-system-context (ctx (this physics-system))
   (destroy-universe (ctx-universe *system-context*))
-  (ode:close-ode))
+  (%ode:close-ode))
 
 
 (defun observe-universe (timestep)
@@ -28,5 +28,5 @@
 
 
 (defun (setf gravity) (vec)
-  (ode:world-set-gravity (world-of (universe))
-                         (vref vec 0) (vref vec 1) (vref vec 2)))
+  (%ode:world-set-gravity (world-of (universe))
+                          (vref vec 0) (vref vec 1) (vref vec 2)))

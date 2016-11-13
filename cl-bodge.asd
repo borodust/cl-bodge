@@ -11,9 +11,10 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (alexandria cl-opengl cl-glfw3 cl-muth rtg-math cffi clode bodge-sndfile
+  :depends-on (alexandria cl-opengl cl-glfw3 cl-muth rtg-math cffi bodge-ode bodge-sndfile
                           log4cl bordeaux-threads trivial-main-thread cl-openal cl-alc
-                          cl-fad local-time blackbird trivial-garbage opticl)
+                          cl-fad local-time blackbird trivial-garbage opticl cl-autowrap
+                          cl-plus-c)
   :serial t
   :components ((:file "packages")
                (:module utils

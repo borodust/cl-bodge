@@ -93,6 +93,9 @@
      (defun ,name ,lambda-list ,@body)))
 
 
+;;;
+;;;
+;;;
 (cffi:defcfun ("memcpy" %copy-memory) :pointer
   (destination :pointer)
   (source :pointer)
@@ -101,6 +104,23 @@
 
 (defun copy-memory (destination source type &optional (count 1))
   (%copy-memory destination source (* (cffi:foreign-type-size type) count)))
+
+
+;;;
+;;;
+;;;
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (autowrap:define-foreign-function '(%copy-memory-autowrapped "memcpy") :void
+    '((destination :pointer)
+      (source :pointer)
+      (size :int))))
+
+
+(defun copy-memory-autowrapped (destination source type &optional (count 1))
+  (plus-c:c-fun %copy-memory-autowrapped
+                destination source (* (autowrap:foreign-type-size (autowrap:find-type type))
+                                      count)))
+
 
 
 (defmacro ensure-not-null (value)

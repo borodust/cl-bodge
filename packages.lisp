@@ -33,6 +33,7 @@
            epoch-seconds
            definline
            copy-memory
+           copy-memory-autowrapped
 
            ensure-not-null
            if-unbound
@@ -324,7 +325,7 @@
 (defpackage :cl-bodge.physics
   (:use :cl-bodge.engine :cl-bodge.utils :cl-bodge.math :cl-bodge.memory
         :cl-bodge.concurrency :cl-bodge.utils
-        :cl :local-time)
+        :cl :local-time :bodge-ode :autowrap :plus-c)
   (:nicknames :ge.phx)
   (:export physics-system
            observe-universe
