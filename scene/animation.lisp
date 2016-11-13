@@ -44,12 +44,13 @@
 (defmethod initialize-instance :after ((this animated-skeleton-node) &key)
   (with-slots (root bones) this
     (labels ((%flatten (node)
-               (with-hash-entries ((n (name-of node))) bones
-                 (unless (null n)
-                   (error "Bone '~a' duplicate found" (name-of node)))
-                 (setf n node))
-               (dochildren (child node)
-                 (%flatten child))))
+               (unless (null node)
+                 (with-hash-entries ((n (name-of node))) bones
+                   (unless (null n)
+                     (error "Bone '~a' duplicate found" (name-of node)))
+                   (setf n node))
+                 (dochildren (child node)
+                   (%flatten child)))))
       (%flatten root))))
 
 
@@ -59,7 +60,8 @@
              (if (null bone)
                  (identity-mat4)
                  (let ((parent (%transform-for (parent-of bone))))
-                   (if-let ((animated (frame-transform-of *animation-frame* (name-of bone))))
+                   (if-let ((animated (when-bound *animation-frame*
+                                        (frame-transform-of *animation-frame* (name-of bone)))))
                      (mult parent animated)
                      (mult parent (transform-of bone)))))))
     (with-slots (bones) *skeleton*

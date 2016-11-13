@@ -94,7 +94,7 @@
                                      (:file "system")))
                (:module scene
                         :serial t
-                        :components ((:file "utils")
+                        :components ((:file "misc")
                                      (:file "node")
                                      (:file "scene")
                                      (:file "transformations")

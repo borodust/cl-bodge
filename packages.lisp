@@ -353,9 +353,24 @@
            make-box-mass))
 
 
+(defpackage :cl-bodge.animation
+  (:nicknames :ge.ani)
+  (:use :cl-bodge.utils :cl-bodge.math
+        :cl)
+  (:export make-keyframe
+           make-keyframe-sequence
+           transform-at
+           make-keyframe-animation
+           frame-at
+           frame-transform-of
+           start-animation
+           reset-animation
+           keyframed))
+
+
 (defpackage :cl-bodge.resources
   (:nicknames :ge.rsc)
-  (:use :cl-bodge.utils :cl-bodge.graphics :cl-bodge.graphics.resources
+  (:use :cl-bodge.utils :cl-bodge.graphics :cl-bodge.graphics.resources :cl-bodge.math
         :cl-bodge.concurrency :cl-bodge.memory :cl-bodge.engine :cl-bodge.audio.resources
         :cl :cl-muth :bodge-sndfile)
   (:export resource-system
@@ -370,6 +385,7 @@
 
            mesh-chunks-of
            mesh-chunk-id
+           mesh-chunk-transform
            mesh-chunk-face
            mesh-chunk-arrays
            mesh-chunk-indexes
@@ -390,26 +406,11 @@
            keyframe-sequence-children))
 
 
-(defpackage :cl-bodge.animation
-  (:nicknames :ge.ani)
-  (:use :cl-bodge.utils :cl-bodge.math
-        :cl)
-  (:export make-keyframe
-           make-keyframe-sequence
-           transform-at
-           make-keyframe-animation
-           frame-at
-           frame-transform-of
-           start-animation
-           reset-animation
-           keyframed))
-
-
 (defpackage :cl-bodge.scene
   (:nicknames :ge.sg)
   (:use :cl-bodge.utils :cl-bodge.engine :cl-bodge.graphics :cl-bodge.physics
         :cl-bodge.math :cl-bodge.concurrency :cl-bodge.host :cl-bodge.memory
-        :cl-bodge.resources :cl-bodge.animation
+        :cl-bodge.animation :cl-bodge.resources
         :cl :cl-muth)
   (:export node
            find-node
@@ -459,16 +460,18 @@
            animation-node
            start-node-animation
            reset-node-animation
-           chunk->animation
 
            *skeleton*
            animated-skeleton-node
            bone-transform
            bone-node
            root-bone-of
-           chunk->skeleton
 
-           scenegraph))
+           scenegraph
+
+           chunk->animation
+           chunk->skeleton
+           chunk->mesh))
 
 
 (defpackage :cl-bodge

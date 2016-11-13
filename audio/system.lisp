@@ -26,7 +26,7 @@
   (alc:close-device (ac-dev ctx)))
 
 
-(declaim (ftype (function () vec3) listener-gain)
+(declaim (ftype (function () (values vec3 &optional)) listener-gain)
          (inline listener-gain))
 (defun listener-gain ()
   (sequence->vec3 (al:get-listener :gain)))
@@ -38,13 +38,13 @@
   (al:listener :gain (vec->array value)))
 
 
-(declaim (ftype (function () vec3) listener-position)
+(declaim (ftype (function () (values vec3 &optional)) listener-position)
          (inline listener-position))
 (defun listener-position ()
   (sequence->vec3 (al:get-listener :position)))
 
 
-(declaim (ftype (function () vec3) listener-velocity)
+(declaim (ftype (function () (values vec3 &optional)) listener-velocity)
          (inline listener-velocity))
 (defun listener-velocity ()
   (sequence->vec3 (al:get-listener :velocity)))

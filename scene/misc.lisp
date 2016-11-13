@@ -16,6 +16,29 @@
                                        :scale (sequence->vec3 scale))))))))))
 
 
+(defun chunk->mesh (system mesh-chunk)
+  (let* ((arrays (mesh-chunk-arrays mesh-chunk))
+         (v-count (length (cadar arrays)))
+         (chunk-bones (mesh-chunk-bones mesh-chunk))
+         (bone-count (reduce #'max chunk-bones :key #'mesh-bone-index :initial-value 0))
+         (bones
+          (loop with r = (make-array bone-count :initial-element nil)
+             for bone in chunk-bones do
+               (setf (aref r (1- (mesh-bone-index bone)))
+                     (when-let ((skeleton-bone (mesh-bone-bone bone)))
+                       (cons (skeleton-bone-id skeleton-bone)
+                             (sequence->mat4 (mesh-bone-offset bone)))))
+             finally (return r)))
+         (index-array (list->array (mesh-chunk-indexes mesh-chunk)))
+         (mesh (make-mesh system v-count :triangles index-array)))
+    (loop for (array-id array) in arrays do
+         (with-disposable ((vbuf (make-array-buffer
+                                  system array-id
+                                  (list->array array v-count (length (car array))))))
+           (attach-gpu-buffer vbuf mesh)))
+    (values mesh (sequence->mat4 (mesh-chunk-transform mesh-chunk)) bones)))
+
+
 (defun chunk->skeleton (chunk)
   (labels ((%traverse (bone)
              (let ((node (make-instance 'bone-node

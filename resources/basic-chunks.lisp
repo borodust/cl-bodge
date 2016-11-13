@@ -10,7 +10,7 @@
 
 
 (define-chunk-structure (mesh-chunk)
-  face arrays indexes
+  face arrays indexes transform
   (bones mesh-bone))
 
 

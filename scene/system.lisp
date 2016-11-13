@@ -2,4 +2,4 @@
 
 
 (defclass scenegraph-system (generic-system) ()
-  (:default-initargs :depends-on '(graphics-system physics-system resource-system)))
+  (:default-initargs :depends-on '(graphics-system physics-system)))
