@@ -71,23 +71,25 @@
 
 
 (defun startup (properties-pathspec)
-  (with-slots (systems properties disabling-order thread-pool) *engine*
-    (setf properties (%load-properties properties-pathspec)
-          thread-pool (make-thread-pool (property :engine-thread-pool-size 4)))
-    (open-pool thread-pool)
-    (let ((system-class-names (property :systems
-                                        (lambda ()
-                                          (error ":systems property should be defined")))))
-      (setf systems (alist-hash-table (instantiate-systems system-class-names))
-            disabling-order (enable-requested-systems systems)))))
+  (within-new-thread-waiting "startup-worker"
+    (with-slots (systems properties disabling-order thread-pool) *engine*
+      (setf properties (%load-properties properties-pathspec)
+            thread-pool (make-thread-pool (property :engine-thread-pool-size 4)))
+      (open-pool thread-pool)
+      (let ((system-class-names
+             (property :systems (lambda ()
+                                  (error ":systems property should be defined")))))
+        (setf systems (alist-hash-table (instantiate-systems system-class-names))
+              disabling-order (enable-requested-systems systems))))))
 
 
 (defun shutdown ()
-  (with-slots (systems disabling-order thread-pool) *engine*
-    (loop for system-class in disabling-order do
-         (log:debug "Disabling ~a" system-class)
-         (disable (gethash system-class systems)))
-    (close-pool thread-pool)))
+  (within-new-thread-waiting "shutdown-worker"
+    (with-slots (systems disabling-order thread-pool) *engine*
+      (loop for system-class in disabling-order do
+           (log:debug "Disabling ~a" system-class)
+           (disable (gethash system-class systems)))
+      (close-pool thread-pool))))
 
 
 (defmethod execute ((this bodge-engine) fn)

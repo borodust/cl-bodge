@@ -80,6 +80,7 @@
 
            ->
            execute
+           within-new-thread-waiting
 
            promisep
            promise-finished-p
@@ -191,6 +192,7 @@
            thread-bound-object
 
            engine-system
+           engine
            property
            startup
            shutdown))
@@ -217,6 +219,7 @@
 
            bind-rendering-context
            swap-buffers
+           viewport-title
 
            state-from
            keyboard-event
@@ -231,7 +234,8 @@
            y-offset-from
            framebuffer-size-change-event
            width-from
-           height-from))
+           height-from
+           viewport-hiding-event))
 
 
 (defpackage :cl-bodge.graphics.resources

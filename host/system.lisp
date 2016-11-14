@@ -1,5 +1,9 @@
 (in-package :cl-bodge.host)
 
+
+(declaim (special *host*))
+
+
 (defclass host-system (generic-system)
   ((enabled-p :initform nil)
    (state-condi-var :initform (make-condition-variable
@@ -27,37 +31,38 @@
 
 
 (glfw:def-window-close-callback on-close (window)
-  (glfw:hide-window window))
+  (glfw:hide-window window)
+  (post (make-viewport-hiding-event) (event-system-of *host*)))
 
 
 (glfw:def-key-callback on-key-action (window key scancode action mod-keys)
-  (declare (special *host*) (ignore window scancode mod-keys))
+  (declare (ignore window scancode mod-keys))
   (post (make-keyboard-event (glfw-enumval->keyboard-key key)
                              (glfw-enumval->button-state action))
         (event-system-of *host*)))
 
 
 (glfw:def-mouse-button-callback on-mouse-action (window button action mod-keys)
-  (declare (special *host*) (ignore window mod-keys))
+  (declare (ignore window mod-keys))
   (post (make-mouse-event (glfw-enumval->mouse-button button)
                           (glfw-enumval->button-state action))
         (event-system-of *host*)))
 
 
 (glfw:def-cursor-pos-callback on-cursor-movement (window x y)
-  (declare (special *host*) (ignore window))
+  (declare (ignore window))
   (post (make-cursor-event x y)
         (event-system-of *host*)))
 
 
 (glfw:def-scroll-callback on-scroll (window x y)
-  (declare (special *host*) (ignore window))
+  (declare (ignore window))
   (post (make-scroll-event x y)
         (event-system-of *host*)))
 
 
 (glfw:def-framebuffer-size-callback on-framebuffer-size-change (window w h)
-  (declare (special *host*) (ignore window))
+  (declare (ignore window))
   (post (make-framebuffer-size-change-event w h) (event-system-of *host*)))
 
 
@@ -67,7 +72,8 @@
                           'mouse-event
                           'cursor-event
                           'scroll-event
-                          'framebuffer-size-change-event))
+                          'framebuffer-size-change-event
+                          'viewport-hiding-event))
 
 
 ;; if current thread is the main one, this function will block
@@ -135,3 +141,8 @@
   (with-slots (window) host-sys
     (with-system-lock-held (host-sys)
       (glfw:swap-buffers window))))
+
+
+(defun (setf viewport-title) (value host-sys)
+  (with-slots (window) host-sys
+    (glfw:set-window-title (format nil "~a" value) window)))

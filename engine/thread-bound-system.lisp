@@ -28,7 +28,6 @@
 (defmacro %log-unexpected-error (block-name)
   `(lambda (e)
      (log:error "Unexpected error during task execution: ~a" e)
-     (break)
      (return-from ,block-name)))
 
 
@@ -51,7 +50,7 @@
                                          (class-name (class-of this)))))
                    (t (lambda (e) (reject e))))
       (let ((task (lambda ()
-                    (handler-bind ((t (lambda (e) (log:error "~a" e) (break) (reject e))))
+                    (handler-bind ((t (lambda (e) (log:error "~a" e) (reject e))))
                       (resolve (funcall fn))))))
         (with-slots (thread) this
           (if (eq (bt:current-thread) (with-system-lock-held (this) thread))

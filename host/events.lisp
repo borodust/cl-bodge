@@ -89,3 +89,6 @@
 
 (defevent scroll-event (input-event)
   (x-offset y-offset))
+
+
+(defevent viewport-hiding-event (event) ())
