@@ -128,7 +128,8 @@
           (setf enabled-p nil)
           (clearup job-queue)))
       (loop while enabled-p do
-           (condition-wait state-condi-var state-lock)))))
+           (condition-wait state-condi-var state-lock))
+      (stop-main-runner))))
 
 
 (defun bind-rendering-context (host-sys)
