@@ -40,6 +40,11 @@
                                                                (elt sequence 1)
                                                                (elt sequence 2)))))
 
+(defgeneric mat->rotation-mat4 (mat)
+  (:method ((mat mat3))
+    (make-instance 'mat4 :value (m4:from-mat3 (value-of mat)))))
+
+
 (definline sequence->mat4 (sequence)
   "row major"
   (let ((val (m4:0!)))

@@ -135,6 +135,7 @@
            identity-mat4
            sequence->mat4
            sequence->rotation-mat4
+           mat->rotation-mat4
            euler-axis->mat4
            euler-angles->mat4
            translation-mat4
@@ -333,6 +334,7 @@
   (:nicknames :ge.phx)
   (:export physics-system
            observe-universe
+           gravity
 
            make-rigid-body
            position-of
