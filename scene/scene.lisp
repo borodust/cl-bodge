@@ -18,14 +18,6 @@
   ((root :initform (make-instance 'scene-root-node) :reader root-of)))
 
 
-(defun make-scene (&rest children)
-  (let* ((scene (make-instance 'scene))
-         (root (root-of scene)))
-    (dolist (child children)
-      (adopt root child))
-    scene))
-
-
 (defgeneric node-enabled-p (node)
   (:method (node) t))
 
@@ -41,6 +33,27 @@
 (defun discard-tree (root)
   (dotree (node root :post)
     (discard-node node)))
+
+
+(defun initialize-tree (scene root)
+  (let* ((scene-root (root-of scene))
+         (gx-sys (graphics-system-of scene-root))
+         (phx-sys (physics-system-of scene-root)))
+    (when-all ((-> gx-sys
+                 (dotree (node root)
+                   (initialize-node node gx-sys)))
+               (-> phx-sys
+                 (dotree (node root)
+                   (initialize-node node phx-sys)))))))
+
+
+(defun make-scene (&rest children)
+  (let* ((scene (make-instance 'scene))
+         (root (root-of scene)))
+    (dolist (child children)
+      (adopt root child))
+    (initialize-tree scene root)
+    scene))
 
 
 (define-destructor scene (root)
@@ -89,18 +102,3 @@
                 (let ((*transform-matrix* (identity-mat4)))
                   (rendering-pass (root-of scene)))
                 (swap-buffers (host-system-of (root-of scene)))))))
-
-
-(defmethod node-attaching :after ((this scene-root-node) (that node))
-  (let ((gx-sys (graphics-system-of this))
-        (phx-sys (physics-system-of this)))
-    (-> gx-sys
-      (dotree (node that)
-        (initialize-node node gx-sys)))
-    (-> phx-sys
-      (dotree (node that)
-        (initialize-node node phx-sys)))))
-
-
-(defmethod node-detached :after ((this scene-root-node) (that node))
-  (discard-tree that))

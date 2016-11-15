@@ -34,7 +34,22 @@
 ;;;
 ;;;
 (defclass transform-node (node)
-  ((mat :initform (identity-mat4))))
+  ((mat :initarg :transform :initform (identity-mat4))))
+
+
+
+(defmethod initialize-instance :after ((this transform-node) &key (translation nil t-p)
+                                                               (rotation nil r-p)
+                                                               (scaling nil s-p))
+  (let ((transform (identity-mat4)))
+    (when t-p
+      (setf transform (vec->translation-mat4 translation)))
+    (when r-p
+      (setf transform (mult (euler-angles->mat4 rotation) transform)))
+    (when s-p
+      (setf transform (mult (vec->scaling-mat4 scaling) transform)))
+    (with-slots (mat) this
+      (setf mat transform))))
 
 
 (defgeneric translate-node (node x y z)

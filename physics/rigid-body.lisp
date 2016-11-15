@@ -10,10 +10,12 @@
 
 
 (defgeneric position-of (this))
+(defgeneric (setf position-of) (value this))
 (defgeneric rotation-of (this))
 (defgeneric linear-velocity-of (this))
 (defgeneric angular-velocity-of (this))
 (defgeneric mass-of (this))
+(defgeneric (setf mass-of) (value this))
 
 
 (defun make-rigid-body (system)
@@ -47,3 +49,7 @@
                                (loop for j from 0 below 3 collect
                                     `(float (c-aref m3 ,(+ (* j 4) i) '%ode:real)))))))
       (init))))
+
+
+(defun apply-force (rigid-body vec3)
+  (%ode:body-add-force (id-of rigid-body) (vref vec3 0) (vref vec3 1) (vref vec3 2)))

@@ -5,6 +5,11 @@
   ())
 
 
+(defmethod initialize-instance :around ((this geom) &key)
+  (call-next-method)
+  (%register-geom (universe) this))
+
+
 (define-destructor geom ((id id-of) (sys system-of))
   (-> sys
     (%ode:geom-destroy id)))

@@ -13,3 +13,9 @@
   (let ((mass (make-instance 'mass)))
     (%ode:mass-set-box-total (value-of mass) total x y z)
     mass))
+
+
+(defun make-sphere-mass (total radius)
+  (let ((mass (make-instance 'mass)))
+    (%ode:mass-set-sphere-total (value-of mass) total radius)
+    mass))

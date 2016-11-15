@@ -335,6 +335,7 @@
   (:export physics-system
            observe-universe
            gravity
+           register-collision-callback
 
            make-rigid-body
            position-of
@@ -342,6 +343,7 @@
            linear-velocity-of
            angular-velocity-of
            mass-of
+           apply-force
 
            make-ball-joint
            make-hinge-joint
@@ -357,7 +359,8 @@
            make-ray-geom
            bind-geom
 
-           make-box-mass))
+           make-box-mass
+           make-sphere-mass))
 
 
 (defpackage :cl-bodge.animation
@@ -433,6 +436,9 @@
            node-enabled-p
            initialize-node
            discard-node
+           initialize-tree
+           discard-tree
+
 
            *scene*
            *projection-matrix*

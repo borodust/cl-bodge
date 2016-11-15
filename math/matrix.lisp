@@ -5,6 +5,10 @@
   (make-instance 'mat4 :value (m4:* (value-of this) (value-of that))))
 
 
+(defmethod multiply ((this mat4) (that vec4))
+  (make-instance 'vec4 :value (m4:*v (value-of this) (value-of that))))
+
+
 (definline mat->array (mat)
   (value-of mat))
 

@@ -10,6 +10,10 @@
   (ctx-universe *system-context*))
 
 
+(defun register-collision-callback (callback)
+  (%register-collision-callback (universe) callback))
+
+
 (defclass physics-system (thread-bound-system) ())
 
 
