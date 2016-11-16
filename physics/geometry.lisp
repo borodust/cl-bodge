@@ -15,6 +15,17 @@
     (%ode:geom-destroy id)))
 
 
+(defmethod enable ((this geom))
+  (%ode:geom-enable (id-of this)))
+
+
+(defmethod disable ((this geom))
+  (%ode:geom-disable (id-of this)))
+
+
+(defmethod enabledp ((this geom))
+  (> (%ode:geom-is-enabled (id-of this)) 0))
+
 ;;;
 ;;;
 ;;;

@@ -24,6 +24,18 @@
                  :id (%ode:body-create (world-of (universe)))))
 
 
+(defmethod enable ((this rigid-body))
+  (%ode:body-enable (id-of this)))
+
+
+(defmethod disable ((this rigid-body))
+  (%ode:body-disable (id-of this)))
+
+
+(defmethod enabledp ((this rigid-body))
+  (> (%ode:body-is-enabled (id-of this)) 0))
+
+
 (defmethod (setf position-of) (value (this rigid-body))
   (declare (type vec3 value))
   (%ode:body-set-position (id-of this) (vref value 0) (vref value 1) (vref value 2)))

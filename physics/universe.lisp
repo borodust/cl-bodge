@@ -13,7 +13,7 @@
 
 (defun %register-geom (universe geom)
   (with-slots (geoms) universe
-    (setf (gethash (id-of geom) geoms) geom)))
+    (setf (gethash (cffi:pointer-address (ptr (id-of geom))) geoms) geom)))
 
 
 (defun %register-collision-callback (universe callback)
@@ -51,7 +51,8 @@
 (define-collision-callback fill-joint-group (in this that)
   (unless (loop with geoms = (geoms-of (universe))
              for cb in (collision-callbacks-of (universe))
-             for processed-p = (funcall cb (gethash this geoms) (gethash that geoms))
+             for processed-p = (funcall cb (gethash (cffi:pointer-address (ptr this)) geoms)
+                                        (gethash (cffi:pointer-address (ptr that)) geoms))
              until processed-p
              finally (return processed-p))
     (destructuring-bind (world joint-group) in

@@ -123,6 +123,7 @@
            sequence->vec4
            sequence->vec3
            vref
+           make-vec3
 
            mat
            square-mat
@@ -132,6 +133,7 @@
            square-matrix-size
            mref
            mat->array
+           make-mat3
            identity-mat4
            sequence->mat4
            sequence->rotation-mat4

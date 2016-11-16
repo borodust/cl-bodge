@@ -1,7 +1,7 @@
 (in-package :cl-bodge.engine)
 
 
-(proclaim '(special *system-context*))
+(declaim (special *system-context*))
 
 
 (defclass thread-bound-system (generic-system)
@@ -77,7 +77,6 @@
                       (open-latch latch)
                       (log:debug "Starting ~a loop" system-class-name)
                       (let ((*system-context* (make-system-context this)))
-                        (declare (special *system-context*))
                         (unwind-protect
                              (start-system-loop this)
                           (destroy-system-context *system-context* this))))

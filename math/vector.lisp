@@ -1,24 +1,35 @@
 (in-package :cl-bodge.math)
 
 
+(defmacro %raw-> (type val)
+  `(make-instance ',type :value ,val))
+
+
 (definline vec->array (vec)
   (value-of vec))
 
 
 (definline vec3 (&optional (x #f0) (y #f0) (z #f0))
-  (make-instance 'vec3 :value (v3:make x y z)))
+  (%raw-> vec3 (v3:make x y z)))
 
 
 (definline vec4 (&optional (x #f0) (y #f0) (z #f0) (w #f0))
-  (make-instance 'vec4 :value (v4:make x y z w)))
+  (%raw-> vec4 (v4:make x y z w)))
 
 
 (definline vec2 (&optional (x #f0) (y #f0))
-  (make-instance 'vec2 :value (v2:make x y)))
+  (%raw-> vec2 (v2:make x y)))
 
 
 (definline copy-vec3 (vec)
-  (make-instance 'vec3 :value (v3:make (vref vec 0) (vref vec 1) (vref vec 2))))
+  (%raw-> vec3 (v3:make (vref vec 0) (vref vec 1) (vref vec 2))))
+
+
+(defgeneric make-vec3 (val &key))
+
+
+(defmethod make-vec3 ((vec vec4) &key)
+  (%raw-> vec3 (v3:make (vref vec 0) (vref vec 1) (vref vec 2))))
 
 
 (definline sequence->vec3 (seq)
@@ -46,8 +57,16 @@
 
 
 (defmethod summarize ((this vec3) (that vec3))
-  (make-instance 'vec3 :value (v3:+ (value-of this) (value-of that))))
+  (%raw-> vec3 (v3:+ (value-of this) (value-of that))))
 
 
 (defmethod lerp ((this vec3) (that vec3) f)
-  (make-instance 'vec3 :value (v3:lerp (value-of this) (value-of that) f)))
+  (%raw-> vec3 (v3:lerp (value-of this) (value-of that) f)))
+
+
+(defmethod normalize ((this vec3))
+  (%raw-> vec3 (v3:normalize (value-of this))))
+
+
+(defmethod multiply ((this vec3) (scalar single-float))
+  (%raw-> vec3 (v3:*s (value-of this) scalar)))

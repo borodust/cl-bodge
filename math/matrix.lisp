@@ -18,7 +18,7 @@
 
 
 (definline (setf mref) (value mat row column)
-  ; fixme: hax - push upstream
+  ; fixme: hax, use generic
   (let ((len (if (= (length mat) 16) 4 3)))
     (setf (aref mat (+ row (* column len))) value)))
 
@@ -47,6 +47,13 @@
 (defgeneric mat->rotation-mat4 (mat)
   (:method ((mat mat3))
     (make-instance 'mat4 :value (m4:from-mat3 (value-of mat)))))
+
+
+(defgeneric make-mat3 (obj &key))
+
+
+(defmethod make-mat3 ((that mat4) &key)
+  (mat4->mat3 that))
 
 
 (definline sequence->mat4 (sequence)
