@@ -18,7 +18,7 @@
   (slot-value this 'enabled-p))
 
 
-(defmethod execute ((this host-system) fn)
+(defmethod execute ((this host-system) fn &optional priority)
   (with-slots (job-queue) this
     (with-promise (resolve reject)
       (with-system-lock-held (this)
@@ -123,7 +123,7 @@
     (with-system-lock-held (this state-lock)
       (unless enabled-p
         (error "Host system already disabled"))
-      (-> this
+      (-> (this)
         (with-system-lock-held (this)
           (setf enabled-p nil)
           (clearup job-queue)))

@@ -5,7 +5,7 @@
 
 
 (define-destructor joint ((id id-of) (sys system-of))
-  (-> sys
+  (-> (sys)
     (%ode:joint-destroy id)))
 
 

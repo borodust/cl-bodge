@@ -6,7 +6,7 @@
 
 
 (define-destructor vertex-array ((id id-of) (sys system-of))
-  (-> sys
+  (-> (sys)
     (gl:delete-vertex-arrays (list id))))
 
 

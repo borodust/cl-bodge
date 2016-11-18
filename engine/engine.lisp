@@ -92,16 +92,15 @@
       (close-pool thread-pool))))
 
 
-(defmethod execute ((this bodge-engine) fn)
+(defmethod execute ((this bodge-engine) fn &optional (priority :medium))
   (with-slots (thread-pool) this
     (with-promise (resolve reject)
-      (push-to-pool thread-pool
-                    (lambda ()
-                      (handler-case
-                          (resolve (funcall fn))
-                        (t (e)
-                          (log:error e)
-                          (reject e))))))))
+      (within-pool (thread-pool priority)
+        (handler-case
+            (resolve (funcall fn))
+          (t (e)
+            (log:error e)
+            (reject e)))))))
 
 
 ;;

@@ -39,10 +39,10 @@
   (let* ((scene-root (root-of scene))
          (gx-sys (graphics-system-of scene-root))
          (phx-sys (physics-system-of scene-root)))
-    (when-all ((-> gx-sys
+    (when-all ((-> (gx-sys)
                  (dotree (node root)
                    (initialize-node node gx-sys)))
-               (-> phx-sys
+               (-> (phx-sys)
                  (dotree (node root)
                    (initialize-node node phx-sys)))))))
 
@@ -62,7 +62,7 @@
 
 (defmethod initialize-instance :after ((this scene) &key)
   ;; not quite thread-safe
-  (-> (graphics-system-of (root-of this))
+  (-> ((graphics-system-of (root-of this)))
     (gl:clear-color 1.0 1.0 1.0 1.0)
     (gl:enable :blend
                :depth-test)
@@ -95,9 +95,9 @@
 
 
 (defun animate (scene)
-  (when-all* ((-> (physics-system-of (root-of scene))
+  (when-all* ((-> ((physics-system-of (root-of scene)))
                 (simulation-pass (root-of scene)))
-              (-> (graphics-system-of (root-of scene))
+              (-> ((graphics-system-of (root-of scene)))
                 (gl:clear :color-buffer :depth-buffer)
                 (let ((*transform-matrix* (identity-mat4)))
                   (rendering-pass (root-of scene)))

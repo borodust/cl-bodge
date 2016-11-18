@@ -8,7 +8,7 @@
 
 
 (define-destructor audio-buffer ((id id-of) (sys system-of))
-  (-> sys
+  (-> (sys)
     (al:delete-buffer id)))
 
 

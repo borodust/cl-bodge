@@ -5,7 +5,7 @@
 
 
 (define-destructor rigid-body ((id id-of) (system system-of))
-  (-> system
+  (-> (system)
     (%ode:body-destroy id)))
 
 

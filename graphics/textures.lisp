@@ -28,7 +28,7 @@
 
 
 (define-destructor texture ((id id-of) (sys system-of))
-  (-> sys
+  (-> (sys)
     (gl:delete-textures (list id))))
 
 

@@ -80,8 +80,8 @@
       (%check-event-class-registration (class-of event) event-system)
       (within-pool (thread-pool)
         (loop for handler in (with-system-lock-held (event-system)
-                               (gethash (class-of event) handler-table)) do
-             (funcall handler event))))))
+                               (gethash (class-of event) handler-table))
+           do (funcall handler event))))))
 
 
 (declaim (ftype (function (symbol (function (event) *) event-system) *) subscribe-to))
@@ -99,4 +99,5 @@
 (defmacro subscribe-with-handler-body-to (event-class (&optional (event-var (gensym)))
                                                          event-system &body body)
   `(subscribe-to ',event-class (lambda (,event-var)
-                                 (declare (ignorable ,event-var)) ,@body) ,event-system))
+                                 (declare (ignorable ,event-var)) ,@body)
+                 ,event-system))

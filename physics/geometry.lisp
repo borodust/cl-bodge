@@ -11,7 +11,7 @@
 
 
 (define-destructor geom ((id id-of) (sys system-of))
-  (-> sys
+  (-> (sys)
     (%ode:geom-destroy id)))
 
 

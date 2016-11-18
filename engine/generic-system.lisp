@@ -14,8 +14,8 @@
   (:method (system) (declare (ignore system))))
 
 
-(defmethod execute ((this system) fn)
-  (execute (engine) fn))
+(defmethod execute ((this system) fn &optional (priority :medium))
+  (execute (engine) fn priority))
 
 
 (defmacro with-system-lock-held ((system &optional lock-var) &body body)

@@ -1,11 +1,11 @@
 (in-package :cl-bodge.concurrency)
 
 
-(defgeneric execute (obj fn))
+(defgeneric execute (obj fn &optional priority))
 
 
-(defmacro -> (place &body body)
-  `(execute ,place (lambda () ,@body)))
+(defmacro -> ((place &optional (priority :medium)) &body body)
+  `(execute ,place (lambda () ,@body) ,priority))
 
 
 (defmacro within-new-thread-waiting (thread-name &body body)

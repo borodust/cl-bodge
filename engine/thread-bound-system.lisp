@@ -43,7 +43,7 @@
                (funcall (pop-from (%job-queue-of this))))))))
 
 
-(defmethod execute ((this thread-bound-system) fn)
+(defmethod execute ((this thread-bound-system) fn &optional (priority :medium))
   (with-promise (resolve reject)
     (handler-bind ((interrupted (lambda (e)
                                   (declare (ignore e))
@@ -56,7 +56,7 @@
         (with-slots (thread) this
           (if (eq (bt:current-thread) (with-system-lock-held (this) thread))
               (funcall task)
-              (put-into (%job-queue-of this) task)))))))
+              (put-into (%job-queue-of this) task priority)))))))
 
 
 (defmethod enable ((this thread-bound-system))
@@ -107,5 +107,5 @@
 (defclass thread-bound-object (system-object) ())
 
 
-(defmethod execute ((this thread-bound-object) fn)
-  (execute (system-of this) fn))
+(defmethod execute ((this thread-bound-object) fn &optional (priority :medium))
+  (execute (system-of this) fn priority))
