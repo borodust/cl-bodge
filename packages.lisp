@@ -340,6 +340,7 @@
            observe-universe
            gravity
            register-collision-callback
+           register-contact-callback
 
            make-rigid-body
            position-of
@@ -424,7 +425,7 @@
   (:nicknames :ge.sg)
   (:use :cl-bodge.utils :cl-bodge.engine :cl-bodge.graphics :cl-bodge.physics
         :cl-bodge.math :cl-bodge.concurrency :cl-bodge.host :cl-bodge.memory
-        :cl-bodge.animation :cl-bodge.resources
+        :cl-bodge.animation :cl-bodge.resources :cl-bodge.audio
         :cl :cl-muth)
   (:export node
            find-node

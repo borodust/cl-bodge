@@ -71,9 +71,9 @@
                                      (:file "system")))
                (:module physics
                         :serial t
-                        :components ((:file "universe")
+                        :components ((:file "ode")
+                                     (:file "universe")
                                      (:file "system")
-                                     (:file "ode")
                                      (:file "mass")
                                      (:file "rigid-body")
                                      (:file "joints")

@@ -14,6 +14,10 @@
   (%register-collision-callback (universe) callback))
 
 
+(defun register-contact-callback (callback)
+  (%register-contact-callback (universe) callback))
+
+
 (defclass physics-system (thread-bound-system) ())
 
 
