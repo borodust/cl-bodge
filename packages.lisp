@@ -324,6 +324,8 @@
            play-audio
            pause-audio
            stop-audio
+           audio-gain
+           audio-looped-p
 
            make-audio-buffer
            attach-audio-buffer))
