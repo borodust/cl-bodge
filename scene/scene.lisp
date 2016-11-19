@@ -39,10 +39,10 @@
   (let* ((scene-root (root-of scene))
          (gx-sys (graphics-system-of scene-root))
          (phx-sys (physics-system-of scene-root)))
-    (when-all ((-> (gx-sys)
+    (when-all ((-> (gx-sys :high)
                  (dotree (node root)
                    (initialize-node node gx-sys)))
-               (-> (phx-sys)
+               (-> (phx-sys :high)
                  (dotree (node root)
                    (initialize-node node phx-sys)))))))
 
