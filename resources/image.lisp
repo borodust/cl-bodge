@@ -13,11 +13,11 @@
 
 (defun load-png-image (path)
   (let* ((data (opticl:read-png-file path))
-         (format (typecase data
+         (format (etypecase data
                    (opticl:8-bit-gray-image :grey)
                    (opticl:8-bit-rgb-image :rgb)
                    (opticl:8-bit-rgba-image :rgba))))
-    (opticl:with-image-bounds (w h) data
+    (opticl:with-image-bounds (h w) data
       (make-instance 'png-image
                      :data data
                      :width w
@@ -44,6 +44,6 @@
                 (setf (aref result (+ j (* i width)))
                        (aref data i j))
                 (loop for k from 0 below channels do
-                     (setf (aref result (+ k (* j channels) (* i width channels)))
+                     (setf (aref result (+ k (* j channels) (* (- height i 1) width channels)))
                            (aref data i j k)))))
      finally (return result)))

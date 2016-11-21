@@ -1,8 +1,7 @@
 (in-package :cl-bodge.scene)
 
 
-(declaim (special
-          *projection-matrix*))
+(declaim (special *projection-matrix*))
 
 
 

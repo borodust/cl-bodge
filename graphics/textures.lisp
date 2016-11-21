@@ -23,6 +23,13 @@
     (:rgba :rgba8)))
 
 
+(defenum texture-wrap-mode
+  :clamp-to-edge
+  :clamp-to-border
+  :repeat
+  :mirrored-repeat)
+
+
 ;;;
 ;;;
 ;;;
@@ -36,7 +43,7 @@
     (gl:delete-textures (list id))))
 
 
-(defun active-texture (val)
+(defun use-texture-unit (val)
   (gl:active-texture (+ (cffi:foreign-enum-value '%gl:enum :texture0) val)))
 
 
@@ -44,12 +51,12 @@
   (once-only (value)
     `(unwind-protect
           (progn
-            (active-texture ,value)
+            (use-texture-unit ,value)
             (let ((*last-used-texture-unit* ,value))
                   ,@body))
        (if-bound *last-used-texture-unit*
-                 (active-texture *last-used-texture-unit*)
-                 (active-texture ,value)))))
+                 (use-texture-unit *last-used-texture-unit*)
+                 (use-texture-unit ,value)))))
 
 
 (defmacro with-bound-texture ((place &optional (unit nil)) &body body)
@@ -66,6 +73,15 @@
                  (gl:bind-texture (target-of ,place) 0)))))
 
 
+(defun (setf wrap-mode-of) (mode texture)
+  (with-bound-texture (texture)
+    (let ((target (target-of texture)))
+      (gl:tex-parameter target :texture-wrap-s mode)
+      (gl:tex-parameter target :texture-wrap-t mode)
+      (gl:tex-parameter target :texture-wrap-r mode))))
+
+
+
 ;;;
 ;;;
 ;;;
@@ -78,6 +94,7 @@
                                                            generate-mipmaps-p)
   (with-bound-texture (this)
     (let ((target (target-of this)))
+      (gl:pixel-store :unpack-alignment 1)
       (gl:tex-image-2d target 0 internal-format width height 0 external-format
                        :unsigned-byte data :raw t)
       (if generate-mipmaps-p

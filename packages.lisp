@@ -290,7 +290,9 @@
            program-uniform-variable
 
            with-bound-texture
+           with-texture-unit
            make-2d-texture
+           wrap-mode-of
 
            make-shading-pipeline
            use-shading-program-stages
