@@ -44,6 +44,6 @@
                 (setf (aref result (+ j (* i width)))
                        (aref data i j))
                 (loop for k from 0 below channels do
-                     (setf (aref result (+ channels (* j channels) (* i width channels)))
+                     (setf (aref result (+ k (* j channels) (* i width channels)))
                            (aref data i j k)))))
      finally (return result)))

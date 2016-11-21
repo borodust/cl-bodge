@@ -70,7 +70,8 @@
   (-> ((graphics-system-of (root-of this)))
     (gl:clear-color 1.0 1.0 1.0 1.0)
     (gl:enable :blend
-               :depth-test)
+               :depth-test
+               :program-point-size)
     (gl:blend-func :src-alpha :one-minus-src-alpha)))
 
 

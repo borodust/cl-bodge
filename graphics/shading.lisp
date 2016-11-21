@@ -101,6 +101,15 @@
   (gl:use-program (id-of program)))
 
 
+(defmacro with-using-shading-program ((program &optional prev-program) &body body)
+  `(unwind-protect
+        (progn
+          (use-shading-program ,program)
+          ,@body)
+     ,(if (null prev-program)
+          `(gl:use-program 0)
+          `(gl:use-program (id-of ,prev-program)))))
+
 (defun valid-shading-program-p (program)
   (and (not (null program)) (gl:is-program (id-of program))))
 

@@ -147,6 +147,7 @@
            vec->scaling-mat4
            mat4->mat3
            perspective-projection-mat
+           orthographic-projection-mat
 
            quat
            identity-quat
@@ -284,6 +285,7 @@
            build-separable-shading-program
 
            use-shading-program
+           with-using-shading-program
            program-uniform-variable
 
            with-bound-texture

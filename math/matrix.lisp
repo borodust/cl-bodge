@@ -129,3 +129,7 @@
                                          0f0  y1   0f0  0f0
                                          0f0  0f0  z2   z3
                                          0f0  0f0  -1f0 0f0))))
+
+
+(definline orthographic-projection-mat (width height near far)
+  (make-instance 'mat4 :value (rtg-math.projection:orthographic width height near far)))

@@ -78,7 +78,7 @@
     (setf pipeline (make-shading-pipeline sys))))
 
 
-(defmethod discard-node :after ((this shading-pipeline-node))
+(defmethod discard-node :before ((this shading-pipeline-node))
   (with-slots (pipeline) this
     (let ((p pipeline))
       (setf pipeline nil)
@@ -160,7 +160,7 @@
     (setf program (build-shading-program sys sources))))
 
 
-(defmethod discard-node :after ((this shading-program-node))
+(defmethod discard-node :before ((this shading-program-node))
   (with-slots (program) this
     (let ((p program))
       (setf program nil)
