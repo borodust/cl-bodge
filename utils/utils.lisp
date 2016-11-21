@@ -121,13 +121,21 @@
        ,v)))
 
 
-(defmacro if-unbound (symbol value)
-  `(if (boundp ',symbol) ,symbol ,value))
+(defmacro bound-symbol-value (symbol &optional default-value)
+  `(if (boundp ',symbol) ,symbol ,default-value))
 
 
-(defmacro when-bound (symbol &body body)
-  `(when (boundp ',symbol)
-     ,@body))
+(defmacro if-bound (symbol-or-list then-form &optional else-form)
+  (let ((symbols (ensure-list symbol-or-list)))
+    `(if (and ,@(loop for symbol in symbols collect
+                     `(boundp ',symbol)))
+         ,then-form
+         ,else-form)))
+
+
+(defmacro when-bound (symbol-or-list &body body)
+  `(if-bound ,symbol-or-list
+             (progn ,@body)))
 
 
 (definline class-name-of (obj)

@@ -1,5 +1,8 @@
 (in-package :cl-bodge.graphics)
 
+
+(declaim (special *last-bound-buffer*))
+
 ;;
 ;;
 (defclass buffer (gl-object)
@@ -17,13 +20,15 @@
 
 
 (defmacro with-bound-buffer ((buffer) &body body)
-  "Do not nest: rebinds to 0 after body execution."
   (once-only (buffer)
     `(unwind-protect
           (progn
             (gl:bind-buffer (target-of ,buffer) (id-of ,buffer))
-            ,@body)
-       (gl:bind-buffer (target-of ,buffer) 0))))
+            (let ((*last-bound-buffer* ,buffer))
+              ,@body))
+       (if-bound *last-bound-buffer*
+                 (gl:bind-buffer (target-of *last-bound-buffer*) (id-of *last-bound-buffer*))
+                 (gl:bind-buffer (target-of ,buffer) 0)))))
 
 ;;
 ;;

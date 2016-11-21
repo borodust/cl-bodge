@@ -1,6 +1,10 @@
 (in-package :cl-bodge.graphics)
 
 
+(declaim (special *last-used-shading-program*
+                  *last-bound-shading-pipeline*))
+
+
 (defun shader-type->gl (type)
   (ecase type
     ((:vertex-shader :geometry-shader :fragment-shader) type)
@@ -102,13 +106,17 @@
 
 
 (defmacro with-using-shading-program ((program &optional prev-program) &body body)
-  `(unwind-protect
-        (progn
-          (use-shading-program ,program)
-          ,@body)
-     ,(if (null prev-program)
-          `(gl:use-program 0)
-          `(gl:use-program (id-of ,prev-program)))))
+  (once-only (program)
+    `(unwind-protect
+          (let ((*last-used-shading-program* ,program))
+            (use-shading-program ,program)
+            ,@body)
+       ,(if (null prev-program)
+            `(if-bound *last-used-shading-program*
+                       (gl:use-program (id-of *last-used-shading-program*))
+                       (gl:use-program 0))
+            `(gl:use-program (id-of ,prev-program))))))
+
 
 (defun valid-shading-program-p (program)
   (and (not (null program)) (gl:is-program (id-of program))))
@@ -147,15 +155,15 @@
 (defun make-shading-pipeline (system)
   (make-instance 'shading-pipeline :system system))
 
-(defmacro with-bound-shading-pipeline ((pipeline &optional previous) &body body)
-  (once-only (previous)
+(defmacro with-bound-shading-pipeline ((pipeline) &body body)
+  (once-only (pipeline)
     `(unwind-protect
-          (progn
+          (let ((*last-bound-shading-pipeline* ,pipeline))
             (gl:bind-program-pipeline (id-of ,pipeline))
             ,@body)
-       (if (null ,previous)
-           (gl:bind-program-pipeline 0)
-           (gl:bind-program-pipeline (id-of ,previous))))))
+       (if-bound *last-bound-shading-pipeline*
+           (gl:bind-program-pipeline (id-of *last-bound-shading-pipeline*))
+           (gl:bind-program-pipeline 0)))))
 
 
 (defun use-shading-program-stages (pipeline program &rest stages)

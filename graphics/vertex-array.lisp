@@ -1,5 +1,9 @@
 (in-package :cl-bodge.graphics)
 
+
+(declaim (special *last-bound-vertex-array*))
+
+
 (defclass vertex-array (gl-object)
   ((vertex-count :initform 0 :initarg :vertex-count :reader vertex-count-of))
   (:default-initargs :id (gl:gen-vertex-array)))
@@ -15,12 +19,14 @@
 
 
 (defmacro with-bound-vertex-array ((vertex-array) &body body)
-  "Do not nest: rebinds to 0 after body execution."
-  `(unwind-protect
-        (progn
-          (gl:bind-vertex-array (id-of ,vertex-array))
-          ,@body)
-     (gl:bind-vertex-array 0)))
+  (once-only (vertex-array)
+    `(unwind-protect
+          (let ((*last-bound-vertex-array* ,vertex-array))
+            (gl:bind-vertex-array (id-of ,vertex-array))
+            ,@body)
+       (gl:bind-vertex-array (if-bound *last-bound-vertex-array*
+                                       (id-of *last-bound-vertex-array*)
+                                       0)))))
 
 
 (defmethod attach-gpu-buffer ((buffer array-buffer) (vao vertex-array))

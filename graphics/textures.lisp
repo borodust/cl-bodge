@@ -1,6 +1,10 @@
 (in-package :cl-bodge.graphics)
 
 
+(declaim (special *last-bound-texture*
+                  *last-used-texture-unit*))
+
+
 (defenum texture-format
   :grey :rgb :rgba)
 
@@ -32,22 +36,34 @@
     (gl:delete-textures (list id))))
 
 
+(defun active-texture (val)
+  (gl:active-texture (+ (cffi:foreign-enum-value '%gl:enum :texture0) val)))
+
+
 (defmacro with-texture-unit (value &body body)
-  `(progn
-     (gl:active-texture (+ (cffi:foreign-enum-value '%gl:enum :texture0) ,value))
-     ,@body))
+  (once-only (value)
+    `(unwind-protect
+          (progn
+            (active-texture ,value)
+            (let ((*last-used-texture-unit* ,value))
+                  ,@body))
+       (if-bound *last-used-texture-unit*
+                 (active-texture *last-used-texture-unit*)
+                 (active-texture ,value)))))
 
 
 (defmacro with-bound-texture ((place &optional (unit nil)) &body body)
-  "Do not nest: rebinds to 0 after body execution and leaves new texture unit active."
   (once-only (place)
     `(unwind-protect
           (,@(if (null unit)
                  '(progn)
                  `(with-texture-unit ,unit))
              (gl:bind-texture (target-of ,place) (id-of ,place))
-             ,@body)
-       (gl:bind-texture (target-of ,place) 0))))
+             (let ((*last-bound-texture* ,place))
+               ,@body))
+       (if-bound *last-bound-texture*
+                 (gl:bind-texture (target-of *last-bound-texture*) (id-of *last-bound-texture*))
+                 (gl:bind-texture (target-of ,place) 0)))))
 
 
 ;;;

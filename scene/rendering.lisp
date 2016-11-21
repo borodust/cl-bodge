@@ -87,10 +87,9 @@
 
 (defmethod rendering-pass ((this shading-pipeline-node))
   (with-slots (pipeline) this
-    (let ((old-pipeline (if-unbound *shading-pipeline* nil))
-          (*shading-pipeline* pipeline)
+    (let ((*shading-pipeline* pipeline)
           (*shading-parameters* (make-instance 'shading-parameters)))
-      (with-bound-shading-pipeline (*shading-pipeline* old-pipeline)
+      (with-bound-shading-pipeline (*shading-pipeline*)
         (call-next-method)))))
 
 
@@ -106,7 +105,6 @@
   (with-slots (tex unit) this
     (with-bound-texture (tex unit)
       (call-next-method))))
-
 
 ;;;
 ;;;

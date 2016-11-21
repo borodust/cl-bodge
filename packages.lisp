@@ -36,7 +36,8 @@
            copy-memory-autowrapped
 
            ensure-not-null
-           if-unbound
+           bound-symbol-value
+           if-bound
            when-bound
 
            class-name-of
