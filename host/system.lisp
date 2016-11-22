@@ -19,6 +19,7 @@
 
 
 (defmethod execute ((this host-system) fn &optional priority)
+  (declare (ignore priority))
   (with-slots (job-queue) this
     (with-promise (resolve reject)
       (with-system-lock-held (this)
@@ -147,3 +148,8 @@
 (defun (setf viewport-title) (value host-sys)
   (with-slots (window) host-sys
     (glfw:set-window-title (format nil "~a" value) window)))
+
+
+(defun lock-cursor (host)
+  (with-slots (window) host
+    (glfw:set-input-mode :cursor :disabled)))

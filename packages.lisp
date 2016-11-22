@@ -225,6 +225,7 @@
            bind-rendering-context
            swap-buffers
            viewport-title
+           lock-cursor
 
            state-from
            keyboard-event
