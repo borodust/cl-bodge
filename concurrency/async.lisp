@@ -1,6 +1,6 @@
 (in-package :cl-bodge.concurrency)
 
-
+#|
 (defmacro when-all ((&rest promise-gens) &body body)
   `(alet ,(loop for promise in promise-gens collecting
                `(nil ,promise))
@@ -43,3 +43,4 @@
 
 (defun wait (promise)
   (wait-let ((r promise)) r))
+|#

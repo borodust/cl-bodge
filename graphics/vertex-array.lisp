@@ -1,7 +1,7 @@
 (in-package :cl-bodge.graphics)
 
 
-(declaim (special *last-bound-vertex-array*))
+(declaim (special *active-vertex-array*))
 
 
 (defclass vertex-array (gl-object)
@@ -21,11 +21,11 @@
 (defmacro with-bound-vertex-array ((vertex-array) &body body)
   (once-only (vertex-array)
     `(unwind-protect
-          (let ((*last-bound-vertex-array* ,vertex-array))
+          (let ((*active-vertex-array* ,vertex-array))
             (gl:bind-vertex-array (id-of ,vertex-array))
             ,@body)
-       (gl:bind-vertex-array (if-bound *last-bound-vertex-array*
-                                       (id-of *last-bound-vertex-array*)
+       (gl:bind-vertex-array (if-bound *active-vertex-array*
+                                       (id-of *active-vertex-array*)
                                        0)))))
 
 

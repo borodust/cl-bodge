@@ -8,12 +8,16 @@
            once-only
            symbolicate
            make-keyword
+           format-symbol
+           parse-body
+           parse-ordinary-lambda-list
            when-let
            when-let*
            if-let
            switch
            define-constant
            alist-hash-table
+           plist-alist
            read-file-into-string
            nconcf
            starts-with-subseq
@@ -54,53 +58,43 @@
            list->array))
 
 
+(defpackage :cl-bodge.memory
+  (:nicknames :ge.mem)
+  (:use :cl-bodge.utils
+        :cl :trivial-garbage)
+  (:export define-destructor
+           dispose
+           disposable
+           disposable-container
+           with-disposable))
+
+
+(defpackage :cl-bodge.concurrency.generated
+  (:nicknames :ge.mt.gen))
+
+
 (defpackage :cl-bodge.concurrency
   (:nicknames :ge.mt)
-  (:use :cl-bodge.utils
+  (:use :cl-bodge.utils :cl-bodge.memory
         :cl :bordeaux-threads :cl-muth)
-  (:import-from :blackbird
-                promisep
-                promise-finished-p
-                create-promise
-                with-promise
-                promisify
-                attach
-                catcher
-                tap
-                finally
-                alet
-                alet*
-                aif
-                multiple-promise-bind
-                all)
   (:export make-job-queue
            push-job
            push-body-into
            drain
            clearup
 
-           ->
            execute
+           make-simple-executor
+           make-single-threaded-executor
+           make-pooled-executor
+
            within-new-thread-waiting
 
-           promisep
-           promise-finished-p
-           create-promise
-           with-promise
-           promisify
-           attach
-           catcher
-           tap
-           finally
-           when-all
-           when-all*
-           wait-let
-           wait
-           alet
-           alet*
-           aif
-           multiple-promise-bind
-           all))
+           ->
+           dispatch
+           defun/d
+           wait-for
+           wait-for*))
 
 
 (defpackage :cl-bodge.math
@@ -159,26 +153,17 @@
            quat->rotation-mat4))
 
 
-(defpackage :cl-bodge.memory
-  (:nicknames :ge.mem)
-  (:use :cl-bodge.utils
-        :cl :trivial-garbage)
-  (:export define-destructor
-           dispose
-           disposable
-           disposable-container
-           with-disposable))
-
-
-
 (defpackage :cl-bodge.engine
   (:nicknames :ge.ng)
-  (:use :cl-bodge.utils :cl-bodge.concurrency
+  (:use :cl-bodge.utils :cl-bodge.concurrency :cl-bodge.memory
         :cl :bordeaux-threads :cl-muth)
   (:export system
            enable
            disable
            enabledp
+           acquire-executor
+           release-executor
+
            system-object
            system-of
            enableable
@@ -191,7 +176,6 @@
            thread-bound-system
            make-system-context
            destroy-system-context
-           start-system-loop
            *system-context*
            check-system-context
            thread-bound-object
@@ -204,7 +188,7 @@
 
 (defpackage :cl-bodge.event
   (:nicknames :ge.eve)
-  (:use :cl-bodge.engine :cl-bodge.utils
+  (:use :cl-bodge.engine :cl-bodge.utils :cl-bodge.concurrency
         :cl :bordeaux-threads :cl-muth)
   (:export event-system
            event

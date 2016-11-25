@@ -28,14 +28,17 @@
                                      (:file "matrix")
                                      (:file "matvec")
                                      (:file "quaternion")))
-               (:module concurrency
-                        :serial t
-                        :components ((:file "async")
-                                     (:file "execution")
-                                     (:file "job-queue")))
                (:module memory
                         :serial t
                         :components ((:file "disposable")))
+               (:module concurrency
+                        :serial t
+                        :components ((:file "async")
+                                     (:file "dispatch")
+                                     (:file "transform-dispatch")
+                                     (:file "dispatched-defun")
+                                     (:file "execution")
+                                     (:file "job-queue")))
                (:module engine
                         :serial t
                         :components ((:file "properties")
@@ -103,3 +106,19 @@
                                      (:file "lighting")
                                      (:file "animation")
                                      (:file "model")))))
+
+
+(defsystem cl-bodge/tests
+  :description "Test suite for cl-bodge engine"
+  :version "0.2.0"
+  :author "Pavel Korolev"
+  :mailto "dev@borodust.org"
+  :license "MIT"
+  :depends-on (cl-bodge fiveam)
+  :pathname "t/"
+  :serial t
+  :components ((:file "packages")
+               (:module concurrency
+                        :serial t
+                        :components ((:file "suite")
+                                     (:file "dispatch")))))

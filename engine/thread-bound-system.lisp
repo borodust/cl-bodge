@@ -4,15 +4,9 @@
 (declaim (special *system-context*))
 
 
-(defclass thread-bound-system (generic-system)
-  ((thread :initform nil)
-   (job-queue :initform nil :accessor %job-queue-of)
+(defclass thread-bound-system (enableable generic-system)
+  ((executor :initform nil :accessor %executor-of)
    (context :initform nil)))
-
-
-(defmethod enabledp ((this thread-bound-system))
-  (with-slots (thread) this
-    (not (null thread))))
 
 
 (defgeneric make-system-context (system)
@@ -25,76 +19,41 @@
   (:method (context system) (declare (ignore context system))))
 
 
-(defmacro %log-unexpected-error (block-name)
-  `(lambda (e)
-     (log:error "Unexpected error during task execution: ~a" e)
-     (break)
-     (return-from ,block-name)))
+(defmethod dispatch ((this thread-bound-system) fn &optional (priority :medium))
+  (execute (%executor-of this) fn priority))
 
 
-(defgeneric start-system-loop (system)
-  (:method ((this thread-bound-system))
-      (loop while (enabledp this) do
-           (block interruptible
-             (handler-bind ((interrupted (lambda (e)
-                                           (declare (ignore e))
-                                           (return-from interruptible))) ; leave loop
-                            (t (%log-unexpected-error interruptible)))
-               (funcall (pop-from (%job-queue-of this))))))))
-
-
-(defmethod execute ((this thread-bound-system) fn &optional (priority :medium))
-  (with-promise (resolve reject)
-    (handler-bind ((interrupted (lambda (e)
-                                  (declare (ignore e))
-                                  (error "Cannot execute task: ~a offline."
-                                         (class-name (class-of this)))))
-                   (t (lambda (e) (reject e))))
-      (let ((task (lambda ()
-                    (handler-bind ((t (lambda (e) (log:error "~a" e) (break) (reject e))))
-                      (resolve (funcall fn))))))
-        (with-slots (thread) this
-          (if (eq (bt:current-thread) (with-system-lock-held (this) thread))
-              (funcall task)
-              (put-into (%job-queue-of this) task priority)))))))
+(defun system-class-name-of (this)
+  (class-name (class-of this)))
 
 
 (defmethod enable ((this thread-bound-system))
-  (with-slots (thread) this
-    (let ((system-class-name (class-name (class-of this))))
-      (with-system-lock-held (this)
-        (when (enabledp this)
-          (error "~a already enabled" system-class-name))
-        (setf (%job-queue-of this) (make-blocking-queue 256))
-        (initialize-system this)
-        (wait-with-latch (latch)
-          (bt:make-thread
-           (lambda ()
-             (log-errors
-               (unwind-protect
-                    (progn
-                      (setf thread (current-thread))
-                      (open-latch latch)
-                      (log:debug "Starting ~a loop" system-class-name)
-                      (let ((*system-context* (make-system-context this)))
-                        (unwind-protect
-                             (start-system-loop this)
-                          (destroy-system-context *system-context* this))))
-                 (open-latch latch)
-                 (log:debug "~a loop stopped" system-class-name)
-                 (discard-system this))))
-           :name (format nil "~a-worker" (string-downcase (string system-class-name)))))))))
+  (with-system-lock-held (this)
+    (when (enabledp this)
+      (error "~a already enabled" (system-class-name-of this)))
+    (setf (%executor-of this) (acquire-executor :single-threaded-p t :exclusive-p t))
+    (initialize-system this)
+    (wait-with-latch (latch)
+      (execute (%executor-of this)
+               (lambda ()
+                 (log-errors
+                   (defvar *system-context* (make-system-context this))
+                   (open-latch latch)))))
+    (call-next-method)))
 
 
 (defmethod disable ((this thread-bound-system))
-  (with-slots (thread) this
-    (let ((system-thread thread))
-      (with-system-lock-held (this)
-        (unless (enabledp this)
-          (error "~a already disabled" (class-name (class-of this))))
-        (setf thread nil)
-        (interrupt (%job-queue-of this)))
-      (join-thread system-thread))))
+  (with-system-lock-held (this)
+    (unless (enabledp this)
+      (error "~a already disabled" (system-class-name-of this)))
+    (wait-with-latch (latch)
+      (execute (%executor-of this)
+               (lambda ()
+                 (destroy-system-context *system-context* this)
+                 (open-latch latch))))
+    (discard-system this)
+    (release-executor (%executor-of this))
+    (call-next-method)))
 
 
 (declaim (inline check-system-context))
@@ -105,7 +64,3 @@
 
 ;;
 (defclass thread-bound-object (system-object) ())
-
-
-(defmethod execute ((this thread-bound-object) fn &optional (priority :medium))
-  (execute (system-of this) fn priority))

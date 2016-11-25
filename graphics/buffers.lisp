@@ -1,7 +1,7 @@
 (in-package :cl-bodge.graphics)
 
 
-(declaim (special *last-bound-buffer*))
+(declaim (special *active-buffer*))
 
 ;;
 ;;
@@ -24,10 +24,10 @@
     `(unwind-protect
           (progn
             (gl:bind-buffer (target-of ,buffer) (id-of ,buffer))
-            (let ((*last-bound-buffer* ,buffer))
+            (let ((*active-buffer* ,buffer))
               ,@body))
-       (if-bound *last-bound-buffer*
-                 (gl:bind-buffer (target-of *last-bound-buffer*) (id-of *last-bound-buffer*))
+       (if-bound *active-buffer*
+                 (gl:bind-buffer (target-of *active-buffer*) (id-of *active-buffer*))
                  (gl:bind-buffer (target-of ,buffer) 0)))))
 
 ;;

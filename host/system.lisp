@@ -18,17 +18,12 @@
   (slot-value this 'enabled-p))
 
 
-(defmethod execute ((this host-system) fn &optional priority)
+(defmethod dispatch ((this host-system) fn &optional priority)
   (declare (ignore priority))
   (with-slots (job-queue) this
-    (with-promise (resolve reject)
-      (with-system-lock-held (this)
-        (push-job (lambda ()
-                    (handler-case
-                        (resolve (funcall fn))
-                      (t (e) (log:error e) (reject e))))
-                  job-queue)
-        (glfw:post-empty-event)))))
+    (with-system-lock-held (this)
+      (push-job fn job-queue)
+      (glfw:post-empty-event))))
 
 
 (glfw:def-window-close-callback on-close (window)

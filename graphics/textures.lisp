@@ -1,8 +1,8 @@
 (in-package :cl-bodge.graphics)
 
 
-(declaim (special *last-bound-texture*
-                  *last-used-texture-unit*))
+(declaim (special *active-texture*
+                  *active-texture-unit*))
 
 
 (defenum texture-format
@@ -52,10 +52,10 @@
     `(unwind-protect
           (progn
             (use-texture-unit ,value)
-            (let ((*last-used-texture-unit* ,value))
+            (let ((*active-texture-unit* ,value))
                   ,@body))
-       (if-bound *last-used-texture-unit*
-                 (use-texture-unit *last-used-texture-unit*)
+       (if-bound *active-texture-unit*
+                 (use-texture-unit *active-texture-unit*)
                  (use-texture-unit ,value)))))
 
 
@@ -66,10 +66,10 @@
                  '(progn)
                  `(with-texture-unit ,unit))
              (gl:bind-texture (target-of ,place) (id-of ,place))
-             (let ((*last-bound-texture* ,place))
+             (let ((*active-texture* ,place))
                ,@body))
-       (if-bound *last-bound-texture*
-                 (gl:bind-texture (target-of *last-bound-texture*) (id-of *last-bound-texture*))
+       (if-bound *active-texture*
+                 (gl:bind-texture (target-of *active-texture*) (id-of *active-texture*))
                  (gl:bind-texture (target-of ,place) 0)))))
 
 

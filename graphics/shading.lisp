@@ -1,8 +1,8 @@
 (in-package :cl-bodge.graphics)
 
 
-(declaim (special *last-used-shading-program*
-                  *last-bound-shading-pipeline*))
+(declaim (special *active-shading-program*
+                  *active-shading-pipeline*))
 
 
 (defun shader-type->gl (type)
@@ -108,12 +108,12 @@
 (defmacro with-using-shading-program ((program &optional prev-program) &body body)
   (once-only (program)
     `(unwind-protect
-          (let ((*last-used-shading-program* ,program))
+          (let ((*active-shading-program* ,program))
             (use-shading-program ,program)
             ,@body)
        ,(if (null prev-program)
-            `(if-bound *last-used-shading-program*
-                       (gl:use-program (id-of *last-used-shading-program*))
+            `(if-bound *active-shading-program*
+                       (gl:use-program (id-of *active-shading-program*))
                        (gl:use-program 0))
             `(gl:use-program (id-of ,prev-program))))))
 
@@ -158,11 +158,11 @@
 (defmacro with-bound-shading-pipeline ((pipeline) &body body)
   (once-only (pipeline)
     `(unwind-protect
-          (let ((*last-bound-shading-pipeline* ,pipeline))
+          (let ((*active-shading-pipeline* ,pipeline))
             (gl:bind-program-pipeline (id-of ,pipeline))
             ,@body)
-       (if-bound *last-bound-shading-pipeline*
-           (gl:bind-program-pipeline (id-of *last-bound-shading-pipeline*))
+       (if-bound *active-shading-pipeline*
+           (gl:bind-program-pipeline (id-of *active-shading-pipeline*))
            (gl:bind-program-pipeline 0)))))
 
 

@@ -1,27 +1,20 @@
 (in-package :cl-bodge.event)
 
 
-(defclass event-system (generic-system)
-  ((enabled-p :initform nil)
-   (handler-table :initform (make-hash-table))
-   (thread-pool :initform (make-thread-pool 4))))
+(defclass event-system (enableable generic-system)
+  ((handler-table :initform (make-hash-table))
+   (executor :initform nil)))
 
 
-(defmethod enabledp ((this event-system))
-  (slot-value this 'enabled-p))
+(defmethod initialize-system :after ((this event-system))
+  (with-slots (executor) this
+    (setf executor (acquire-executor))))
 
 
-(defmethod initialize-system ((this event-system))
-  (with-slots (enabled-p thread-pool) this
-    (open-pool thread-pool)
-    (setf enabled-p t)))
-
-
-(defmethod discard-system ((this event-system))
-  (with-slots (enabled-p thread-pool handler-table) this
-    (close-pool thread-pool)
-    (clrhash handler-table)
-    (setf enabled-p nil)))
+(defmethod discard-system :before ((this event-system))
+  (with-slots (executor handler-table) this
+    (release-executor executor)
+    (clrhash handler-table)))
 
 
 ;;;
@@ -75,25 +68,27 @@
 
 (declaim (ftype (function (event event-system) *) post))
 (defun post (event event-system)
-  (with-slots (thread-pool handler-table) event-system
+  (with-slots (executor handler-table) event-system
     (with-system-lock-held (event-system)
       (%check-event-class-registration (class-of event) event-system)
-      (within-pool (thread-pool)
-        (loop for handler in (with-system-lock-held (event-system)
-                               (gethash (class-of event) handler-table))
-           do (funcall handler event))))))
+      (execute executor
+               (lambda ()
+                 (loop for handler in (with-system-lock-held (event-system)
+                                        (gethash (class-of event) handler-table))
+                    do (funcall handler event)))))))
 
 
 (declaim (ftype (function (symbol (function (event) *) event-system) *) subscribe-to))
 (defun subscribe-to (event-class-name handler event-system)
   (let ((event-class (find-class event-class-name)))
-    (with-slots (thread-pool handler-table) event-system
+    (with-slots (executor handler-table) event-system
       (with-system-lock-held (event-system)
         (%check-event-class-registration event-class event-system)
-        (within-pool (thread-pool)
-          (with-system-lock-held (event-system)
-            (with-hash-entries ((handlers event-class)) handler-table
-              (pushnew handler handlers))))))))
+        (execute executor
+                 (lambda ()
+                   (with-system-lock-held (event-system)
+                     (with-hash-entries ((handlers event-class)) handler-table
+                       (pushnew handler handlers)))))))))
 
 
 (defmacro subscribe-with-handler-body-to (event-class (&optional (event-var (gensym)))
