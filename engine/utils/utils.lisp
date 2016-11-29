@@ -93,27 +93,6 @@
      (defun ,name ,lambda-list ,@body)))
 
 
-;;;
-;;;
-;;;
-(cffi:defcfun ("memcpy" %copy-memory) :pointer
-  (destination :pointer)
-  (source :pointer)
-  (size :int))
-
-
-(definline copy-memory (destination source type &optional (count 1))
-  (%copy-memory destination source (* (cffi:foreign-type-size type) count)))
-
-
-;;;
-;;;
-;;;
-(definline copy-memory-autowrapped (destination source type &optional (count 1))
-  (autowrap:memcpy destination source :n count :type type))
-
-
-
 (defmacro ensure-not-null (value)
   (once-only ((v value))
     `(if (null ,v)

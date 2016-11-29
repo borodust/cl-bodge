@@ -33,6 +33,17 @@
                       (incf result)))
     result))
 
+
+(ge.mt:defun/d bar/d ()
+  (let ((r0 3)
+        (r1 3)
+        result)
+    (ge.mt:wait-for (ge.mt::-> ((make-instance 'simple-dispatcher))
+                      (setf r0 0)))
+    (setf r1 (foo/d *dummy-dispatcher*)
+          result (+ r0 r1))
+    result))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (test progn-body-traverse
@@ -285,6 +296,18 @@
     (mt:wait-with-latch (l)
       (ge.mt::-> (*dummy-dispatcher*)
         (setf result (foo/d (make-instance 'simple-dispatcher)))
+        (mt:open-latch l)))
+
+    (is (equal 2 result))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(test defun/d-nested-call
+  (let (result)
+
+    (mt:wait-with-latch (l)
+      (ge.mt::-> (*dummy-dispatcher*)
+        (setf result (bar/d))
         (mt:open-latch l)))
 
     (is (equal 2 result))))

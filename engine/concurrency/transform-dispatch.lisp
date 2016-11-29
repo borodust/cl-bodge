@@ -64,7 +64,7 @@
   (with-gensyms (r)
     `(,cb (,r)
           ,@(when epilogue
-              `((setf ,r ,@(form-list-transform codegen epilogue))))
+              `((setf ,r (progn ,@(form-list-transform codegen epilogue)))))
           ,(generate-calling-code cont r))))
 
 (defgeneric chain-callback-body-gen (codegen group last-callback result-required-p)

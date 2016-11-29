@@ -48,9 +48,9 @@
   (setf (%ode:contact.surface.mode contact) (mask 'contact-flags :approx0 :bounce))
   (setf (%ode:contact.surface.mu contact) +infinity+)
   (setf (%ode:contact.surface.bounce contact) 1.0)
-  (copy-memory-autowrapped (%ode:contact.geom& contact)
-                           (ptr contact-geom)
-                           '%ode:contact-geom)
+  (memcpy (%ode:contact.geom& contact)
+          (ptr contact-geom)
+          :type '%ode:contact-geom)
   contact)
 
 

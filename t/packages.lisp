@@ -1,4 +1,4 @@
-(in-package :cl-bodge.definition)
+(in-package :cl-bodge.asdf)
 
 
 (defpackage :cl-bodge.concurrency.tests
