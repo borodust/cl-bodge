@@ -209,3 +209,16 @@
       (single-float
        (make-array dimensions :element-type 'single-float
                    :initial-contents list)))))
+
+
+(defmacro reexporting ((&rest from-packages) into-package &body body)
+  (with-gensyms (p sym fn)
+    `(eval-when (:compile-toplevel :load-toplevel :execute)
+       (flet ((for-each-exported-symbol (,fn)
+                (dolist (,p ',from-packages)
+                  (loop for ,sym being the external-symbol in ,p do
+                       (funcall ,fn ,sym ,into-package)))))
+       (when (find-package ,into-package)
+         (for-each-exported-symbol #'unexport))
+       ,@body
+       (for-each-exported-symbol #'export)))))

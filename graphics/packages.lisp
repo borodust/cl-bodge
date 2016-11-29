@@ -3,9 +3,8 @@
 
 (defpackage :cl-bodge.graphics
   (:nicknames :ge.gx)
-  (:use :cl-bodge.engine :cl-bodge.host :cl-bodge.concurrency :cl-bodge.utils
-        :cl-bodge.math :cl-bodge.event :cl-bodge.memory :cl-bodge.graphics.resources
-        :cl :cl-muth :bordeaux-threads)
+  (:use :cl :cl-bodge.engine :cl-bodge.host :cl-bodge.utils
+        :cl-bodge.event :cl-bodge.graphics.resources)
   (:export graphics-system
            in-wireframe-mode
 

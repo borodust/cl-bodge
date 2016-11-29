@@ -2,8 +2,7 @@
 
 
 (defpackage :cl-bodge.audio
-  (:use :cl-bodge.engine :cl-bodge.math :cl-bodge.memory :cl-bodge.concurrency
-        :cl-bodge.utils :cl-bodge.audio.resources
+  (:use :cl-bodge.engine :cl-bodge.utils :cl-bodge.audio.resources
         :cl :cl-muth)
   (:nicknames :ge.snd)
   (:export audio-system

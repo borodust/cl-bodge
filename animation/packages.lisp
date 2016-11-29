@@ -4,8 +4,7 @@
 
 (defpackage :cl-bodge.animation
   (:nicknames :ge.ani)
-  (:use :cl-bodge.utils :cl-bodge.math
-        :cl)
+  (:use :cl :cl-bodge.utils :cl-bodge.math)
   (:export make-keyframe
            make-keyframe-sequence
            transform-at

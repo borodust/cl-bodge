@@ -1,61 +1,6 @@
 (in-package :cl-bodge.asdf)
 
 
-(defpackage :cl-bodge.utils
-  (:nicknames :ge.util)
-  (:use :cl :local-time :alexandria)
-  (:export with-gensyms
-           once-only
-           symbolicate
-           make-keyword
-           format-symbol
-           parse-body
-           parse-ordinary-lambda-list
-           when-let
-           when-let*
-           if-let
-           switch
-           define-constant
-           alist-hash-table
-           plist-alist
-           read-file-into-string
-           nconcf
-           starts-with-subseq
-           positive-integer
-           copy-array
-           deletef
-           alist-hash-table
-           ensure-list
-
-           log-errors
-           with-hash-entries
-           make-hash-table-with-entries
-           stream->byte-array
-           file->byte-array
-           defenum
-           f
-           epoch-seconds
-           definline
-
-           ensure-not-null
-           bound-symbol-value
-           if-bound
-           when-bound
-
-           class-name-of
-           dolines
-
-           parent
-           adopt
-           abandon
-           dochildren
-           children-of
-           dotree
-
-           search-sorted
-           list->array))
-
-
 (defpackage :cl-bodge.memory
   (:nicknames :ge.mem)
   (:use :cl-bodge.utils
@@ -151,35 +96,37 @@
            quat->rotation-mat4))
 
 
-(defpackage :cl-bodge.engine
-  (:nicknames :ge.ng)
-  (:use :cl-bodge.utils :cl-bodge.concurrency :cl-bodge.memory
-        :cl :bordeaux-threads :cl-muth)
-  (:export system
-           enable
-           disable
-           enabledp
-           acquire-executor
-           release-executor
+(ge.util:reexporting (:cl-bodge.concurrency :cl-bodge.memory :cl-bodge.math) :cl-bodge.engine
 
-           system-object
-           system-of
-           enableable
+  (defpackage :cl-bodge.engine
+    (:nicknames :ge.ng)
+    (:use :cl-bodge.utils :cl-bodge.concurrency :cl-bodge.memory :cl-bodge.math
+          :cl :bordeaux-threads :cl-muth)
+    (:export system
+             enable
+             disable
+             enabledp
+             acquire-executor
+             release-executor
 
-           generic-system
-           with-system-lock-held
-           initialize-system
-           discard-system
+             system-object
+             system-of
+             enableable
 
-           thread-bound-system
-           make-system-context
-           destroy-system-context
-           *system-context*
-           check-system-context
-           thread-bound-object
+             generic-system
+             with-system-lock-held
+             initialize-system
+             discard-system
 
-           engine-system
-           engine
-           property
-           startup
-           shutdown))
+             thread-bound-system
+             make-system-context
+             destroy-system-context
+             *system-context*
+             check-system-context
+             thread-bound-object
+
+             engine-system
+             engine
+             property
+             startup
+             shutdown)))

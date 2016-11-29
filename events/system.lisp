@@ -91,8 +91,16 @@
                        (pushnew handler handlers)))))))))
 
 
-(defmacro subscribe-with-handler-body-to (event-class (&optional (event-var (gensym)))
-                                                         event-system &body body)
-  `(subscribe-to ',event-class (lambda (,event-var)
-                                 (declare (ignorable ,event-var)) ,@body)
-                 ,event-system))
+(defmacro subscribe-body-to ((event-class
+                              (&rest accessor-bindings) &optional (event-var (gensym)))
+                                            event-system &body body)
+  (let ((bindings (loop for binding in accessor-bindings
+                     for (name accessor) = (if (listp binding)
+                                               binding
+                                               (list binding binding))
+                     collect `(,name (,accessor ,event-var)))))
+    `(subscribe-to ',event-class (lambda (,event-var)
+                                   (declare (ignorable ,event-var))
+                                   (symbol-macrolet ,bindings
+                                     ,@body))
+                   ,event-system)))

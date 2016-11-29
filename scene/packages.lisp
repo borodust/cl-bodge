@@ -3,10 +3,8 @@
 
 (defpackage :cl-bodge.scene
   (:nicknames :ge.sg)
-  (:use :cl-bodge.utils :cl-bodge.engine :cl-bodge.graphics :cl-bodge.physics
-        :cl-bodge.math :cl-bodge.concurrency :cl-bodge.host :cl-bodge.memory
-        :cl-bodge.animation :cl-bodge.resources :cl-bodge.audio :cl-bodge.assets
-        :cl :cl-muth)
+  (:use :cl :cl-bodge.utils :cl-bodge.engine :cl-bodge.graphics :cl-bodge.physics
+        :cl-bodge.host :cl-bodge.animation :cl-bodge.resources :cl-bodge.audio :cl-bodge.assets)
   (:export node
            find-node
            node-attaching

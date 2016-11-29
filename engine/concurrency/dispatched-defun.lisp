@@ -8,8 +8,9 @@
           (parse-ordinary-lambda-list lambda-list)
         (multiple-value-bind (forms decls doc) (parse-body body :documentation t :whole whole)
           `(progn
-             (defmethod traverse-form ((type (eql ',name)) form)
-               (make-instance 'fn/d-gen :form form))
+             (eval-when (:compile-toplevel :load-toplevel :execute)
+               (defmethod traverse-form ((type (eql ',name)) form)
+                 (make-instance 'fn/d-gen :form form)))
 
              (defun ,name/d ,(cons cont lambda-list)
                ,@decls

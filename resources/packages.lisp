@@ -4,9 +4,8 @@
 
 (defpackage :cl-bodge.resources
   (:nicknames :ge.rsc)
-  (:use :cl-bodge.utils :cl-bodge.graphics.resources :cl-bodge.math
-        :cl-bodge.concurrency :cl-bodge.memory :cl-bodge.engine :cl-bodge.audio.resources
-        :cl :cl-muth :bodge-sndfile)
+  (:use :cl-bodge.utils :cl-bodge.graphics.resources :cl-bodge.audio.resources :cl-bodge.engine
+        :cl :bodge-sndfile)
   (:export load-shader-source
            shader-path-of
            load-png-image

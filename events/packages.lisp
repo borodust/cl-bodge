@@ -3,8 +3,7 @@
 
 (defpackage :cl-bodge.event
   (:nicknames :ge.eve)
-  (:use :cl-bodge.engine :cl-bodge.utils :cl-bodge.concurrency
-        :cl :bordeaux-threads :cl-muth)
+  (:use :cl :cl-bodge.engine :cl-bodge.utils)
   (:export event-system
            event
            defevent
@@ -12,4 +11,4 @@
            register-event-classes
            post
            subscribe-to
-           subscribe-with-handler-body-to))
+           subscribe-body-to))
