@@ -1,3 +1,22 @@
+(in-package :cl-bodge.asdf)
+
+
+(defpackage :cl-bodge.graphics.resources
+  (:nicknames :ge.gx.rsc)
+  (:use :cl-bodge.utils
+        :cl)
+  (:export pixel-format
+
+           pixel-format-of
+           image->array
+           size-of
+
+           shader-text-of
+           shader-type-of
+           shader-name-of
+           reload-shader-text))
+
+
 (in-package :cl-bodge.graphics.resources)
 
 ;;;

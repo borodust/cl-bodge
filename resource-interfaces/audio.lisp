@@ -1,3 +1,21 @@
+(in-package :cl-bodge.asdf)
+
+
+(defpackage :cl-bodge.audio.resources
+  (:nicknames :ge.snd.rsc)
+  (:use :cl-bodge.utils
+        :cl)
+  (:export pcm-data
+           sample-depth
+           channel-format
+
+           pcm-audio-data-of
+           audio-channel-format-of
+           audio-sample-depth-of
+           audio-sampling-rate-of))
+
+
+
 (in-package :cl-bodge.audio.resources)
 
 

@@ -1,4 +1,4 @@
-(in-package :cl-bodge.resources)
+(in-package :cl-bodge.assets)
 
 
 (define-shader-library lighting-library

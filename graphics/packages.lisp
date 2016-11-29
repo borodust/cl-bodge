@@ -1,23 +1,6 @@
 (in-package :cl-bodge.asdf)
 
 
-
-(defpackage :cl-bodge.graphics.resources
-  (:nicknames :ge.gx.rsc)
-  (:use :cl-bodge.utils
-        :cl)
-  (:export pixel-format
-
-           pixel-format-of
-           image->array
-           size-of
-
-           shader-text-of
-           shader-type-of
-           shader-name-of
-           reload-shader-text))
-
-
 (defpackage :cl-bodge.graphics
   (:nicknames :ge.gx)
   (:use :cl-bodge.engine :cl-bodge.host :cl-bodge.concurrency :cl-bodge.utils

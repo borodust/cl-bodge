@@ -4,14 +4,13 @@
 
 (defpackage :cl-bodge.resources
   (:nicknames :ge.rsc)
-  (:use :cl-bodge.utils :cl-bodge.graphics :cl-bodge.graphics.resources :cl-bodge.math
+  (:use :cl-bodge.utils :cl-bodge.graphics.resources :cl-bodge.math
         :cl-bodge.concurrency :cl-bodge.memory :cl-bodge.engine :cl-bodge.audio.resources
         :cl :cl-muth :bodge-sndfile)
-  (:export resource-system
-           load-shader-source
+  (:export load-shader-source
+           shader-path-of
            load-png-image
            load-ogg-vorbis-audio
-           build-shading-program
 
            load-resource
 

@@ -72,18 +72,29 @@
                (:file "system")))
 
 
+(defsystem cl-bodge/graphics-resources
+  :description "Bodacious Game Engine graphics resource interface"
+  :version "0.2.0"
+  :author "Pavel Korolev"
+  :mailto "dev@borodust.org"
+  :license "MIT"
+  :pathname "resource-interfaces"
+  :serial t
+  :components ((:file "graphics")))
+
+
 (defsystem cl-bodge/graphics
   :description "Bodacious Game Engine graphics system"
   :version "0.2.0"
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (cl-bodge/engine cl-bodge/host cl-opengl log4cl local-time)
+  :depends-on (cl-bodge/engine cl-bodge/host cl-bodge/graphics-resources cl-opengl
+                               log4cl local-time)
   :pathname "graphics"
   :serial t
   :components ((:file "packages")
                (:file "gl")
-               (:file "resources")
                (:file "buffers")
                (:file "vertex-array")
                (:file "mesh")
@@ -105,17 +116,27 @@
                (:file "keyframed")))
 
 
+(defsystem cl-bodge/audio-resources
+  :description "Bodacious Game Engine audio resource interface"
+  :version "0.2.0"
+  :author "Pavel Korolev"
+  :mailto "dev@borodust.org"
+  :license "MIT"
+  :pathname "resource-interfaces"
+  :serial t
+  :components ((:file "audio")))
+
+
 (defsystem cl-bodge/audio
   :description "Bodacious Game Engine audio system"
   :version "0.2.0"
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (cl-bodge/engine cl-bodge/host log4cl cl-openal cl-alc)
+  :depends-on (cl-bodge/engine cl-bodge/host cl-bodge/audio-resources log4cl cl-openal cl-alc)
   :pathname "audio"
   :serial t
   :components ((:file "packages")
-               (:file "resources")
                (:file "al")
                (:file "buffer")
                (:file "source")
@@ -147,8 +168,8 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (cl-bodge/engine cl-bodge/graphics cl-bodge/audio bodge-sndfile log4cl
-                               cl-fad opticl)
+  :depends-on (cl-bodge/engine cl-bodge/graphics-resources cl-bodge/audio-resources
+                               bodge-sndfile log4cl cl-fad opticl)
   :pathname "resources"
   :serial t
   :components ((:file "packages")
@@ -156,9 +177,22 @@
                (:file "basic-chunks")
                (:file "simple-model-chunk")
                (:file "shader-source")
-               (:file "shader-library")
                (:file "image")
-               (:file "audio")
+               (:file "audio")))
+
+
+
+(defsystem cl-bodge/assets
+  :description "Bodacious Game Engine assets system"
+  :version "0.2.0"
+  :author "Pavel Korolev"
+  :mailto "dev@borodust.org"
+  :license "MIT"
+  :depends-on (cl-bodge/engine cl-bodge/graphics cl-bodge/resources log4cl)
+  :pathname "assets"
+  :serial t
+  :components ((:file "packages")
+               (:file "shader-library")
                (:module shaders
                         :components
                         ((:file "math")
@@ -174,7 +208,8 @@
   :mailto "dev@borodust.org"
   :license "MIT"
   :depends-on (cl-bodge/engine cl-bodge/graphics cl-bodge/physics cl-bodge/host cl-muth
-                               cl-bodge/animation cl-bodge/resources cl-bodge/audio)
+                               cl-bodge/animation cl-bodge/assets cl-bodge/audio
+                               cl-bodge/resources)
   :pathname "scene"
   :serial t
   :components ((:file "packages")
