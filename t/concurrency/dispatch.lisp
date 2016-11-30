@@ -15,7 +15,6 @@
 (defvar *dummy-dispatcher* (make-instance 'dummy-dispatcher))
 
 
-
 (defclass simple-dispatcher (ge.mem:disposable)
   ((e :initform (ge.mt:make-single-threaded-executor))))
 

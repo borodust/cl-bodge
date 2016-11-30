@@ -92,13 +92,14 @@
       (dispose shared-executor))))
 
 
-(defun acquire-executor (&rest args &key (single-threaded-p nil) (exclusive-p nil))
+(defun acquire-executor (&rest args &key (single-threaded-p nil) (exclusive-p nil)
+                                      (special-variables nil))
   (with-slots (shared-executor) *engine*
     (cond
-      ((and (not exclusive-p) (not single-threaded-p))
+      ((and (not exclusive-p) (not single-threaded-p) (not special-variables))
        shared-executor)
       ((or exclusive-p single-threaded-p)
-       (make-single-threaded-executor))
+       (make-single-threaded-executor special-variables))
       (t (error "Cannot provide executor for combination of requirements: ~a" args)))))
 
 

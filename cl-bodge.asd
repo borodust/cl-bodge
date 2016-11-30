@@ -24,7 +24,8 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (cl-bodge/utils cl-muth rtg-math log4cl bordeaux-threads local-time trivial-garbage)
+  :depends-on (cl-bodge/utils cl-muth rtg-math log4cl bordeaux-threads local-time
+                              trivial-garbage)
   :pathname "engine"
   :serial t
   :components ((:file "packages")
@@ -248,3 +249,15 @@
                         :serial t
                         :components ((:file "suite")
                                      (:file "dispatch")))))
+
+
+
+(defsystem cl-bodge
+  :description "Bodacious Game Engine framework"
+  :version "0.2.0"
+  :author "Pavel Korolev"
+  :mailto "dev@borodust.org"
+  :license "MIT"
+  :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/events cl-bodge/host
+                               cl-bodge/graphics cl-bodge/audio cl-bodge/physics
+                               cl-bodge/resources cl-bodge/assets cl-bodge/scenegraph))

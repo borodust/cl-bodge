@@ -1,7 +1,8 @@
 (in-package :cl-bodge.engine)
 
 
-(declaim (special *system-context*))
+(declaim (special *system-context*
+                  *system*))
 
 
 (defclass thread-bound-system (enableable generic-system)
@@ -31,13 +32,17 @@
   (with-system-lock-held (this)
     (when (enabledp this)
       (error "~a already enabled" (system-class-name-of this)))
-    (setf (%executor-of this) (acquire-executor :single-threaded-p t :exclusive-p t))
+    (setf (%executor-of this)
+          (acquire-executor :single-threaded-p t :exclusive-p t
+                            :special-variables '(*system-context*
+                                                 *system*)))
     (initialize-system this)
     (wait-with-latch (latch)
       (execute (%executor-of this)
                (lambda ()
                  (log-errors
-                   (defvar *system-context* (make-system-context this))
+                   (setf *system-context* (make-system-context this)
+                         *system* this)
                    (open-latch latch)))))
     (call-next-method)))
 

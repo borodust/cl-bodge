@@ -6,7 +6,8 @@
   (:nicknames :ge.rsc)
   (:use :cl-bodge.utils :cl-bodge.graphics.resources :cl-bodge.audio.resources :cl-bodge.engine
         :cl :bodge-sndfile)
-  (:export load-shader-source
+  (:export make-shader-source
+           load-shader-source
            shader-path-of
            load-png-image
            load-ogg-vorbis-audio

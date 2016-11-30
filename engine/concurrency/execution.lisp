@@ -52,17 +52,19 @@
   ((executor :initform (make-simple-executor +default-queue-size+))))
 
 
-(defmethod initialize-instance :after ((this single-threaded-executor) &key)
+(defmethod initialize-instance :after ((this single-threaded-executor) &key special-variables)
   (with-slots (executor) this
-    (bt:make-thread (lambda () (run executor)) :name "single-threaded-executor")))
+    (bt:make-thread (lambda ()
+                      (progv special-variables (mapcar (constantly nil) special-variables)
+                        (run executor)) :name "single-threaded-executor"))))
 
 
 (define-destructor single-threaded-executor (executor)
   (dispose executor))
 
 
-(definline make-single-threaded-executor ()
-  (make-instance 'single-threaded-executor))
+(definline make-single-threaded-executor (&optional special-variables)
+  (make-instance 'single-threaded-executor :special-variables special-variables))
 
 
 (defmethod execute ((this single-threaded-executor) (task function) &optional (priority :medium))

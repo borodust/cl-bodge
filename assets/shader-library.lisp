@@ -164,10 +164,7 @@
              (loop for name in used-lib-names
                 for shader = (load-shader gx-sys (library-by-name name) type)
                 unless (null shader) do (pushnew shader libs))
-             (push (make-instance 'shader-source
-                                  :text text
-                                  :path (shader-path-of source)
-                                  :type type)
+             (push (make-shader-source (shader-name-of source) type text)
                    processed-sources))
          finally
            (return (build-separable-shading-program gx-sys processed-sources libs)))
