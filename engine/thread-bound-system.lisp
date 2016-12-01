@@ -24,41 +24,29 @@
   (execute (%executor-of this) fn priority))
 
 
-(defun system-class-name-of (this)
-  (class-name (class-of this)))
-
-
 (defmethod enable ((this thread-bound-system))
-  (with-system-lock-held (this)
-    (when (enabledp this)
-      (error "~a already enabled" (system-class-name-of this)))
-    (setf (%executor-of this)
-          (acquire-executor :single-threaded-p t :exclusive-p t
-                            :special-variables '(*system-context*
-                                                 *system*)))
-    (initialize-system this)
-    (wait-with-latch (latch)
-      (execute (%executor-of this)
-               (lambda ()
-                 (log-errors
-                   (setf *system-context* (make-system-context this)
-                         *system* this)
-                   (open-latch latch)))))
-    (call-next-method)))
+  (call-next-method)
+  (setf (%executor-of this)
+        (acquire-executor :single-threaded-p t :exclusive-p t
+                          :special-variables '(*system-context*
+                                               *system*)))
+  (wait-with-latch (latch)
+    (execute (%executor-of this)
+             (lambda ()
+               (log-errors
+                 (setf *system-context* (make-system-context this)
+                       *system* this)
+                 (open-latch latch))))))
 
 
 (defmethod disable ((this thread-bound-system))
-  (with-system-lock-held (this)
-    (unless (enabledp this)
-      (error "~a already disabled" (system-class-name-of this)))
-    (wait-with-latch (latch)
-      (execute (%executor-of this)
-               (lambda ()
-                 (destroy-system-context *system-context* this)
-                 (open-latch latch))))
-    (discard-system this)
-    (release-executor (%executor-of this))
-    (call-next-method)))
+  (wait-with-latch (latch)
+    (execute (%executor-of this)
+             (lambda ()
+               (destroy-system-context *system-context* this)
+               (open-latch latch))))
+  (release-executor (%executor-of this))
+  (call-next-method))
 
 
 (declaim (inline check-system-context))

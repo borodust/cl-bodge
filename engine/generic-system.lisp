@@ -27,15 +27,27 @@
     (call-next-method)))
 
 
+(defun system-class-name-of (this)
+  (class-name (class-of this)))
+
+
 (defmethod enable ((this generic-system))
+  (initialize-system this))
+
+
+(defmethod enable :around ((this generic-system))
   (with-system-lock-held (this)
     (when (enabledp this)
-      (error "~a already enabled" (class-name (class-of this))))
-    (initialize-system this)))
+      (error "~a already enabled" (system-class-name-of this)))
+    (call-next-method)))
 
 
 (defmethod disable ((this generic-system))
+  (discard-system this))
+
+
+(defmethod disable :around ((this generic-system))
   (with-system-lock-held (this)
     (unless (enabledp this)
-      (error "~a already disabled" (class-name (class-of this))))
-    (discard-system this)))
+      (error "~a already disabled" (system-class-name-of this)))
+    (call-next-method)))
