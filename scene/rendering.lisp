@@ -75,7 +75,7 @@
 (defmethod initialize-node :after ((this shading-pipeline-node)
                                    (sys graphics-system))
   (with-slots (pipeline) this
-    (setf pipeline (make-shading-pipeline sys))))
+    (setf pipeline (make-shading-pipeline))))
 
 
 (defmethod discard-node :before ((this shading-pipeline-node))
@@ -155,7 +155,7 @@
 (defmethod initialize-node :after ((this shading-program-node)
                                    (sys graphics-system))
   (with-slots (program sources) this
-    (setf program (build-shading-program sys sources))))
+    (setf program (build-shading-program sources))))
 
 
 (defmethod discard-node :before ((this shading-program-node))

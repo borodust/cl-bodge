@@ -104,7 +104,8 @@
             (gl:tex-parameter target :texture-max-level 0))))))
 
 
-(defun make-2d-texture (system image texture-format &optional (generate-mipmaps-p t))
+(define-system-function make-2d-texture graphics-system
+    (image texture-format &key (generate-mipmaps-p t) (system *system*))
   (let ((ex-format (%pixel-format->external-format (pixel-format-of image)))
         (in-format (%texture-format->internal-format texture-format)))
     (multiple-value-bind (width height) (size-of image)

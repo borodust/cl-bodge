@@ -72,30 +72,30 @@
           (error "Library ~a doesn't support compilation for ~a" lib-name shader-type))))
 
 
+(defgeneric header-of (library))
+(defgeneric shader-source (library &optional type))
+
 (flet ((load-source (path base)
          (preprocess (read-file-into-string
                       (if (fad:pathname-absolute-p path)
                           (fad:canonical-pathname path)
                           (fad:merge-pathnames-as-file base path))))))
 
-  (defgeneric header-of (library)
-    (:method ((this shader-library))
-      (with-slots (header-path) this
-        (if header-path
-            (load-source header-path (path-to this))
-            (list "")))))
+  (defmethod header-of((this shader-library))
+    (with-slots (header-path) this
+      (if header-path
+          (load-source header-path (path-to this))
+          (list ""))))
 
 
-  (defgeneric shader-source (library &optional type)
-    (:method ((this shader-library) &optional type)
+  (defmethod shader-source ((this shader-library) &optional type)
       (with-slots (source-path types) this
         (unless (null source-path)
           (let* ((shader-types (if (listp types) types (list types)))
                  (type (%select-shader-type (class-name-of this) type shader-types)))
-            (make-instance 'shader-source
-                           :path source-path
-                           :type type
-                           :text (load-source source-path (path-to this)))))))))
+            (make-shader-source (file-namestring (fad:canonical-pathname source-path))
+                                type
+                                (load-source source-path (path-to this))))))))
 
 
 (defmacro define-shader-library (name &key ((:name glsl-name)) (types :any-shader)
@@ -115,13 +115,13 @@
 ;;;
 ;;;
 ;; TODO unload shaders later
-(defun load-shader (gx-sys library &optional shader-type)
+(defun load-shader (library &optional shader-type)
   (with-slots (name types shader-alist) library
     (when-let ((source (shader-source library shader-type)))
       (let ((shader (assoc (cons name (shader-type-of source)) shader-alist :test #'equal)))
         (if (null shader)
             (cdar (push (cons (cons name (shader-type-of source))
-                              (compile-shader gx-sys source))
+                              (compile-shader source))
                         shader-alist))
             (cdr shader))))))
 
@@ -154,7 +154,7 @@
 
 
 
-(defun build-shading-program (gx-sys shader-sources)
+(defun build-shading-program (shader-sources)
   (restart-case
       (loop with libs and processed-sources
          for source in shader-sources
@@ -162,12 +162,12 @@
          do
            (multiple-value-bind (text used-lib-names) (preprocess (shader-text-of source))
              (loop for name in used-lib-names
-                for shader = (load-shader gx-sys (library-by-name name) type)
+                for shader = (load-shader (library-by-name name) type)
                 unless (null shader) do (pushnew shader libs))
              (push (make-shader-source (shader-name-of source) type text)
                    processed-sources))
          finally
-           (return (build-separable-shading-program gx-sys processed-sources libs)))
+           (return (build-separable-shading-program processed-sources libs)))
     (reload-sources-and-build ()
-      (build-shading-program gx-sys (loop for source in shader-sources collecting
-                                         (reload-shader-text source))))))
+      (build-shading-program (loop for source in shader-sources collecting
+                                  (reload-shader-text source))))))

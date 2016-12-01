@@ -18,7 +18,7 @@
 (defgeneric (setf mass-of) (value this))
 
 
-(defun make-rigid-body (system)
+(define-system-function make-rigid-body physics-system (&key (system *system*))
   (make-instance 'rigid-body
                  :system system
                  :id (%ode:body-create (world-of (universe)))))

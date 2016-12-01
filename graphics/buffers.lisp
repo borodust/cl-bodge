@@ -41,7 +41,8 @@
   (:default-initargs :target :array-buffer))
 
 
-(defun make-array-buffer (system vertex-attribute-index vertex-attribute-data)
+(define-system-function make-array-buffer graphics-system
+    (vertex-attribute-index vertex-attribute-data &key (system *system*))
   (make-instance 'array-buffer
                  :system system
                  :vertex-attribute-data vertex-attribute-data
@@ -90,7 +91,5 @@
         (gl:buffer-data :element-array-buffer :static-draw gl-array)))))
 
 
-(declaim (ftype (function (* (simple-array integer (*))) *) make-index-buffer)
-         (inline make-index-buffer))
-(defun make-index-buffer (system index-array)
+(define-system-function make-index-buffer graphics-system (index-array &key (system *system*))
   (make-instance 'index-buffer :system system :index-array index-array))

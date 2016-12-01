@@ -106,5 +106,5 @@
              (-> ((graphics-system-of (root-of scene)))
                (gl:clear :color-buffer :depth-buffer)
                (let ((*transform-matrix* (identity-mat4)))
-                 (rendering-pass (root-of scene)))
-               (swap-buffers (host-system-of (root-of scene))))))
+                 (rendering-pass (root-of scene))
+                 (swap-buffers (host-system-of (root-of scene)))))))

@@ -14,7 +14,7 @@
     (gl:delete-vertex-arrays (list id))))
 
 
-(defun make-vertex-array (system vertex-count)
+(define-system-function make-vertex-array graphics-system (vertex-count &key (system *system*))
   (make-instance 'vertex-array :system system :vertex-count vertex-count))
 
 

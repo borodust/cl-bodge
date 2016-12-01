@@ -6,7 +6,7 @@
 
 
 (declaim (inline universe))
-(defun universe ()
+(define-system-function universe physics-system ()
   (ctx-universe *system-context*))
 
 

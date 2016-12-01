@@ -1,9 +1,6 @@
 (in-package :cl-bodge.host)
 
 
-(declaim (special *host*))
-
-
 (defclass host-system (generic-system)
   ((enabled-p :initform nil)
    (state-condi-var :initform (make-condition-variable
@@ -28,38 +25,38 @@
 
 (glfw:def-window-close-callback on-close (window)
   (glfw:hide-window window)
-  (post (make-viewport-hiding-event) (event-system-of *host*)))
+  (post (make-viewport-hiding-event) (event-system-of *system*)))
 
 
 (glfw:def-key-callback on-key-action (window key scancode action mod-keys)
   (declare (ignore window scancode mod-keys))
   (post (make-keyboard-event (glfw-enumval->keyboard-key key)
                              (glfw-enumval->button-state action))
-        (event-system-of *host*)))
+        (event-system-of *system*)))
 
 
 (glfw:def-mouse-button-callback on-mouse-action (window button action mod-keys)
   (declare (ignore window mod-keys))
   (post (make-mouse-event (glfw-enumval->mouse-button button)
                           (glfw-enumval->button-state action))
-        (event-system-of *host*)))
+        (event-system-of *system*)))
 
 
 (glfw:def-cursor-pos-callback on-cursor-movement (window x y)
   (declare (ignore window))
   (post (make-cursor-event x y)
-        (event-system-of *host*)))
+        (event-system-of *system*)))
 
 
 (glfw:def-scroll-callback on-scroll (window x y)
   (declare (ignore window))
   (post (make-scroll-event x y)
-        (event-system-of *host*)))
+        (event-system-of *system*)))
 
 
 (glfw:def-framebuffer-size-callback on-framebuffer-size-change (window w h)
   (declare (ignore window))
-  (post (make-framebuffer-size-change-event w h) (event-system-of *host*)))
+  (post (make-framebuffer-size-change-event w h) (event-system-of *system*)))
 
 
 (defun %register-event-classes ()
@@ -100,8 +97,7 @@
                     enabled-p t))
             (condition-notify state-condi-var)
             (log:debug "Host main loop running")
-            (let ((*host* this))
-              (declare (special *host*))
+            (let ((*system* this))
               (loop while enabled-p
                  do (handler-case
                         (progn
@@ -140,11 +136,11 @@
       (glfw:swap-buffers window))))
 
 
-(defun (setf viewport-title) (value host-sys)
+(define-system-function (setf viewport-title) host-system (value &key (host-sys *system*))
   (with-slots (window) host-sys
     (glfw:set-window-title (format nil "~a" value) window)))
 
 
-(defun lock-cursor (host)
+(define-system-function lock-cursor host-system (&key (host *system*))
   (with-slots (window) host
     (glfw:set-input-mode :cursor :disabled)))

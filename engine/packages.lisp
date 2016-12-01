@@ -122,8 +122,10 @@
              make-system-context
              destroy-system-context
              *system-context*
+             *system*
              check-system-context
              thread-bound-object
+             define-system-function
 
              engine-system
              engine

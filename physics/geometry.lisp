@@ -42,7 +42,7 @@
 (defclass sphere-geom (volume-geom) ())
 
 
-(defun make-sphere-geom (system radius)
+(define-system-function make-sphere-geom physics-system (radius &key (system *system*))
   (make-instance 'sphere-geom
                  :system system
                  :id (%ode:create-sphere (space-of (universe)) radius)))
@@ -54,7 +54,7 @@
 (defclass box-geom (volume-geom) ())
 
 
-(defun make-box-geom (system x y z)
+(define-system-function make-box-geom physics-system (x y z &key (system *system*))
   (make-instance 'box-geom
                  :system system
                  :id (%ode:create-box (space-of (universe)) x y z)))
@@ -67,7 +67,7 @@
 (defclass plane-geom (geom) ())
 
 
-(defun make-plane-geom (system a b c &optional (z #f0))
+(define-system-function make-plane-geom physics-system (a b c &key (z #f0) (system *system*))
   (make-instance 'plane-geom :system system
                  :id (%ode:create-plane (space-of (universe)) a b c z)))
 
@@ -78,7 +78,8 @@
 (defclass capped-cylinder-geom (volume-geom) ())
 
 
-(defun make-capped-cylinder-geom (system radius length)
+(define-system-function make-capped-cylinder-geom physics-system
+    (radius length &key (system *system*))
   (make-instance 'capped-cylinder-geom
                  :system system
                  :id (%ode:create-cylinder (space-of (universe)) radius length)))
@@ -90,5 +91,5 @@
 (defclass ray-geom (geom) ())
 
 
-(defun make-ray-geom (system length)
+(define-system-function make-ray-geom physics-system (length &key (system *system*))
   (make-instance 'ray-geom :system system :id (%ode:create-ray (space-of (universe)) length)))

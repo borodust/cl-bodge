@@ -57,3 +57,15 @@
 
 ;;
 (defclass thread-bound-object (system-object) ())
+
+
+(defmacro define-system-function (name system-class lambda-list &body body)
+  (multiple-value-bind (forms decls doc) (parse-body body :documentation t)
+    `(defun ,name ,lambda-list
+       ,@(when doc (list doc))
+       ,@decls
+       ;; todo : disable in production
+       (unless (subtypep (class-of *system*) ',system-class)
+         (error "~a executed in the wrong system thread: required ~a, but got ~a"
+                ',name ',system-class (class-name (class-of *system*))))
+       ,@forms)))

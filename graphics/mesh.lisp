@@ -31,16 +31,16 @@
   (dispose index-buffer))
 
 
-(defun make-mesh (system vertex-count primitive-type &optional index-array)
+(defun make-mesh (vertex-count primitive-type &optional index-array)
   (declare (type face-type primitive-type))
   (if (null index-array)
       (make-instance 'mesh
-                     :vertex-array (make-vertex-array system vertex-count)
+                     :vertex-array (make-vertex-array vertex-count)
                      :primitive-type primitive-type)
       (make-instance 'indexed-mesh
-                     :vertex-array (make-vertex-array system vertex-count)
+                     :vertex-array (make-vertex-array vertex-count)
                      :primitive-type primitive-type
-                     :index-buffer (make-index-buffer system index-array))))
+                     :index-buffer (make-index-buffer index-array))))
 
 
 (defmethod render ((this indexed-mesh))
@@ -64,20 +64,20 @@
 (defclass indexed-patch-mesh (patch inexed-mesh) ())
 
 
-(defun make-patch-mesh (system vertex-count
+(defun make-patch-mesh (vertex-count
                         &key index-array (patch-size 1)
                           (inner-tessellation-level (vec2 1.0 1.0))
                           (outer-tesselation-level (vec4 1.0 1.0 1.0 1.0)))
   (if (null index-array)
       (make-instance 'patch-mesh
-                     :vertex-array (make-vertex-array system vertex-count)
+                     :vertex-array (make-vertex-array vertex-count)
                      :primitive-type :patches
                      :patch-size patch-size
                      :inner-level inner-tessellation-level
                      :outer-level outer-tesselation-level)
       (make-instance 'indexed-patch-mesh
-                     :vertex-array (make-vertex-array system vertex-count)
-                     :index-buffer (make-index-buffer system index-array)
+                     :vertex-array (make-vertex-array vertex-count)
+                     :index-buffer (make-index-buffer index-array)
                      :primitive-type :patches
                      :patch-size patch-size
                      :inner-level inner-tessellation-level

@@ -9,7 +9,8 @@
     (%ode:joint-destroy id)))
 
 
-(defun make-joint (system joint-ctor class-name universe this-body that-body)
+(define-system-function make-joint physics-system
+    (joint-ctor class-name universe this-body that-body &key (system *system*))
   (let ((joint (funcall joint-ctor (world-of universe))))
     (%ode:joint-attach joint (id-of this-body) (if (null that-body)
                                                    (cffi:null-pointer)
@@ -22,9 +23,9 @@
     `(progn
        (defclass ,class-name (joint) ())
        (declaim (inline ,class-ctor-name))
-       (defun ,class-ctor-name (system this-body &optional that-body)
-         (make-joint system (lambda (w)
-                              (c-fun ,joint-ctor-name w 0))
+       (defun ,class-ctor-name (this-body &optional that-body)
+         (make-joint (lambda (w)
+                       (c-fun ,joint-ctor-name w 0))
                      ',class-name (universe) this-body that-body)))))
 
 

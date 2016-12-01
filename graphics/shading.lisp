@@ -36,7 +36,7 @@
   (call-next-method this :id (%compile-shader type source name) :system system :type type))
 
 
-(defun compile-shader (system shader-source)
+(define-system-function compile-shader graphics-system (shader-source &key (system *system*))
   (restart-case
       (make-instance 'shader
                      :type (shader-type-of shader-source)
@@ -44,7 +44,7 @@
                      :source (shader-text-of shader-source)
                      :system system)
     (reload-source-and-compile ()
-      (compile-shader system (reload-shader-text shader-source)))))
+      (compile-shader (reload-shader-text shader-source)))))
 
 
 ;;;
@@ -62,7 +62,7 @@
 (defun %make-program (this shader-sources precompiled-shaders)
   (let* ((program (id-of this))
          (shaders (loop for src in shader-sources collect
-                       (compile-shader (system-of this) src)))
+                       (compile-shader src)))
          (all-shaders (append precompiled-shaders shaders)))
     (unwind-protect
          (loop for shader in all-shaders do
@@ -82,21 +82,25 @@
   (%make-program this shader-sources shaders))
 
 
-(definline make-shading-program (system &rest shader-sources)
+(define-system-function make-shading-program graphics-system
+    (shader-sources &key (system *system*))
   (make-instance 'shading-program :system system :shader-sources shader-sources))
 
 
-(definline make-separable-shading-program (system &rest shader-sources)
+(define-system-function make-separable-shading-program graphics-system
+    (shader-sources &key (system *system*))
   (make-instance 'shading-program :system system :shader-sources shader-sources
                  :separable-p t))
 
 
-(definline link-separable-shading-program (system &rest shaders)
+(define-system-function link-separable-shading-program graphics-system
+    (shaders &key (system *system*))
   (make-instance 'shading-program :system system :shaders shaders
                  :separable-p t))
 
 
-(definline build-separable-shading-program (system shader-sources shaders)
+(define-system-function build-separable-shading-program graphics-system
+    (shader-sources shaders &key (system *system*))
   (make-instance 'shading-program :system system :shaders shaders
                  :shader-sources shader-sources :separable-p t))
 
@@ -152,7 +156,7 @@
     (gl:delete-program-pipelines (list id))))
 
 
-(defun make-shading-pipeline (system)
+(define-system-function make-shading-pipeline graphics-system (&key (system *system*))
   (make-instance 'shading-pipeline :system system))
 
 (defmacro with-bound-shading-pipeline ((pipeline) &body body)

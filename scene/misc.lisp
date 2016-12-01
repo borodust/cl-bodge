@@ -16,7 +16,8 @@
                                        :scale (sequence->vec3 scale))))))))))
 
 
-(defun chunk->mesh (system mesh-chunk)
+(defun chunk->mesh (mesh-chunk)
+  "graphics dependent"
   (let* ((arrays (mesh-chunk-arrays mesh-chunk))
          (v-count (length (cadar arrays)))
          (chunk-bones (mesh-chunk-bones mesh-chunk))
@@ -30,10 +31,10 @@
                              (sequence->mat4 (mesh-bone-offset bone)))))
              finally (return r)))
          (index-array (list->array (mesh-chunk-indexes mesh-chunk)))
-         (mesh (make-mesh system v-count :triangles index-array)))
+         (mesh (make-mesh v-count :triangles index-array)))
     (loop for (array-id array) in arrays do
          (with-disposable ((vbuf (make-array-buffer
-                                  system array-id
+                                  array-id
                                   (list->array array v-count (length (car array))))))
            (attach-gpu-buffer vbuf mesh)))
     (values mesh (sequence->mat4 (mesh-chunk-transform mesh-chunk)) bones)))

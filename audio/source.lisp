@@ -5,7 +5,7 @@
   (:default-initargs :id (al:gen-source)))
 
 
-(defun make-audio-source (system)
+(define-system-function make-audio-source audio-system (&key (system *system*))
   (make-instance 'audio-source :system system))
 
 

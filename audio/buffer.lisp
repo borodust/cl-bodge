@@ -24,7 +24,7 @@
 
 
 
-(definline make-audio-buffer (system resource)
+(define-system-function make-audio-buffer audio-system (resource &key (system *system*))
   (make-instance 'audio-buffer
                  :system system
                  :channel-format (audio-channel-format-of resource)
