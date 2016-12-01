@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-(defclass projection-node (node)
+(defclass projection-node (scene-node)
   ((proj-mat :initform nil)))
 
 
@@ -23,7 +23,7 @@
   (update-projection this w h))
 
 
-(defmethod rendering-pass ((this projection-node))
+(defmethod scene-pass ((this projection-node) (pass rendering-pass) input)
   (with-slots (proj-mat) this
     (let ((*projection-matrix* proj-mat))
       (call-next-method))))
@@ -32,7 +32,7 @@
 ;;;
 ;;;
 ;;;
-(defclass transform-node (node)
+(defclass transform-node (scene-node)
   ((mat :initarg :transform :initform (identity-mat4))))
 
 
@@ -63,52 +63,7 @@
       (setf mat (mult (euler-angles->mat4 (vec3 #f x #f y #f z)) mat)))))
 
 
-(defmethod rendering-pass ((this transform-node))
+(defmethod scene-pass ((this transform-node) (pass rendering-pass) input)
   (with-slots (mat) this
     (let ((*transform-matrix* (mult *transform-matrix* mat)))
-      (call-next-method))))
-;;;
-;;;
-;;;
-(defclass camera-node (node)
-  ((camera-mat :initform (identity-mat4))))
-
-
-(defmethod rendering-pass ((this camera-node))
-  (with-slots (camera-mat) this
-    (let ((*transform-matrix* (mult *transform-matrix* camera-mat)))
-      (call-next-method))))
-
-
-(defgeneric translate-camera (camera-node x y z)
-  (:method ((this camera-node) x y z)
-    (with-slots (camera-mat) this
-      (setf camera-mat (mult (translation-mat4 #f(- x) #f(- y) #f(- z)) camera-mat)))))
-
-
-(defgeneric rotate-camera (camera-node x y z)
-  (:method ((this camera-node) x y z)
-    (with-slots (camera-mat) this
-      (setf camera-mat (mult (euler-angles->mat4 (vec3 #f(- x) #f(- y) #f(- z))) camera-mat)))))
-
-;;;
-;;;
-;;;
-(defclass body-transform-node (node)
-  ((position :initform (vec3))
-   (rotation :initform (identity-mat4))
-   (body :initarg :body)))
-
-
-(defmethod simulation-pass :after ((this body-transform-node))
-  (with-slots (position rotation body) this
-    (setf position (position-of body)
-          rotation (rotation-of body))))
-
-
-(defmethod rendering-pass ((this body-transform-node))
-  (with-slots (position rotation) this
-    (let ((*transform-matrix* (mult *transform-matrix*
-                                    (vec->translation-mat4 position)
-                                    rotation)))
       (call-next-method))))

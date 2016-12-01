@@ -7,14 +7,13 @@
         :cl-bodge.host :cl-bodge.animation :cl-bodge.resources :cl-bodge.audio :cl-bodge.assets)
   (:export node
            find-node
-           node-attaching
-           node-detached
            parent-of
 
            make-scene
            root-of
-           simulation-pass
-           rendering-pass
+           scene-node
+           scene-pass
+           make-pass-chain
            animate
            node-enabled-p
            initialize-node
@@ -27,7 +26,8 @@
            *projection-matrix*
            *transform-matrix*
 
-           body-transform-node
+           rendering-pass
+           make-rendering-pass
            shading-pipeline-node
            texture-node
 
@@ -38,17 +38,10 @@
            update-projection
 
            transform-node
-           rotate-node
-           translate-node
-
-           camera-node
-           translate-camera
-           rotate-camera
 
            shading-program-node
            shading-parameter
            shading-parameters-node
-           directional-light-node
 
            model
            make-model-graph

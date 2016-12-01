@@ -124,6 +124,12 @@
                   ,@(chain-calling-code-gen codegen (car groups) last-cb
                                             (and result-required-p (null callbacks)))))))))))
 
+
+(defun traverse-list (forms)
+  (loop for form in forms
+     if (listp form) collect (traverse-form (car form) form)
+     else collect form))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defclass setf-gen (code-generator) ())
@@ -285,6 +291,26 @@
                 ,(generate-calling-code cont r)))
          (,(make-funame/d funame) #',cb ,@(rest form))))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defclass dolist-gen (code-generator) ())
+
+
+(defmethod generate-code ((this dolist-gen) cont)
+  (let* ((form (form-of this))
+         (traversed (traverse-list (cddr form))))
+    (destructuring-bind (var list-form &optional result-form) (second form)
+      (with-gensyms (%dolist %next-iter list)
+        (let ((chain (generate-callback-chain
+                      this traversed
+                      (make-function-name-null-continuation %next-iter))))
+          `(labels ((,%dolist (,list)
+                      (flet ((,%next-iter () (,%dolist (rest ,list))))
+                          (if (null ,list)
+                              ,(generate-calling-code cont result-form)
+                              (let ((,var (car ,list)))
+                                ,@chain)))))
+             (,%dolist ,list-form)))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -308,37 +334,48 @@
   (with-dispatching (forms count (this cont))
     (with-gensyms (cb n r d)
       (let ((*active-callback-name* cb))
-        `(let ((,n ,count)
-               (,d *active-dispatcher*))
-           (flet ((,cb (,r)
-                    (declare (ignore ,r))
-                    (dispatch ,d
-                              #'(lambda ()
-                                  (decf ,n)
-                                  (when (= ,n 0)
-                                    ,(generate-calling-code cont nil)))
-                              :medium))) ; fixme : propagate priority
-             ,@(loop for form/d in forms collect
-                    (macroexpand-1 form/d *env*))))))))
+        `(let ((,d *active-dispatcher*))
+           ,(if (null (rest forms))
+                `(flet ((,cb (,r)
+                          (declare (ignore ,r))
+                          ;; fixme : propagate priority
+                          (dispatch ,d #'(lambda () ,(generate-calling-code cont nil)) :medium)))
+                   ,(macroexpand-1 (car forms) *env*))
+                `(let ((,n ,count))
+                   (flet ((,cb (,r)
+                            (declare (ignore ,r))
+                            (dispatch ,d
+                                      #'(lambda ()
+                                          (decf ,n)
+                                          (when (= ,n 0)
+                                            ,(generate-calling-code cont nil)))
+                                      :medium))) ; fixme : propagate priority
+                     ,@(loop for form/d in forms collect
+                            (macroexpand-1 form/d *env*))))))))))
 
 
 (defmethod generate-code ((this wait-for-gen) (cont result-cont))
   (with-dispatching (forms count (this cont))
     (with-gensyms (cb n r results d)
       (let ((*active-callback-name* cb))
-        `(let ((,n ,count)
-               (,results '())
-               (,d *active-dispatcher*))
-           (flet ((,cb (,r)
-                    (dispatch ,d
-                              #'(lambda ()
-                                  (decf ,n)
-                                  (push ,r ,results)
-                                  (when (= ,n 0)
-                                    ,(generate-calling-code cont `(nreverse ,results))))
-                              :medium))) ; fixme : propagate priority
-             ,@(loop for form/d in forms collect
-                    (macroexpand-1 form/d *env*))))))))
+        `(let ((,d *active-dispatcher*))
+           ,(if (null (rest forms))
+                `(flet ((,cb (,r)
+                          ;; fixme : propagate priority
+                          (dispatch ,d #'(lambda () ,(generate-calling-code cont r)) :medium)))
+                   ,(macroexpand-1 (car forms) *env*))
+                `(let ((,n ,count)
+                       (,results '()))
+                   (flet ((,cb (,r)
+                            (dispatch ,d
+                                      #'(lambda ()
+                                          (decf ,n)
+                                          (push ,r ,results)
+                                          (when (= ,n 0)
+                                            ,(generate-calling-code cont `(nreverse ,results))))
+                                      :medium))) ; fixme : propagate priority
+                     ,@(loop for form/d in forms collect
+                            (macroexpand-1 form/d *env*))))))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -362,6 +399,8 @@
 (defmethod cc-callback-gen ((codegen wait-for*-gen) (cont result-cont) cb epilogue)
   (with-gensyms (r)
     `(,cb (,r)
+          (when (null (rest ,r))
+            (setf ,r (car ,r)))
           ;; fixme : propagate priority
           (dispatch ,(active-dispatcher-name-for codegen)
                     #'(lambda () ,(generate-calling-code cont r)) :medium))))
@@ -439,3 +478,7 @@
 
 (defmethod traverse-form ((type (eql 'setf)) form)
   (make-instance 'setf-gen :form form))
+
+
+(defmethod traverse-form ((type (eql 'dolist)) form)
+  (make-instance 'dolist-gen :form form))

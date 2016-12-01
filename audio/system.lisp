@@ -13,6 +13,10 @@
   (:default-initargs :depends-on '(cl-bodge.host:host-system)))
 
 
+(definline audio ()
+  (engine-system 'audio-system))
+
+
 (defmethod make-system-context ((this audio-system))
   (let* ((dev (alc:open-device))
          (ctx (alc:create-context dev)))

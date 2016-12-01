@@ -228,9 +228,8 @@
                (:file "misc")
                (:file "node")
                (:file "scene")
-               (:file "transformations")
                (:file "rendering")
-               (:file "lighting")
+               (:file "transformations")
                (:file "animation")
                (:file "model")))
 

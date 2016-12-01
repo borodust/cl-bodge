@@ -5,6 +5,7 @@
   (:nicknames :ge.eve)
   (:use :cl :cl-bodge.engine :cl-bodge.utils)
   (:export event-system
+           events
            event
            defevent
            register-event-class

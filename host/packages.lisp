@@ -6,6 +6,7 @@
   (:use :cl-bodge.engine :cl-bodge.utils :cl-bodge.event
         :cl :bordeaux-threads :cl-muth :trivial-main-thread)
   (:export host-system
+           host
 
            bind-rendering-context
            swap-buffers

@@ -56,7 +56,8 @@
   (with-slots (executor) this
     (bt:make-thread (lambda ()
                       (progv special-variables (mapcar (constantly nil) special-variables)
-                        (run executor)) :name "single-threaded-executor"))))
+                        (run executor)))
+                    :name "single-threaded-executor")))
 
 
 (define-destructor single-threaded-executor (executor)

@@ -6,6 +6,7 @@
         :cl :local-time :bodge-ode :autowrap :plus-c)
   (:nicknames :ge.phx)
   (:export physics-system
+           physics
            observe-universe
            gravity
            register-collision-callback

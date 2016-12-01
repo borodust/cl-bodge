@@ -1,9 +1,27 @@
 (in-package :cl-bodge.scene)
 
 
-(declaim (special
-          *shading-pipeline*
-          *shading-parameters*))
+(declaim (special *shading-pipeline*
+                  *shading-parameters*))
+
+
+(defclass rendering-pass (system-scene-pass)
+  ((host :initform (host) :reader host-of)))
+
+
+(defmethod initialize-instance ((this rendering-pass) &key)
+  (call-next-method this :system (graphics)))
+
+
+(defun make-rendering-pass ()
+  (make-instance 'rendering-pass))
+
+
+(defmethod run-scene-pass ((this rendering-pass) root)
+  (gl:clear :color-buffer :depth-buffer)
+  (let ((*transform-matrix* (identity-mat4)))
+    (scene-pass root this nil))
+  (swap-buffers (host-of this)))
 
 ;;;
 ;;;
@@ -63,8 +81,8 @@
 ;;;
 ;;;
 ;;;
-(defclass shading-pipeline-node (node)
-  ((pipeline :initform nil)))
+(defclass shading-pipeline-node (scene-node)
+  ((pipeline :initarg :pipeline)))
 
 
 (defmethod node-enabled-p ((this shading-pipeline-node))
@@ -85,7 +103,7 @@
       (dispose p))))
 
 
-(defmethod rendering-pass ((this shading-pipeline-node))
+(defmethod scene-pass ((this shading-pipeline-node) (pass rendering-pass) input)
   (with-slots (pipeline) this
     (let ((*shading-pipeline* pipeline)
           (*shading-parameters* (make-instance 'shading-parameters)))
@@ -96,12 +114,12 @@
 ;;;
 ;;;
 ;;;
-(defclass texture-node (node)
+(defclass texture-node (scene-node)
   ((tex :initarg :texture)
    (unit :initarg :unit :initform 0)))
 
 
-(defmethod rendering-pass ((this texture-node))
+(defmethod scene-pass ((this texture-node) (pass rendering-pass) input)
   (with-slots (tex unit) this
     (with-bound-texture (tex unit)
       (call-next-method))))
@@ -109,16 +127,11 @@
 ;;;
 ;;;
 ;;;
-(defclass mesh-node (node)
+(defclass mesh-node (scene-node)
   ((mesh :initform nil)))
 
 
 (defgeneric make-node-mesh (node graphics-system))
-
-
-(defmethod node-enabled-p ((this mesh-node))
-  (with-slots (mesh) this
-    (not (null mesh))))
 
 
 (defmethod initialize-node :after ((this mesh-node) (sys graphics-system))
@@ -126,7 +139,12 @@
     (setf mesh (make-node-mesh this sys))))
 
 
-(defmethod rendering-pass ((this mesh-node))
+(defmethod node-enabled-p ((this mesh-node))
+  (with-slots (mesh) this
+    (not (null mesh))))
+
+
+(defmethod scene-pass ((this mesh-node) (pass rendering-pass) input)
   (with-slots (mesh) this
     (render mesh)
     (call-next-method)))
@@ -141,7 +159,7 @@
 ;;;
 ;;;
 ;;;
-(defclass shading-program-node (node)
+(defclass shading-program-node (scene-node)
   ((program :initform nil)
    (sources :initarg :sources)
    (parameters :initarg :parameters :initform '())))
@@ -165,7 +183,7 @@
       (dispose p))))
 
 
-(defmethod rendering-pass ((this shading-program-node))
+(defmethod scene-pass ((this shading-program-node) (pass rendering-pass) input)
   (with-slots (program parameters) this
     (use-shading-program-stages *shading-pipeline* program :all-shader)
     (with-bound-parameters (parameters program)
@@ -174,11 +192,11 @@
 ;;;
 ;;;
 ;;;
-(defclass shading-parameters-node (node)
+(defclass shading-parameters-node (scene-node)
   ((params :initarg :parameters)))
 
 
-(defmethod rendering-pass ((this shading-parameters-node))
+(defmethod scene-pass ((this shading-parameters-node) (pass rendering-pass) input)
   (with-slots (params) this
     (loop for (name . value) in params do
          (setf (shading-parameter name) (if (functionp value) (funcall value) value)))

@@ -18,8 +18,17 @@
               (gl:get* :version)
               (gl:get* :shading-language-version)
               (gl:get* :vendor)
-              (gl:get* :renderer)))
+              (gl:get* :renderer))
+    (gl:clear-color 1.0 1.0 1.0 1.0)
+    (gl:enable :blend
+               :depth-test
+               :program-point-size)
+    (gl:blend-func :src-alpha :one-minus-src-alpha))
   nil)
+
+
+(definline graphics ()
+  (engine-system 'graphics-system))
 
 
 (defmacro in-wireframe-mode (&body body)

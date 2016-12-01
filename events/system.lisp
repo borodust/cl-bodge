@@ -11,6 +11,10 @@
     (setf executor (acquire-executor))))
 
 
+(definline events ()
+  (engine-system 'event-system))
+
+
 (defmethod discard-system :before ((this event-system))
   (with-slots (executor handler-table) this
     (release-executor executor)

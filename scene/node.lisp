@@ -50,19 +50,3 @@
       (if (eq (name-of root) name)
           (values root result)
           (values (first result) (rest result))))))
-
-
-(defmacro %parse-node (node-def)
-  (destructuring-bind (ctor-def &rest children) node-def
-    (destructuring-bind (class &rest plist) (if (listp ctor-def)
-                                                ctor-def
-                                                (list ctor-def))
-      `(let ((node (make-instance ',class ,@plist)))
-         ,@(loop for child-def in children collecting
-                `(adopt node (%parse-node ,child-def)))
-         node))))
-;;;
-;;;
-;;;
-(defmacro scenegraph (root)
-  `(%parse-node ,root))

@@ -285,7 +285,7 @@
       (setf g (ge.mt:wait-for (ge.mt:-> (*dummy-dispatcher*) 6)))
       (setf h 7))
 
-    (is (equal '(0 (1 8) 2 (3) 4 (5) (6) 7) (list a b c d e f g h)))))
+    (is (equal '(0 (1 8) 2 3 4 5 6 7) (list a b c d e f g h)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -310,3 +310,16 @@
         (mt:open-latch l)))
 
     (is (equal 2 result))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(test dolist-dispatch
+  (let ((result nil)
+        (list '(0 1 2 3 4)))
+
+    (ge.mt:-> (*dummy-dispatcher*)
+      (dolist (i list)
+        (ge.mt:wait-for (ge.mt:-> (*dummy-dispatcher*)
+                          (push i result)))))
+
+    (is (equal list (nreverse result)))))

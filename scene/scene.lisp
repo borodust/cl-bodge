@@ -1,22 +1,15 @@
 (in-package :cl-bodge.scene)
 
 
-(declaim (special
-          *scene*
-          *transform-matrix*))
+(declaim (special *scene*
+                  *transform-matrix*))
 
-
-(defclass scene-root-node (node)
-  ((gx :initform (engine-system 'graphics-system) :reader graphics-system-of)
-   (phx :initform (engine-system 'physics-system) :reader physics-system-of)
-   (au :initform (engine-system 'audio-system) :reader audio-system-of)
-   (host :initform (engine-system 'host-system) :reader host-system-of)))
 
 ;;;
 ;;;
 ;;;
-(defclass scene (disposable)
-  ((root :initform (make-instance 'scene-root-node) :reader root-of)))
+(defclass scene-node (node)
+  ((pass-data :initform nil :accessor pass-data-of)))
 
 
 (defgeneric node-enabled-p (node)
@@ -31,33 +24,86 @@
   (:method (node)))
 
 
+(defun/d initialize-tree (root &rest systems)
+  (dolist (system systems)
+    (wait-for (-> (system :high)
+                (dotree (node root)
+                  (initialize-node node system)))))
+  root)
+
+
 (defun discard-tree (root)
   (dotree (node root :post)
     (discard-node node)))
 
 
-(defun/d initialize-tree (scene root)
-  (let* ((scene-root (root-of scene))
-         (gx-sys (graphics-system-of scene-root))
-         (phx-sys (physics-system-of scene-root))
-         (au-sys (audio-system-of scene-root)))
-    (wait-for (-> (gx-sys :high)
-                (dotree (node root)
-                  (initialize-node node gx-sys)))
-              (-> (phx-sys :high)
-                (dotree (node root)
-                  (initialize-node node phx-sys)))
-              (-> (au-sys :high)
-                (dotree (node root)
-                  (initialize-node node au-sys))))))
+(defgeneric scene-pass (node pass input)
+  (:method ((this scene-node) pass input)
+    (dochildren (child this)
+      (when (node-enabled-p child)
+        (setf (pass-data-of child)
+              (scene-pass child pass (pass-data-of child)))))
+    input))
+
+;;;
+;;;
+;;;
+(defclass scene-pass () ())
 
 
-(defun/d make-scene (&rest children)
-  (let* ((scene (make-instance 'scene))
+(defgeneric run-scene-pass (pass node))
+
+
+(defmethod dispatch ((this scene-pass) (task function) &optional priority)
+  (declare (ignore priority))
+  (funcall task))
+
+
+(defclass system-scene-pass (scene-pass)
+  ((system :initarg :system :reader system-of)))
+
+
+(defmethod dispatch ((this system-scene-pass) (task function) &optional priority)
+  (dispatch (system-of this) task priority))
+
+
+;;;
+;;;
+;;;
+(defclass pass-chain ()
+  ((passes :initarg :passes :reader passes-of)))
+
+
+(definline make-pass-chain (&rest passes)
+  (make-instance 'pass-chain :passes passes))
+
+
+(defun/d process-pass-chain (chain root-node)
+  (dolist (pass (passes-of chain))
+    (wait-for (-> (pass)
+                (run-scene-pass pass root-node)))))
+
+
+;;;
+;;;
+;;;
+(defclass scene-root-node (scene-node) ())
+
+
+;;;
+;;;
+;;;
+(defclass scene (disposable)
+  ((pass-chain :initarg :pass-chain :initform (error "Pass chain must be supplied")
+               :reader pass-chain-of)
+   (root :initform (make-instance 'scene-root-node) :reader root-of)))
+
+
+(defun/d make-scene (pass-chain &rest children)
+  (let* ((scene (make-instance 'scene :pass-chain pass-chain))
          (root (root-of scene)))
     (dolist (child children)
       (adopt root child))
-    (initialize-tree scene root)
     scene))
 
 
@@ -65,32 +111,8 @@
   (discard-tree root))
 
 
-(defmethod initialize-instance :after ((this scene) &key)
-  ;; not quite thread-safe
-  (-> ((graphics-system-of (root-of this)))
-    (gl:clear-color 1.0 1.0 1.0 1.0)
-    (gl:enable :blend
-               :depth-test
-               :program-point-size)
-    (gl:blend-func :src-alpha :one-minus-src-alpha)))
-
-
 (definline node (scene name)
   (find-node (root-of scene) name))
-
-
-(defgeneric simulation-pass (node)
-  (:method ((this node))
-    (dochildren (child this)
-      (when (node-enabled-p child)
-        (simulation-pass child)))))
-
-
-(defgeneric rendering-pass (node)
-  (:method ((this node))
-    (dochildren (child this)
-      (when (node-enabled-p child)
-        (rendering-pass child)))))
 
 
 (defmacro doscene ((child scene) &body body)
@@ -101,10 +123,21 @@
 
 
 (defun/d animate (scene)
-  (wait-for* (-> ((physics-system-of (root-of scene)))
-               (simulation-pass (root-of scene)))
-             (-> ((graphics-system-of (root-of scene)))
-               (gl:clear :color-buffer :depth-buffer)
-               (let ((*transform-matrix* (identity-mat4)))
-                 (rendering-pass (root-of scene))
-                 (swap-buffers (host-system-of (root-of scene)))))))
+  (process-pass-chain (pass-chain-of scene) (root-of scene)))
+
+
+;;;
+;;;
+;;;
+(defmacro %parse-node (node-def)
+  (destructuring-bind (ctor-def &rest children) node-def
+    (destructuring-bind (class &rest plist) (if (listp ctor-def)
+                                                ctor-def
+                                                (list ctor-def))
+      `(let ((node (make-instance ',class ,@plist)))
+         ,@(loop for child-def in children collecting
+                `(adopt node (%parse-node ,child-def)))
+         node))))
+
+(defmacro scenegraph (root)
+  `(%parse-node ,root))

@@ -21,6 +21,10 @@
 (defclass physics-system (thread-bound-system) ())
 
 
+(definline physics ()
+  (engine-system 'physics-system))
+
+
 (defmethod make-system-context ((this physics-system))
   (%ode:init-ode)
   (make-physics-context))

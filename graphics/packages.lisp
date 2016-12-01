@@ -6,6 +6,7 @@
   (:use :cl :cl-bodge.engine :cl-bodge.host :cl-bodge.utils
         :cl-bodge.event :cl-bodge.graphics.resources)
   (:export graphics-system
+           graphics
            in-wireframe-mode
 
            render

@@ -7,11 +7,11 @@
 (declaim (special *animation-frame*
                   *skeleton*))
 
-(defclass animation-node (node)
+(defclass animation-node (scene-node)
   ((animation :initarg :frames :initform (error ":frames initarg missing"))))
 
 
-(defmethod rendering-pass ((this animation-node))
+(defmethod scene-pass ((this animation-node) (pass rendering-pass) input)
   (with-slots (animation) this
     (let ((*animation-frame* (frame-at animation)))
       (call-next-method))))
@@ -36,7 +36,7 @@
   ((transform :initarg :transform :initform (identity-mat4) :reader transform-of)))
 
 
-(defclass animated-skeleton-node (node)
+(defclass animated-skeleton-node (scene-node)
   ((root :initarg :root-bone :initform (error ":root-bone initarg missing") :reader root-bone-of)
    (bones :initform (make-hash-table :test 'equal))))
 
@@ -70,6 +70,6 @@
         (error "Bone '~a' missing" bone-name)))))
 
 
-(defmethod rendering-pass ((this animated-skeleton-node))
+(defmethod scene-pass ((this animated-skeleton-node) (pass rendering-pass) input)
   (let ((*skeleton* this))
     (call-next-method)))

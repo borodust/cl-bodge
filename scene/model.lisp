@@ -1,7 +1,7 @@
 (in-package :cl-bodge.scene)
 
 
-(defclass model (node) ())
+(defclass model (scene-node) ())
 
 
 (defgeneric make-model-graph (model))

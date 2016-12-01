@@ -11,6 +11,10 @@
   (:default-initargs :depends-on '(event-system)))
 
 
+(definline host ()
+  (engine-system 'host-system))
+
+
 (defmethod enabledp ((this host-system))
   (slot-value this 'enabled-p))
 

@@ -6,6 +6,7 @@
         :cl :cl-muth)
   (:nicknames :ge.snd)
   (:export audio-system
+           audio
 
            listener-gain
            listener-position
