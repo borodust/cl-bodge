@@ -200,7 +200,7 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/graphics cl-bodge/resources log4cl)
+  :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/graphics cl-bodge/resources log4cl asdf)
   :pathname "assets"
   :serial t
   :components ((:file "packages")

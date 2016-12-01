@@ -19,13 +19,20 @@
 
 
 (defclass shader-library ()
-  ((descriptor-path :initarg :descriptor-path :reader path-to)
+  ((descriptor-path :initarg :descriptor-path)
    (name :initarg :name :type string :reader name-of)
    (types :initarg :shader-types :type library-shader-type)
    (header-path :initarg :header-path)
    (source-path :initarg :source-path)
    (uniforms :initarg :uniforms :reader uniforms-of)
    (shader-alist :initform nil)))
+
+
+(defgeneric path-to (shader-library)
+  (:method ((this shader-library))
+    (with-slots (descriptor-path) this
+      (asdf:component-pathname (asdf:find-component (asdf:find-system (car descriptor-path))
+                                                    (cdr descriptor-path))))))
 
 
 (defun process-include (line)
@@ -99,10 +106,11 @@
 
 
 (defmacro define-shader-library (name &key ((:name glsl-name)) (types :any-shader)
-                                        header source uniforms)
+                                        header source uniforms (descriptor-path
+                                                                (error "path must be specified")))
   `(progn
      (defclass ,(symbolicate name) (shader-library) ()
-       (:default-initargs :descriptor-path ,(or *compile-file-truename* *load-truename*)
+       (:default-initargs :descriptor-path ',descriptor-path
          :name ,glsl-name
          :shader-types ,types
          :header-path ,header
