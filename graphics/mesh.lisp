@@ -94,5 +94,5 @@
     (call-next-method)))
 
 
-(defmethod attach-gpu-buffer (buffer (mesh mesh))
-  (attach-gpu-buffer buffer (vertex-array-of mesh)))
+(defmethod attach-array-buffer (buffer (mesh mesh) index)
+  (attach-array-buffer buffer (vertex-array-of mesh) index))

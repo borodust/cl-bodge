@@ -13,7 +13,7 @@
 
            make-vertex-array
 
-           attach-gpu-buffer
+           attach-array-buffer
            make-array-buffer
            make-index-buffer
 

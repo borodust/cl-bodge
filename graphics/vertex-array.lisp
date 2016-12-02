@@ -29,11 +29,10 @@
                                        0)))))
 
 
-(defmethod attach-gpu-buffer ((buffer array-buffer) (vao vertex-array))
+(defmethod attach-array-buffer ((buffer array-buffer) (vao vertex-array) index)
   (when (/= (vertex-count-of vao) (vertex-count-of buffer))
     (error "Vertex count of vertex array is different fron vertex count of buffer"))
   (with-bound-vertex-array (vao)
     (with-bound-buffer (buffer)
-      (gl:vertex-attrib-pointer (vertex-attribute-index-of buffer)
-                                (attribute-size-of buffer) :float nil 0 0))
-    (gl:enable-vertex-attrib-array (vertex-attribute-index-of buffer))))
+      (gl:vertex-attrib-pointer index (attribute-size-of buffer) :float nil 0 0))
+    (gl:enable-vertex-attrib-array index)))

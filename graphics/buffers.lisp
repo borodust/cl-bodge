@@ -16,7 +16,7 @@
     (gl:delete-buffers (list id))))
 
 
-(defgeneric attach-gpu-buffer (buffer target))
+(defgeneric attach-array-buffer (buffer target index))
 
 
 (defmacro with-bound-buffer ((buffer) &body body)
@@ -33,20 +33,16 @@
 ;;
 ;;
 (defclass array-buffer (buffer)
-  ((vertex-attribute-index :initarg :vertex-attribute-index
-                           :initform (error "Vertex attribute index should be provided")
-                           :reader vertex-attribute-index-of)
-   (attribute-size :initform 0 :reader attribute-size-of)
+  ((attribute-size :initform 0 :reader attribute-size-of)
    (vertex-count :initform 0 :reader vertex-count-of))
   (:default-initargs :target :array-buffer))
 
 
 (define-system-function make-array-buffer graphics-system
-    (vertex-attribute-index vertex-attribute-data &key (system *system*))
+    (vertex-attribute-data &key (system *system*))
   (make-instance 'array-buffer
                  :system system
-                 :vertex-attribute-data vertex-attribute-data
-                 :vertex-attribute-index vertex-attribute-index))
+                 :vertex-attribute-data vertex-attribute-data))
 
 
 (defmethod initialize-instance :after ((this array-buffer) &key vertex-attribute-data)
