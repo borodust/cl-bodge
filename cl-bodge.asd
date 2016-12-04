@@ -209,7 +209,7 @@
                         :components
                         ((:file "math")
                          (:file "lighting")
-                         (:file "skeleton")))
+                         (:file "skinning")))
                (:file "system")))
 
 

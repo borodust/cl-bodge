@@ -31,8 +31,19 @@
 (defgeneric path-to (shader-library)
   (:method ((this shader-library))
     (with-slots (descriptor-path) this
-      (asdf:component-pathname (asdf:find-component (asdf:find-system (car descriptor-path))
-                                                    (cdr descriptor-path))))))
+      (fad:canonical-pathname
+       (fad:pathname-directory-pathname
+        (etypecase descriptor-path
+          (list
+           (asdf:component-pathname (asdf:find-component (asdf:find-system (car descriptor-path))
+                                                         (cdr descriptor-path))))
+          ((or pathname string)
+           (if (fad:pathname-relative-p descriptor-path)
+               (fad:merge-pathnames-as-file (property :assets-path
+                                                      (asdf:component-pathname
+                                                       (asdf:find-system :cl-bodge/assets)))
+                                            descriptor-path)
+               (fad:pathname-as-file descriptor-path)))))))))
 
 
 (defun process-include (line)
@@ -105,12 +116,18 @@
                                 (load-source source-path (path-to this))))))))
 
 
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defun %descriptor-path ()
+    (fad:pathname-as-file
+     (enough-namestring (or *compile-file-truename* *load-truename*)
+                        (asdf:component-pathname (asdf:find-system :cl-bodge/assets))))))
+
+
 (defmacro define-shader-library (name &key ((:name glsl-name)) (types :any-shader)
-                                        header source uniforms (descriptor-path
-                                                                (error "path must be specified")))
+                                        header source uniforms descriptor-path)
   `(progn
      (defclass ,(symbolicate name) (shader-library) ()
-       (:default-initargs :descriptor-path ',descriptor-path
+       (:default-initargs :descriptor-path ',(or descriptor-path (%descriptor-path))
          :name ,glsl-name
          :shader-types ,types
          :header-path ,header

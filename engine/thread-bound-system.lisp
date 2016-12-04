@@ -50,15 +50,18 @@
                (log-errors
                  (with-slots (context) this
                    (setf context (make-system-context this)))
-                 (open-latch latch))))))
+                 (open-latch latch)))
+             :priority :highest)))
 
 
 (defmethod disable ((this thread-bound-system))
   (wait-with-latch (latch)
     (execute (%executor-of this)
              (lambda ()
-               (destroy-system-context this (system-context-of this))
-               (open-latch latch))))
+               (unwind-protect
+                    (destroy-system-context this (system-context-of this))
+                 (open-latch latch)))
+             :priority :highest))
   (release-system-executor this (%executor-of this))
   (call-next-method))
 
