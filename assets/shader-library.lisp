@@ -28,22 +28,25 @@
    (shader-alist :initform nil)))
 
 
-(defgeneric path-to (shader-library)
-  (:method ((this shader-library))
-    (with-slots (descriptor-path) this
-      (fad:canonical-pathname
-       (fad:pathname-directory-pathname
-        (etypecase descriptor-path
-          (list
-           (asdf:component-pathname (asdf:find-component (asdf:find-system (car descriptor-path))
-                                                         (cdr descriptor-path))))
-          ((or pathname string)
-           (if (fad:pathname-relative-p descriptor-path)
-               (fad:merge-pathnames-as-file (property :assets-path
-                                                      (asdf:component-pathname
-                                                       (asdf:find-system :cl-bodge/assets)))
-                                            descriptor-path)
-               (fad:pathname-as-file descriptor-path)))))))))
+(defmethod path-to ((this shader-library))
+  (with-slots (descriptor-path) this
+    (fad:canonical-pathname
+     (fad:pathname-directory-pathname
+      (if (fad:pathname-relative-p descriptor-path)
+          (fad:merge-pathnames-as-file (assets-root) descriptor-path)
+          (error "descriptor-path of ~a should be relative to :assets-root property"
+                 (name-of this)))))))
+
+
+(defmethod assets-of ((this shader-library))
+  (with-slots (header-path source-path descriptor-path) this
+    (let ((descriptor-dir (fad:pathname-directory-pathname descriptor-path))
+          (assets (list descriptor-path)))
+      (when header-path
+        (push (fad:merge-pathnames-as-file descriptor-dir header-path) assets))
+      (when source-path
+        (push (fad:merge-pathnames-as-file descriptor-dir source-path) assets))
+      assets)))
 
 
 (defun process-include (line)

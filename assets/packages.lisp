@@ -7,4 +7,5 @@
   (:use :cl :cl-bodge.utils :cl-bodge.graphics :cl-bodge.graphics.resources :cl-bodge.engine
         :cl-bodge.resources)
   (:export asset-system
+           copy-assets
            build-shading-program))

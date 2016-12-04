@@ -7,7 +7,7 @@
 
 (defsystem cl-bodge/utils
   :description "Bodacious Game Engine random utilities"
-  :version "0.2.0"
+  :version "0.3.0"
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
@@ -20,7 +20,7 @@
 
 (defsystem cl-bodge/engine
   :description "Bodacious Game Engine foundation library"
-  :version "0.2.0"
+  :version "0.3.0"
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
@@ -55,7 +55,7 @@
 
 (defsystem cl-bodge/events
   :description "Bodacious Game Engine event system"
-  :version "0.2.0"
+  :version "0.3.0"
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
@@ -68,7 +68,7 @@
 
 (defsystem cl-bodge/host
   :description "Bodacious Game Engine host system"
-  :version "0.2.0"
+  :version "0.3.0"
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
@@ -83,7 +83,7 @@
 
 (defsystem cl-bodge/graphics-resources
   :description "Bodacious Game Engine graphics resource interface"
-  :version "0.2.0"
+  :version "0.3.0"
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
@@ -95,7 +95,7 @@
 
 (defsystem cl-bodge/graphics
   :description "Bodacious Game Engine graphics system"
-  :version "0.2.0"
+  :version "0.3.0"
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
@@ -115,7 +115,7 @@
 
 (defsystem cl-bodge/animation
   :description "Bodacious Game Engine animation library"
-  :version "0.2.0"
+  :version "0.3.0"
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
@@ -128,7 +128,7 @@
 
 (defsystem cl-bodge/audio-resources
   :description "Bodacious Game Engine audio resource interface"
-  :version "0.2.0"
+  :version "0.3.0"
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
@@ -140,7 +140,7 @@
 
 (defsystem cl-bodge/audio
   :description "Bodacious Game Engine audio system"
-  :version "0.2.0"
+  :version "0.3.0"
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
@@ -157,7 +157,7 @@
 
 (defsystem cl-bodge/physics
   :description "Bodacious Game Engine physics system"
-  :version "0.2.0"
+  :version "0.3.0"
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
@@ -176,7 +176,7 @@
 
 (defsystem cl-bodge/resources
   :description "Bodacious Game Engine resources"
-  :version "0.2.0"
+  :version "0.3.0"
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
@@ -193,10 +193,9 @@
                (:file "audio")))
 
 
-
 (defsystem cl-bodge/assets
   :description "Bodacious Game Engine assets system"
-  :version "0.2.0"
+  :version "0.3.0"
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
@@ -204,18 +203,20 @@
   :pathname "assets"
   :serial t
   :components ((:file "packages")
+               (:file "assets")
                (:file "shader-library")
                (:module shaders
                         :components
                         ((:file "math")
                          (:file "lighting")
                          (:file "skinning")))
+               (:file "distribution")
                (:file "system")))
 
 
 (defsystem cl-bodge/scenegraph
   :description "Bodacious Game Engine scenegraph implementation"
-  :version "0.2.0"
+  :version "0.3.0"
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
@@ -237,7 +238,7 @@
 
 (defsystem cl-bodge/tests
   :description "Test suite for cl-bodge engine"
-  :version "0.2.0"
+  :version "0.3.0"
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
@@ -254,7 +255,7 @@
 
 (defsystem cl-bodge
   :description "Bodacious Game Engine framework"
-  :version "0.2.0"
+  :version "0.3.0"
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
