@@ -34,9 +34,8 @@
          (mesh (make-mesh v-count :triangles index-array)))
     (loop for (array-id array) in arrays do
          (with-disposable ((vbuf (make-array-buffer
-                                  array-id
                                   (list->array array v-count (length (car array))))))
-           (attach-gpu-buffer vbuf mesh)))
+           (attach-array-buffer vbuf mesh array-id)))
     (values mesh (sequence->mat4 (mesh-chunk-transform mesh-chunk)) bones)))
 
 

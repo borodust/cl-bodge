@@ -26,7 +26,7 @@
 
 (defun/d initialize-tree (root &rest systems)
   (dolist (system systems)
-    (wait-for (-> (system :high)
+    (wait-for (-> (system :priority :high)
                 (dotree (node root)
                   (initialize-node node system)))))
   root)
@@ -51,20 +51,24 @@
 (defclass scene-pass () ())
 
 
-(defgeneric run-scene-pass (pass node))
+(defgeneric run-scene-pass (pass node)
+  (:method (pass node)
+    (scene-pass node pass nil)))
 
 
-(defmethod dispatch ((this scene-pass) (task function) &optional priority)
+
+(defmethod dispatch ((this scene-pass) (task function) &key priority)
   (declare (ignore priority))
-  (funcall task))
+  (funcall task)
+  t)
 
 
 (defclass system-scene-pass (scene-pass)
   ((system :initarg :system :reader system-of)))
 
 
-(defmethod dispatch ((this system-scene-pass) (task function) &optional priority)
-  (dispatch (system-of this) task priority))
+(defmethod dispatch ((this system-scene-pass) (task function) &key priority)
+  (dispatch (system-of this) task :priority priority))
 
 
 ;;;

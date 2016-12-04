@@ -7,7 +7,7 @@
 
 (defclass thread-bound-system (enableable generic-system)
   ((executor :initform nil :accessor %executor-of)
-   (context :initform nil)))
+   (context :initform nil :reader system-context-of)))
 
 
 (defgeneric make-system-context (system)
@@ -20,22 +20,36 @@
   (:method (context system) (declare (ignore context system))))
 
 
-(defmethod dispatch ((this thread-bound-system) fn &optional (priority :medium))
-  (execute (%executor-of this) fn priority))
+(defmethod dispatch ((this thread-bound-system) fn &key (priority :medium))
+  (unless (call-next-method)
+    (flet ((invoker ()
+             (log-errors
+               (let ((*system-context* (system-context-of this))
+                     (*system* this))
+                 (funcall fn)))))
+      (execute (%executor-of this) #'invoker :priority priority))
+    t))
+
+
+(defgeneric acquire-system-executor (system)
+  (:method ((this thread-bound-system))
+    (acquire-executor :single-threaded-p t :exclusive-p t)))
+
+
+(defgeneric release-system-executor (system executor)
+  (:method ((this thread-bound-system) executor)
+    (release-executor executor)))
 
 
 (defmethod enable ((this thread-bound-system))
   (call-next-method)
-  (setf (%executor-of this)
-        (acquire-executor :single-threaded-p t :exclusive-p t
-                          :special-variables '(*system-context*
-                                               *system*)))
+  (setf (%executor-of this) (acquire-system-executor this))
   (wait-with-latch (latch)
     (execute (%executor-of this)
              (lambda ()
                (log-errors
-                 (setf *system-context* (make-system-context this)
-                       *system* this)
+                 (with-slots (context) this
+                   (setf context (make-system-context this)))
                  (open-latch latch))))))
 
 
@@ -43,9 +57,9 @@
   (wait-with-latch (latch)
     (execute (%executor-of this)
              (lambda ()
-               (destroy-system-context *system-context* this)
+               (destroy-system-context this (system-context-of this))
                (open-latch latch))))
-  (release-executor (%executor-of this))
+  (release-system-executor this (%executor-of this))
   (call-next-method))
 
 

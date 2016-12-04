@@ -46,6 +46,9 @@
            model
            make-model-graph
 
+           simulation-pass
+           make-simulation-pass
+
            animation-node
            start-node-animation
            reset-node-animation

@@ -17,7 +17,7 @@
 
 
 (define-destructor shader ((id id-of) (sys system-of))
-  (-> (sys)
+  (-> (sys :priority :low)
     (gl:delete-shader id)))
 
 
@@ -55,7 +55,7 @@
 
 
 (define-destructor shading-program ((id id-of) (sys system-of))
-  (-> (sys)
+  (-> (sys :priority :low)
     (gl:delete-program id)))
 
 
@@ -152,7 +152,7 @@
 
 
 (define-destructor shading-pipeline ((id id-of) (sys system-of))
-  (-> (sys)
+  (-> (sys :priority :low)
     (gl:delete-program-pipelines (list id))))
 
 

@@ -4,7 +4,8 @@
 (defclass bodge-engine ()
   ((systems :initform nil)
    (properties :initform '())
-   (shared-executor :initform nil)
+   (shared-executors :initform nil)
+   (shared-pool :initform nil)
    (disabling-order :initform '())))
 
 (defvar *engine* (make-instance 'bodge-engine))
@@ -71,11 +72,12 @@
 
 
 (defun startup (properties-pathspec)
-  (within-new-thread-waiting "startup-worker"
-    (with-slots (systems properties disabling-order shared-executor) *engine*
+  (in-new-thread-waiting "startup-worker"
+    (with-slots (systems properties disabling-order shared-pool shared-executors) *engine*
       (setf properties (%load-properties properties-pathspec)
-            shared-executor (make-pooled-executor
-                             (property :engine-shared-executor-pool-size 4)))
+            shared-pool (make-pooled-executor
+                         (property :engine-shared-pool-size 2))
+            shared-executors (list (make-single-threaded-executor)))
       (let ((system-class-names
              (property :systems (lambda ()
                                   (error ":systems property should be defined")))))
@@ -84,30 +86,44 @@
 
 
 (defun shutdown ()
-  (within-new-thread-waiting "shutdown-worker"
-    (with-slots (systems disabling-order shared-executor) *engine*
+  (in-new-thread-waiting "shutdown-worker"
+    (with-slots (systems disabling-order shared-pool shared-executors) *engine*
       (loop for system-class in disabling-order do
            (log:debug "Disabling ~a" system-class)
            (disable (gethash system-class systems)))
-      (dispose shared-executor))))
+      (dispose shared-pool)
+      (dolist (ex shared-executors)
+        (dispose ex)))))
 
 
 (defun acquire-executor (&rest args &key (single-threaded-p nil) (exclusive-p nil)
                                       (special-variables nil))
-  (with-slots (shared-executor) *engine*
+  (with-slots (shared-pool shared-executors) *engine*
     (cond
       ((and (not exclusive-p) (not single-threaded-p) (not special-variables))
-       shared-executor)
-      ((or exclusive-p single-threaded-p)
+       shared-pool)
+      ((and exclusive-p single-threaded-p)
        (make-single-threaded-executor special-variables))
+      ((and single-threaded-p (not exclusive-p) (not special-variables))
+       (first shared-executors))
       (t (error "Cannot provide executor for combination of requirements: ~a" args)))))
 
 
+(defun shared-executor-p (executor shared-executors)
+  (some (lambda (shared) (eq shared executor)) shared-executors))
+
+
 (defun release-executor (executor)
-  (with-slots (shared-executor) *engine*
-    (unless (eq executor shared-executor)
+  (with-slots (shared-pool shared-executors) *engine*
+    (unless (or (shared-executor-p executor shared-executors)
+                (eq executor shared-pool))
       (dispose executor))))
 
+
+(defmethod dispatch ((this bodge-engine) (task function) &key priority)
+  (with-slots (shared-pool) this
+    (execute shared-pool task :priority priority)
+    t))
 
 ;;
 (defgeneric system-of (obj))

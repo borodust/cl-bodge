@@ -6,17 +6,28 @@
                   *env*))
 
 
-(defgeneric dispatch (dispatcher task &optional priority))
+(defgeneric dispatch (dispatcher task &key priority))
 
-(defmethod dispatch :around (dispatcher (fn function) &optional priority)
-  (call-next-method dispatcher
-                    (lambda ()
-                      (let ((*active-dispatcher* dispatcher))
-                        (funcall fn)))
-                    priority))
+(defmethod dispatch :around (dispatcher (fn function) &key (priority :medium))
+  (flet ((wrapped ()
+           (let ((*active-dispatcher* dispatcher))
+             (funcall fn))))
+    (call-next-method dispatcher #'wrapped :priority priority)))
 
 
-(defmacro within-new-thread-waiting (thread-name &body body)
+(defmethod dispatch (dispatcher fn &key (priority :medium))
+  (declare (ignore priority))
+  nil)
+
+
+(defmacro in-new-thread (thread-name &body body)
+  `(bt:make-thread
+    (lambda ()
+      (progn
+        ,@body))
+    :name ,(format nil "~a" thread-name)))
+
+(defmacro in-new-thread-waiting (thread-name &body body)
   (with-gensyms (latch)
     `(wait-with-latch (,latch)
        (bt:make-thread
@@ -73,7 +84,7 @@
                  (package-name (symbol-package name)) name))
 
 
-(defmacro -> (&environment env (dispatcher &optional (priority :medium)) &body body)
+(defmacro -> (&environment env (dispatcher &rest keys) &body body)
   (with-gensyms (fn r)
     (let ((transformed (traverse-dispatch-body `(progn ,@body) env)))
       `(flet ((,fn ()
@@ -85,4 +96,4 @@
                                     (funcall #',*active-callback-name* ,r)))
                                transformed)
                            transformed)))
-         (dispatch ,dispatcher #',fn ,priority)))))
+         (dispatch ,dispatcher #',fn ,@keys)))))

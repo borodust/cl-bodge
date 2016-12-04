@@ -19,12 +19,13 @@
   (slot-value this 'enabled-p))
 
 
-(defmethod dispatch ((this host-system) fn &optional priority)
+(defmethod dispatch ((this host-system) fn &key priority)
   (declare (ignore priority))
   (with-slots (job-queue) this
     (with-system-lock-held (this)
       (push-job fn job-queue)
-      (glfw:post-empty-event))))
+      (glfw:post-empty-event)))
+  t)
 
 
 (glfw:def-window-close-callback on-close (window)

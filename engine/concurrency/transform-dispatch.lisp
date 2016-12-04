@@ -207,7 +207,7 @@
          (flet ((,return-funame (&optional ,r)
                   (declare (ignore ,r))
                   ;; fixme : propagate priority
-                  (dispatch ,d (lambda () ,(generate-calling-code cont nil)) :medium)))
+                  (dispatch ,d (lambda () ,(generate-calling-code cont nil)) :priority :medium)))
            ,@(call-next-method this (make-function-name-null-continuation return-funame)))))))
 
 
@@ -217,7 +217,7 @@
       `(let ((,d *active-dispatcher*))
          (flet ((,return-funame (&optional ,r)
                   ;; fixme : propagate priority
-                  (dispatch ,d (lambda () ,(generate-calling-code cont r)) :medium)))
+                  (dispatch ,d (lambda () ,(generate-calling-code cont r)) :priority :medium)))
            ,@(call-next-method this
                                (make-function-name-result-continuation return-funame)))))))
 
@@ -339,7 +339,7 @@
                 `(flet ((,cb (,r)
                           (declare (ignore ,r))
                           ;; fixme : propagate priority
-                          (dispatch ,d #'(lambda () ,(generate-calling-code cont nil)) :medium)))
+                          (dispatch ,d #'(lambda () ,(generate-calling-code cont nil)) :priority :medium)))
                    ,(macroexpand-1 (car forms) *env*))
                 `(let ((,n ,count))
                    (flet ((,cb (,r)
@@ -349,7 +349,7 @@
                                           (decf ,n)
                                           (when (= ,n 0)
                                             ,(generate-calling-code cont nil)))
-                                      :medium))) ; fixme : propagate priority
+                                      :priority :medium))) ; fixme : propagate priority
                      ,@(loop for form/d in forms collect
                             (macroexpand-1 form/d *env*))))))))))
 
@@ -362,7 +362,7 @@
            ,(if (null (rest forms))
                 `(flet ((,cb (,r)
                           ;; fixme : propagate priority
-                          (dispatch ,d #'(lambda () ,(generate-calling-code cont r)) :medium)))
+                          (dispatch ,d #'(lambda () ,(generate-calling-code cont r)) :priority :medium)))
                    ,(macroexpand-1 (car forms) *env*))
                 `(let ((,n ,count)
                        (,results '()))
@@ -373,7 +373,7 @@
                                           (push ,r ,results)
                                           (when (= ,n 0)
                                             ,(generate-calling-code cont `(nreverse ,results))))
-                                      :medium))) ; fixme : propagate priority
+                                      :priority :medium))) ; fixme : propagate priority
                      ,@(loop for form/d in forms collect
                             (macroexpand-1 form/d *env*))))))))))
 
@@ -394,7 +394,7 @@
           (declare (ignore ,r))
           ;; fixme : propagate priority
           (dispatch ,(active-dispatcher-name-for codegen)
-                    #'(lambda () ,(generate-calling-code cont nil)) :medium))))
+                    #'(lambda () ,(generate-calling-code cont nil)) :priority :medium))))
 
 (defmethod cc-callback-gen ((codegen wait-for*-gen) (cont result-cont) cb epilogue)
   (with-gensyms (r)
@@ -403,7 +403,7 @@
             (setf ,r (car ,r)))
           ;; fixme : propagate priority
           (dispatch ,(active-dispatcher-name-for codegen)
-                    #'(lambda () ,(generate-calling-code cont r)) :medium))))
+                    #'(lambda () ,(generate-calling-code cont r)) :priority :medium))))
 
 
 (defmethod chain-callback-gen ((this wait-for*-gen) group name last-cb result-required-p)

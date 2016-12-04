@@ -1,30 +1,26 @@
 (in-package :cl-bodge.concurrency)
 
 
-(define-constant +default-queue-size+ 256)
+(define-constant +default-queue-size+ 1024)
 
 
 (define-constant +default-pool-size+ 4)
 
 
-(defgeneric execute (executor task &optional priority))
+(defgeneric execute (executor task &key priority))
 
 
-(defclass simple-executor (disposable)
+(defclass generic-executor (disposable)
   ((queue :initform nil :reader task-queue-of)))
 
 
-(defmethod initialize-instance :after ((this simple-executor) &key queue-size)
+(defmethod initialize-instance :after ((this generic-executor) &key queue-size)
   (with-slots (queue) this
     (setf queue (make-blocking-queue queue-size))))
 
 
-(define-destructor simple-executor (queue)
+(define-destructor generic-executor (queue)
   (interrupt queue))
-
-
-(definline make-simple-executor (&optional queue-size)
-  (make-instance 'simple-executor :queue-size queue-size))
 
 
 (defun run (executor)
@@ -41,15 +37,29 @@
            (funcall (pop-from (task-queue-of executor))))))))
 
 
-(defmethod execute ((this simple-executor) (task function) &optional (priority :medium))
+(defclass blocking-executor (generic-executor) ())
+
+(defmethod execute ((this blocking-executor) (task function) &key (priority :medium))
   (put-into (task-queue-of this) task priority))
+
+(definline make-blocking-executor (&optional queue-size)
+  (make-instance 'blocking-executor :queue-size queue-size))
+
+
+(defclass discarding-executor (generic-executor) ())
+
+(defmethod execute ((this discarding-executor) (task function) &key (priority :medium))
+  (try-put-replacing (task-queue-of this) task priority))
+
+(definline make-discarding-executor (&optional queue-size)
+  (make-instance 'discarding-executor :queue-size queue-size))
 
 
 ;;;
 ;;;
 ;;;
 (defclass single-threaded-executor (disposable)
-  ((executor :initform (make-simple-executor +default-queue-size+))))
+  ((executor :initform (make-discarding-executor +default-queue-size+))))
 
 
 (defmethod initialize-instance :after ((this single-threaded-executor) &key special-variables)
@@ -68,9 +78,9 @@
   (make-instance 'single-threaded-executor :special-variables special-variables))
 
 
-(defmethod execute ((this single-threaded-executor) (task function) &optional (priority :medium))
+(defmethod execute ((this single-threaded-executor) (task function) &key (priority :medium))
   (with-slots (executor) this
-    (execute executor task priority)))
+    (execute executor task :priority priority)))
 
 ;;;
 ;;;
@@ -93,6 +103,6 @@
   (make-instance 'pooled-executor :size size))
 
 
-(defmethod execute ((this pooled-executor) (task function) &optional (priority :medium))
+(defmethod execute ((this pooled-executor) (task function) &key (priority :medium))
   (with-slots (pool) this
     (push-to-pool pool task priority)))

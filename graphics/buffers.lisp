@@ -12,7 +12,7 @@
 
 
 (define-destructor buffer ((id id-of) (sys system-of))
-  (-> (sys)
+  (-> (sys :priority :low)
     (gl:delete-buffers (list id))))
 
 

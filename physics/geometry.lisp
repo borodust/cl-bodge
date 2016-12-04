@@ -11,7 +11,7 @@
 
 
 (define-destructor geom ((id id-of) (sys system-of))
-  (-> (sys)
+  (-> (sys :priority :low)
     (%ode:geom-destroy id)))
 
 
@@ -67,7 +67,7 @@
 (defclass plane-geom (geom) ())
 
 
-(define-system-function make-plane-geom physics-system (a b c &key (z #f0) (system *system*))
+(define-system-function make-plane-geom physics-system (a b c z &key (system *system*))
   (make-instance 'plane-geom :system system
                  :id (%ode:create-plane (space-of (universe)) a b c z)))
 

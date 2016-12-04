@@ -31,7 +31,8 @@
            make-single-threaded-executor
            make-pooled-executor
 
-           within-new-thread-waiting
+           in-new-thread
+           in-new-thread-waiting
 
            ->
            dispatch

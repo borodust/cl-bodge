@@ -10,7 +10,7 @@
 
 
 (define-destructor vertex-array ((id id-of) (sys system-of))
-  (-> (sys)
+  (-> (sys :priority :low)
     (gl:delete-vertex-arrays (list id))))
 
 
