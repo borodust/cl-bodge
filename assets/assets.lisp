@@ -7,6 +7,6 @@
 
 
 (defun assets-root ()
-  (fad:pathname-as-directory (property :assets-root
-                                       (asdf:component-pathname
-                                        (asdf:find-system :cl-bodge/assets)))))
+  (if-let ((configured (property :engine-assets)))
+    (merge-working-pathname (fad:pathname-as-directory configured))
+    (asdf:component-pathname (asdf:find-system :cl-bodge/assets))))

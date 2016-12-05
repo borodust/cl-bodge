@@ -109,6 +109,8 @@
              enabledp
              acquire-executor
              release-executor
+             working-directory
+             merge-working-pathname
 
              system-object
              system-of

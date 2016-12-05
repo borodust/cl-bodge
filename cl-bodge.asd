@@ -25,7 +25,7 @@
   :mailto "dev@borodust.org"
   :license "MIT"
   :depends-on (cl-bodge/utils cl-muth rtg-math log4cl bordeaux-threads local-time
-                              trivial-garbage)
+                              trivial-garbage uiop cffi)
   :pathname "engine"
   :serial t
   :components ((:file "packages")
@@ -236,6 +236,21 @@
                (:file "model")))
 
 
+(defsystem cl-bodge/distribution
+  :description "Bodacious Game Engine distribution helpers"
+  :version "0.3.0"
+  :author "Pavel Korolev"
+  :mailto "dev@borodust.org"
+  :license "MIT"
+  :depends-on (alexandria asdf uiop cl-fad cffi split-sequence)
+  :pathname "distribution"
+  :serial t
+  :components ((:file "packages")
+               (:file "distribution")
+               (:file "build")
+               (:static-file "build.sh")))
+
+
 (defsystem cl-bodge/tests
   :description "Test suite for cl-bodge engine"
   :version "0.3.0"
@@ -250,7 +265,6 @@
                         :serial t
                         :components ((:file "suite")
                                      (:file "dispatch")))))
-
 
 
 (defsystem cl-bodge

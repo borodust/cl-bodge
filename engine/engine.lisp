@@ -4,6 +4,7 @@
 (defclass bodge-engine ()
   ((systems :initform nil)
    (properties :initform '())
+   (working-directory :initform nil :reader working-directory-of)
    (shared-executors :initform nil)
    (shared-pool :initform nil)
    (disabling-order :initform '())))
@@ -14,10 +15,19 @@
   *engine*)
 
 (defun engine-system (system-name)
-  (with-slots (systems) *engine*
+  (with-slots (systems) (engine)
     (if-let ((system (gethash system-name systems)))
       system
       (error (format nil "~a not found" system-name)))))
+
+
+(defun working-directory ()
+  (working-directory-of (engine)))
+
+
+(defun merge-working-pathname (pathname)
+  (merge-pathnames pathname (working-directory)))
+
 
 ;;
 (defclass system ()
@@ -71,18 +81,46 @@
     (%get-property key properties default-value)))
 
 
+
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defvar *unloaded-foreign-libraries* nil)
+
+  (defun unload-foreign-libraries ()
+    (loop for lib in (cffi:list-foreign-libraries) do
+         (pushnew (cffi:foreign-library-name lib) *unloaded-foreign-libraries*)
+         (cffi:close-foreign-library lib)))
+
+
+  (defun reload-foreign-libraries ()
+    (pushnew (merge-working-pathname (property :library-directory "lib/"))
+             cffi:*foreign-library-directories*)
+    (loop for lib-name in *unloaded-foreign-libraries* do
+         (cffi:load-foreign-library lib-name)))
+
+  #+sbcl
+  (pushnew #'unload-foreign-libraries sb-ext:*save-hooks*))
+
+
+
 (defun startup (properties-pathspec)
   (in-new-thread-waiting "startup-worker"
-    (with-slots (systems properties disabling-order shared-pool shared-executors) *engine*
+    (with-slots (systems properties disabling-order shared-pool shared-executors
+                         working-directory)
+        *engine*
       (setf properties (%load-properties properties-pathspec)
             shared-pool (make-pooled-executor
                          (property :engine-shared-pool-size 2))
+            working-directory (uiop:pathname-directory-pathname properties-pathspec)
             shared-executors (list (make-single-threaded-executor)))
+
+      (reload-foreign-libraries)
+
       (let ((system-class-names
              (property :systems (lambda ()
                                   (error ":systems property should be defined")))))
         (setf systems (alist-hash-table (instantiate-systems system-class-names))
               disabling-order (enable-requested-systems systems))))))
+
 
 
 (defun shutdown ()

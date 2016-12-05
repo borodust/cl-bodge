@@ -34,7 +34,7 @@
      (fad:pathname-directory-pathname
       (if (fad:pathname-relative-p descriptor-path)
           (fad:merge-pathnames-as-file (assets-root) descriptor-path)
-          (error "descriptor-path of ~a should be relative to :assets-root property"
+          (error "descriptor-path of ~a should be relative to :engine-assets property"
                  (name-of this)))))))
 
 
