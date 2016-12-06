@@ -73,6 +73,13 @@
   (ensure-directories-exist (directory-of *distribution*)))
 
 
+(defun copy-permissions (src dst)
+  (declare (ignorable src dst))
+  #+sbcl
+  (let ((stat (sb-posix:stat src)))
+    (sb-posix:chmod dst (sb-posix:stat-mode stat))))
+
+
 (defun copy-assets ()
   (labels ((copy-path (src dst)
              (flet ((walker (path)
@@ -83,7 +90,9 @@
                (ensure-directories-exist dst)
                (if (fad:directory-pathname-p src)
                    (fad:walk-directory src #'walker :follow-symlinks nil)
-                   (fad:copy-file src dst)))))
+                   (progn
+                     (fad:copy-file src dst)
+                     (copy-permissions src dst))))))
     (loop for (src dst) in (assets-of *distribution*) do
          (copy-path src dst))))
 
