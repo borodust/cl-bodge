@@ -1,12 +1,17 @@
 (in-package :cl-bodge.distribution)
 
+
+(define-constant +system-path+ (asdf:component-pathname (find-system :cl-bodge/distribution))
+  :test #'equal)
+
+
 (defun trim-whitespaces (string)
   (string-trim '(#\Space #\Tab #\Newline) string))
 
 
 (defun run-program (command-control-string &rest args)
   (uiop:run-program (apply #'format nil (nconc (list command-control-string) args))
-                    :force-shell t :output *standard-output* :error-output *error-output*))
+                    :force-shell t :output nil :error-output *error-output*))
 
 
 (defmacro with-program-output ((var) (control-string &rest args) &body body)

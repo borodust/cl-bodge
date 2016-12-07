@@ -1,8 +1,5 @@
 (in-package :cl-bodge.distribution)
 
-(define-constant +system-path+ (asdf:component-pathname (find-system :cl-bodge/distribution))
-  :test #'equal)
-
 
 (defun list-foreign-dependencies (parent-library-path)
   (with-program-output (dep-string) ("otool -L \"~a\"" (namestring parent-library-path))

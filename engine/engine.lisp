@@ -86,9 +86,10 @@
   (defvar *unloaded-foreign-libraries* nil)
 
   (defun unload-foreign-libraries ()
-    (loop for lib in (cffi:list-foreign-libraries) do
-         (pushnew (cffi:foreign-library-name lib) *unloaded-foreign-libraries*)
-         (cffi:close-foreign-library lib)))
+    (handler-bind ((style-warning #'muffle-warning))
+      (loop for lib in (cffi:list-foreign-libraries) do
+           (pushnew (cffi:foreign-library-name lib) *unloaded-foreign-libraries*)
+           (cffi:close-foreign-library lib))))
 
 
   (defun reload-foreign-libraries ()
@@ -97,9 +98,9 @@
     (loop for lib-name in *unloaded-foreign-libraries* do
          (cffi:load-foreign-library lib-name)))
 
+
   #+sbcl
   (pushnew #'unload-foreign-libraries sb-ext:*save-hooks*))
-
 
 
 (defun startup (properties-pathspec)
