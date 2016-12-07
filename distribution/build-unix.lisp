@@ -14,8 +14,12 @@
 
 (defun system-library-p (lib-pathname)
   (let ((path (namestring lib-pathname)))
+    (flet ((substringp (substring)
+             (search substring path :test #'equal)))
     (or (starts-with-subseq "/lib" path)
-        (search "libGL" path))))
+        (substringp "libGL")
+        (substringp "libX")
+        (substringp "libdrm")))))
 
 
 (defun list-platform-search-paths ()

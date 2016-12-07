@@ -2,7 +2,7 @@
 
 
 (defclass mass (disposable)
-  ((value :initform (alloc '%ode:mass) :reader value-of)))
+  ((value :initform (calloc '%ode:mass) :reader value-of)))
 
 
 (define-destructor mass (value)
