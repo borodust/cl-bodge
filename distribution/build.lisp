@@ -4,10 +4,6 @@
 (declaim (special *distribution*))
 
 
-(defun trim-whitespaces (string)
-  (string-trim '(#\Space #\Tab #\Newline) string))
-
-
 (labels ((%extract-name (sys-def)
            (if (listp sys-def)
                (ecase (first sys-def)
@@ -41,20 +37,6 @@
                                        manifest-file
                                        :if-exists :supersede)
     manifest-file))
-
-
-(defun run-program (command-control-string &rest args)
-  (uiop:run-program (apply #'format nil (nconc (list command-control-string) args))
-                    :force-shell t :output *standard-output* :error-output *error-output*))
-
-
-(defmacro with-program-output ((var) (control-string &rest args) &body body)
-  `(let ((,var (with-output-to-string (stream)
-                 (uiop:run-program (format nil ,control-string ,@args)
-                                   :force-shell t
-                                   :output stream
-                                   :error-output *error-output*))))
-     ,@body))
 
 
 (defun build-executable ()
@@ -98,29 +80,17 @@
 
 
 (defun compress ()
-  (run-program "zip -r \"~a~(~a~).zip\" \"~a\""
+  (run-program "cd \"~a\" && zip -r \"~(~a~).zip\" \"~a\""
                (build-directory-of *distribution*) (name-of *distribution*)
-               (directory-of *distribution*)))
+               (enough-namestring (directory-of *distribution*)
+                                  (fad:pathname-parent-directory
+                                   (directory-of *distribution*)))))
 
 
-(defun list-foreign-dependencies (parent-library-path)
-  (with-program-output (dep-string) ("otool -L \"~a\"" (namestring parent-library-path))
-    (let ((deps (cddr (split-sequence:split-sequence #\Newline dep-string))))
-      (loop for dep in deps
-         for path = (trim-whitespaces (subseq dep 0 (position #\( dep)))
-         when (> (length path) 0) collect path))))
-
-
-(defun system-library-p (lib-pathname)
-  (let ((path (namestring lib-pathname)))
-    (or (starts-with-subseq "/System/Library/Frameworks" path)
-        (ends-with-subseq "libobjc.A.dylib" path)
-        (ends-with-subseq "libSystem.B.dylib" path))))
-
-
-(defun copy-foreign-dependencies (lib-path lib-dir)
+(defun copy-foreign-dependencies (lib-path lib-dir &optional target-filename)
   (unless (system-library-p lib-path)
-    (let ((dst (fad:merge-pathnames-as-file lib-dir (file-namestring lib-path))))
+    (let ((dst (fad:merge-pathnames-as-file lib-dir (or target-filename
+                                                        (file-namestring lib-path)))))
       (unless (fad:file-exists-p dst)
         (fad:copy-file lib-path dst)
         (loop for dep in (list-foreign-dependencies lib-path) do
@@ -129,12 +99,13 @@
 
 (defun pack-foreign-libraries ()
   (let ((lib-dir (library-directory-of *distribution*))
-        (dirs (cffi::parse-directories cffi:*foreign-library-directories*)))
+        (dirs (append (cffi::parse-directories cffi:*foreign-library-directories*)
+                      (list-platform-search-paths))))
     (ensure-directories-exist lib-dir)
     (loop for lib in (cffi:list-foreign-libraries) do
          (let ((path (cffi:foreign-library-pathname lib)))
            (if-let (file (cffi::find-file path dirs))
-             (copy-foreign-dependencies file lib-dir)
+             (copy-foreign-dependencies file lib-dir (file-namestring path))
              (error "Cannot find foreign library ~a" (cffi:foreign-library-name lib)))))))
 
 

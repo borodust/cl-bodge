@@ -246,7 +246,14 @@
   :pathname "distribution"
   :serial t
   :components ((:file "packages")
+               (:file "utils")
                (:file "distribution")
+               #+darwin
+               (:file  "build-darwin")
+               #+(and unix (not darwin))
+               (:file "build-unix")
+               #-(or darwin unix)
+               (:file "build-unknown")
                (:file "build")
                (:static-file "build.sh")))
 

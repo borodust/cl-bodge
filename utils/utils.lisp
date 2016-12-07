@@ -17,7 +17,6 @@
     `(block ,name
        (handler-bind ((t (lambda (e)
                            (log:error "Unhandled error: ~a" e)
-                           (break)
                            (return-from ,name))))
          (progn ,@body)))))
 
