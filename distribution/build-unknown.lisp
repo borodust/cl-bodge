@@ -11,3 +11,6 @@
 
 (defun list-platform-search-paths ()
   (list))
+
+
+(defun make-app-bundle ())

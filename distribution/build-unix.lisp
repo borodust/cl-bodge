@@ -32,3 +32,6 @@
                             (push (fad:pathname-as-directory trimmed) result)))))))
       (fad:walk-directory "/etc/ld.so.conf.d/" #'walker))
     result))
+
+
+(defun make-app-bundle ())

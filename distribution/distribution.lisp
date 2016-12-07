@@ -11,15 +11,10 @@
    (dist-directory :initform nil :reader directory-of)
    (library-directory :initform nil :reader library-directory-of)
    (engine-assets-directory :initform nil :reader engine-assets-directory-of)
-   (assets :initform nil :reader assets-of)))
-
-
-(defun path (name)
-  (fad:pathname-as-directory name))
-
-
-(defun file (name)
-  (fad:pathname-as-file name))
+   (assets :initform nil :reader assets-of)
+   (bundle-name :initarg :bundle-name :reader bundle-name-of)
+   (bundle-run-file :initarg :bundle-run-file :reader bundle-run-file-of)
+   (bundle-compressed-p :initarg :bundle-compressed-p :reader bundle-compressed-p)))
 
 
 (defun expand-assets-path (src dst assets)
@@ -77,14 +72,25 @@
                                       (build-directory #p"build/")
                                       (library-directory #p"lib/")
                                       (engine-assets-directory #p"assets/engine/")
-                                      assets)
-  `(make-instance 'distribution
-                  :name ,name
-                  :target-system ,(or target-system name)
-                  :entry-function ,(parse-entry-function entry-function)
-                  :executable-name ,(or executable-name (format nil "~(~a~).bin" name))
-                  :compressed-p ,compressed-p
-                  :build-directory ,build-directory
-                  :library-directory ,library-directory
-                  :engine-assets-directory ,engine-assets-directory
-                  :assets ',assets))
+                                      assets
+                                      bundle)
+  (destructuring-bind (&key ((:name bundle-name) (format nil "~(~a~)" name))
+                            ((:run-file bundle-run-file))
+                            ((:compressed-p bundle-compressed-p) t))
+      bundle
+    (when (and bundle (null bundle-run-file))
+      (error ":run-file must be specified for the bundle"))
+
+    `(make-instance 'distribution
+                    :name ,name
+                    :target-system ,(or target-system name)
+                    :entry-function ,(parse-entry-function entry-function)
+                    :executable-name ,(or executable-name (format nil "~(~a~).bin" name))
+                    :compressed-p ,compressed-p
+                    :build-directory ,build-directory
+                    :library-directory ,library-directory
+                    :engine-assets-directory ,engine-assets-directory
+                    :assets ',assets
+                    :bundle-name ,bundle-name
+                    :bundle-compressed-p ,bundle-compressed-p
+                    :bundle-run-file ,bundle-run-file)))

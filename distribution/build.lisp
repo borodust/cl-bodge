@@ -48,43 +48,21 @@
                        "--entry" (entry-function-of *distribution*)
                        "--manifest-file" manifest-file
                        "--load-system" (format nil "~(~a~)" (target-system-of *distribution*))
-                       #+sbcl "--compress-core"))))
+                       "--compress-core"))))
 
 
 (defun prepare ()
   (ensure-directories-exist (directory-of *distribution*)))
 
 
-(defun copy-permissions (src dst)
-  (declare (ignorable src dst))
-  #+sbcl
-  (let ((stat (sb-posix:stat src)))
-    (sb-posix:chmod dst (sb-posix:stat-mode stat))))
-
-
 (defun copy-assets ()
-  (labels ((copy-path (src dst)
-             (flet ((walker (path)
-                      (let ((last-el (enough-namestring path src)))
-                        (if (fad:directory-pathname-p path)
-                            (copy-path path (fad:merge-pathnames-as-directory dst last-el))
-                            (copy-path path (fad:merge-pathnames-as-file dst last-el))))))
-               (ensure-directories-exist dst)
-               (if (fad:directory-pathname-p src)
-                   (fad:walk-directory src #'walker :follow-symlinks nil)
-                   (progn
-                     (fad:copy-file src dst)
-                     (copy-permissions src dst))))))
-    (loop for (src dst) in (assets-of *distribution*) do
-         (copy-path src dst))))
+  (loop for (src dst) in (assets-of *distribution*) do
+       (copy-path src dst)))
 
 
 (defun compress ()
-  (run-program "cd \"~a\" && zip -r \"~(~a~).zip\" \"~a\""
-               (build-directory-of *distribution*) (name-of *distribution*)
-               (enough-namestring (directory-of *distribution*)
-                                  (fad:pathname-parent-directory
-                                   (directory-of *distribution*)))))
+  (compress-directory (directory-of *distribution*)
+                      (format nil "~(~A~)" (name-of *distribution*))))
 
 
 (defun copy-foreign-dependencies (lib-path lib-dir &optional target-filename)
@@ -133,4 +111,6 @@
     (copy-engine-assets)
     (when (compressedp *distribution*)
       (compress))
+    (when (bundle-run-file-of *distribution*)
+      (make-app-bundle))
     *distribution*))
