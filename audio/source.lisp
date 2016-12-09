@@ -1,8 +1,13 @@
 (in-package :cl-bodge.audio)
 
 
+(defhandle audio-source-handle
+    :initform (al:gen-source)
+    :closeform (al:delete-source *handle-value*))
+
+
 (defclass audio-source (al-object) ()
-  (:default-initargs :id (al:gen-source)))
+  (:default-initargs :handle (make-audio-source-handle)))
 
 
 (define-system-function make-audio-source audio-system (&key (system *system*))

@@ -16,8 +16,11 @@
   (with-gensyms (name)
     `(block ,name
        (handler-bind ((t (lambda (e)
-                           (log:error "Unhandled error: ~a" e)
-                           (return-from ,name))))
+                           (let ((error-text (with-output-to-string (stream)
+                                               (format stream "Unhandled error:~%")
+                                               (dissect:present e stream))))
+                             (log:error "~a" error-text)
+                             (return-from ,name)))))
          (progn ,@body)))))
 
 
