@@ -19,8 +19,7 @@
   (slot-value this 'enabled-p))
 
 
-(defmethod dispatch ((this host-system) fn &key priority)
-  (declare (ignore priority))
+(defmethod dispatch ((this host-system) (fn function) &key)
   (with-slots (job-queue) this
     (with-system-lock-held (this)
       (push-job fn job-queue)

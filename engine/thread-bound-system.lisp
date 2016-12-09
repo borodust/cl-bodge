@@ -20,14 +20,14 @@
   (:method (context system) (declare (ignore context system))))
 
 
-(defmethod dispatch ((this thread-bound-system) fn &key (priority :medium))
+(defmethod dispatch ((this thread-bound-system) fn &key (priority :medium) important-p)
   (unless (call-next-method)
     (flet ((invoker ()
              (log-errors
                (let ((*system-context* (system-context-of this))
                      (*system* this))
                  (funcall fn)))))
-      (execute (%executor-of this) #'invoker :priority priority))
+      (execute (%executor-of this) #'invoker :priority priority :important-p important-p))
     t))
 
 

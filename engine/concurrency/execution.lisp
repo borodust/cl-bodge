@@ -7,7 +7,7 @@
 (define-constant +default-pool-size+ 4)
 
 
-(defgeneric execute (executor task &key priority))
+(defgeneric execute (executor task &key &allow-other-keys))
 
 
 (defclass generic-executor (disposable)
@@ -47,8 +47,13 @@
 
 (defclass discarding-executor (generic-executor) ())
 
-(defmethod execute ((this discarding-executor) (task function) &key (priority :medium))
-  (try-put-replacing (task-queue-of this) task priority))
+(defmethod execute ((this discarding-executor) (task function) &key
+                                                                 (priority :medium)
+                                                                 important-p)
+  (if important-p
+      (put-into (task-queue-of this) task priority)
+      (try-put-replacing (task-queue-of this) task priority)))
+
 
 (definline make-discarding-executor (&optional queue-size)
   (make-instance 'discarding-executor :queue-size queue-size))
@@ -77,9 +82,11 @@
   (make-instance 'single-threaded-executor :special-variables special-variables))
 
 
-(defmethod execute ((this single-threaded-executor) (task function) &key (priority :medium))
+(defmethod execute ((this single-threaded-executor) (task function) &key
+                                                                      (priority :medium)
+                                                                      important-p)
   (with-slots (executor) this
-    (execute executor task :priority priority)))
+    (execute executor task :priority priority :important-p important-p)))
 
 ;;;
 ;;;

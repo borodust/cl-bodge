@@ -6,17 +6,17 @@
                   *env*))
 
 
-(defgeneric dispatch (dispatcher task &key priority))
+(defgeneric dispatch (dispatcher task &key &allow-other-keys))
 
-(defmethod dispatch :around (dispatcher (fn function) &key (priority :medium))
+
+(defmethod dispatch :around (dispatcher (fn function) &rest keys &key)
   (flet ((wrapped ()
            (let ((*active-dispatcher* dispatcher))
              (funcall fn))))
-    (call-next-method dispatcher #'wrapped :priority priority)))
+    (apply #'call-next-method (append (list dispatcher #'wrapped) keys))))
 
 
-(defmethod dispatch (dispatcher fn &key (priority :medium))
-  (declare (ignore priority))
+(defmethod dispatch (dispatcher fn &key)
   nil)
 
 

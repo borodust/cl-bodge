@@ -245,5 +245,5 @@
 
 
 (define-destructor foreign-object ((handle handle-of) (sys system-of))
-  (-> (sys :priority :low :important t)
+  (-> (sys :priority :low :important-p t)
     (destroy-foreign-object handle)))

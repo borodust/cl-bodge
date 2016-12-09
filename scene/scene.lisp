@@ -57,8 +57,7 @@
 
 
 
-(defmethod dispatch ((this scene-pass) (task function) &key priority)
-  (declare (ignore priority))
+(defmethod dispatch ((this scene-pass) (task function) &key)
   (funcall task)
   t)
 
@@ -67,8 +66,8 @@
   ((system :initarg :system :reader system-of)))
 
 
-(defmethod dispatch ((this system-scene-pass) (task function) &key priority)
-  (dispatch (system-of this) task :priority priority))
+(defmethod dispatch ((this system-scene-pass) (task function) &rest keys &key)
+  (apply #'dispatch (append (list (system-of this) task) keys)))
 
 
 ;;;
