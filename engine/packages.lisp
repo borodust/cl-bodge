@@ -116,6 +116,12 @@
              system-of
              enableable
 
+             foreign-object
+             handle-value-of
+             destroy-foreign-object
+             defhandle
+             *handle-value*
+
              generic-system
              with-system-lock-held
              initialize-system

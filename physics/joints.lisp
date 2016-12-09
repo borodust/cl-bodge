@@ -1,21 +1,20 @@
 (in-package :cl-bodge.physics)
 
 
+(defhandle joint-handle
+    :closeform (%ode:joint-destroy *handle-value*))
+
+
 (defclass joint (ode-object) ())
-
-
-(define-destructor joint ((id id-of) (sys system-of))
-  (-> (sys :priority :low)
-    (%ode:joint-destroy id)))
 
 
 (define-system-function make-joint physics-system
     (joint-ctor class-name universe this-body that-body &key (system *system*))
   (let ((joint (funcall joint-ctor (world-of universe))))
-    (%ode:joint-attach joint (id-of this-body) (if (null that-body)
+    (%ode:joint-attach joint (handle-value-of this-body) (if (null that-body)
                                                    (cffi:null-pointer)
-                                                   (id-of that-body)))
-    (make-instance class-name :system system :id joint)))
+                                                   (handle-value-of that-body)))
+    (make-instance class-name :system system :handle (make-joint-handle joint))))
 
 
 (defmacro define-joint-class (class-name joint-ctor-name)

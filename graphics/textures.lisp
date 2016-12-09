@@ -33,14 +33,14 @@
 ;;;
 ;;;
 ;;;
+(defhandle texture-handle
+    :initform (gl:gen-texture)
+    :closeform (gl:delete-textures (list *handle-value*)))
+
+
 (defclass texture (gl-object)
   ((target :initarg :target :reader target-of))
-  (:default-initargs :id (gl:gen-texture)))
-
-
-(define-destructor texture ((id id-of) (sys system-of))
-  (-> (sys :priority :low)
-    (gl:delete-textures (list id))))
+  (:default-initargs :handle (make-texture-handle)))
 
 
 (defun use-texture-unit (val)
@@ -65,11 +65,11 @@
           (,@(if (null unit)
                  '(progn)
                  `(with-texture-unit ,unit))
-             (gl:bind-texture (target-of ,place) (id-of ,place))
+             (gl:bind-texture (target-of ,place) (handle-value-of ,place))
              (let ((*active-texture* ,place))
                ,@body))
        (if-bound *active-texture*
-                 (gl:bind-texture (target-of *active-texture*) (id-of *active-texture*))
+                 (gl:bind-texture (target-of *active-texture*) (handle-value-of *active-texture*))
                  (gl:bind-texture (target-of ,place) 0)))))
 
 

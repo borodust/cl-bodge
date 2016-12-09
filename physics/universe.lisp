@@ -14,7 +14,7 @@
 
 (defun %register-geom (universe geom)
   (with-slots (geoms) universe
-    (setf (gethash (cffi:pointer-address (ptr (id-of geom))) geoms) geom)))
+    (setf (gethash (cffi:pointer-address (ptr (handle-value-of geom))) geoms) geom)))
 
 
 (defun %register-collision-callback (universe callback)

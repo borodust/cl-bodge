@@ -4,14 +4,14 @@
 (declaim (special *active-vertex-array*))
 
 
+(defhandle vertex-array-handle
+    :initform (gl:gen-vertex-array)
+    :closeform (gl:delete-vertex-arrays (list *handle-value*)))
+
+
 (defclass vertex-array (gl-object)
   ((vertex-count :initform 0 :initarg :vertex-count :reader vertex-count-of))
-  (:default-initargs :id (gl:gen-vertex-array)))
-
-
-(define-destructor vertex-array ((id id-of) (sys system-of))
-  (-> (sys :priority :low)
-    (gl:delete-vertex-arrays (list id))))
+  (:default-initargs :handle (make-vertex-array-handle)))
 
 
 (define-system-function make-vertex-array graphics-system (vertex-count &key (system *system*))
@@ -22,10 +22,10 @@
   (once-only (vertex-array)
     `(unwind-protect
           (let ((*active-vertex-array* ,vertex-array))
-            (gl:bind-vertex-array (id-of ,vertex-array))
+            (gl:bind-vertex-array (handle-value-of ,vertex-array))
             ,@body)
        (gl:bind-vertex-array (if-bound *active-vertex-array*
-                                       (id-of *active-vertex-array*)
+                                       (handle-value-of *active-vertex-array*)
                                        0)))))
 
 

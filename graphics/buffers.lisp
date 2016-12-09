@@ -3,17 +3,17 @@
 
 (declaim (special *active-buffer*))
 
+
+(defhandle buffer-handle
+    :initform (gl:gen-buffer)
+    :closeform (gl:delete-buffers (list *handle-value*)))
+
 ;;
 ;;
 (defclass buffer (gl-object)
   ((target :initarg :target :initform (error "Buffer target should be provided")
            :reader target-of))
-  (:default-initargs :id (gl:gen-buffer)))
-
-
-(define-destructor buffer ((id id-of) (sys system-of))
-  (-> (sys :priority :low)
-    (gl:delete-buffers (list id))))
+  (:default-initargs :handle (make-buffer-handle)))
 
 
 (defgeneric attach-array-buffer (buffer target index))
@@ -23,11 +23,11 @@
   (once-only (buffer)
     `(unwind-protect
           (progn
-            (gl:bind-buffer (target-of ,buffer) (id-of ,buffer))
+            (gl:bind-buffer (target-of ,buffer) (handle-value-of ,buffer))
             (let ((*active-buffer* ,buffer))
               ,@body))
        (if-bound *active-buffer*
-                 (gl:bind-buffer (target-of *active-buffer*) (id-of *active-buffer*))
+                 (gl:bind-buffer (target-of *active-buffer*) (handle-value-of *active-buffer*))
                  (gl:bind-buffer (target-of ,buffer) 0)))))
 
 ;;

@@ -110,6 +110,7 @@
                (:file "mesh")
                (:file "shading")
                (:file "textures")
+               (:file "framebuffer")
                (:file "system")))
 
 

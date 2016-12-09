@@ -12,13 +12,12 @@
     (:tessellation-evaluation-shader :tess-evaluation-shader)))
 
 
+(defhandle shader-handle
+    :closeform (gl:delete-shader *handle-value*))
+
+
 (defclass shader (gl-object)
   ((type :initarg :type :reader shader-type-of)))
-
-
-(define-destructor shader ((id id-of) (sys system-of))
-  (-> (sys :priority :low)
-    (gl:delete-shader id)))
 
 
 (defun %compile-shader (type source name)
@@ -33,7 +32,9 @@
 
 
 (defmethod initialize-instance ((this shader) &key type source system (name ""))
-  (call-next-method this :id (%compile-shader type source name) :system system :type type))
+  (call-next-method this
+                    :handle (make-shader-handle (%compile-shader type source name))
+                    :system system :type type))
 
 
 (define-system-function compile-shader graphics-system (shader-source &key (system *system*))
@@ -50,35 +51,35 @@
 ;;;
 ;;;
 ;;;
+(defhandle shading-progrm-handle
+    :initform (gl:create-program)
+    :closeform (gl:delete-program *handle-value*))
+
+
 (defclass shading-program (gl-object) ()
-  (:default-initargs :id (gl:create-program)))
-
-
-(define-destructor shading-program ((id id-of) (sys system-of))
-  (-> (sys :priority :low)
-    (gl:delete-program id)))
+  (:default-initargs :handle (make-shading-progrm-handle)))
 
 
 (defun %make-program (this shader-sources precompiled-shaders)
-  (let* ((program (id-of this))
+  (let* ((program (handle-value-of this))
          (shaders (loop for src in shader-sources collect
                        (compile-shader src)))
          (all-shaders (append precompiled-shaders shaders)))
     (unwind-protect
          (loop for shader in all-shaders do
-              (gl:attach-shader program (id-of shader)))
+              (gl:attach-shader program (handle-value-of shader)))
       (gl:link-program program)
       (unless (gl:get-program program :link-status)
         (error "Program linking failed:~%~a" (gl:get-program-info-log program)))
       (loop for shader in all-shaders do
-           (gl:detach-shader program (id-of shader)))
+           (gl:detach-shader program (handle-value-of shader)))
       (loop for shader in shaders do
            (dispose shader)))))
 
 
 (defmethod initialize-instance :after ((this shading-program)
                                        &key shader-sources shaders separable-p)
-  (gl:program-parameteri (id-of this) :program-separable separable-p)
+  (gl:program-parameteri (handle-value-of this) :program-separable separable-p)
   (%make-program this shader-sources shaders))
 
 
@@ -106,7 +107,7 @@
 
 
 (defun use-shading-program (program)
-  (gl:use-program (id-of program)))
+  (gl:use-program (handle-value-of program)))
 
 
 (defmacro with-using-shading-program ((program &optional prev-program) &body body)
@@ -117,29 +118,29 @@
             ,@body)
        ,(if (null prev-program)
             `(if-bound *active-shading-program*
-                       (gl:use-program (id-of *active-shading-program*))
+                       (gl:use-program (handle-value-of *active-shading-program*))
                        (gl:use-program 0))
-            `(gl:use-program (id-of ,prev-program))))))
+            `(gl:use-program (handle-value-of ,prev-program))))))
 
 
 (defun valid-shading-program-p (program)
-  (and (not (null program)) (gl:is-program (id-of program))))
+  (and (not (null program)) (gl:is-program (handle-value-of program))))
 
 
 #|
 ;; fixme: find out appropriate return type
 (defun program-uniform-variable (program variable-name)
-  (when-let ((variable-idx (gl:get-uniform-location (id-of program) variable-name)))
-    (gl:get-active-uniform (id-of program) variable-idx)))
+  (when-let ((variable-idx (gl:get-uniform-location (handle-value-of program) variable-name)))
+    (gl:get-active-uniform (handle-value-of program) variable-idx)))
 |#
 
 (defun (setf program-uniform-variable) (value program variable-name)
-  (when-let ((variable-idx (gl:get-uniform-location (id-of program) variable-name)))
+  (when-let ((variable-idx (gl:get-uniform-location (handle-value-of program) variable-name)))
     (etypecase value
-      (integer (gl:program-uniformi (id-of program) variable-idx value))
-      (single-float (gl:program-uniformf (id-of program) variable-idx value))
-      (vec (gl:program-uniformfv (id-of program) variable-idx (vec->array value)))
-      (square-mat (gl:program-uniform-matrix (id-of program) variable-idx
+      (integer (gl:program-uniformi (handle-value-of program) variable-idx value))
+      (single-float (gl:program-uniformf (handle-value-of program) variable-idx value))
+      (vec (gl:program-uniformfv (handle-value-of program) variable-idx (vec->array value)))
+      (square-mat (gl:program-uniform-matrix (handle-value-of program) variable-idx
                                              (square-matrix-size value)
                                              (vector (mat->array value)) nil)))))
 
@@ -147,28 +148,29 @@
 ;;;
 ;;; Shading program pipeline
 ;;;
+(defhandle shading-pipeline-handle
+    :initform (gl:gen-program-pipeline)
+    :closeform (gl:delete-program-pipelines (list *handle-value*)))
+
+
 (defclass shading-pipeline (gl-object) ()
-  (:default-initargs :id (gl:gen-program-pipeline)))
-
-
-(define-destructor shading-pipeline ((id id-of) (sys system-of))
-  (-> (sys :priority :low)
-    (gl:delete-program-pipelines (list id))))
+  (:default-initargs :handle (make-shading-pipeline-handle)))
 
 
 (define-system-function make-shading-pipeline graphics-system (&key (system *system*))
   (make-instance 'shading-pipeline :system system))
 
+
 (defmacro with-bound-shading-pipeline ((pipeline) &body body)
   (once-only (pipeline)
     `(unwind-protect
           (let ((*active-shading-pipeline* ,pipeline))
-            (gl:bind-program-pipeline (id-of ,pipeline))
+            (gl:bind-program-pipeline (handle-value-of ,pipeline))
             ,@body)
        (if-bound *active-shading-pipeline*
-           (gl:bind-program-pipeline (id-of *active-shading-pipeline*))
+           (gl:bind-program-pipeline (handle-value-of *active-shading-pipeline*))
            (gl:bind-program-pipeline 0)))))
 
 
 (defun use-shading-program-stages (pipeline program &rest stages)
-  (apply #'gl:use-program-stages (id-of pipeline) (id-of program) stages))
+  (apply #'gl:use-program-stages (handle-value-of pipeline) (handle-value-of program) stages))

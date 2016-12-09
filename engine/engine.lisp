@@ -203,3 +203,47 @@
   (call-next-method)
   (with-slots (enabled-p) this
     (setf enabled-p nil)))
+
+
+;;;
+;;;
+;;;
+(defclass handle ()
+  ((value :initarg :value :initform (error ":value initarg missing") :reader value-of)))
+
+
+(defclass foreign-object (disposable system-object)
+  ((handle :initarg :handle :initform (error "foreign object :handle must be supplied")
+           :reader handle-of)))
+
+
+(definline handle-value-of (foreign-object)
+  (with-slots (handle) foreign-object
+    (value-of handle)))
+
+
+(defgeneric destroy-foreign-object (handle))
+
+
+(declaim (special *handle-value*))
+
+
+(defmacro defhandle (name &key (initform nil)
+                            (closeform (error ":closeform must be supplied")))
+  (with-gensyms (handle value)
+    `(progn
+       (defclass ,name (handle) ())
+
+       (defmethod destroy-foreign-object ((,handle ,name))
+         (let ((*handle-value* (value-of ,handle)))
+           ,closeform))
+
+       (definline ,(symbolicate 'make- name) (&optional ,value)
+         (make-instance ',name :value (or ,value ,initform
+                                          (error "value or :initform must be provided")))))))
+
+
+
+(define-destructor foreign-object ((handle handle-of) (sys system-of))
+  (-> (sys :priority :low :important t)
+    (destroy-foreign-object handle)))

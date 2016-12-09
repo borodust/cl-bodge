@@ -1,15 +1,13 @@
 (in-package :cl-bodge.audio)
 
 
+(defhandle audio-buffer-handle
+    :initform (al:gen-buffer)
+    :closeform (al:delete-buffer *handle-value*))
 
 
 (defclass audio-buffer (al-object) ()
-  (:default-initargs :id (al:gen-buffer)))
-
-
-(define-destructor audio-buffer ((id id-of) (sys system-of))
-  (-> (sys :priority :low)
-    (al:delete-buffer id)))
+  (:default-initargs :handle (make-audio-buffer-handle)))
 
 
 (defmethod initialize-instance :after ((this audio-buffer)
@@ -20,7 +18,7 @@
                         (16 :int16)))
         (foreign-size (* (/ sample-depth 8) (length pcm-data))))
     (cffi:with-foreign-array (raw-data pcm-data (list :array foreign-type (length pcm-data)))
-      (al:buffer-data (id-of this) pcm-format raw-data foreign-size sampling-rate))))
+      (al:buffer-data (handle-value-of this) pcm-format raw-data foreign-size sampling-rate))))
 
 
 

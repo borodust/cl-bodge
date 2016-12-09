@@ -73,9 +73,6 @@
 
 
 ;;
-(defclass thread-bound-object (system-object) ())
-
-
 (defmacro define-system-function (name system-class lambda-list &body body)
   (multiple-value-bind (forms decls doc) (parse-body body :documentation t)
     `(defun ,name ,lambda-list

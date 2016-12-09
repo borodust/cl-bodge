@@ -4,8 +4,8 @@
 (defgeneric render (renderable))
 
 
-(defclass gl-object (disposable thread-bound-object)
-  ((id :initarg :id :reader id-of)))
+(defclass gl-object (foreign-object) ())
+
 
 
 ;; up to 2 dimensions

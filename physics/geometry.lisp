@@ -1,6 +1,10 @@
 (in-package :cl-bodge.physics)
 
 
+(defhandle geom-handle
+    :closeform (%ode:geom-destroy *handle-value*))
+
+
 (defclass geom (ode-object)
   ())
 
@@ -10,21 +14,16 @@
   (%register-geom (universe) this))
 
 
-(define-destructor geom ((id id-of) (sys system-of))
-  (-> (sys :priority :low)
-    (%ode:geom-destroy id)))
-
-
 (defmethod enable ((this geom))
-  (%ode:geom-enable (id-of this)))
+  (%ode:geom-enable (handle-value-of this)))
 
 
 (defmethod disable ((this geom))
-  (%ode:geom-disable (id-of this)))
+  (%ode:geom-disable (handle-value-of this)))
 
 
 (defmethod enabledp ((this geom))
-  (> (%ode:geom-is-enabled (id-of this)) 0))
+  (> (%ode:geom-is-enabled (handle-value-of this)) 0))
 
 ;;;
 ;;;
@@ -34,7 +33,7 @@
 
 (defgeneric bind-geom (geom rigid-body)
   (:method ((this volume-geom) rigid-body)
-    (%ode:geom-set-body (id-of this) (id-of rigid-body))))
+    (%ode:geom-set-body (handle-value-of this) (handle-value-of rigid-body))))
 
 ;;;
 ;;;
@@ -45,7 +44,7 @@
 (define-system-function make-sphere-geom physics-system (radius &key (system *system*))
   (make-instance 'sphere-geom
                  :system system
-                 :id (%ode:create-sphere (space-of (universe)) radius)))
+                 :handle (make-geom-handle (%ode:create-sphere (space-of (universe)) radius))))
 
 
 ;;;
@@ -57,7 +56,7 @@
 (define-system-function make-box-geom physics-system (x y z &key (system *system*))
   (make-instance 'box-geom
                  :system system
-                 :id (%ode:create-box (space-of (universe)) x y z)))
+                 :handle (make-geom-handle (%ode:create-box (space-of (universe)) x y z))))
 
 
 
@@ -69,7 +68,7 @@
 
 (define-system-function make-plane-geom physics-system (a b c z &key (system *system*))
   (make-instance 'plane-geom :system system
-                 :id (%ode:create-plane (space-of (universe)) a b c z)))
+                 :handle (make-geom-handle (%ode:create-plane (space-of (universe)) a b c z))))
 
 
 ;;;
@@ -82,7 +81,8 @@
     (radius length &key (system *system*))
   (make-instance 'capped-cylinder-geom
                  :system system
-                 :id (%ode:create-cylinder (space-of (universe)) radius length)))
+                 :handle (make-geom-handle
+                          (%ode:create-cylinder (space-of (universe)) radius length))))
 
 
 ;;;
@@ -92,4 +92,6 @@
 
 
 (define-system-function make-ray-geom physics-system (length &key (system *system*))
-  (make-instance 'ray-geom :system system :id (%ode:create-ray (space-of (universe)) length)))
+  (make-instance 'ray-geom
+                 :system system
+                 :handle (make-geom-handle (%ode:create-ray (space-of (universe)) length))))
