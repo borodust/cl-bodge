@@ -159,7 +159,7 @@
       (dispose executor))))
 
 
-(defmethod dispatch ((this bodge-engine) (task function) &key priority)
+(defmethod dispatch ((this bodge-engine) (task function) &key (priority :medium))
   (with-slots (shared-pool) this
     (execute shared-pool task :priority priority)
     t))
