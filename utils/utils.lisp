@@ -213,11 +213,20 @@
 (defmacro reexporting ((&rest from-packages) into-package &body body)
   (with-gensyms (p sym fn)
     `(eval-when (:compile-toplevel :load-toplevel :execute)
-       (flet ((for-each-exported-symbol (,fn)
-                (dolist (,p ',from-packages)
-                  (loop for ,sym being the external-symbol in ,p do
-                       (funcall ,fn ,sym ,into-package)))))
-       (when (find-package ,into-package)
-         (for-each-exported-symbol #'unexport))
-       ,@body
-       (for-each-exported-symbol #'export)))))
+       (labels ((accessiblep (,sym)
+                  (find-symbol (symbol-name ,sym) ,into-package))
+                (unexport-if-accessible (,sym)
+                  (when (accessiblep ,sym)
+                    (unexport ,sym ,into-package)))
+                (import-export (,sym)
+                  (unless (accessiblep ,sym)
+                    (import ,sym ,into-package))
+                  (export ,sym ,into-package))
+                (for-each-exported-symbol (,fn)
+                  (dolist (,p ',from-packages)
+                    (loop for ,sym being the external-symbol in ,p do
+                         (funcall ,fn ,sym)))))
+         (when (find-package ,into-package)
+           (for-each-exported-symbol #'unexport-if-accessible))
+         ,@body
+         (for-each-exported-symbol #'import-export)))))

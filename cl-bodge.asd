@@ -283,4 +283,5 @@
   :license "MIT"
   :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/events cl-bodge/host
                                cl-bodge/graphics cl-bodge/audio cl-bodge/physics
-                               cl-bodge/resources cl-bodge/assets cl-bodge/scenegraph))
+                               cl-bodge/resources cl-bodge/assets cl-bodge/scenegraph)
+  :components ((:file "packages")))

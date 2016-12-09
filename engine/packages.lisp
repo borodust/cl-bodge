@@ -101,8 +101,7 @@
 
   (defpackage :cl-bodge.engine
     (:nicknames :ge.ng)
-    (:use :cl-bodge.utils :cl-bodge.concurrency :cl-bodge.memory :cl-bodge.math
-          :cl :bordeaux-threads :cl-muth)
+    (:use :cl-bodge.utils :cl :bordeaux-threads :cl-muth)
     (:export system
              enable
              disable
