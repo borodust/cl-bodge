@@ -97,46 +97,45 @@
            quat->rotation-mat4))
 
 
-(ge.util:reexporting (:cl-bodge.concurrency :cl-bodge.memory :cl-bodge.math) :cl-bodge.engine
+(ge.util:define-package :cl-bodge.engine
+  (:nicknames :ge.ng)
+  (:use :cl-bodge.utils :cl :bordeaux-threads :cl-muth)
+  (:reexport-from :cl-bodge.concurrency :cl-bodge.memory :cl-bodge.math)
+  (:export system
+           enable
+           disable
+           enabledp
+           acquire-executor
+           release-executor
+           working-directory
+           merge-working-pathname
 
-  (defpackage :cl-bodge.engine
-    (:nicknames :ge.ng)
-    (:use :cl-bodge.utils :cl :bordeaux-threads :cl-muth)
-    (:export system
-             enable
-             disable
-             enabledp
-             acquire-executor
-             release-executor
-             working-directory
-             merge-working-pathname
+           system-object
+           system-of
+           enableable
 
-             system-object
-             system-of
-             enableable
+           foreign-object
+           handle-value-of
+           destroy-foreign-object
+           defhandle
+           *handle-value*
 
-             foreign-object
-             handle-value-of
-             destroy-foreign-object
-             defhandle
-             *handle-value*
+           generic-system
+           with-system-lock-held
+           initialize-system
+           discard-system
 
-             generic-system
-             with-system-lock-held
-             initialize-system
-             discard-system
+           thread-bound-system
+           make-system-context
+           destroy-system-context
+           *system-context*
+           *system*
+           check-system-context
+           thread-bound-object
+           define-system-function
 
-             thread-bound-system
-             make-system-context
-             destroy-system-context
-             *system-context*
-             *system*
-             check-system-context
-             thread-bound-object
-             define-system-function
-
-             engine-system
-             engine
-             property
-             startup
-             shutdown)))
+           engine-system
+           engine
+           property
+           startup
+           shutdown))

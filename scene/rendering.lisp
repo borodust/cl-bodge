@@ -62,8 +62,13 @@
 
 (defun (setf shading-parameter) (value name)
   (with-slots (bindings) *shading-parameters*
-    (let* ((bracket-pos (position #\[ name))
-           (registration-name (if (null bracket-pos) name (subseq name 0 bracket-pos))))
+    (let* ((bracket-pos (position #\[ name :from-end t))
+           (registration-name (if (null bracket-pos)
+                                  name
+                                  (format nil "~a[0]~a"
+                                          (subseq name 0 bracket-pos)
+                                          (subseq name (1+ (position #\] name
+                                                                     :start bracket-pos)))))))
       (with-hash-entries ((programs registration-name)) bindings
         (when (null programs)
           (error "Parameter with name '~a' is unbound" name))
@@ -162,7 +167,7 @@
 (defclass shading-program-node (scene-node)
   ((program :initform nil)
    (sources :initarg :sources)
-   (parameters :initarg :parameters :initform '())))
+   (parameters :initform '())))
 
 
 (defmethod node-enabled-p ((this shading-program-node))
@@ -172,8 +177,9 @@
 
 (defmethod initialize-node :after ((this shading-program-node)
                                    (sys graphics-system))
-  (with-slots (program sources) this
-    (setf program (build-shading-program sources))))
+  (with-slots (program sources parameters) this
+    (setf program (build-shading-program sources)
+          parameters (mapcar #'uniform-name (uniforms-of program)))))
 
 
 (defmethod discard-node :before ((this shading-program-node))

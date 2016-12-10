@@ -69,7 +69,8 @@
              (let ((*active-texture* ,place))
                ,@body))
        (if-bound *active-texture*
-                 (gl:bind-texture (target-of *active-texture*) (handle-value-of *active-texture*))
+                 (gl:bind-texture (target-of *active-texture*)
+                                  (handle-value-of *active-texture*))
                  (gl:bind-texture (target-of ,place) 0)))))
 
 
@@ -117,3 +118,31 @@
                      :generate-mipmaps-p generate-mipmaps-p
                      :width width
                      :height height))))
+
+
+;;;
+;;;
+;;;
+(defclass blank-image ()
+  ((size :initform nil)))
+
+
+(defmethod initialize-instance :after ((this blank-image) &key width height)
+  (with-slots (size) this
+    (setf size (list width height))))
+
+
+(definline make-blank-image (width height)
+  (make-instance 'blank-image :width width :height height))
+
+
+(defmethod pixel-format-of ((this blank-image))
+  :grey)
+
+
+(defmethod size-of ((this blank-image))
+  (slot-value this 'size))
+
+
+(defmethod image->array ((this blank-image))
+  nil)

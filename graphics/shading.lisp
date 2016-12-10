@@ -56,8 +56,27 @@
     :closeform (gl:delete-program *handle-value*))
 
 
-(defclass shading-program (gl-object) ()
+(defstruct (uniform-descriptor
+             (:conc-name uniform-)
+             (:constructor make-uniform-descriptor (name type size)))
+  (name nil :read-only t)
+  (type nil :read-only t)
+  (size nil :read-only t))
+
+
+(defclass shading-program (gl-object)
+  ((uniforms :initform nil :reader uniforms-of))
   (:default-initargs :handle (make-shading-progrm-handle)))
+
+
+(defun introspect-program (shading-program)
+  (with-slots (uniforms) shading-program
+    (let* ((pid (handle-value-of shading-program))
+           (uniform-count (gl:get-program pid :active-uniforms)))
+      (setf uniforms (loop for uniform-id from 0 below uniform-count collect
+                          (multiple-value-bind (usize utype uname)
+                              (gl:get-active-uniform pid uniform-id)
+                            (make-uniform-descriptor uname utype usize)))))))
 
 
 (defun %make-program (this shader-sources precompiled-shaders)
@@ -80,7 +99,8 @@
 (defmethod initialize-instance :after ((this shading-program)
                                        &key shader-sources shaders separable-p)
   (gl:program-parameteri (handle-value-of this) :program-separable separable-p)
-  (%make-program this shader-sources shaders))
+  (%make-program this shader-sources shaders)
+  (introspect-program this))
 
 
 (define-system-function make-shading-program graphics-system

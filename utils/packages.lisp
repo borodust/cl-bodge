@@ -50,4 +50,6 @@
            dotree
            search-sorted
            list->array
-           reexporting))
+           reexporting
+           define-package
+           when-debugging))

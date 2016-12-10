@@ -12,6 +12,12 @@
            `(float ,sexp 0f0))))))
 
 
+(defmacro when-debugging (&body body)
+  (declare (ignorable body))
+  #+bodge-development-mode
+  `(progn ,@body))
+
+
 (defmacro log-errors (&body body)
   (with-gensyms (name)
     `(block ,name
@@ -20,6 +26,8 @@
                                                (format stream "Unhandled error:~%")
                                                (dissect:present e stream))))
                              (log:error "~a" error-text)
+                             (when-debugging
+                               (break))
                              (return-from ,name)))))
          (progn ,@body)))))
 
@@ -233,3 +241,19 @@
            (for-each-exported-symbol #'unexport-if-accessible))
          ,@body
          (for-each-exported-symbol #'import-export)))))
+
+
+(defmacro define-package (name &body options)
+  (flet ((extension-p (opt)
+           (and (listp opt)
+                (case (car opt)
+                  ((:reexport-from) t)))))
+    (multiple-value-bind (std ext) (loop for opt in options
+                                      if (extension-p opt) collect opt into ext
+                                      else collect opt into std
+                                      finally (return (values std ext)))
+      (destructuring-bind (&key reexport-from) (alist-plist ext)
+        (if (null reexport-from)
+            `(defpackage ,name ,@std)
+            `(reexporting ,reexport-from ,name
+               (defpackage ,name ,@std)))))))

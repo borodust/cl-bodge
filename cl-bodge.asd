@@ -100,7 +100,7 @@
   :mailto "dev@borodust.org"
   :license "MIT"
   :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/host cl-bodge/graphics-resources cl-opengl
-                               log4cl local-time)
+                               log4cl local-time cffi)
   :pathname "graphics"
   :serial t
   :components ((:file "packages")
@@ -237,6 +237,19 @@
                (:file "model")))
 
 
+(defsystem cl-bodge/interactions
+  :description "Bodacious Game Engine user interfaces"
+  :version "0.3.0"
+  :author "Pavel Korolev"
+  :mailto "dev@borodust.org"
+  :license "MIT"
+  :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/graphics)
+  :pathname "ui"
+  :serial t
+  :components ((:file "packages")
+               (:file "poiu")))
+
+
 (defsystem cl-bodge/distribution
   :description "Bodacious Game Engine distribution helpers"
   :version "0.3.0"
@@ -283,5 +296,6 @@
   :license "MIT"
   :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/events cl-bodge/host
                                cl-bodge/graphics cl-bodge/audio cl-bodge/physics
-                               cl-bodge/resources cl-bodge/assets cl-bodge/scenegraph)
+                               cl-bodge/resources cl-bodge/assets cl-bodge/scenegraph
+                               cl-bodge/interactions)
   :components ((:file "packages")))

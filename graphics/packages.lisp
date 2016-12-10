@@ -26,6 +26,8 @@
            make-separable-shading-program
            link-separable-shading-program
            build-separable-shading-program
+           uniforms-of
+           uniform-name
 
            use-shading-program
            with-using-shading-program
@@ -35,6 +37,8 @@
            with-texture-unit
            make-2d-texture
            wrap-mode-of
+
+           make-blank-image
 
            make-shading-pipeline
            use-shading-program-stages
