@@ -151,7 +151,7 @@
 ;; fixme: find out appropriate return type
 (defun program-uniform-variable (program variable-name)
   (when-let ((variable-idx (gl:get-uniform-location (handle-value-of program) variable-name)))
-    (gl:get-active-uniform (handle-value-of program) variable-idx)))
+    (gl:get-uniform (handle-value-of program) variable-idx)))
 |#
 
 (defun (setf program-uniform-variable) (value program variable-name)

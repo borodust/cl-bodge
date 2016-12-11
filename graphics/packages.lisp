@@ -42,4 +42,18 @@
 
            make-shading-pipeline
            use-shading-program-stages
-           with-bound-shading-pipeline))
+           with-bound-shading-pipeline
+
+           make-framebuffer
+           with-bound-framebuffer
+           attach-color-buffer
+           attach-depth-buffer
+           attach-stencil-buffer
+           attach-depth-stencil-buffer
+           detach-color-buffer
+           detach-depth-buffer
+           detach-stencil-buffer
+           detach-depth-stencil-buffer
+           with-complete-framebuffer
+
+           make-renderbuffer))

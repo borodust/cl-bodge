@@ -6,7 +6,7 @@
 
 
 (defenum texture-format
-  :grey :rgb :rgba)
+  :grey :rgb :rgba :depth :depth16)
 
 
 (defun %pixel-format->external-format (value)
@@ -20,7 +20,9 @@
   (ecase value
     (:grey :r8)
     (:rgb :rgb8)
-    (:rgba :rgba8)))
+    (:rgba :rgba8)
+    (:depth16 :depth-component16)
+    (:depth :depth-component32)))
 
 
 (defenum texture-wrap-mode
@@ -54,9 +56,7 @@
             (use-texture-unit ,value)
             (let ((*active-texture-unit* ,value))
                   ,@body))
-       (if-bound *active-texture-unit*
-                 (use-texture-unit *active-texture-unit*)
-                 (use-texture-unit ,value)))))
+       (use-texture-unit (bound-symbol-value *active-texture-unit* 0)))))
 
 
 (defmacro with-bound-texture ((place &optional (unit nil)) &body body)
@@ -80,8 +80,6 @@
       (gl:tex-parameter target :texture-wrap-s mode)
       (gl:tex-parameter target :texture-wrap-t mode)
       (gl:tex-parameter target :texture-wrap-r mode))))
-
-
 
 ;;;
 ;;;
@@ -141,7 +139,7 @@
 
 
 (defmethod size-of ((this blank-image))
-  (slot-value this 'size))
+  (values-list (slot-value this 'size)))
 
 
 (defmethod image->array ((this blank-image))

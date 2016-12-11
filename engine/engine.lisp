@@ -1,5 +1,8 @@
 (in-package :cl-bodge.engine)
 
+
+(declaim (special *system*))
+
 ;;
 (defclass bodge-engine ()
   ((systems :initform nil)
@@ -10,6 +13,7 @@
    (disabling-order :initform '())))
 
 (defvar *engine* (make-instance 'bodge-engine))
+
 
 (definline engine ()
   *engine*)
@@ -79,7 +83,6 @@
 (defun property (key &optional (default-value nil))
   (with-slots (properties) *engine*
     (%get-property key properties default-value)))
-
 
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
@@ -178,7 +181,7 @@
 
 (defmethod initialize-instance :after ((this system-object) &key system)
   (with-slots ((this-system system)) this
-    (setf this-system (tg:make-weak-pointer (ensure-not-null system)))))
+    (setf this-system (tg:make-weak-pointer (ensure-not-null (or system *system*))))))
 
 
 ;;;
@@ -243,7 +246,23 @@
                                           (error "value or :initform must be provided")))))))
 
 
-
 (define-destructor foreign-object ((handle handle-of) (sys system-of))
   (-> (sys :priority :low :important-p t)
     (destroy-foreign-object handle)))
+
+
+(defmacro define-system-function (name system-class lambda-list &body body)
+  (multiple-value-bind (forms decls doc) (parse-body body :documentation t)
+    `(defun ,name ,lambda-list
+       ,@(when doc (list doc))
+       ,@decls
+       (when-debugging
+         (cond
+           ((or (not (boundp '*system*)) (null *system*))
+            (error (concatenate 'string "~a executed in the wrong system thread:"
+                                " *system* unbound or nil, but ~a required")
+                   ',name ',system-class))
+           ((not (subtypep (class-of *system*) ',system-class))
+            (error "~a executed in the wrong system thread: required ~a, but got ~a"
+                   ',name ',system-class (and (class-name (class-of *system*)))))))
+       ,@forms)))

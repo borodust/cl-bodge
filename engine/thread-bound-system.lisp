@@ -1,8 +1,7 @@
 (in-package :cl-bodge.engine)
 
 
-(declaim (special *system-context*
-                  *system*))
+(declaim (special *system-context*))
 
 
 (defclass thread-bound-system (enableable generic-system)
@@ -64,20 +63,3 @@
              :priority :highest))
   (release-system-executor this (%executor-of this))
   (call-next-method))
-
-
-(defmacro define-system-function (name system-class lambda-list &body body)
-  (multiple-value-bind (forms decls doc) (parse-body body :documentation t)
-    `(defun ,name ,lambda-list
-       ,@(when doc (list doc))
-       ,@decls
-       (when-debugging
-         (cond
-           ((or (not (boundp '*system*)) (null *system*))
-            (error (concatenate 'string "~a executed in the wrong system thread:"
-                                " *system* unbound or nil, but ~a required")
-                   ',name ',system-class))
-           ((not (subtypep (class-of *system*) ',system-class))
-            (error "~a executed in the wrong system thread: required ~a, but got ~a"
-                   ',name ',system-class (and (class-name (class-of *system*)))))))
-       ,@forms)))
