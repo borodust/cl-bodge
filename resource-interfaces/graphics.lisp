@@ -6,6 +6,7 @@
   (:use :cl-bodge.utils
         :cl)
   (:export pixel-format
+           pixel-format-p
 
            pixel-format-of
            image->array

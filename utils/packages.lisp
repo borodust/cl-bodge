@@ -52,4 +52,5 @@
            list->array
            reexporting
            define-package
-           when-debugging))
+           when-debugging
+           flatten-array))

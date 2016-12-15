@@ -11,6 +11,11 @@
     (error "Unknown chunk type: ~a" chunk-type)))
 
 
+(defgeneric read-chunk-data (chunk-type parameters stream)
+  (:method (chunk-type parameters stream)
+    (read (flexi-streams:make-flexi-stream stream :external-format :utf-8))))
+
+
 (defun push-object (id obj)
   (setf (gethash id *objects*) obj))
 
@@ -98,20 +103,23 @@
   (flet ((resolve-references (resolvers)
            (dolist (fn resolvers)
              (funcall fn))))
-    (with-open-file (in (fad:canonical-pathname path))
-      (destructuring-bind (format version) (read in)
-        (unless (eq :brf format)
-          (error "Unknown format: ~a" format))
-        (unless (eql 1 version)
-          (error "Unsupported version: ~a" version))
-        (let* ((*objects* (make-hash-table :test 'equal))
-               (*resource-path* path)
-               (*resolvers* '())
-               (chunk-table (make-hash-table)))
-          (loop for chunk-header = (read in nil nil)
-             until (null chunk-header) do
-               (destructuring-bind (chunk-type &rest parameters) chunk-header
-                 (with-hash-entries ((chunks chunk-type)) chunk-table
-                   (push (parse-chunk chunk-type parameters (read in)) chunks))))
-          (resolve-references *resolvers*)
-          (make-instance 'resource :chunks chunk-table))))))
+    (with-open-file (in (fad:canonical-pathname path) :element-type '(unsigned-byte 8))
+      (let ((char-stream (flexi-streams:make-flexi-stream in :external-format :utf-8)))
+        (destructuring-bind (format version) (read char-stream)
+          (unless (eq :brf format)
+            (error "Unknown format: ~a" format))
+          (unless (eql 1 version)
+            (error "Unsupported version: ~a" version))
+          (let* ((*objects* (make-hash-table :test 'equal))
+                 (*resource-path* path)
+                 (*resolvers* '())
+                 (chunk-table (make-hash-table)))
+            (loop for chunk-header = (read-preserving-whitespace char-stream nil nil nil)
+               until (null chunk-header) do
+                 (destructuring-bind (chunk-type &rest parameters) chunk-header
+                   (with-hash-entries ((chunks chunk-type)) chunk-table
+                     (push (parse-chunk chunk-type parameters
+                                        (read-chunk-data chunk-type parameters in))
+                           chunks))))
+            (resolve-references *resolvers*)
+            (make-instance 'resource :chunks chunk-table)))))))

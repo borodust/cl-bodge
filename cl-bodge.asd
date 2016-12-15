@@ -181,7 +181,7 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/graphics-resources
+  :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/graphics-resources flexi-streams
                                cl-bodge/audio-resources bodge-sndfile log4cl cl-fad opticl)
   :pathname "resources"
   :serial t
@@ -212,6 +212,19 @@
                          (:file "lighting")
                          (:file "skinning")))
                (:file "distribution")
+               (:file "system")))
+
+
+(defsystem cl-bodge/text
+  :description "Bodacious Game Engine text rendering"
+  :version "0.3.0"
+  :author "Pavel Korolev"
+  :mailto "dev@borodust.org"
+  :license "MIT"
+  :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/graphics cl-bodge/assets log4cl)
+  :pathname "text"
+  :serial t
+  :components ((:file "packages")
                (:file "system")))
 
 
