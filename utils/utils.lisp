@@ -221,44 +221,6 @@
                    :initial-contents list)))))
 
 
-(defmacro reexporting ((&rest from-packages) into-package &body body)
-  (with-gensyms (p sym fn)
-    `(eval-when (:compile-toplevel :load-toplevel :execute)
-       (labels ((accessiblep (,sym)
-                  (find-symbol (symbol-name ,sym) ,into-package))
-                (unexport-if-accessible (,sym)
-                  (when (accessiblep ,sym)
-                    (unexport ,sym ,into-package)))
-                (import-export (,sym)
-                  (unless (accessiblep ,sym)
-                    (import ,sym ,into-package))
-                  (export ,sym ,into-package))
-                (for-each-exported-symbol (,fn)
-                  (dolist (,p ',from-packages)
-                    (loop for ,sym being the external-symbol in ,p do
-                         (funcall ,fn ,sym)))))
-         (when (find-package ,into-package)
-           (for-each-exported-symbol #'unexport-if-accessible))
-         ,@body
-         (for-each-exported-symbol #'import-export)))))
-
-
-(defmacro define-package (name &body options)
-  (flet ((extension-p (opt)
-           (and (listp opt)
-                (case (car opt)
-                  ((:reexport-from) t)))))
-    (multiple-value-bind (std ext) (loop for opt in options
-                                      if (extension-p opt) collect opt into ext
-                                      else collect opt into std
-                                      finally (return (values std ext)))
-      (destructuring-bind (&key reexport-from) (alist-plist ext)
-        (if (null reexport-from)
-            `(defpackage ,name ,@std)
-            `(reexporting ,reexport-from ,name
-               (defpackage ,name ,@std)))))))
-
-
 (defun flatten-array (array)
   (let* ((dims (array-dimensions array)))
     (labels ((total-offset (offsets sizes)

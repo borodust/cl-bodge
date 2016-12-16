@@ -11,7 +11,7 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (alexandria log4cl local-time dissect)
+  :depends-on (alexandria uiop log4cl local-time dissect split-sequence)
   :pathname "utils"
   :serial t
   :components ((:file "packages")
@@ -191,7 +191,8 @@
                (:file "simple-model-chunk")
                (:file "shader-source")
                (:file "image")
-               (:file "audio")))
+               (:file "audio")
+               (:file "font")))
 
 
 (defsystem cl-bodge/assets
@@ -221,11 +222,16 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/graphics cl-bodge/assets log4cl)
+  :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/graphics cl-bodge/assets log4cl
+                               cl-bodge/assets)
   :pathname "text"
   :serial t
   :components ((:file "packages")
-               (:file "system")))
+               (:file "font")
+               (:file "text")
+               (:module shaders
+                        :components
+                        ((:file "text")))))
 
 
 (defsystem cl-bodge/scenegraph
@@ -310,5 +316,5 @@
   :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/events cl-bodge/host
                                cl-bodge/graphics cl-bodge/audio cl-bodge/physics
                                cl-bodge/resources cl-bodge/assets cl-bodge/scenegraph
-                               cl-bodge/interactions)
+                               cl-bodge/interactions cl-bodge/text)
   :components ((:file "packages")))

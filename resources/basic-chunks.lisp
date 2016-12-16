@@ -3,13 +3,13 @@
 ;;;
 ;;;
 ;;;
-(define-chunk-structure (mesh-bone)
+(define-chunk-structure mesh-bone
   index
   offset
   (bone :reference))
 
 
-(define-chunk-structure (mesh-chunk)
+(define-chunk-structure mesh-chunk
   face arrays indexes transform
   (bones mesh-bone))
 

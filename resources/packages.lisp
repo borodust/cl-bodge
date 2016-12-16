@@ -36,4 +36,21 @@
            animation-chunk-id
            animation-chunk-children
            keyframe-sequence-bone
-           keyframe-sequence-children))
+           keyframe-sequence-children
+
+           image-chunks-of
+           image-chunk-name
+           image-chunk-image
+
+           font-atlas-chunks-of
+           font-atlas-chunk-image-name
+           font-atlas-chunk-ascender
+           font-atlas-chunk-descender
+           font-atlas-chunk-line-gap
+           font-atlas-chunk-children
+
+           glyph-metrics-character
+           glyph-metrics-origin
+           glyph-metrics-bounding-box
+           glyph-metrics-advance-width
+           glyph-metrics-kernings))

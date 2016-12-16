@@ -43,51 +43,52 @@
             *resolvers*))))
 
 
-(defmacro define-chunk-structure ((name &optional treep child-type) &body slots)
+(defmacro define-chunk-structure (name-and-opts &body slots)
   (with-gensyms (obj)
-    (let ((ctor-name (symbolicate '%make- name))
-          (slot-names (loop for slot in slots collecting
-                           (if (listp slot)
-                               (first slot)
-                               slot)))
-          (required-slots (if treep
-                              '(id children)
-                              '(id))))
-      (flet ((%ensure-list (arg-list)
-               `(let ((args ,(if treep
-                                 `(first ,arg-list)
-                                 `,arg-list)))
-                  (ensure-list args)))
-             (redefine-slot (slot id)
-               (destructuring-bind (slot-name type) slot
-                 `(,slot-name
-                   ,(if (eq :reference type)
-                        `(%push-resolver #'(setf ,(symbolicate name '- slot-name))
-                                         ,id
-                                         ,slot-name)
-                        `(%map-value ,slot-name #',(symbolicate 'make- type)))))))
-        `(progn
-           (defstruct (,name
-                        (:constructor ,ctor-name (,@required-slots ,@slot-names)))
-             ,@required-slots
-             ,@slot-names)
+    (destructuring-bind (name &optional treep child-type) (ensure-list name-and-opts)
+      (let ((ctor-name (symbolicate '%make- name))
+            (slot-names (loop for slot in slots collecting
+                             (if (listp slot)
+                                 (first slot)
+                                 slot)))
+            (required-slots (if treep
+                                '(id children)
+                                '(id))))
+        (flet ((%ensure-list (arg-list)
+                 `(let ((args ,(if treep
+                                   `(first ,arg-list)
+                                   `,arg-list)))
+                    (ensure-list args)))
+               (redefine-slot (slot id)
+                 (destructuring-bind (slot-name type) slot
+                   `(,slot-name
+                     ,(if (eq :reference type)
+                          `(%push-resolver #'(setf ,(symbolicate name '- slot-name))
+                                           ,id
+                                           ,slot-name)
+                          `(%map-value ,slot-name #',(symbolicate 'make- type)))))))
+          `(progn
+             (defstruct (,name
+                          (:constructor ,ctor-name (,@required-slots ,@slot-names)))
+               ,@required-slots
+               ,@slot-names)
 
-           (defun ,(symbolicate 'make- name) (arg-list)
-             (destructuring-bind (id &key ,@slot-names) ,(%ensure-list 'arg-list)
-               (with-hash-entries ((,obj id)) *objects*
-                 (unless (null ,obj)
-                   (warn "Redefining object '~a'" id))
-                 (let ,(loop for slot in slots
-                          when (listp slot) collecting
-                            (redefine-slot slot 'id))
-                   (setf ,obj
-                         ,(if treep
-                              `(,ctor-name id ,(if (null child-type)
-                                                   `(rest arg-list)
-                                                   `(mapcar #',(symbolicate 'make- child-type)
-                                                            (rest arg-list)))
-                                           ,@slot-names)
-                              `(,ctor-name id ,@slot-names))))))))))))
+             (defun ,(symbolicate 'make- name) (arg-list)
+               (destructuring-bind (id &key ,@slot-names) ,(%ensure-list 'arg-list)
+                 (with-hash-entries ((,obj id)) *objects*
+                   (unless (null ,obj)
+                     (warn "Redefining object '~a'" id))
+                   (let ,(loop for slot in slots
+                            when (listp slot) collecting
+                              (redefine-slot slot 'id))
+                     (setf ,obj
+                           ,(if treep
+                                `(,ctor-name id ,(if (null child-type)
+                                                     `(rest arg-list)
+                                                     `(mapcar #',(symbolicate 'make- child-type)
+                                                              (rest arg-list)))
+                                             ,@slot-names)
+                                `(,ctor-name id ,@slot-names)))))))))))))
 
 
 (defclass resource ()

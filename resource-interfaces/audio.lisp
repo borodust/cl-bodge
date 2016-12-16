@@ -15,7 +15,6 @@
            audio-sampling-rate-of))
 
 
-
 (in-package :cl-bodge.audio.resources)
 
 

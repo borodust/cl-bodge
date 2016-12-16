@@ -24,7 +24,6 @@
    (types :initarg :shader-types :type library-shader-type)
    (header-path :initarg :header-path)
    (source-path :initarg :source-path)
-   (uniforms :initarg :uniforms :reader uniforms-of)
    (shader-alist :initform nil)))
 
 
@@ -34,8 +33,7 @@
      (fad:pathname-directory-pathname
       (if (fad:pathname-relative-p descriptor-path)
           (fad:merge-pathnames-as-file (assets-root) descriptor-path)
-          (error "descriptor-path of ~a should be relative to :engine-assets property"
-                 (name-of this)))))))
+          descriptor-path)))))
 
 
 (defmethod assets-of ((this shader-library))
@@ -61,8 +59,18 @@
       (values (header-of lib) lib-name))))
 
 
-(defun preprocess (raw-source)
-  (loop with libs and source = raw-source
+(defun process-shader-type-name (type)
+  (ecase type
+    (:vertex-shader "VERTEX_SHADER")
+    (:tessellation-control-shader "TESSELLATION_CONTROL_SHADER")
+    (:tessellation-evaluation-shader "TESSELLATION_EVALUATION_SHADER")
+    (:geometry-shader "GEOMETRY_SHADER")
+    (:fragment-shader "FRAGMENT_SHADER")
+    (:compute-shader "COMPUTE_SHADER")))
+
+
+(defun preprocess (raw-source &optional type)
+  (loop with libs and source = raw-source and type-inserted-p
      for preprocessed-p = nil do
        (setf source
              (with-output-to-string (processed)
@@ -76,6 +84,14 @@
                           (setf preprocessed-p t))
                         (push lib-name libs)
                         (format processed "~%~a" source))))
+                   ((and (not type-inserted-p)
+                         (starts-with-subseq "#version"
+                                             (string-left-trim '(#\Space #\Tab) line))
+                         type
+                         (not (eq type :any-shader)))
+                    (format processed "~a~%#define ~a 1" line (process-shader-type-name type))
+                    (setf preprocessed-p t
+                          type-inserted-p t))
                    (t (format processed "~%~a" line))))))
      while preprocessed-p
      finally (return (values source libs))))
@@ -96,11 +112,12 @@
 (defgeneric header-of (library))
 (defgeneric shader-source (library &optional type))
 
-(flet ((load-source (path base)
+(flet ((load-source (path base &optional type)
          (preprocess (read-file-into-string
                       (if (fad:pathname-absolute-p path)
                           (fad:canonical-pathname path)
-                          (fad:merge-pathnames-as-file base path))))))
+                          (fad:merge-pathnames-as-file base path)))
+                     type)))
 
   (defmethod header-of((this shader-library))
     (with-slots (header-path) this
@@ -116,26 +133,23 @@
                  (type (%select-shader-type (class-name-of this) type shader-types)))
             (make-shader-source (file-namestring (fad:canonical-pathname source-path))
                                 type
-                                (load-source source-path (path-to this))))))))
+                                (load-source source-path (path-to this) type)))))))
 
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defun %descriptor-path ()
-    (fad:pathname-as-file
-     (enough-namestring (or *compile-file-truename* *load-truename*)
-                        (asdf:component-pathname (asdf:find-system :cl-bodge/assets))))))
+    (or *compile-file-truename* *load-truename*)))
 
 
 (defmacro define-shader-library (name &key ((:name glsl-name)) (types :any-shader)
-                                        header source uniforms descriptor-path)
+                                        header source descriptor-path)
   `(progn
      (defclass ,(symbolicate name) (shader-library) ()
        (:default-initargs :descriptor-path ',(or descriptor-path (%descriptor-path))
          :name ,glsl-name
          :shader-types ,types
          :header-path ,header
-         :source-path ,source
-         :uniforms ',uniforms))
+         :source-path ,source))
      (register-library ',name)))
 
 
@@ -188,7 +202,7 @@
          for source in shader-sources
          for type = (shader-type-of source)
          do
-           (multiple-value-bind (text used-lib-names) (preprocess (shader-text-of source))
+           (multiple-value-bind (text used-lib-names) (preprocess (shader-text-of source) type)
              (loop for name in used-lib-names
                 for shader = (load-shader (library-by-name name) type)
                 unless (null shader) do (pushnew shader libs))

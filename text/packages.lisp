@@ -2,5 +2,8 @@
 
 
 (defpackage :cl-bodge.text
-  (:nicknames :ge.text)
-  (:use :cl :cl-bodge.graphics))
+  (:nicknames :ge.txt)
+  (:use :cl :cl-bodge.utils :cl-bodge.engine :cl-bodge.graphics :cl-bodge.assets
+        :cl-bodge.graphics.resources :cl-bodge.resources)
+  (:export font-atlas-chunk->font
+           make-text))

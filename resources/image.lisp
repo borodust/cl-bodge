@@ -4,11 +4,8 @@
 (defclass image ()
   ((width :initarg :width :reader width-of)
    (height :initarg :height :reader height-of)
-   (format :initarg :pixel-format :reader ge.gx.rsc:pixel-format-of)))
-
-
-(defclass png-image (image)
-  ((data :initarg :data :reader data-of)))
+   (format :initarg :pixel-format :reader ge.gx.rsc:pixel-format-of)
+   (data :initarg :data :reader data-of)))
 
 
 (defun prepare-png-data (width height pixel-format data)
@@ -35,18 +32,18 @@
                    (opticl:8-bit-rgb-image :rgb)
                    (opticl:8-bit-rgba-image :rgba))))
     (opticl:with-image-bounds (h w) data
-      (make-instance 'png-image
+      (make-instance 'image
                      :data (prepare-png-data w h format data)
                      :width w
                      :height h
                      :pixel-format format))))
 
 
-(defmethod ge.gx.rsc:size-of ((this png-image))
+(defmethod ge.gx.rsc:size-of ((this image))
   (values (width-of this) (height-of this)))
 
 
-(defmethod ge.gx.rsc:image->array ((this png-image))
+(defmethod ge.gx.rsc:image->array ((this image))
   (data-of this))
 
 
@@ -61,20 +58,24 @@
     (let* ((image-data (make-array size :element-type '(unsigned-byte 8)))
            (bytes-read (read-sequence image-data stream)))
       (unless (= size bytes-read)
-        (error "Incorrect :size provided for chunk data: provided ~a, but ~a read"
+        (error "Incorrect :size provided for image chunk data: ~a supplied, but ~a read"
                size bytes-read))
       image-data)))
 
 
 (defmethod parse-chunk ((type (eql :image)) parameters data)
   (destructuring-bind (&key name width height type pixel-format &allow-other-keys) parameters
-    (unless (eq type :png)
+    (unless (eq type :raw)
       (error "Image type ~a unsupported" type))
     (unless (pixel-format-p pixel-format)
       (error "Unsupported pixel format: ~a" pixel-format))
 
-    (make-image-chunk name (make-instance 'png-image
+    (make-image-chunk name (make-instance 'image
                                           :data data
                                           :width width
                                           :height height
                                           :pixel-format pixel-format))))
+
+
+(defun image-chunks-of (resource)
+  (chunks-by-type resource :image))

@@ -8,4 +8,5 @@
         :cl-bodge.resources)
   (:export asset-system
            copy-assets
+           define-shader-library
            build-shading-program))

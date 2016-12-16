@@ -100,7 +100,7 @@
 (ge.util:define-package :cl-bodge.engine
   (:nicknames :ge.ng)
   (:use :cl-bodge.utils :cl :bordeaux-threads :cl-muth)
-  (:reexport-from :cl-bodge.concurrency :cl-bodge.memory :cl-bodge.math)
+  (:use-reexport :cl-bodge.concurrency :cl-bodge.memory :cl-bodge.math)
   (:export system
            enable
            disable

@@ -4,5 +4,4 @@
 (define-shader-library skinning-library
     :name "skinning"
     :header "skinning.h"
-    :source "skinning.glsl"
-    :uniforms ("bones"))
+    :source "skinning.glsl")

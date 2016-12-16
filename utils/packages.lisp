@@ -3,7 +3,7 @@
 
 (defpackage :cl-bodge.utils
   (:nicknames :ge.util)
-  (:use :cl :local-time :alexandria)
+  (:use :cl :local-time :alexandria :split-sequence)
   ;; reexport from alexandria
   (:export with-gensyms
            once-only
@@ -27,6 +27,9 @@
            deletef
            alist-hash-table
            ensure-list)
+  (:import-from :uiop
+                define-package)
+  (:export define-package)
   (:export log-errors
            with-hash-entries
            make-hash-table-with-entries
@@ -51,6 +54,6 @@
            search-sorted
            list->array
            reexporting
-           define-package
            when-debugging
-           flatten-array))
+           flatten-array
+           split-sequence))
