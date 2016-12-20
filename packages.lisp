@@ -16,4 +16,5 @@
                  :cl-bodge.resources
                  :cl-bodge.scene
                  :cl-bodge.interactions
-                 :cl-bodge.text))
+                 :cl-bodge.text
+                 :cl-bodge.canvas))

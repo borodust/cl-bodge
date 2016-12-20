@@ -59,18 +59,21 @@
        (use-texture-unit (bound-symbol-value *active-texture-unit* 0)))))
 
 
+(definline use-texture (texture)
+  (gl:bind-texture (target-of texture) (handle-value-of texture)))
+
+
 (defmacro with-bound-texture ((place &optional (unit nil)) &body body)
   (once-only (place)
     `(unwind-protect
           (,@(if (null unit)
                  '(progn)
                  `(with-texture-unit ,unit))
-             (gl:bind-texture (target-of ,place) (handle-value-of ,place))
+             (use-texture ,place)
              (let ((*active-texture* ,place))
                ,@body))
        (if-bound *active-texture*
-                 (gl:bind-texture (target-of *active-texture*)
-                                  (handle-value-of *active-texture*))
+                 (use-texture *active-texture*)
                  (gl:bind-texture (target-of ,place) 0)))))
 
 

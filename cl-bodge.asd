@@ -111,7 +111,21 @@
                (:file "shading")
                (:file "textures")
                (:file "framebuffer")
+               (:file "state")
                (:file "system")))
+
+
+(defsystem cl-bodge/canvas
+  :description "Bodacious Game Engine vector graphics system"
+  :version "0.3.0"
+  :author "Pavel Korolev"
+  :mailto "dev@borodust.org"
+  :license "MIT"
+  :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/graphics log4cl bodge-nanovg)
+  :pathname "canvas"
+  :serial t
+  :components ((:file "packages")
+               (:file "canvas")))
 
 
 (defsystem cl-bodge/animation
@@ -316,5 +330,5 @@
   :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/events cl-bodge/host
                                cl-bodge/graphics cl-bodge/audio cl-bodge/physics
                                cl-bodge/resources cl-bodge/assets cl-bodge/scenegraph
-                               cl-bodge/interactions cl-bodge/text)
+                               cl-bodge/interactions cl-bodge/text cl-bodge/canvas)
   :components ((:file "packages")))

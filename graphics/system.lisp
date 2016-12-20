@@ -19,11 +19,7 @@
               (gl:get* :shading-language-version)
               (gl:get* :vendor)
               (gl:get* :renderer))
-    (gl:clear-color 1.0 1.0 1.0 1.0)
-    (gl:enable :blend
-               :depth-test
-               :program-point-size)
-    (gl:blend-func :src-alpha :one-minus-src-alpha))
+    (reset-state))
   nil)
 
 
@@ -37,3 +33,9 @@
           (gl:polygon-mode :front-and-back :line)
           ,@body)
      (gl:polygon-mode :front-and-back :fill)))
+
+
+(defmacro preserving-state (&body body)
+  `(unwind-protect
+        (progn ,@body)
+     (reset-state)))

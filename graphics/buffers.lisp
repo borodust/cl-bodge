@@ -19,15 +19,19 @@
 (defgeneric attach-array-buffer (buffer target index))
 
 
+(definline use-buffer (buffer)
+  (gl:bind-buffer (target-of buffer) (handle-value-of buffer)))
+
+
 (defmacro with-bound-buffer ((buffer) &body body)
   (once-only (buffer)
     `(unwind-protect
           (progn
-            (gl:bind-buffer (target-of ,buffer) (handle-value-of ,buffer))
+            (use-buffer ,buffer)
             (let ((*active-buffer* ,buffer))
               ,@body))
        (if-bound *active-buffer*
-                 (gl:bind-buffer (target-of *active-buffer*) (handle-value-of *active-buffer*))
+                 (use-buffer *active-buffer*)
                  (gl:bind-buffer (target-of ,buffer) 0)))))
 
 ;;

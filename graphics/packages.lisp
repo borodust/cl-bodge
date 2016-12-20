@@ -8,6 +8,7 @@
   (:export graphics-system
            graphics
            in-wireframe-mode
+           preserving-state
 
            render
 
