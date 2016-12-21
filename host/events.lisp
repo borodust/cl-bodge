@@ -53,7 +53,7 @@
        (:kp-add :keypad-add)
        (:kp-enter :keypad-enter)
        (:kp-equal :keypad-equal)
-       (t nil)))
+       (t :unknown)))
     (t :unknown)))
 
 

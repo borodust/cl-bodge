@@ -63,6 +63,10 @@
            sequence->vec3
            vref
            make-vec3
+           x
+           y
+           z
+           w
 
            mat
            square-mat
@@ -133,6 +137,9 @@
            check-system-context
            thread-bound-object
            define-system-function
+           acquire-system-executor
+           release-system-executor
+
 
            engine-system
            engine

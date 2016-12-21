@@ -193,23 +193,3 @@
 (defun clear-all-library-caches ()
   (loop for lib being the hash-value in (sm-libs *shader-manager*)
      do (clear-library-cache lib)))
-
-
-
-(defun build-shading-program (shader-sources)
-  (restart-case
-      (loop with libs and processed-sources
-         for source in shader-sources
-         for type = (shader-type-of source)
-         do
-           (multiple-value-bind (text used-lib-names) (preprocess (shader-text-of source) type)
-             (loop for name in used-lib-names
-                for shader = (load-shader (library-by-name name) type)
-                unless (null shader) do (pushnew shader libs))
-             (push (make-shader-source (shader-name-of source) type text)
-                   processed-sources))
-         finally
-           (return (build-separable-shading-program processed-sources libs)))
-    (reload-sources-and-build ()
-      (build-shading-program (loop for source in shader-sources collecting
-                                  (reload-shader-text source))))))

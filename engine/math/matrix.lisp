@@ -82,9 +82,7 @@
 
 
 (definline vec->translation-mat4 (vec)
- (translation-mat4 (vref vec 0)
-                   (vref vec 1)
-                   (vref vec 2)))
+  (translation-mat4 (x vec) (y vec) (z vec)))
 
 
 (definline scaling-mat4 (x y z)

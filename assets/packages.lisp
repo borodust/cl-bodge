@@ -1,7 +1,6 @@
 (in-package :cl-bodge.asdf)
 
 
-
 (defpackage :cl-bodge.assets
   (:nicknames :ge.as)
   (:use :cl :cl-bodge.utils :cl-bodge.graphics :cl-bodge.graphics.resources :cl-bodge.engine
@@ -9,4 +8,6 @@
   (:export asset-system
            copy-assets
            define-shader-library
+           define-shading-program
+           load-shading-program
            build-shading-program))

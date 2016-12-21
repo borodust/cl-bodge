@@ -8,5 +8,8 @@
 *~
 .\#*
 
-# system dependent junk 
+# system dependent junk
 local/
+
+# macOS crap
+**/.DS_Store

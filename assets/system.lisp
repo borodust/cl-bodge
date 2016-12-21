@@ -6,4 +6,4 @@
 
 
 (defmethod discard-system :before ((this asset-system))
-  (clear-all-library-caches))
+  (clear-all-caches))

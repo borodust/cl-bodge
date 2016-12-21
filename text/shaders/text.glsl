@@ -9,6 +9,7 @@ vec4 sdfTest(vec4 baseColor, vec2 sdfCoords, SDFMap map) {
   float width = fwidth(d);
   float a = smoothstep(0.5 - width, 0.5 + width, d);
 
+  if (a == 0.0) discard;
   return vec4(baseColor.rgb, a);
 }
 

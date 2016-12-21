@@ -56,6 +56,38 @@
       (3 (setf (v:w vec) value)))))
 
 
+(definline x (vec)
+  (v:x (value-of vec)))
+
+
+(definline (setf x) (value vec)
+  (setf (v:x (value-of vec)) value))
+
+
+(definline y (vec)
+  (v:y (value-of vec)))
+
+
+(definline (setf y) (value vec)
+  (setf (v:y (value-of vec)) value))
+
+
+(definline z (vec)
+  (v:z (value-of vec)))
+
+
+(definline (setf z) (value vec)
+  (setf (v:z (value-of vec)) value))
+
+
+(definline w (vec)
+  (v:w (value-of vec)))
+
+
+(definline (setf w) (value vec)
+  (setf (v:w (value-of vec)) value))
+
+
 (defmethod summarize ((this vec3) (that vec3))
   (%raw-> vec3 (v3:+ (value-of this) (value-of that))))
 

@@ -4,6 +4,8 @@
 (defclass text (disposable)
   ((position :initform nil)
    (text-mesh :initform nil)
+   (width :initform nil :reader width-of)
+   (height :initform nil :reader height-of)
    (atlas-tex :initform nil)))
 
 
@@ -13,18 +15,18 @@
 
 
 (defmethod initialize-instance :after ((this text) &key text font)
-  (with-slots (text-mesh atlas-tex) this
+  (with-slots (text-mesh atlas-tex width height) this
     (let* ((lines (split-sequence #\Newline text))
            (size (reduce #'+ lines :key #'length))
            (box-array (make-array (list size 4) :element-type 'single-float))
            (tex-coord-array (make-array (list size 4) :element-type 'single-float))
-           (atlas (font-atlas font))
+           (atlas (font-atlas-texture font))
            (line-height (+ (font-ascender-height font) (font-descender-height font)
                            (font-line-gap font))))
-      (multiple-value-bind (atlas-w atlas-h) (size-of atlas)
+      (destructuring-bind (atlas-w atlas-h) (dimensions-of atlas)
         (setf text-mesh (make-mesh size :points)
-              atlas-tex (make-2d-texture atlas :grey :generate-mipmaps-p nil))
-        (loop with y = 0.0 and i = 0
+              atlas-tex atlas)
+        (loop with y = 0.0 and i = 0 and x-max = 0.0
            for line in lines
            for x = 0.0
            for prev-g = nil
@@ -47,7 +49,11 @@
                             x (+ x kerning advance)
                             prev-g g)
                       (incf i))
-                 finally (decf y line-height)))
+                 finally
+                   (when (> x x-max) (setf x-max x))
+                   (decf y line-height))
+           finally (setf width x-max
+                         height (abs y)))
         (with-disposable ((pbuf (make-array-buffer box-array))
                           (tbuf (make-array-buffer tex-coord-array)))
           (attach-array-buffer pbuf text-mesh 0)

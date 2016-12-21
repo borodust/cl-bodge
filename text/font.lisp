@@ -1,7 +1,7 @@
 (in-package :cl-bodge.text)
 
 
-(defgeneric font-atlas (resource))
+(defgeneric font-atlas-texture (resource))
 (defgeneric font-ascender-height (resource))
 (defgeneric font-descender-height (resource))
 (defgeneric font-line-gap (resource))
@@ -37,7 +37,7 @@
 
 (defclass font ()
   ((glyph-table :initform (make-hash-table :test 'equal))
-   (atlas :initarg :atlas :reader font-atlas)
+   (atlas :initarg :atlas :reader font-atlas-texture)
    (ascender-height :initarg :ascender-height :reader font-ascender-height)
    (descender-height :initarg :descender-height :reader font-descender-height)
    (line-gap :initarg :line-gap :reader font-line-gap)))
@@ -54,7 +54,7 @@
     (gethash character glyph-table)))
 
 
-(defun font-atlas-chunk->font (font-chunk atlas-image)
+(define-system-function font-atlas-chunk->font graphics-system (font-chunk atlas-image)
   (let ((glyphs (loop for g in (font-atlas-chunk-children font-chunk)
                    collect (make-instance 'glyph
                                           :character (glyph-metrics-character g)
@@ -64,7 +64,31 @@
                                           :kernings (glyph-metrics-kernings g)))))
     (make-instance 'font
                    :glyphs glyphs
-                   :atlas atlas-image
+                   :atlas (make-2d-texture atlas-image :grey :generate-mipmaps-p nil)
                    :ascender-height (font-atlas-chunk-ascender font-chunk)
                    :descender-height (- (font-atlas-chunk-descender font-chunk))
                    :line-gap (font-atlas-chunk-line-gap font-chunk))))
+
+
+(defun measure-string (string font)
+  (let* ((line-height (+ (font-ascender-height font)
+                         (font-descender-height font)
+                         (font-line-gap font)))
+         (len (length string)))
+    (loop with y = 0.0 and x-max = 0.0 and idx = 0
+       for next-idx = (or (position #\Newline string :start idx) len)
+       for x = 0.0
+       for prev-g = nil
+       do (loop for i from idx below next-idx
+             for c = (aref string i)
+             for g = (find-glyph font c)
+             for advance = (glyph-advance-width g)
+             do (let ((kerning (if prev-g (find-kerning prev-g g) 0)))
+                  (setf x (+ x kerning advance)
+                        prev-g g))
+             finally
+               (when (> x x-max) (setf x-max x))
+               (incf y line-height)
+               (setf idx (1+ next-idx)))
+       until (= next-idx len)
+       finally (return (list x-max y)))))

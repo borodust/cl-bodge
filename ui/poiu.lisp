@@ -3,7 +3,14 @@
 
 (defclass interactive-board-node (scene-node) ())
 
+(defgeneric compose (iboard-node))
+
+
+;;;
+;;;
+;;;
 (defclass iboard-root (interactive-board-node) ())
+
 
 (defclass iboard-layout (interactive-board-node) ())
 (defclass iboard-widget-layout (interactive-board-node) ())

@@ -221,6 +221,7 @@
   :components ((:file "packages")
                (:file "assets")
                (:file "shader-library")
+               (:file "shading-program")
                (:module shaders
                         :components
                         ((:file "math")
@@ -276,11 +277,19 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/graphics)
+  :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/graphics bodge-nuklear cl-bodge/text
+                               cl-bodge/canvas cl-autowrap cl-plus-c cl-bodge/assets
+                               cl-bodge/host)
   :pathname "ui"
   :serial t
   :components ((:file "packages")
-               (:file "poiu")))
+               (:file "ui")
+               (:file "text-renderer")
+               (:file "rendering-backend")
+               (:file "poiu")
+               (:module shaders
+                        :components ((:file "text")))
+               (:file "system")))
 
 
 (defsystem cl-bodge/distribution

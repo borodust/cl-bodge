@@ -34,6 +34,7 @@
            with-using-shading-program
            program-uniform-variable
 
+           dimensions-of
            with-bound-texture
            with-texture-unit
            make-2d-texture

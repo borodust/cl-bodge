@@ -6,7 +6,7 @@
 
 
 (defenum texture-format
-  :grey :rgb :rgba :depth :depth16)
+  :grey :rgb :rgba :depth :depth16 :depth-stencil)
 
 
 (defun %pixel-format->external-format (value)
@@ -22,7 +22,8 @@
     (:rgb :rgb8)
     (:rgba :rgba8)
     (:depth16 :depth-component16)
-    (:depth :depth-component32)))
+    (:depth :depth-component32)
+    (:depth-stencil :depth24-stencil8)))
 
 
 (defenum texture-wrap-mode
@@ -41,7 +42,8 @@
 
 
 (defclass texture (gl-object)
-  ((target :initarg :target :reader target-of))
+  ((target :initarg :target :reader target-of)
+   (dimensions :initarg :dimensions :initform nil :reader dimensions-of))
   (:default-initargs :handle (make-texture-handle)))
 
 
@@ -94,14 +96,20 @@
 (defmethod initialize-instance :after ((this texture-2d) &key data external-format
                                                            internal-format width height
                                                            generate-mipmaps-p)
+  (with-slots (dimensions) this
+    (setf dimensions (list width height)))
   (with-bound-texture (this)
     (let ((target (target-of this)))
       (gl:pixel-store :unpack-alignment 1)
       (gl:tex-image-2d target 0 internal-format width height 0 external-format
                        :unsigned-byte data :raw t)
+      (gl:tex-parameter target :texture-mag-filter :linear)
       (if generate-mipmaps-p
-          (gl:generate-mipmap target)
           (progn
+            (gl:generate-mipmap target)
+            (gl:tex-parameter target :texture-min-filter :nearest-mipmap-linear))
+          (progn
+            (gl:tex-parameter target :texture-min-filter :linear)
             (gl:tex-parameter target :texture-base-level 0)
             (gl:tex-parameter target :texture-max-level 0))))))
 
