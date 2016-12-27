@@ -1,4 +1,4 @@
-(in-package :cl-bodge.interactions)
+(in-package :cl-bodge.poiu)
 
 
 (defmacro dissect-c-struct ((&rest bindings) (wrapper type) &body body)

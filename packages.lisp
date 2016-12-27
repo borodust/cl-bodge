@@ -15,6 +15,6 @@
                  :cl-bodge.physics
                  :cl-bodge.resources
                  :cl-bodge.scene
-                 :cl-bodge.interactions
+                 :cl-bodge.poiu
                  :cl-bodge.text
                  :cl-bodge.canvas))

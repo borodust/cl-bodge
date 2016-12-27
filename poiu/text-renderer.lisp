@@ -1,4 +1,4 @@
-(in-package :cl-bodge.interactions)
+(in-package :cl-bodge.poiu)
 
 
 (defstruct (text-cache

@@ -249,6 +249,24 @@
                         ((:file "text")))))
 
 
+(defsystem cl-bodge/poiu
+  :description "Bodacious Game Engine Plain Old Interface for Users"
+  :version "0.3.0"
+  :author "Pavel Korolev"
+  :mailto "dev@borodust.org"
+  :license "MIT"
+  :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/graphics bodge-nuklear cl-bodge/text
+                               cl-bodge/canvas cl-autowrap cl-plus-c cl-bodge/assets)
+  :pathname "poiu"
+  :serial t
+  :components ((:file "packages")
+               (:file "poiu")
+               (:file "text-renderer")
+               (:file "rendering-backend")
+               (:module shaders
+                        :components ((:file "text")))))
+
+
 (defsystem cl-bodge/scenegraph
   :description "Bodacious Game Engine scenegraph implementation"
   :version "0.3.0"
@@ -269,27 +287,6 @@
                (:file "transformations")
                (:file "animation")
                (:file "model")))
-
-
-(defsystem cl-bodge/interactions
-  :description "Bodacious Game Engine user interfaces"
-  :version "0.3.0"
-  :author "Pavel Korolev"
-  :mailto "dev@borodust.org"
-  :license "MIT"
-  :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/graphics bodge-nuklear cl-bodge/text
-                               cl-bodge/canvas cl-autowrap cl-plus-c cl-bodge/assets
-                               cl-bodge/host)
-  :pathname "ui"
-  :serial t
-  :components ((:file "packages")
-               (:file "ui")
-               (:file "text-renderer")
-               (:file "rendering-backend")
-               (:file "poiu")
-               (:module shaders
-                        :components ((:file "text")))
-               (:file "system")))
 
 
 (defsystem cl-bodge/distribution
@@ -339,5 +336,5 @@
   :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/events cl-bodge/host
                                cl-bodge/graphics cl-bodge/audio cl-bodge/physics
                                cl-bodge/resources cl-bodge/assets cl-bodge/scenegraph
-                               cl-bodge/interactions cl-bodge/text cl-bodge/canvas)
+                               cl-bodge/poiu cl-bodge/text cl-bodge/canvas)
   :components ((:file "packages")))
