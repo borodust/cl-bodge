@@ -7,11 +7,11 @@
 
 
 (defgeneric initialize-system (system)
-  (:method (system) (declare (ignore system))))
+  (:method (system) nil))
 
 
 (defgeneric discard-system (system)
-  (:method (system) (declare (ignore system))))
+  (:method (system) nil))
 
 
 (defmacro with-system-lock-held ((system &optional lock-var) &body body)
@@ -32,6 +32,7 @@
 
 
 (defmethod enable ((this generic-system))
+  (call-next-method)
   (initialize-system this))
 
 

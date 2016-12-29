@@ -14,11 +14,11 @@
 (defmethod make-system-context ((this graphics-system))
   (with-slots (host-sys) this
     (bind-rendering-context host-sys)
-    (log:info "~%GL version: ~a~%GLSL version: ~a~%GL vendor: ~a~%GL renderer: ~a"
-              (gl:get* :version)
-              (gl:get* :shading-language-version)
-              (gl:get* :vendor)
-              (gl:get* :renderer))
+    (log:debug "~%GL version: ~a~%GLSL version: ~a~%GL vendor: ~a~%GL renderer: ~a"
+               (gl:get* :version)
+               (gl:get* :shading-language-version)
+               (gl:get* :vendor)
+               (gl:get* :renderer))
     (reset-state))
   nil)
 

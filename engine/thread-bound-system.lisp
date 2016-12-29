@@ -11,8 +11,7 @@
 
 (defgeneric make-system-context (system)
   (:method (system)
-    (declare (ignore system)
-             nil)))
+    (declare (ignore system) nil)))
 
 
 (defgeneric destroy-system-context (context system)
@@ -40,9 +39,12 @@
     (release-executor executor)))
 
 
-(defmethod enable ((this thread-bound-system))
+(defmethod initialize-system :after ((this thread-bound-system))
+  (setf (%executor-of this) (acquire-system-executor this)))
+
+
+(defmethod initialize-system :around ((this thread-bound-system))
   (call-next-method)
-  (setf (%executor-of this) (acquire-system-executor this))
   (wait-with-latch (latch)
     (execute (%executor-of this)
              (lambda ()
@@ -50,16 +52,19 @@
                  (with-slots (context) this
                    (setf context (make-system-context this)))
                  (open-latch latch)))
-             :priority :highest)))
+             :priority :highest :important-p t)))
 
 
-(defmethod disable ((this thread-bound-system))
+(defmethod discard-system :around ((this thread-bound-system))
   (wait-with-latch (latch)
     (execute (%executor-of this)
              (lambda ()
                (unwind-protect
                     (destroy-system-context this (system-context-of this))
                  (open-latch latch)))
-             :priority :highest))
-  (release-system-executor this (%executor-of this))
+             :priority :highest :important-p t))
   (call-next-method))
+
+
+(defmethod discard-system :before ((this thread-bound-system))
+  (release-system-executor this (%executor-of this)))

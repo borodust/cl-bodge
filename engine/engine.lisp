@@ -6,6 +6,7 @@
 ;;
 (defclass bodge-engine ()
   ((systems :initform nil)
+   (engine-lock :initform nil)
    (properties :initform '())
    (working-directory :initform nil :reader working-directory-of)
    (shared-executors :initform nil)
@@ -19,10 +20,11 @@
   *engine*)
 
 (defun engine-system (system-name)
-  (with-slots (systems) (engine)
-    (if-let ((system (gethash system-name systems)))
-      system
-      (error (format nil "~a not found" system-name)))))
+  (with-slots (systems engine-lock) (engine)
+    (with-recursive-lock-held (engine-lock)
+      (if-let ((system (gethash system-name systems)))
+        system
+        (error (format nil "~a not found" system-name))))))
 
 
 (defun working-directory ()
@@ -38,9 +40,11 @@
   ((dependencies :initarg :depends-on :initform '() :reader dependencies-of)))
 
 
-(defgeneric enable (system))
+(defgeneric enable (system)
+  (:method (system) nil))
 
-(defgeneric disable (system))
+(defgeneric disable (system)
+  (:method (system) nil))
 
 (defgeneric enabledp (system))
 
@@ -109,14 +113,16 @@
 (defun startup (properties-pathspec)
   (in-new-thread-waiting "startup-worker"
     (with-slots (systems properties disabling-order shared-pool shared-executors
-                         working-directory)
+                         working-directory engine-lock)
         *engine*
       (setf properties (%load-properties properties-pathspec)
             shared-pool (make-pooled-executor
                          (property :engine-shared-pool-size 2))
+            engine-lock (bt:make-recursive-lock "engine-lock")
             working-directory (uiop:pathname-directory-pathname properties-pathspec)
             shared-executors (list (make-single-threaded-executor)))
 
+      (log:config (property :log-level :info))
       (reload-foreign-libraries)
 
       (let ((system-class-names

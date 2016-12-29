@@ -74,7 +74,7 @@
 
 
 ;; if current thread is the main one, this function will block
-(defmethod enable ((this host-system))
+(defmethod initialize-system :after ((this host-system))
   (with-slots (enabled-p job-queue window state-condi-var eve-sys) this
     (with-system-lock-held (this state-lock)
       (when enabled-p
@@ -114,7 +114,7 @@
            (condition-wait state-condi-var state-lock)))))
 
 
-(defmethod disable ((this host-system))
+(defmethod discard-system :before ((this host-system))
   (with-slots (enabled-p state-condi-var job-queue) this
     (with-system-lock-held (this state-lock)
       (unless enabled-p
