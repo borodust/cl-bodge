@@ -32,7 +32,3 @@
 
 (defmethod parse-chunk ((chunk-type (eql :simple-model)) params data)
   (make-simple-model-chunk data))
-
-
-(defun simple-model-chunks-of (resource)
-  (chunks-by-type resource :simple-model))

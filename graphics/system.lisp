@@ -2,13 +2,21 @@
 
 
 (defclass graphics-system (thread-bound-system)
-  ((host-sys :initform nil))
-  (:default-initargs :depends-on '(host-system)))
+  ((host-sys :initform nil)
+   (shader-loader :initform nil))
+  (:default-initargs :depends-on '(host-system asset-system)))
 
 
 (defmethod initialize-system :after ((this graphics-system))
-  (with-slots (host-sys) this
-    (setf host-sys (engine-system 'host-system))))
+  (with-slots (host-sys shader-loader) this
+    (setf host-sys (host)
+          shader-loader (make-instance 'shader-loader))
+    (let ((reg (asset-registry-of (assets))))
+      (register-asset-loader reg shader-loader))))
+
+
+(defmethod discard-system :before ((this graphics-system))
+  (clear-all-caches))
 
 
 (defmethod make-system-context ((this graphics-system))

@@ -10,6 +10,7 @@
 
 (defclass fn-name-null-cont (fn-name-cont null-cont) ())
 
+
 (defmethod generate-calling-code ((this fn-name-null-cont) result)
   `(,(function-name-for this)))
 
@@ -22,8 +23,10 @@
 
 (defclass fn-name-result-cont (fn-name-cont result-cont) ())
 
+
 (defmethod generate-calling-code ((this fn-name-result-cont) result)
   `(,(function-name-for this) ,result))
+
 
 (defun make-function-name-result-continuation (fn-name)
   (make-instance 'fn-name-result-cont :function-name fn-name))
@@ -34,14 +37,18 @@
 (defgeneric form-list-transform (codegen group)
   (:method (codegen group) group))
 
+
 (defgeneric plain-cc-gen (codegen cont prologue))
+
 
 (defmethod plain-cc-gen (codegen (cont null) prologue)
   `(,@(form-list-transform codegen prologue)))
 
+
 (defmethod plain-cc-gen (codegen (cont null-cont) prologue)
   `(,@(form-list-transform codegen prologue)
     ,(generate-calling-code cont nil)))
+
 
 (defmethod plain-cc-gen (codegen (cont result-cont) prologue)
   (with-gensyms (r)
@@ -50,6 +57,7 @@
 
 
 (defgeneric cc-callback-gen (codegen cont cb epilogue))
+
 
 (defmethod cc-callback-gen (codegen (cont null) cb epilogue)
   `(,cb () ,@(form-list-transform codegen epilogue)))
@@ -60,12 +68,14 @@
         ,@(form-list-transform codegen epilogue)
         ,(generate-calling-code cont nil)))
 
+
 (defmethod cc-callback-gen (codegen (cont result-cont) cb epilogue)
   (with-gensyms (r)
     `(,cb (,r)
           ,@(when epilogue
               `((setf ,r (progn ,@(form-list-transform codegen epilogue)))))
           ,(generate-calling-code cont r))))
+
 
 (defgeneric chain-callback-body-gen (codegen group last-callback result-required-p)
   (:method (codegen group last-callback result-required-p)
@@ -74,6 +84,7 @@
                         (if result-required-p
                             (make-function-name-result-continuation last-callback)
                             (make-function-name-null-continuation last-callback))))))
+
 
 (defgeneric chain-callback-gen (codegen group callback-name last-callback result-required-p)
   (:method (codegen group callback-name last-callback result-required-p)
@@ -134,6 +145,7 @@
 
 (defclass setf-gen (code-generator) ())
 
+
 (defmethod chain-callback-body-gen ((this setf-gen) group last-cb result-required-p)
   (with-gensyms (cb r)
     `(,@(form-list-transform this (rest group))
@@ -143,9 +155,11 @@
         ,(generate-code (cdar group)
                         (make-function-name-result-continuation cb))))))
 
+
 (defmethod form-list-transform ((this setf-gen) forms)
   (when-let ((plist (loop for (var . val) in forms appending (list var val))))
     `((setf ,@plist))))
+
 
 (defmethod generate-code ((this setf-gen) cont)
   (let* ((pairs (loop for (var . val) in (plist-alist (rest (form-of this))) collect
@@ -162,10 +176,11 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-
 (defclass execution-list-gen (code-generator) ())
 
+
 (defgeneric execution-list-of (code-gen form))
+
 
 (defun collect-traversed (forms)
   (loop for form in forms collect
@@ -173,13 +188,15 @@
            (traverse-form (first form) form)
            form)))
 
+
 (defmethod generate-code ((this execution-list-gen) cont)
-  (let* ((forms (execution-list-of this (collect-traversed (form-of this)))))
+  (let* ((forms (collect-traversed (execution-list-of this (form-of this)))))
     (generate-callback-chain this forms cont)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defclass block-gen (execution-list-gen) ())
+
 
 (defmethod execution-list-of ((this block-gen) form)
   (cddr form))
@@ -236,8 +253,10 @@
 
 (defclass progn-gen (execution-list-gen) ())
 
+
 (defmethod execution-list-of ((this progn-gen) form)
   (rest form))
+
 
 (defmethod generate-code ((this progn-gen) cont)
   (let ((list (call-next-method)))
@@ -247,23 +266,41 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defclass let-gen (execution-list-gen) ())
+(defclass generic-let-gen (execution-list-gen)
+  ((declarations :initform nil)
+   (body :initform nil)))
 
-(defmethod execution-list-of ((this let-gen) form)
-  (cddr form))
 
-(defmethod generate-code ((this let-gen) cont)
-  `(let ,(second (form-of this)) ,@(call-next-method)))
+(defmethod initialize-instance :after ((this generic-let-gen) &key form)
+  (flet ((parse-let-body ()
+           (loop for (body-form . rest) = (cddr form) then rest
+              while (and (listp body-form)
+                         (eq (first body-form) 'declare))
+              collecting body-form into decls
+              finally (return (values (nconc (list body-form) rest) decls)))))
+    (with-slots (declarations body) this
+      (multiple-value-bind (parsed-body decls) (parse-let-body)
+        (setf declarations decls
+              body parsed-body)))))
+
+
+(defmethod execution-list-of ((this generic-let-gen) form)
+  (slot-value this 'body))
+
+
+(defmethod generate-code ((this generic-let-gen) cont)
+  (with-slots (declarations) this
+    `(,(first (form-of this)) ,(second (form-of this))
+       ,@declarations
+       ,@(call-next-method))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defclass let*-gen (execution-list-gen) ())
+(defclass let-gen (generic-let-gen) ())
 
-(defmethod execution-list-of ((this let*-gen) form)
-  (cddr form))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defmethod generate-code ((this let*-gen) cont)
-  `(let* ,(second (form-of this)) ,@(call-next-method)))
+(defclass let*-gen (generic-let-gen) ())
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -274,6 +311,7 @@
          (funame (first form)))
     `(,(make-funame/d funame) nil ,@(rest form))))
 
+
 (defmethod generate-code ((this fn/d-gen) (cont null-cont))
   (let* ((form (form-of this))
          (funame (first form)))
@@ -282,6 +320,7 @@
                 (declare (ignore ,r))
                 ,(generate-calling-code cont nil)))
          (,(make-funame/d funame) #',cb ,@(rest form))))))
+
 
 (defmethod generate-code ((this fn/d-gen) (cont result-cont))
   (let* ((form (form-of this))
@@ -294,7 +333,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defclass dolist-gen (code-generator) ())
-
 
 (defmethod generate-code ((this dolist-gen) cont)
   (let* ((form (form-of this))
@@ -311,7 +349,6 @@
                               (let ((,var (car ,list)))
                                 ,@chain)))))
              (,%dolist ,list-form)))))))
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -339,7 +376,8 @@
                 `(flet ((,cb (,r)
                           (declare (ignore ,r))
                           ;; fixme : propagate priority
-                          (dispatch ,d #'(lambda () ,(generate-calling-code cont nil)) :priority :medium)))
+                          (dispatch ,d #'(lambda () ,(generate-calling-code cont nil))
+                                    :priority :medium)))
                    ,(macroexpand-1 (car forms) *env*))
                 `(let ((,n ,count))
                    (flet ((,cb (,r)
@@ -377,7 +415,6 @@
                      ,@(loop for form/d in forms collect
                             (macroexpand-1 form/d *env*))))))))))
 
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defclass wait-for*-gen (code-generator)
@@ -388,6 +425,7 @@
   (with-gensyms (r)
     `(,cb (,r) (declare (ignore ,r)))))
 
+
 (defmethod cc-callback-gen ((codegen wait-for*-gen) (cont null-cont) cb epilogue)
   (with-gensyms (r)
     `(,cb (,r)
@@ -395,6 +433,7 @@
           ;; fixme : propagate priority
           (dispatch ,(active-dispatcher-name-for codegen)
                     #'(lambda () ,(generate-calling-code cont nil)) :priority :medium))))
+
 
 (defmethod cc-callback-gen ((codegen wait-for*-gen) (cont result-cont) cb epilogue)
   (with-gensyms (r)
@@ -426,6 +465,7 @@
 (defmethod form-list-transform ((this wait-for*-gen) forms)
   nil)
 
+
 (defmethod generate-code ((this wait-for*-gen) cont)
   (with-gensyms (d)
     (setf (active-dispatcher-name-for this) d)
@@ -433,6 +473,18 @@
                                           :codegen-test (constantly t))))
       `(let ((,d *active-dispatcher*))
          ,@chain))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defclass symbol-macrolet-gen (execution-list-gen) ())
+
+
+(defmethod execution-list-of ((this symbol-macrolet-gen) form)
+  (cddr form))
+
+
+(defmethod generate-code ((this symbol-macrolet-gen) cont)
+  `(symbol-macrolet ,(second (form-of this)) ,@(call-next-method)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -482,3 +534,7 @@
 
 (defmethod traverse-form ((type (eql 'dolist)) form)
   (make-instance 'dolist-gen :form form))
+
+
+(defmethod traverse-form ((type (eql 'symbol-macrolet)) form)
+  (make-instance 'symbol-macrolet-gen :form form))

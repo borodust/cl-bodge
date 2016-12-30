@@ -46,11 +46,30 @@
                                      (:file "transform-dispatch")
                                      (:file "dispatched-defun")
                                      (:file "execution")
-                                     (:file "job-queue")))
+                                     (:file "job-queue")
+                                     (:file "instance-lock")))
                (:file "properties")
                (:file "engine")
                (:file "generic-system")
                (:file "thread-bound-system")))
+
+
+(defsystem cl-bodge/assets
+  :description "Bodacious Game Engine assets system"
+  :version "0.3.0"
+  :author "Pavel Korolev"
+  :mailto "dev@borodust.org"
+  :license "MIT"
+  :depends-on (cl-bodge/engine cl-bodge/utils log4cl asdf)
+  :pathname "assets"
+  :serial t
+  :components ((:file "packages")
+               (:file "assets")
+               (:file "graphics")
+               (:file "audio")
+               (:file "registry")
+               (:file "distribution")
+               (:file "system")))
 
 
 (defsystem cl-bodge/events
@@ -82,25 +101,13 @@
                (:file "system")))
 
 
-(defsystem cl-bodge/graphics-resources
-  :description "Bodacious Game Engine graphics resource interface"
-  :version "0.3.0"
-  :author "Pavel Korolev"
-  :mailto "dev@borodust.org"
-  :license "MIT"
-  :depends-on (cl-bodge/utils)
-  :pathname "resource-interfaces"
-  :serial t
-  :components ((:file "graphics")))
-
-
 (defsystem cl-bodge/graphics
   :description "Bodacious Game Engine graphics system"
   :version "0.3.0"
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/host cl-bodge/graphics-resources cl-opengl
+  :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/host cl-bodge/assets cl-opengl
                                log4cl local-time cffi)
   :pathname "graphics"
   :serial t
@@ -113,6 +120,14 @@
                (:file "textures")
                (:file "framebuffer")
                (:file "state")
+               (:file "shader-source")
+               (:file "shader-library")
+               (:file "shading-program")
+               (:file "shader-loader")
+               (:module shaders
+                        :components
+                        ((:file "math")
+                         (:file "lighting")))
                (:file "system")))
 
 
@@ -135,23 +150,14 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (cl-bodge/engine cl-bodge/utils)
+  :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/graphics)
   :pathname "animation"
   :serial t
   :components ((:file "packages")
-               (:file "keyframed")))
-
-
-(defsystem cl-bodge/audio-resources
-  :description "Bodacious Game Engine audio resource interface"
-  :version "0.3.0"
-  :author "Pavel Korolev"
-  :mailto "dev@borodust.org"
-  :license "MIT"
-  :pathname "resource-interfaces"
-  :depends-on (cl-bodge/utils)
-  :serial t
-  :components ((:file "audio")))
+               (:file "keyframed")
+               (:module shaders
+                        :components
+                        ((:file "skinning")))))
 
 
 (defsystem cl-bodge/audio
@@ -160,7 +166,7 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/host cl-bodge/audio-resources log4cl
+  :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/host cl-bodge/assets log4cl
                                cl-openal cl-alc)
   :pathname "audio"
   :serial t
@@ -188,48 +194,6 @@
                (:file "rigid-body")
                (:file "joints")
                (:file "geometry")))
-
-
-(defsystem cl-bodge/resources
-  :description "Bodacious Game Engine resources"
-  :version "0.3.0"
-  :author "Pavel Korolev"
-  :mailto "dev@borodust.org"
-  :license "MIT"
-  :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/graphics-resources flexi-streams
-                               cl-bodge/audio-resources bodge-sndfile log4cl cl-fad opticl)
-  :pathname "resources"
-  :serial t
-  :components ((:file "packages")
-               (:file "resource-loader")
-               (:file "basic-chunks")
-               (:file "simple-model-chunk")
-               (:file "shader-source")
-               (:file "image")
-               (:file "audio")
-               (:file "font")))
-
-
-(defsystem cl-bodge/assets
-  :description "Bodacious Game Engine assets system"
-  :version "0.3.0"
-  :author "Pavel Korolev"
-  :mailto "dev@borodust.org"
-  :license "MIT"
-  :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/graphics cl-bodge/resources log4cl asdf)
-  :pathname "assets"
-  :serial t
-  :components ((:file "packages")
-               (:file "assets")
-               (:file "shader-library")
-               (:file "shading-program")
-               (:module shaders
-                        :components
-                        ((:file "math")
-                         (:file "lighting")
-                         (:file "skinning")))
-               (:file "distribution")
-               (:file "system")))
 
 
 (defsystem cl-bodge/text
@@ -268,6 +232,27 @@
                         :components ((:file "text")))))
 
 
+(defsystem cl-bodge/resources
+  :description "Bodacious Game Engine .BRF resource handling"
+  :version "0.3.0"
+  :author "Pavel Korolev"
+  :mailto "dev@borodust.org"
+  :license "MIT"
+  :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/assets cl-bodge/graphics
+                               cl-bodge/animation flexi-streams log4cl cl-fad
+                               bodge-sndfile opticl)
+  :pathname "resources"
+  :serial t
+  :components ((:file "packages")
+               (:file "audio")
+               (:file "resource-loader")
+               (:file "basic-chunks")
+               (:file "simple-model-chunk")
+               (:file "image")
+               (:file "font")
+               (:file "converters")))
+
+
 (defsystem cl-bodge/scenegraph
   :description "Bodacious Game Engine scenegraph implementation"
   :version "0.3.0"
@@ -280,7 +265,6 @@
   :pathname "scene"
   :serial t
   :components ((:file "packages")
-               (:file "misc")
                (:file "node")
                (:file "scene")
                (:file "simulation")

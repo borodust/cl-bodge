@@ -3,8 +3,7 @@
 
 (defpackage :cl-bodge.text
   (:nicknames :ge.txt)
-  (:use :cl :cl-bodge.utils :cl-bodge.engine :cl-bodge.graphics :cl-bodge.assets
-        :cl-bodge.graphics.resources :cl-bodge.resources)
+  (:use :cl :cl-bodge.utils :cl-bodge.engine :cl-bodge.graphics :cl-bodge.assets)
   (:export font-atlas-chunk->font
            font-ascender-height
            font-descender-height

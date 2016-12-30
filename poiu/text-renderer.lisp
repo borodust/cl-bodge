@@ -7,7 +7,6 @@
   (table (make-hash-table :test 'equal) :read-only t))
 
 
-
 (definline get-text (text-cache string)
   (if-let ((text (gethash string (text-cache-table text-cache))))
     text

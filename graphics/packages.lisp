@@ -4,7 +4,7 @@
 (defpackage :cl-bodge.graphics
   (:nicknames :ge.gx)
   (:use :cl :cl-bodge.engine :cl-bodge.host :cl-bodge.utils
-        :cl-bodge.event :cl-bodge.graphics.resources)
+        :cl-bodge.event :cl-bodge.assets)
   (:export graphics-system
            graphics
            in-wireframe-mode
@@ -58,4 +58,9 @@
            detach-depth-stencil-buffer
            with-complete-framebuffer
 
-           make-renderbuffer))
+           make-renderbuffer
+
+           define-shader-library
+           define-shading-program
+           load-shading-program
+           build-shading-program))

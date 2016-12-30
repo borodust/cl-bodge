@@ -1,22 +1,14 @@
 (in-package :cl-bodge.asdf)
 
 
-
 (defpackage :cl-bodge.resources
   (:nicknames :ge.rsc)
-  (:use :cl-bodge.utils :cl-bodge.graphics.resources :cl-bodge.audio.resources :cl-bodge.engine
-        :cl :bodge-sndfile)
-  (:export make-shader-source
-           load-shader-source
-           shader-path-of
-           load-png-image
-           load-ogg-vorbis-audio
-
-           load-resource
+  (:use :cl :cl-bodge.utils :cl-bodge.engine :cl-bodge.graphics :cl-bodge.animation)
+  (:export load-resource
+           chunk-by-name
 
            simple-model-chunks-of
 
-           mesh-chunks-of
            mesh-chunk-id
            mesh-chunk-transform
            mesh-chunk-face
@@ -27,22 +19,21 @@
            mesh-bone-offset
            mesh-bone-bone
 
-           skeleton-chunks-of
            skeleton-bone-id
            skeleton-bone-children
            skeleton-bone-transform
 
-           animation-chunks-of
            animation-chunk-id
            animation-chunk-children
            keyframe-sequence-bone
            keyframe-sequence-children
 
-           image-chunks-of
            image-chunk-name
-           image-chunk-image
+           image-chunk-data
+           image-chunk-width
+           image-chunk-height
+           image-chunk-data
 
-           font-atlas-chunks-of
            font-atlas-chunk-image-name
            font-atlas-chunk-ascender
            font-atlas-chunk-descender
@@ -53,4 +44,8 @@
            glyph-metrics-origin
            glyph-metrics-bounding-box
            glyph-metrics-advance-width
-           glyph-metrics-kernings))
+           glyph-metrics-kernings
+
+           chunk->animation
+           chunk->skeleton
+           chunk->mesh))

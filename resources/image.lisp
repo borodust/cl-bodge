@@ -4,7 +4,7 @@
 (defclass image ()
   ((width :initarg :width :reader width-of)
    (height :initarg :height :reader height-of)
-   (format :initarg :pixel-format :reader ge.gx.rsc:pixel-format-of)
+   (format :initarg :pixel-format :reader pixel-format-of)
    (data :initarg :data :reader data-of)))
 
 
@@ -39,18 +39,21 @@
                      :pixel-format format))))
 
 
-(defmethod ge.gx.rsc:size-of ((this image))
+(defmethod size-of ((this image))
   (values (width-of this) (height-of this)))
 
 
-(defmethod ge.gx.rsc:image->array ((this image))
+(defmethod image->array ((this image))
   (data-of this))
 
 
 (defstruct (image-chunk
-             (:constructor make-image-chunk (name image)))
+             (:constructor make-image-chunk (name width height pixel-format data)))
   (name nil :read-only t)
-  (image nil :read-only t))
+  (width nil :read-only t)
+  (height nil :read-only t)
+  (pixel-format nil :read-only t)
+  (data nil :read-only t))
 
 
 (defmethod read-chunk-data ((type (eql :image)) parameters stream)
@@ -69,13 +72,4 @@
       (error "Image type ~a unsupported" type))
     (unless (pixel-format-p pixel-format)
       (error "Unsupported pixel format: ~a" pixel-format))
-
-    (make-image-chunk name (make-instance 'image
-                                          :data data
-                                          :width width
-                                          :height height
-                                          :pixel-format pixel-format))))
-
-
-(defun image-chunks-of (resource)
-  (chunks-by-type resource :image))
+    (make-image-chunk name width height pixel-format data)))

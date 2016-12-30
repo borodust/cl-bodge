@@ -59,8 +59,4 @@
            bone-node
            root-bone-of
 
-           scenegraph
-
-           chunk->animation
-           chunk->skeleton
-           chunk->mesh))
+           scenegraph))

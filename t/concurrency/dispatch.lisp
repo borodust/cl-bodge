@@ -8,8 +8,7 @@
 
 (defclass dummy-dispatcher ()())
 
-(defmethod ge.mt::dispatch ((this dummy-dispatcher) fn &optional priority)
-  (declare (ignore priority))
+(defmethod ge.mt::dispatch ((this dummy-dispatcher) fn &key)
   (funcall fn))
 
 (defvar *dummy-dispatcher* (make-instance 'dummy-dispatcher))
@@ -21,9 +20,9 @@
 (ge.mem:define-destructor simple-dispatcher (e)
   (ge.mem:dispose e))
 
-(defmethod ge.mt::dispatch ((this simple-dispatcher) fn &optional (priority :medium))
+(defmethod ge.mt::dispatch ((this simple-dispatcher) fn &key (priority :medium))
   (with-slots (e) this
-    (ge.mt:execute e fn priority)))
+    (ge.mt:execute e fn :priority priority)))
 
 
 (ge.mt:defun/d foo/d (d)
@@ -42,6 +41,18 @@
     (setf r1 (foo/d *dummy-dispatcher*)
           result (+ r0 r1))
     result))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(test symbol-macrolet-body-traverse
+  (is (equal '(0 1)
+             (let ((result '()))
+               (%body
+                 (push 0 result)
+                 (symbol-macrolet ((x 1))
+                   (ge.mt::wait-for)
+                   (push x result)))
+               (nreverse result)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

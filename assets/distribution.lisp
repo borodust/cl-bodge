@@ -1,6 +1,6 @@
 (in-package :cl-bodge.assets)
 
-
+#++
 (defun copy-assets (destination-path)
   (let* ((destination (fad:pathname-as-directory destination-path))
          (shader-path (fad:merge-pathnames-as-directory destination-path "shaders/")))

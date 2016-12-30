@@ -13,7 +13,7 @@
    (shared-pool :initform nil)
    (disabling-order :initform '())))
 
-(defvar *engine* (make-instance 'bodge-engine))
+(defvar *engine* nil)
 
 
 (definline engine ()
@@ -111,6 +111,9 @@
 
 
 (defun startup (properties-pathspec)
+  (when *engine*
+    (error "Engine already working"))
+  (setf *engine* (make-instance 'bodge-engine))
   (in-new-thread-waiting "startup-worker"
     (with-slots (systems properties disabling-order shared-pool shared-executors
                          working-directory engine-lock)
@@ -132,8 +135,9 @@
               disabling-order (enable-requested-systems systems))))))
 
 
-
 (defun shutdown ()
+  (unless *engine*
+    (error "Engine already stopped"))
   (in-new-thread-waiting "shutdown-worker"
     (with-slots (systems disabling-order shared-pool shared-executors) *engine*
       (loop for system-class in disabling-order do
@@ -141,7 +145,8 @@
            (disable (gethash system-class systems)))
       (dispose shared-pool)
       (dolist (ex shared-executors)
-        (dispose ex)))))
+        (dispose ex))))
+  (setf *engine* nil))
 
 
 (defun acquire-executor (&rest args &key (single-threaded-p nil) (exclusive-p nil)

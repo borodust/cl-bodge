@@ -1,4 +1,4 @@
-(in-package :cl-bodge.scene)
+(in-package :cl-bodge.resources)
 
 
 (defun chunk->animation (chunk)
@@ -16,7 +16,7 @@
                                        :scale (sequence->vec3 scale))))))))))
 
 
-(defun chunk->mesh (mesh-chunk)
+(define-system-function chunk->mesh graphics-system (mesh-chunk)
   "graphics dependent"
   (let* ((arrays (mesh-chunk-arrays mesh-chunk))
          (v-count (length (cadar arrays)))

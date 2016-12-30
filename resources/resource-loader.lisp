@@ -95,9 +95,15 @@
   ((chunks :initarg :chunks)))
 
 
-(defun chunks-by-type (resource chunk-type)
+(defun chunk-by-name (resource chunk-name)
   (with-slots (chunks) resource
-    (gethash chunk-type chunks)))
+    (gethash chunk-name chunks)))
+
+
+(defun list-chunks (resource)
+  (with-slots (chunks) resource
+    (loop for chunk being the hash-value of chunks
+         collect chunk)))
 
 
 (defun load-resource (path)
@@ -117,10 +123,26 @@
                  (chunk-table (make-hash-table)))
             (loop for chunk-header = (read-preserving-whitespace char-stream nil nil nil)
                until (null chunk-header) do
-                 (destructuring-bind (chunk-type &rest parameters) chunk-header
-                   (with-hash-entries ((chunks chunk-type)) chunk-table
-                     (push (parse-chunk chunk-type parameters
-                                        (read-chunk-data chunk-type parameters in))
-                           chunks))))
+                 (destructuring-bind (chunk-type &rest parameters &key name &allow-other-keys)
+                     chunk-header
+                   (with-hash-entries ((chunk name)) chunk-table
+                     (cond
+                       ((null name)
+                        (error "Nameless chunk header of type ~A found" chunk-type))
+                       ((not (null chunk))
+                        (error "Duplicate chunk with name ~A found" name)))
+                     (setf chunk (parse-chunk chunk-type parameters
+                                              (read-chunk-data chunk-type parameters in))))))
             (resolve-references *resolvers*)
             (make-instance 'resource :chunks chunk-table)))))))
+
+
+;;;
+;;;
+;;;
+(defclass resource-loader ()
+  ((chunk-table :initform (make-hash-table :test 'equal))))
+
+
+(defun make-resource-loader (&rest resource-paths)
+  (make-instance 'resource-loader))

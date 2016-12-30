@@ -38,7 +38,10 @@
            dispatch
            defun/d
            wait-for
-           wait-for*))
+           wait-for*
+
+           lockable
+           with-instance-lock-held))
 
 
 (defpackage :cl-bodge.math

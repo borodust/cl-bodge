@@ -1,4 +1,4 @@
-(in-package :cl-bodge.assets)
+(in-package :cl-bodge.graphics)
 
 
 (defenum library-shader-type
@@ -18,10 +18,15 @@
 (defvar *shader-manager* (make-shader-manager))
 
 
+(defun list-shader-libraries ()
+  (loop for lib being the hash-value of (sm-libs *shader-manager*)
+     collecting lib))
+
+
 (defclass shader-library ()
   ((descriptor-path :initarg :descriptor-path)
    (name :initarg :name :type string :reader name-of)
-   (types :initarg :shader-types :type library-shader-type)
+   (types :initarg :shader-types :type library-shader-type :reader supported-shader-types)
    (header-path :initarg :header-path)
    (source-path :initarg :source-path)
    (shader-alist :initform nil)))

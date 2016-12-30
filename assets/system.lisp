@@ -1,9 +1,14 @@
 (in-package :cl-bodge.assets)
 
 
-(defclass asset-system (enableable generic-system) ()
-  (:default-initargs :depends-on '(graphics-system)))
+(defclass asset-system (enableable generic-system)
+  ((asset-registry :initform nil :reader asset-registry-of)))
 
 
-(defmethod discard-system :before ((this asset-system))
-  (clear-all-caches))
+(definline assets ()
+  (engine-system 'asset-system))
+
+
+(defmethod initialize-system :after ((this asset-system))
+  (with-slots (asset-registry) this
+    (setf asset-registry (make-instance 'asset-registry))))

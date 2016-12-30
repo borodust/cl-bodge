@@ -1,4 +1,4 @@
-(in-package :cl-bodge.assets)
+(in-package :cl-bodge.graphics)
 
 
 (defstruct (shading-program-registry
@@ -9,7 +9,12 @@
 (defvar *shading-program-manager* (make-shading-program-registry))
 
 
-(defun register-shading-program (program-class)
+(defun list-shading-program-descriptors ()
+  (loop for prog being the hash-value of (spr-program-table *shading-program-manager*)
+     collecting prog))
+
+
+(defun register-shading-program-descriptor (program-class)
   (with-hash-entries ((program program-class))
       (spr-program-table *shading-program-manager*)
     (if (null program)
@@ -18,7 +23,7 @@
               program-class))))
 
 
-(defclass shading-program ()
+(defclass shading-program-descriptor ()
   ((descriptor-path :initarg :descriptor-path)
    (shader-sources :initarg :shader-sources)
    (cached-program :initform nil)))
@@ -30,14 +35,14 @@
          (descriptor-path (%descriptor-path))
          (descriptor-directory (directory-namestring descriptor-path)))
     `(progn
-       (defclass ,(symbolicate name) (shading-program) ()
+       (defclass ,(symbolicate name) (shading-program-descriptor) ()
          (:default-initargs :descriptor-path ',descriptor-path
            :shader-sources (list ,@(loop for (type . (path . rest)) = shader-sources
                                       then rest until (null type)
                                       for full-path = (fad:merge-pathnames-as-file
                                                        descriptor-directory path)
                                       collecting `(load-shader-source ,type ,full-path)))))
-       (register-shading-program ',name))))
+       (register-shading-program-descriptor ',name))))
 
 
 (define-system-function build-shading-program graphics-system (shader-sources)
@@ -58,21 +63,28 @@
                                   (reload-shader-text source))))))
 
 
-(define-system-function load-shading-program graphics-system (program-class)
-  (with-hash-entries ((program program-class))
-      (spr-program-table *shading-program-manager*)
+(defun find-program-descriptor (program-class)
+  (let ((program (gethash program-class (spr-program-table *shading-program-manager*))))
     (when (null program)
       (error "Cannot find shading program of class ~a" program-class))
-    (with-slots (cached-program shader-sources) program
-      (if (null cached-program)
-          (setf cached-program (build-shading-program shader-sources))
-          cached-program))))
+    program))
+
+
+(define-system-function load-shading-program graphics-system (program-descriptor)
+  (with-slots (cached-program shader-sources) program-descriptor
+    (if (null cached-program)
+        (setf cached-program (build-shading-program shader-sources))
+        cached-program)))
+
+
+(defun clear-cached-program (program)
+  (with-slots (cached-program) program
+    (unless (null cached-program)
+      (dispose cached-program))
+    (setf cached-program nil)))
 
 
 (defun clear-all-caches ()
   (clear-all-library-caches)
   (loop for prog being the hash-value in (spr-program-table *shading-program-manager*)
-     do (with-slots (cached-program) prog
-          (unless (null cached-program)
-            (dispose cached-program))
-          (setf cached-program nil))))
+     do (clear-cached-program prog)))

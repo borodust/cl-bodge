@@ -18,10 +18,6 @@
   (make-mesh-chunk data))
 
 
-(defun mesh-chunks-of (resource)
-  (chunks-by-type resource :mesh))
-
-
 ;;;
 ;;;
 ;;;
@@ -37,10 +33,6 @@
       (push-object name (make-text-shader-chunk :id name :type type :source text)))))
 
 
-(defun text-shader-chunks-of (resource)
-  (chunks-by-type resource :text-shader))
-
-
 ;;;
 ;;;
 ;;;
@@ -52,9 +44,6 @@
 (defmethod parse-chunk ((this (eql :skeleton)) params data)
   (make-skeleton-bone data))
 
-
-(defun skeleton-chunks-of (resource)
-  (chunks-by-type resource :skeleton))
 
 ;;;
 ;;;
@@ -69,7 +58,3 @@
 
 (defmethod parse-chunk ((this (eql :animation)) params data)
   (make-animation-chunk data))
-
-
-(defun animation-chunks-of (resource)
-  (chunks-by-type resource :animation))

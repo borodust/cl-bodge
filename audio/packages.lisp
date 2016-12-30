@@ -2,7 +2,7 @@
 
 
 (defpackage :cl-bodge.audio
-  (:use :cl-bodge.engine :cl-bodge.utils :cl-bodge.audio.resources
+  (:use :cl-bodge.engine :cl-bodge.utils :cl-bodge.assets
         :cl :cl-muth)
   (:nicknames :ge.snd)
   (:export audio-system

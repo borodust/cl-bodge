@@ -1,4 +1,4 @@
-(in-package :cl-bodge.resources)
+(in-package :cl-bodge.graphics)
 
 
 (defenum shader-source-type
@@ -8,10 +8,12 @@
   :geometry-shader
   :fragment-shader)
 
+
 (defclass shader-source ()
   ((type :initarg :type :reader shader-type-of)
    (name :initarg :name :reader shader-name-of)
    (text :initarg :text :reader shader-text-of)))
+
 
 (defmethod reload-shader-text ((this shader-source)))
 
