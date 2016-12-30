@@ -103,11 +103,9 @@
             (log:debug "Host main loop running")
             (let ((*system* this))
               (loop while enabled-p
-                 do (handler-case
-                        (progn
-                          (glfw:wait-events)
-                          (drain job-queue))
-                      (t (e) (log:error "Unhandled error in the event-loop: ~a" e))))
+                 do (log-errors
+                      (glfw:wait-events)
+                      (drain job-queue)))
               (condition-notify state-condi-var)))
           (log:debug "Main loop stopped. Host system offline")))
       (loop until enabled-p do
@@ -148,3 +146,14 @@
 (define-system-function lock-cursor host-system (&key (host *system*))
   (with-slots (window) host
     (glfw:set-input-mode :cursor :disabled)))
+
+
+(define-system-function (setf fullscreen-viewport-p) host-system (value)
+  (with-slots (window) *system*
+    (if value
+        (let* ((monitor (glfw:get-primary-monitor))
+               (video-mode (%glfw:get-video-mode monitor))
+               (width (getf video-mode '%glfw:width))
+               (height (getf video-mode '%glfw:height)))
+          (glfw:set-window-monitor monitor width height :window window))
+        (glfw:set-window-monitor nil 640 480 :window window :x-position 100 :y-position 100))))

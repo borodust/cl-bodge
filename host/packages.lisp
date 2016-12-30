@@ -11,6 +11,7 @@
            bind-rendering-context
            swap-buffers
            viewport-title
+           fullscreen-viewport-p
            lock-cursor
 
            state-from
