@@ -63,6 +63,7 @@
   :pathname "events"
   :serial t
   :components ((:file "packages")
+               (:file "event")
                (:file "system")))
 
 

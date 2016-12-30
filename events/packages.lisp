@@ -12,4 +12,5 @@
            register-event-classes
            post
            subscribe-to
-           subscribe-body-to))
+           subscribe-body-to
+           define-event-handler))

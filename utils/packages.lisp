@@ -26,7 +26,8 @@
            copy-array
            deletef
            alist-hash-table
-           ensure-list)
+           ensure-list
+           assoc-value)
   (:import-from :uiop
                 define-package)
   (:export define-package)
