@@ -173,10 +173,20 @@
       (dispose executor))))
 
 
-(defmethod dispatch ((this bodge-engine) (task function) &key (priority :medium))
+(defclass dispatcher () ())
+
+
+(defmethod dispatch ((this bodge-engine) (task function) &rest keys &key (priority :medium)
+                                                                      invariant)
   (with-slots (shared-pool) this
-    (execute shared-pool task :priority priority)
+    (etypecase invariant
+      ((or null symbol) (execute shared-pool task :priority priority))
+      (dispatcher (apply #'dispatch invariant task keys)))
     t))
+
+
+(defun run (fn)
+  (funcall fn (engine) nil))
 
 ;;
 (defgeneric system-of (obj))
@@ -258,8 +268,9 @@
 
 
 (define-destructor foreign-object ((handle handle-of) (sys system-of))
-  (-> (sys :priority :low :important-p t)
-    (destroy-foreign-object handle)))
+  (run
+   (-> (sys :priority :low :important-p t) ()
+     (destroy-foreign-object handle))))
 
 
 (defmacro define-system-function (name system-class lambda-list &body body)

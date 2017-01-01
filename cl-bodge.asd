@@ -43,11 +43,10 @@
                (:module concurrency
                         :serial t
                         :components ((:file "dispatch")
-                                     (:file "transform-dispatch")
-                                     (:file "dispatched-defun")
                                      (:file "execution")
                                      (:file "job-queue")
-                                     (:file "instance-lock")))
+                                     (:file "instance-lock")
+                                     (:file "async")))
                (:file "properties")
                (:file "engine")
                (:file "generic-system")
@@ -232,27 +231,6 @@
                         :components ((:file "text")))))
 
 
-(defsystem cl-bodge/resources
-  :description "Bodacious Game Engine .BRF resource handling"
-  :version "0.3.0"
-  :author "Pavel Korolev"
-  :mailto "dev@borodust.org"
-  :license "MIT"
-  :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/assets cl-bodge/graphics
-                               cl-bodge/animation flexi-streams log4cl cl-fad
-                               bodge-sndfile opticl)
-  :pathname "resources"
-  :serial t
-  :components ((:file "packages")
-               (:file "audio")
-               (:file "resource-loader")
-               (:file "basic-chunks")
-               (:file "simple-model-chunk")
-               (:file "image")
-               (:file "font")
-               (:file "converters")))
-
-
 (defsystem cl-bodge/scenegraph
   :description "Bodacious Game Engine scenegraph implementation"
   :version "0.3.0"
@@ -261,7 +239,7 @@
   :license "MIT"
   :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/graphics cl-bodge/physics
                                cl-bodge/host cl-muth cl-bodge/animation cl-bodge/assets
-                               cl-bodge/audio cl-bodge/resources)
+                               cl-bodge/audio)
   :pathname "scene"
   :serial t
   :components ((:file "packages")
@@ -272,6 +250,27 @@
                (:file "transformations")
                (:file "animation")
                (:file "model")))
+
+
+(defsystem cl-bodge/resources
+  :description "Bodacious Game Engine .BRF resource handling"
+  :version "0.3.0"
+  :author "Pavel Korolev"
+  :mailto "dev@borodust.org"
+  :license "MIT"
+  :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/assets cl-bodge/graphics
+                               cl-bodge/animation cl-bodge/scenegraph flexi-streams log4cl
+                               cl-fad bodge-sndfile opticl)
+  :pathname "resources"
+  :serial t
+  :components ((:file "packages")
+               (:file "audio")
+               (:file "resource-loader")
+               (:file "basic-chunks")
+               (:file "simple-model-chunk")
+               (:file "image")
+               (:file "font")
+               (:file "converters")))
 
 
 (defsystem cl-bodge/distribution

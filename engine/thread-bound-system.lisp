@@ -4,7 +4,7 @@
 (declaim (special *system-context*))
 
 
-(defclass thread-bound-system (enableable generic-system)
+(defclass thread-bound-system (enableable dispatcher generic-system)
   ((executor :initform nil :accessor %executor-of)
    (context :initform nil :reader system-context-of)))
 

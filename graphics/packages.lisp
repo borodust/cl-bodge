@@ -22,6 +22,7 @@
            make-mesh
            make-patch-mesh
 
+           load-shader-source
            compile-shader
            make-shading-program
            make-separable-shading-program

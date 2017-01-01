@@ -2,4 +2,4 @@
 
 
 (defpackage :cl-bodge.concurrency.tests
-  (:use :cl :5am))
+  (:use :cl :5am :ge.mt))

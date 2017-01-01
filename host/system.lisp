@@ -1,7 +1,7 @@
 (in-package :cl-bodge.host)
 
 
-(defclass host-system (generic-system)
+(defclass host-system (dispatcher generic-system)
   ((enabled-p :initform nil)
    (state-condi-var :initform (make-condition-variable
                                :name "host-sys-state-condi-var"))
@@ -117,10 +117,11 @@
     (with-system-lock-held (this state-lock)
       (unless enabled-p
         (error "Host system already disabled"))
-      (-> (this)
-        (with-system-lock-held (this)
-          (setf enabled-p nil)
-          (clearup job-queue)))
+      (run
+       (-> this ()
+         (with-system-lock-held (this)
+           (setf enabled-p nil)
+           (clearup job-queue))))
       (loop while enabled-p do
            (condition-wait state-condi-var state-lock))
       (stop-main-runner))))

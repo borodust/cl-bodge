@@ -3,9 +3,9 @@
 
 (defpackage :cl-bodge.resources
   (:nicknames :ge.rsc)
-  (:use :cl :cl-bodge.utils :cl-bodge.engine :cl-bodge.graphics :cl-bodge.animation)
+  (:use :cl :cl-bodge.utils :cl-bodge.engine)
   (:export load-resource
-           chunk-by-name
+           find-chunk
 
            simple-model-chunks-of
 

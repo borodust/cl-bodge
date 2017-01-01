@@ -32,6 +32,8 @@
                                        (return-from interruptible))) ; leave loop
                         (t (lambda (e)
                              (log:error "Uncaught error during task execution: ~a" e)
+                             (when-debugging
+                               (break))
                              (return-from continued)))) ; continue looping
            (funcall (pop-from (task-queue-of executor))))))))
 

@@ -24,12 +24,13 @@
   (:method (node)))
 
 
-(defun/d initialize-tree (root &rest systems)
-  (dolist (system systems)
-    (wait-for (-> (system :priority :high)
-                (dotree (node root)
-                  (initialize-node node system)))))
-  root)
+(define-flow initialize-tree (root &rest systems)
+  (flet ((initializer (system)
+           (-> (system :priority :high :important-p t) ()
+             (dotree (node root)
+               (initialize-node node system)))))
+    (~> (mapcar #'initializer systems))))
+
 
 
 (defun discard-tree (root)
@@ -62,7 +63,7 @@
   t)
 
 
-(defclass system-scene-pass (scene-pass)
+(defclass system-scene-pass (dispatcher scene-pass)
   ((system :initarg :system :reader system-of)))
 
 
@@ -81,10 +82,11 @@
   (make-instance 'pass-chain :passes passes))
 
 
-(defun/d process-pass-chain (chain root-node)
-  (dolist (pass (passes-of chain))
-    (wait-for (-> (pass)
-                (run-scene-pass pass root-node)))))
+(define-flow process-pass-chain (chain root-node)
+  (flet ((make-processor (pass)
+           (-> (pass) ()
+             (run-scene-pass pass root-node))))
+    (mapcar #'make-processor (passes-of chain))))
 
 
 ;;;
@@ -102,7 +104,7 @@
    (root :initform (make-instance 'scene-root-node) :reader root-of)))
 
 
-(defun/d make-scene (pass-chain &rest children)
+(defun make-scene (pass-chain &rest children)
   (let* ((scene (make-instance 'scene :pass-chain pass-chain))
          (root (root-of scene)))
     (dolist (child children)
@@ -125,7 +127,7 @@
          ,@body))))
 
 
-(defun/d animate (scene)
+(define-flow animate (scene)
   (process-pass-chain (pass-chain-of scene) (root-of scene)))
 
 

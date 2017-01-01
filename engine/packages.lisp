@@ -35,10 +35,11 @@
            in-new-thread-waiting
 
            ->
+           >>
+           *>
+           ~>
            dispatch
-           defun/d
-           wait-for
-           wait-for*
+           define-flow
 
            lockable
            with-instance-lock-held))
@@ -116,6 +117,9 @@
            release-executor
            working-directory
            merge-working-pathname
+
+           dispatcher
+           run
 
            system-object
            system-of

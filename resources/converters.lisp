@@ -3,21 +3,20 @@
 
 (defun chunk->animation (chunk)
   (unless (null chunk)
-    (make-keyframe-animation
+    (ge.ani:make-keyframe-animation
      (loop for seq in (animation-chunk-children chunk)
         for bone = (keyframe-sequence-bone seq) unless (null bone) collect
           (cons (skeleton-bone-id bone)
-                (make-keyframe-sequence
+                (ge.ani:make-keyframe-sequence
                  (loop for frame in (keyframe-sequence-children seq) collect
                       (destructuring-bind (timestamp rot transl scale) frame
-                        (make-keyframe timestamp
-                                       :rotation (sequence->quat rot)
-                                       :translation (sequence->vec3 transl)
-                                       :scale (sequence->vec3 scale))))))))))
+                        (ge.ani:make-keyframe timestamp
+                                              :rotation (sequence->quat rot)
+                                              :translation (sequence->vec3 transl)
+                                              :scale (sequence->vec3 scale))))))))))
 
 
 (define-system-function chunk->mesh graphics-system (mesh-chunk)
-  "graphics dependent"
   (let* ((arrays (mesh-chunk-arrays mesh-chunk))
          (v-count (length (cadar arrays)))
          (chunk-bones (mesh-chunk-bones mesh-chunk))
@@ -31,17 +30,17 @@
                              (sequence->mat4 (mesh-bone-offset bone)))))
              finally (return r)))
          (index-array (list->array (mesh-chunk-indexes mesh-chunk)))
-         (mesh (make-mesh v-count :triangles index-array)))
+         (mesh (ge.gx:make-mesh v-count :triangles index-array)))
     (loop for (array-id array) in arrays do
-         (with-disposable ((vbuf (make-array-buffer
+         (with-disposable ((vbuf (ge.gx:make-array-buffer
                                   (list->array array v-count (length (car array))))))
-           (attach-array-buffer vbuf mesh array-id)))
+           (ge.gx:attach-array-buffer vbuf mesh array-id)))
     (values mesh (sequence->mat4 (mesh-chunk-transform mesh-chunk)) bones)))
 
 
 (defun chunk->skeleton (chunk)
   (labels ((%traverse (bone)
-             (let ((node (make-instance 'bone-node
+             (let ((node (make-instance 'ge.sg:bone-node
                                         :name (skeleton-bone-id bone)
                                         :transform (sequence->mat4
                                                     (skeleton-bone-transform bone)))))

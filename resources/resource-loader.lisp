@@ -95,7 +95,7 @@
   ((chunks :initarg :chunks)))
 
 
-(defun chunk-by-name (resource chunk-name)
+(defun find-chunk (resource chunk-name)
   (with-slots (chunks) resource
     (gethash chunk-name chunks)))
 
@@ -120,7 +120,7 @@
           (let* ((*objects* (make-hash-table :test 'equal))
                  (*resource-path* path)
                  (*resolvers* '())
-                 (chunk-table (make-hash-table)))
+                 (chunk-table (make-hash-table :test 'equal)))
             (loop for chunk-header = (read-preserving-whitespace char-stream nil nil nil)
                until (null chunk-header) do
                  (destructuring-bind (chunk-type &rest parameters &key name &allow-other-keys)
