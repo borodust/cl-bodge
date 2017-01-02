@@ -30,8 +30,8 @@
          do (release-asset (gethash name asset-table) name)))))
 
 
-(defun get-asset (registry name)
-  (with-instance-lock-held (registry)
-    (with-slots (asset-table) registry
-      (when-let ((entry (gethash name asset-table)))
-        (load-asset entry name)))))
+(define-flow get-asset (registry name)
+  (with-slots (asset-table) registry
+    (if-let ((loader (gethash name asset-table)))
+      (-> loader () (load-asset loader name))
+      (null-flow))))

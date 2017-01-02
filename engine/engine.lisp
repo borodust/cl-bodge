@@ -177,12 +177,20 @@
 
 
 (defmethod dispatch ((this bodge-engine) (task function) &rest keys &key (priority :medium)
-                                                                      invariant)
+                                                                      invariant same-thread-p)
   (with-slots (shared-pool) this
     (etypecase invariant
-      ((or null symbol) (execute shared-pool task :priority priority))
+      (null (execute shared-pool task :priority priority))
+      (symbol (ecase invariant
+                (:generic (if same-thread-p
+                              (funcall task)
+                              (execute shared-pool task :priority priority)))))
       (dispatcher (apply #'dispatch invariant task keys)))
     t))
+
+
+(define-flow null-flow ()
+  (-> (:generic :same-thread-p t) ()))
 
 
 (defun run (fn)

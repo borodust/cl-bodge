@@ -21,15 +21,33 @@
     (apply #'dispatch dispatcher #'dispatched :invariant invariant opts)))
 
 
+(defun insert-rest-arg (lambda-list name)
+  (multiple-value-bind (required optional rest key)
+      (parse-ordinary-lambda-list lambda-list)
+    (if rest
+        (values lambda-list nil)
+        (values (append required
+                        (when optional
+                          (append (list '&optional) optional))
+                        (list '&rest name)
+                        (when key
+                          (append (list '&key) key)))
+                t))))
+
+
 (defmacro -> (invariant-n-opts lambda-list &body body)
   (destructuring-bind (invariant &rest opts) (ensure-list invariant-n-opts)
-    (with-gensyms (dispatcher body-fn args result-callback)
-      `(lambda (,dispatcher ,result-callback &rest ,args)
-         (declare (ignorable ,args))
-         (flet ((,body-fn ,lambda-list
-                  ,@body))
-           (invariant-dispatch ,dispatcher (or ,result-callback #'nop) ,invariant (list ,@opts)
-                               #',body-fn ,(when (not (null lambda-list)) args)))))))
+    (with-gensyms (dispatcher body-fn args result-callback rest-arg)
+      (multiple-value-bind (new-lambda-list new-rest-p) (insert-rest-arg lambda-list rest-arg)
+        `(lambda (,dispatcher ,result-callback &rest ,args)
+           (declare (ignorable ,args))
+           (flet ((,body-fn ,new-lambda-list
+                    ,@(when new-rest-p
+                        `((declare (ignore ,rest-arg))))
+                    ,@body))
+                    (invariant-dispatch ,dispatcher (or ,result-callback #'nop)
+                                        ,invariant (list ,@opts)
+                                        #',body-fn ,(when (not (null lambda-list)) args))))))))
 
 
 (defun dispatch-list-flow (list dispatcher result-callback args)

@@ -1,7 +1,7 @@
 (in-package :cl-bodge.graphics)
 
 
-(defclass shader-loader ()
+(defclass shader-loader (dispatcher)
   ((assets :initform (make-hash-table :test 'equal))))
 
 
@@ -12,6 +12,10 @@
     (loop for prog in (list-shading-program-descriptors)
        do (setf (gethash (engine-asset-id "program/~(~A~)" (class-name-of prog)) assets)
                 prog))))
+
+
+(defmethod dispatch ((this shader-loader) (task function) &rest keys &key)
+  (apply #'dispatch (graphics) task keys))
 
 
 (defmethod asset-names ((this shader-loader))
