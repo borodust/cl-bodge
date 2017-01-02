@@ -54,20 +54,24 @@
     (gethash character glyph-table)))
 
 
-(define-system-function font-atlas-chunk->font graphics-system (font-chunk atlas-image)
-  (let ((glyphs (loop for g in (font-atlas-chunk-children font-chunk)
-                   collect (make-instance 'glyph
-                                          :character (glyph-metrics-character g)
-                                          :origin (glyph-metrics-origin g)
-                                          :bounding-box (glyph-metrics-bounding-box g)
-                                          :advance-width (glyph-metrics-advance-width g)
-                                          :kernings (glyph-metrics-kernings g)))))
-    (make-instance 'font
-                   :glyphs glyphs
-                   :atlas (make-2d-texture atlas-image :grey :generate-mipmaps-p nil)
-                   :ascender-height (font-atlas-chunk-ascender font-chunk)
-                   :descender-height (- (font-atlas-chunk-descender font-chunk))
-                   :line-gap (font-atlas-chunk-line-gap font-chunk))))
+(defun make-glyph (character origin bounding-box advance-width kernings)
+  (make-instance 'glyph
+                 :character character
+                 :origin origin
+                 :bounding-box bounding-box
+                 :advance-width advance-width
+                 :kernings kernings))
+
+
+(define-system-function make-font graphics-system (atlas-image glyphs ascender-height
+                                                               descender-height
+                                                               line-gap)
+  (make-instance 'font
+                 :glyphs glyphs
+                 :atlas (make-2d-texture atlas-image :grey :generate-mipmaps-p nil)
+                 :ascender-height ascender-height
+                 :descender-height descender-height
+                 :line-gap line-gap))
 
 
 (defun measure-string (string font)

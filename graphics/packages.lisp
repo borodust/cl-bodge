@@ -63,5 +63,6 @@
 
            define-shader-library
            define-shading-program
+           find-program-descriptor
            load-shading-program
            build-shading-program))

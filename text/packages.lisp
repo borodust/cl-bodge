@@ -4,7 +4,8 @@
 (defpackage :cl-bodge.text
   (:nicknames :ge.txt)
   (:use :cl :cl-bodge.utils :cl-bodge.engine :cl-bodge.graphics :cl-bodge.assets)
-  (:export font-atlas-chunk->font
+  (:export make-glyph
+           make-font
            font-ascender-height
            font-descender-height
            font-line-gap

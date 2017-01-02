@@ -201,8 +201,7 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/graphics cl-bodge/assets log4cl
-                               cl-bodge/assets)
+  :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/graphics cl-bodge/assets log4cl)
   :pathname "text"
   :serial t
   :components ((:file "packages")
@@ -260,7 +259,7 @@
   :license "MIT"
   :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/assets cl-bodge/graphics
                                cl-bodge/animation cl-bodge/scenegraph flexi-streams log4cl
-                               cl-fad bodge-sndfile opticl)
+                               cl-bodge/text cl-fad bodge-sndfile opticl)
   :pathname "resources"
   :serial t
   :components ((:file "packages")

@@ -3,7 +3,7 @@
 
 (defpackage :cl-bodge.resources
   (:nicknames :ge.rsc)
-  (:use :cl :cl-bodge.utils :cl-bodge.engine)
+  (:use :cl :cl-bodge.utils :cl-bodge.engine :cl-bodge.assets)
   (:export load-resource
            find-chunk
 
@@ -48,4 +48,6 @@
 
            chunk->animation
            chunk->skeleton
-           chunk->mesh))
+           chunk->mesh
+           chunk->image
+           chunk->font))

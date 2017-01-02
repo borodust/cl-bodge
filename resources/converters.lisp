@@ -16,7 +16,7 @@
                                               :scale (sequence->vec3 scale))))))))))
 
 
-(define-system-function chunk->mesh graphics-system (mesh-chunk)
+(define-system-function chunk->mesh ge.gx:graphics-system (mesh-chunk)
   (let* ((arrays (mesh-chunk-arrays mesh-chunk))
          (v-count (length (cadar arrays)))
          (chunk-bones (mesh-chunk-bones mesh-chunk))
@@ -49,3 +49,24 @@
                node)))
     (unless (null chunk)
       (%traverse chunk))))
+
+
+(defun chunk->image (chunk)
+  (make-instance 'image
+                 :width (image-chunk-width chunk)
+                 :height (image-chunk-height chunk)
+                 :pixel-format (image-chunk-pixel-format chunk)
+                 :data (image-chunk-data chunk)))
+
+
+(define-system-function chunk->font ge.gx:graphics-system (font-chunk atlas-image)
+  (let ((glyphs (loop for g in (font-atlas-chunk-children font-chunk)
+                   collect (ge.txt:make-glyph (code-char (glyph-metrics-character g))
+                                              (glyph-metrics-origin g)
+                                              (glyph-metrics-bounding-box g)
+                                              (glyph-metrics-advance-width g)
+                                              (glyph-metrics-kernings g)))))
+    (ge.txt:make-font atlas-image glyphs
+                      (font-atlas-chunk-ascender font-chunk)
+                      (- (font-atlas-chunk-descender font-chunk))
+                      (font-atlas-chunk-line-gap font-chunk))))
