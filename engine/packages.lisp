@@ -19,7 +19,7 @@
 (defpackage :cl-bodge.concurrency
   (:nicknames :ge.mt)
   (:use :cl-bodge.utils :cl-bodge.memory
-        :cl :bordeaux-threads :cl-muth)
+        :cl :bordeaux-threads :cl-muth :cl-flow)
   (:export make-job-queue
            push-job
            push-body-into

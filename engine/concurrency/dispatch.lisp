@@ -1,12 +1,14 @@
 (in-package :cl-bodge.concurrency)
 
 
-(defgeneric dispatch (dispatcher task &key &allow-other-keys)
-  (:method (dispatcher task &key &allow-other-keys)
-    nil))
+(declaim (special *active-dispatcher*))
 
 
-(defmethod dispatch :around (dispatcher (fn function) &rest keys &key)
+(defmethod dispatch (dispatcher fn &key)
+  nil)
+
+
+(defmethod dispatch :around (dispatcher fn &rest keys &key)
   (flet ((wrapped ()
            (let ((*active-dispatcher* dispatcher))
              (funcall fn))))

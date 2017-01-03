@@ -201,7 +201,7 @@
 
 
 (defun run (fn &optional result-callback)
-  (funcall fn (engine) result-callback))
+  (cl-flow:run-flow (engine) fn result-callback))
 
 ;;
 (defgeneric system-of (obj))

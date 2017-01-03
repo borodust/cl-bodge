@@ -25,7 +25,7 @@
   :mailto "dev@borodust.org"
   :license "MIT"
   :depends-on (cl-bodge/utils cl-muth rtg-math log4cl bordeaux-threads local-time
-                              trivial-garbage uiop cffi)
+                              trivial-garbage uiop cffi cl-flow)
   :pathname "engine"
   :serial t
   :components ((:file "packages")
@@ -45,8 +45,7 @@
                         :components ((:file "dispatch")
                                      (:file "execution")
                                      (:file "job-queue")
-                                     (:file "instance-lock")
-                                     (:file "async")))
+                                     (:file "instance-lock")))
                (:file "properties")
                (:file "engine")
                (:file "generic-system")
