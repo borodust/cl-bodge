@@ -33,5 +33,5 @@
 (define-flow get-asset (registry name)
   (with-slots (asset-table) registry
     (if-let ((loader (gethash name asset-table)))
-      (-> loader () (load-asset loader name))
+      (load-asset loader name)
       (null-flow))))

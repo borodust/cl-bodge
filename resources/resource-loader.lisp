@@ -46,15 +46,24 @@
 (defmacro define-chunk-structure (name-and-opts &body slots)
   (with-gensyms (obj)
     (destructuring-bind (name &optional treep child-type) (ensure-list name-and-opts)
-      (let ((ctor-name (symbolicate '%make- name))
-            (slot-names (loop for slot in slots collecting
-                             (if (listp slot)
-                                 (first slot)
-                                 slot)))
-            (required-slots (if treep
-                                '(id children)
-                                '(id))))
-        (flet ((%ensure-list (arg-list)
+      (let* ((ctor-name (symbolicate '%make- name))
+             (slot-names (loop for slot in slots collecting
+                              (if (listp slot)
+                                  (first slot)
+                                  slot)))
+             (required-slots (if treep
+                                 '(id children)
+                                 '(id)))
+             (all-slot-names (append required-slots slot-names)))
+        (flet ((make-initarg (name)
+                 `(,(make-keyword name) ,name))
+               (expand-slot (slot-name)
+                 `(,slot-name :initarg ,(make-keyword slot-name)
+                              :accessor ,(symbolicate name '- slot-name)))
+               (expand-required-slot (slot-name)
+                 `(,slot-name :initarg ,(make-keyword slot-name)
+                              :reader ,(symbolicate slot-name '-of)))
+               (%ensure-list (arg-list)
                  `(let ((args ,(if treep
                                    `(first ,arg-list)
                                    `,arg-list)))
@@ -68,27 +77,31 @@
                                            ,slot-name)
                           `(%map-value ,slot-name #',(symbolicate 'make- type)))))))
           `(progn
-             (defstruct (,name
-                          (:constructor ,ctor-name (,@required-slots ,@slot-names)))
-               ,@required-slots
-               ,@slot-names)
+             (defclass ,name ()
+               (,@(mapcar #'expand-required-slot required-slots)
+                ,@(mapcar #'expand-slot slot-names)))
 
              (defun ,(symbolicate 'make- name) (arg-list)
-               (destructuring-bind (id &key ,@slot-names) ,(%ensure-list 'arg-list)
-                 (with-hash-entries ((,obj id)) *objects*
-                   (unless (null ,obj)
-                     (warn "Redefining object '~a'" id))
-                   (let ,(loop for slot in slots
-                            when (listp slot) collecting
-                              (redefine-slot slot 'id))
-                     (setf ,obj
-                           ,(if treep
-                                `(,ctor-name id ,(if (null child-type)
-                                                     `(rest arg-list)
-                                                     `(mapcar #',(symbolicate 'make- child-type)
-                                                              (rest arg-list)))
-                                             ,@slot-names)
-                                `(,ctor-name id ,@slot-names)))))))))))))
+               (flet ((,ctor-name (,@all-slot-names)
+                        (make-instance ',name
+                                       ,@(reduce #'append
+                                                 (mapcar #'make-initarg all-slot-names)))))
+                 (destructuring-bind (id &key ,@slot-names) ,(%ensure-list 'arg-list)
+                   (with-hash-entries ((,obj id)) *objects*
+                     (unless (null ,obj)
+                       (warn "Redefining object '~a'" id))
+                     (let ,(loop for slot in slots
+                              when (listp slot) collecting
+                                (redefine-slot slot 'id))
+                       (setf ,obj
+                             ,(if treep
+                                  `(,ctor-name
+                                    id ,(if (null child-type)
+                                            `(rest arg-list)
+                                            `(mapcar #',(symbolicate 'make- child-type)
+                                                     (rest arg-list)))
+                                    ,@slot-names)
+                                  `(,ctor-name id ,@slot-names))))))))))))))
 
 
 (defclass resource ()
@@ -102,8 +115,8 @@
 
 (defun list-chunks (resource)
   (with-slots (chunks) resource
-    (loop for chunk being the hash-value of chunks
-         collect chunk)))
+    (loop for chunk being the hash-value of chunks using (hash-key name)
+         collect (cons name chunk))))
 
 
 (defun load-resource (path)
@@ -140,9 +153,59 @@
 ;;;
 ;;;
 ;;;
-(defclass resource-loader ()
+
+(defstruct cached-resource
+  chunk
+  value)
+
+
+(defclass resource-loader (lockable dispatcher)
   ((chunk-table :initform (make-hash-table :test 'equal))))
 
 
+(defmethod initialize-instance :after ((this resource-loader) &key resource-paths)
+  (with-slots (chunk-table) this
+    (loop for path in resource-paths
+       for chunks = (list-chunks (load-resource path))
+       do (loop for (name . chunk) in chunks
+             do (with-hash-entries ((cached name)) chunk-table
+                  (when cached
+                    (warn "Redefining resource with name ~A to ~A" name path))
+                  (setf cached (make-cached-resource :chunk chunk)))))))
+
+
 (defun make-resource-loader (&rest resource-paths)
-  (make-instance 'resource-loader))
+  (make-instance 'resource-loader :resource-paths resource-paths))
+
+
+(defmethod asset-names ((this resource-loader))
+  (with-slots (chunk-table) this
+    (loop for name being the hash-key of chunk-table
+       collect name)))
+
+
+(defgeneric chunk-asset-flow (chunk loader))
+(defgeneric dispose-chunk-asset (chunk asset loader)
+  (:method (chunk asset loader)))
+
+
+(defmethod load-asset ((this resource-loader) name)
+  (with-slots (chunk-table) this
+    (if-let ((cached (gethash name chunk-table)))
+      (with-instance-lock-held (this)
+        (if-let ((cached-value (cached-resource-value cached)))
+          (value-flow cached-value)
+          (let ((chunk (cached-resource-chunk cached)))
+            (>> (chunk-asset-flow chunk this)
+                (instantly (asset)
+                  (setf (cached-resource-value cached) asset))))))
+      (null-flow))))
+
+
+(defmethod release-asset ((this resource-loader) name)
+  (with-slots (chunk-table) this
+    (with-instance-lock-held (this)
+      (when-let* ((cached (gethash name chunk-table))
+                  (cached-value (cached-resource-value cached)))
+        (dispose-chunk-asset (cached-resource-chunk cached) cached-value this)
+        (setf (cached-resource-value cached) nil)))))

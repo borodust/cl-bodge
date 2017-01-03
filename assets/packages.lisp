@@ -9,7 +9,6 @@
            assets
            copy-assets
 
-           make-engine-asset-id
            engine-asset-id
 
            register-asset-loader

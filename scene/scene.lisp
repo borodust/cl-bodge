@@ -77,7 +77,6 @@
 (defclass pass-chain ()
   ((passes :initarg :passes :reader passes-of)))
 
-
 (definline make-pass-chain (&rest passes)
   (make-instance 'pass-chain :passes passes))
 

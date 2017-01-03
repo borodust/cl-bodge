@@ -180,21 +180,28 @@
                                                                       invariant same-thread-p)
   (with-slots (shared-pool) this
     (etypecase invariant
-      (null (execute shared-pool task :priority priority))
-      (symbol (ecase invariant
-                (:generic (if same-thread-p
-                              (funcall task)
-                              (execute shared-pool task :priority priority)))))
+      ((or null symbol) (if same-thread-p
+                         (funcall task)
+                         (execute shared-pool task :priority priority)))
       (dispatcher (apply #'dispatch invariant task keys)))
     t))
 
 
+(defmacro instantly ((&rest lambda-list) &body body)
+  `(-> (:generic :same-thread-p t) (,@lambda-list)
+     ,@body))
+
+
+(define-flow value-flow (value)
+  (instantly () value))
+
+
 (define-flow null-flow ()
-  (-> (:generic :same-thread-p t) ()))
+  (value-flow nil))
 
 
-(defun run (fn)
-  (funcall fn (engine) nil))
+(defun run (fn &optional result-callback)
+  (funcall fn (engine) result-callback))
 
 ;;
 (defgeneric system-of (obj))

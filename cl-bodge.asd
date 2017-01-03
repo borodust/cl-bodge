@@ -126,7 +126,8 @@
                (:module shaders
                         :components
                         ((:file "math")
-                         (:file "lighting")))
+                         (:file "lighting")
+                         (:file "banner")))
                (:file "system")))
 
 
@@ -263,8 +264,8 @@
   :pathname "resources"
   :serial t
   :components ((:file "packages")
-               (:file "audio")
                (:file "resource-loader")
+               (:file "audio")
                (:file "basic-chunks")
                (:file "simple-model-chunk")
                (:file "image")

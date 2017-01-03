@@ -120,6 +120,8 @@
 
            dispatcher
            run
+           instantly
+           value-flow
            null-flow
 
            system-object

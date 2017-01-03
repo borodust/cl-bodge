@@ -35,7 +35,7 @@
   (find-kerning this (glyph-character that)))
 
 
-(defclass font ()
+(defclass font (disposable)
   ((glyph-table :initform (make-hash-table :test 'equal))
    (atlas :initarg :atlas :reader font-atlas-texture)
    (ascender-height :initarg :ascender-height :reader font-ascender-height)
@@ -47,6 +47,10 @@
   (with-slots (glyph-table) this
     (loop for g in glyphs
        do (setf (gethash (glyph-character g) glyph-table) g))))
+
+
+(define-destructor font (atlas)
+  (dispose atlas))
 
 
 (defmethod find-glyph ((this font) character)

@@ -1,21 +1,19 @@
 (in-package :cl-bodge.graphics)
 
 
-(defclass shader-loader (dispatcher)
+(defclass shader-loader ()
   ((assets :initform (make-hash-table :test 'equal))))
+
+
+(defun shading-program-asset-name (program-name)
+  (engine-asset-id "shading-program/~(~A~)"  program-name))
 
 
 (defmethod initialize-instance :after ((this shader-loader) &key)
   (with-slots (assets) this
-    (loop for lib in (list-shader-libraries)
-       do (setf (gethash (engine-asset-id "shader/~A" (name-of lib)) assets) lib))
     (loop for prog in (list-shading-program-descriptors)
-       do (setf (gethash (engine-asset-id "program/~(~A~)" (class-name-of prog)) assets)
+       do (setf (gethash (shading-program-asset-name (class-name-of prog)) assets)
                 prog))))
-
-
-(defmethod dispatch ((this shader-loader) (task function) &rest keys &key)
-  (apply #'dispatch (graphics) task keys))
 
 
 (defmethod asset-names ((this shader-loader))
@@ -23,9 +21,10 @@
        collecting key))
 
 
-(defmethod load-asset (loader name)
-  (with-slots (assets) loader
-    (gethash name assets)))
+(defmethod load-asset ((this shader-loader) name)
+  (with-slots (assets) this
+    (-> ((graphics) :important-p t) ()
+      (load-shading-program (gethash name assets)))))
 
 
 (defmethod release-asset ((this shader-loader) asset-name)

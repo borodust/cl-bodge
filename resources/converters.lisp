@@ -4,16 +4,20 @@
 (defun chunk->animation (chunk)
   (unless (null chunk)
     (ge.ani:make-keyframe-animation
-     (loop for seq in (animation-chunk-children chunk)
+     (loop for seq in (children-of chunk)
         for bone = (keyframe-sequence-bone seq) unless (null bone) collect
-          (cons (skeleton-bone-id bone)
+          (cons (id-of bone)
                 (ge.ani:make-keyframe-sequence
-                 (loop for frame in (keyframe-sequence-children seq) collect
+                 (loop for frame in (children-of seq) collect
                       (destructuring-bind (timestamp rot transl scale) frame
                         (ge.ani:make-keyframe timestamp
                                               :rotation (sequence->quat rot)
                                               :translation (sequence->vec3 transl)
                                               :scale (sequence->vec3 scale))))))))))
+
+
+(defmethod chunk-asset-flow ((this animation-chunk) loader)
+  (value-flow (chunk->animation this)))
 
 
 (define-system-function chunk->mesh ge.gx:graphics-system (mesh-chunk)
@@ -26,7 +30,7 @@
              for bone in chunk-bones do
                (setf (aref r (1- (mesh-bone-index bone)))
                      (when-let ((skeleton-bone (mesh-bone-bone bone)))
-                       (cons (skeleton-bone-id skeleton-bone)
+                       (cons (id-of skeleton-bone)
                              (sequence->mat4 (mesh-bone-offset bone)))))
              finally (return r)))
          (index-array (list->array (mesh-chunk-indexes mesh-chunk)))
@@ -38,17 +42,30 @@
     (values mesh (sequence->mat4 (mesh-chunk-transform mesh-chunk)) bones)))
 
 
+(defmethod chunk-asset-flow ((this mesh-chunk) loader)
+  (-> ((ge.gx:graphics) :important-p t) ()
+    (chunk->mesh this)))
+
+
+(defmethod dispose-chunk-asset ((this mesh-chunk) asset loader)
+  (dispose asset))
+
+
 (defun chunk->skeleton (chunk)
   (labels ((%traverse (bone)
              (let ((node (make-instance 'ge.sg:bone-node
-                                        :name (skeleton-bone-id bone)
+                                        :name (id-of bone)
                                         :transform (sequence->mat4
                                                     (skeleton-bone-transform bone)))))
-               (dolist (child (skeleton-bone-children bone))
+               (dolist (child (children-of bone))
                  (adopt node (%traverse child)))
                node)))
     (unless (null chunk)
       (%traverse chunk))))
+
+
+(defmethod chunk-asset-flow ((this skeleton-bone) loader)
+  (value-flow (chunk->skeleton this)))
 
 
 (defun chunk->image (chunk)
@@ -59,8 +76,12 @@
                  :data (image-chunk-data chunk)))
 
 
+(defmethod chunk-asset-flow ((this image-chunk) loader)
+  (value-flow (chunk->image this)))
+
+
 (define-system-function chunk->font ge.gx:graphics-system (font-chunk atlas-image)
-  (let ((glyphs (loop for g in (font-atlas-chunk-children font-chunk)
+  (let ((glyphs (loop for g in (children-of font-chunk)
                    collect (ge.txt:make-glyph (code-char (glyph-metrics-character g))
                                               (glyph-metrics-origin g)
                                               (glyph-metrics-bounding-box g)
@@ -70,3 +91,13 @@
                       (font-atlas-chunk-ascender font-chunk)
                       (- (font-atlas-chunk-descender font-chunk))
                       (font-atlas-chunk-line-gap font-chunk))))
+
+
+(defmethod chunk-asset-flow ((this font-atlas-chunk) loader)
+  (>> (load-asset loader (font-atlas-chunk-image-name this))
+      (-> ((ge.gx:graphics) :important-p t) (image)
+        (chunk->font this image))))
+
+
+(defmethod dispose-chunk-asset ((this font-atlas-chunk) asset loader)
+  (dispose asset))
