@@ -41,9 +41,9 @@
 
 
 (defun stroke-color (color)
-  (let ((color (%nvg:rgba-f (x color) (y color) (z color) (w color))))
-    (%nvg:stroke-color *canvas* color)
-    (free color)))
+  (c-with ((nk-color (:struct (%nk:color))))
+    (%nvg:rgba-f nk-color (x color) (y color) (z color) (w color))
+    (%nvg:stroke-color *canvas* nk-color)))
 
 
 (definline stroke-width (width)
@@ -51,9 +51,9 @@
 
 
 (defun fill-color (color)
-  (let ((color (%nvg:rgba-f (x color) (y color) (z color) (w color))))
-    (%nvg:fill-color *canvas* color)
-    (free color)))
+  (c-with ((nk-color (:struct (%nk:color))))
+    (%nvg:rgba-f nk-color (x color) (y color) (z color) (w color))
+    (%nvg:fill-color *canvas* nk-color)))
 
 
 (defmacro path (&body body)

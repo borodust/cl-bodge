@@ -84,8 +84,10 @@
 (defmacro in-window ((x y w h &key (title "")) &body body)
   `(unwind-protect
         (progn
-          (%nk:begin *handle* ,title (%nk:rect ,x ,y ,w ,h) 0)
-          ,@body)
+          (c-with ((rect (:struct (%nk:rect))))
+            (%nk:rect rect ,x ,y ,w ,h)
+            (%nk:begin *handle* ,title rect 0)
+            ,@body))
      (%nk:end *handle*)))
 
 
