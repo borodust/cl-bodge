@@ -19,6 +19,14 @@
 (defmethod chunk-asset-flow ((this animation-chunk) loader)
   (value-flow (chunk->animation this)))
 
+;;;
+;;;
+;;;
+(defstruct mesh-asset
+  (mesh nil :read-only t)
+  (transform nil :read-only t)
+  (bones nil :read-only t))
+
 
 (define-system-function chunk->mesh ge.gx:graphics-system (mesh-chunk)
   (let* ((arrays (mesh-chunk-arrays mesh-chunk))
@@ -44,11 +52,14 @@
 
 (defmethod chunk-asset-flow ((this mesh-chunk) loader)
   (-> ((ge.gx:graphics) :important-p t) ()
-    (chunk->mesh this)))
+    (multiple-value-bind (mesh transform bones) (chunk->mesh this)
+      (make-mesh-asset :mesh mesh
+                       :transform transform
+                       :bones bones))))
 
 
 (defmethod dispose-chunk-asset ((this mesh-chunk) asset loader)
-  (dispose asset))
+  (dispose (mesh-asset-mesh asset)))
 
 
 (defun chunk->skeleton (chunk)
