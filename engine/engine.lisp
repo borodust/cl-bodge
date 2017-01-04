@@ -43,6 +43,9 @@
 (defgeneric enable (system)
   (:method (system) nil))
 
+(defgeneric notify-system (system notification &key &allow-other-keys)
+  (:method (system notification &key)))
+
 (defgeneric disable (system)
   (:method (system) nil))
 
@@ -132,7 +135,9 @@
              (property :systems (lambda ()
                                   (error ":systems property should be defined")))))
         (setf systems (alist-hash-table (instantiate-systems system-class-names))
-              disabling-order (enable-requested-systems systems))))))
+              disabling-order (enable-requested-systems systems)))
+      (loop for system being the hash-value of systems
+         do (notify-system system :engine-started)))))
 
 
 (defun shutdown ()
@@ -189,6 +194,11 @@
 
 (defmacro instantly ((&rest lambda-list) &body body)
   `(-> nil ,lambda-list
+     ,@body))
+
+
+(defmacro concurrently ((&rest lambda-list) &body body)
+  `(-> (nil :concurrently-p t) ,lambda-list
      ,@body))
 
 

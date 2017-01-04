@@ -12,12 +12,15 @@
 
 (defmethod initialize-system :after ((this event-system))
   (with-slots (executor) this
-    (setf executor (acquire-executor))
-    (flet ((register-handler (event-class-name handler)
-             (subscribe-to event-class-name handler this)))
-      (loop for (event-class-name . handler-name) in *predefined-event-callbacks*
-           do (register-handler event-class-name handler-name))
-      (setf *registration-callback* #'register-handler))))
+    (setf executor (acquire-executor))))
+
+
+(defmethod notify-system ((this event-system) (notification (eql :engine-started)) &key)
+  (flet ((register-handler (event-class-name handler)
+           (subscribe-to event-class-name handler this)))
+    (loop for (event-class-name . handler-name) in *predefined-event-callbacks*
+       do (register-handler event-class-name handler-name))
+    (setf *registration-callback* #'register-handler)))
 
 
 (definline events ()
@@ -33,9 +36,11 @@
 
 (defmacro %with-accessor-bindings ((accessor-bindings event-var) &body body)
   (let ((bindings (loop for binding in accessor-bindings
-                     for (name accessor) = (if (listp binding)
+                     for (name accessor) = (if (and (listp binding) (second binding))
                                                binding
-                                               (list binding binding))
+                                               (list binding (format-symbol
+                                                              (symbol-package binding)
+                                                              "~A~A" binding '-from)))
                      collect `(,name (,accessor ,event-var)))))
     `(symbol-macrolet ,bindings
        ,@body)))

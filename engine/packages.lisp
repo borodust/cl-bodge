@@ -113,6 +113,7 @@
            enable
            disable
            enabledp
+           notify-system
            acquire-executor
            release-executor
            working-directory
@@ -121,6 +122,7 @@
            dispatcher
            run
            instantly
+           concurrently
            value-flow
            null-flow
 
