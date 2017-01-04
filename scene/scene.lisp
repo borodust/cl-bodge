@@ -24,13 +24,12 @@
   (:method (node)))
 
 
-(define-flow initialize-tree (root &rest systems)
+(defun tree-initialization-flow (root &rest systems)
   (flet ((initializer (system)
            (-> (system :priority :high :important-p t) ()
              (dotree (node root)
                (initialize-node node system)))))
     (~> (mapcar #'initializer systems))))
-
 
 
 (defun discard-tree (root)
@@ -81,7 +80,7 @@
   (make-instance 'pass-chain :passes passes))
 
 
-(define-flow process-pass-chain (chain root-node)
+(defun process-pass-chain-flow (chain root-node)
   (flet ((make-processor (pass)
            (-> (pass) ()
              (run-scene-pass pass root-node))))
@@ -126,8 +125,8 @@
          ,@body))))
 
 
-(define-flow animate (scene)
-  (process-pass-chain (pass-chain-of scene) (root-of scene)))
+(defun animate (scene)
+  (process-pass-chain-flow (pass-chain-of scene) (root-of scene)))
 
 
 ;;;

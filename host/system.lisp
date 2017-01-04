@@ -7,7 +7,7 @@
                                :name "host-sys-state-condi-var"))
    (window :initform nil)
    (eve-sys :initform nil :reader event-system-of)
-   (job-queue :initform (make-job-queue)))
+   (task-queue :initform (make-task-queue)))
   (:default-initargs :depends-on '(event-system)))
 
 
@@ -20,9 +20,9 @@
 
 
 (defmethod dispatch ((this host-system) (fn function) &key)
-  (with-slots (job-queue) this
+  (with-slots (task-queue) this
     (with-system-lock-held (this)
-      (push-job fn job-queue)
+      (push-task fn task-queue)
       (glfw:post-empty-event)))
   t)
 
@@ -75,7 +75,7 @@
 
 ;; if current thread is the main one, this function will block
 (defmethod initialize-system :after ((this host-system))
-  (with-slots (enabled-p job-queue window state-condi-var eve-sys) this
+  (with-slots (enabled-p task-queue window state-condi-var eve-sys) this
     (with-system-lock-held (this state-lock)
       (when enabled-p
         (error "Host system already enabled"))
@@ -105,7 +105,7 @@
               (loop while enabled-p
                  do (log-errors
                       (glfw:wait-events)
-                      (drain job-queue)))
+                      (drain task-queue)))
               (condition-notify state-condi-var)))
           (log:debug "Main loop stopped. Host system offline")))
       (loop until enabled-p do
@@ -113,7 +113,7 @@
 
 
 (defmethod discard-system :before ((this host-system))
-  (with-slots (enabled-p state-condi-var job-queue) this
+  (with-slots (enabled-p state-condi-var task-queue) this
     (with-system-lock-held (this state-lock)
       (unless enabled-p
         (error "Host system already disabled"))
@@ -121,7 +121,7 @@
        (-> this ()
          (with-system-lock-held (this)
            (setf enabled-p nil)
-           (clearup job-queue))))
+           (clearup task-queue))))
       (loop while enabled-p do
            (condition-wait state-condi-var state-lock))
       (stop-main-runner))))

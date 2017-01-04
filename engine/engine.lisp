@@ -177,26 +177,26 @@
 
 
 (defmethod dispatch ((this bodge-engine) (task function) &rest keys &key (priority :medium)
-                                                                      invariant same-thread-p)
+                                                                      invariant concurrently-p)
   (with-slots (shared-pool) this
     (etypecase invariant
-      ((or null symbol) (if same-thread-p
-                         (funcall task)
-                         (execute shared-pool task :priority priority)))
+      (null (if concurrently-p
+                (execute shared-pool task :priority priority)
+                (funcall task)))
       (dispatcher (apply #'dispatch invariant task keys)))
     t))
 
 
 (defmacro instantly ((&rest lambda-list) &body body)
-  `(-> (:generic :same-thread-p t) (,@lambda-list)
+  `(-> nil ,lambda-list
      ,@body))
 
 
-(define-flow value-flow (value)
+(defun value-flow (value)
   (instantly () value))
 
 
-(define-flow null-flow ()
+(defun null-flow ()
   (value-flow nil))
 
 

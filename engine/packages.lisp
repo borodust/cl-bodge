@@ -20,8 +20,8 @@
   (:nicknames :ge.mt)
   (:use :cl-bodge.utils :cl-bodge.memory
         :cl :bordeaux-threads :cl-muth :cl-flow)
-  (:export make-job-queue
-           push-job
+  (:export make-task-queue
+           push-task
            push-body-into
            drain
            clearup
