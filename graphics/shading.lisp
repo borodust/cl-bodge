@@ -130,7 +130,7 @@
   (gl:use-program (handle-value-of program)))
 
 
-(defmacro with-using-shading-program ((program &optional prev-program) &body body)
+(defmacro with-active-shading-program ((program &optional prev-program) &body body)
   (once-only (program)
     `(unwind-protect
           (let ((*active-shading-program* ,program))

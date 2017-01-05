@@ -68,6 +68,9 @@
       value
       :unknown))
 
+(defun mouse-button->glfw-enumval (value)
+  value)
+
 (defclass input-event (event) ())
 
 

@@ -11,6 +11,9 @@
            bind-rendering-context
            swap-buffers
            viewport-title
+           viewport-size
+           cursor-position
+           mouse-button-state
            fullscreen-viewport-p
            lock-cursor
 

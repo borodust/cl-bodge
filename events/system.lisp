@@ -38,9 +38,7 @@
   (let ((bindings (loop for binding in accessor-bindings
                      for (name accessor) = (if (and (listp binding) (second binding))
                                                binding
-                                               (list binding (format-symbol
-                                                              (symbol-package binding)
-                                                              "~A~A" binding '-from)))
+                                               (list binding (symbolicate binding '-from)))
                      collect `(,name (,accessor ,event-var)))))
     `(symbol-macrolet ,bindings
        ,@body)))

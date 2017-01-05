@@ -62,7 +62,7 @@
                                                         (* scale (font-ascender-height font)))
                                                      -1.0))
                              proj)))
-      (with-using-shading-program (shading-program)
+      (with-active-shading-program (shading-program)
         (setf (program-uniform-variable shading-program "atlas") 0
               (program-uniform-variable shading-program "scale") scale
               (program-uniform-variable shading-program "baseColor") (or color default-color)

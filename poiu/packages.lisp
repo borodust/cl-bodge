@@ -7,4 +7,10 @@
         :cl-bodge.canvas :autowrap :cl-bodge.text :cl-bodge.assets)
   (:export make-poiu-context
            with-poiu
-           in-window))
+           with-poiu-input
+           in-window
+           render-poiu
+           clear-poiu
+
+           register-cursor-position
+           register-mouse-input))

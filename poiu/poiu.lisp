@@ -81,22 +81,37 @@
      (%nk:layout-row-end *handle*)))
 
 
-(defmacro in-window ((x y w h &key (title "")) &body body)
+(defmacro in-window ((x y w h &optional (title "") &rest options) &body body)
   `(unwind-protect
         (progn
           (c-with ((rect (:struct (%nk:rect))))
-            (%nk:rect rect ,x ,y ,w ,h)
-            (%nk:begin *handle* ,title rect 0)
+            (%nk:begin *handle* ,title (%nk:rect rect ,x ,y ,w ,h) (nk:panel-mask ,@options))
             ,@body))
      (%nk:end *handle*)))
 
 
-(defmacro with-poiu-input (&body body)
-  `(prog2
-       (%nk:input-begin *handle*)
-       (progn ,@body)
-     (%nk:input-end *handle*)))
+(defmacro with-poiu-input ((poiu) &body body)
+  `(with-poiu (,poiu)
+     (prog2
+         (%nk:input-begin *handle*)
+         (progn ,@body)
+       (%nk:input-end *handle*))))
 
 
-(definline clear-poiu-context ()
-  (%nk:clear *handle*))
+(definline clear-poiu (&optional (poiu *context*))
+  (%nk:clear (handle-value-of poiu)))
+
+
+(defun register-cursor-position (x y)
+  (%nk:input-motion *handle* (floor x) (floor y)))
+
+
+(defun register-mouse-input (x y button state)
+  (let ((nk-button (ecase button
+                     (:left %nk:+button-left+)
+                     (:middle %nk:+button-middle+)
+                     (:right %nk:+button-right+)))
+        (nk-state (ecase state
+                    (:pressed 1)
+                    (:released 0))))
+    (%nk:input-button *handle* nk-button (floor x) (floor y) nk-state)))

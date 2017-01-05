@@ -32,7 +32,7 @@
            uniform-name
 
            use-shading-program
-           with-using-shading-program
+           with-active-shading-program
            program-uniform-variable
 
            dimensions-of

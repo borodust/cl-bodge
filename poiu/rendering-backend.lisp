@@ -163,7 +163,7 @@
       (draw-polyline points (clamp r g b a)))))
 
 
-(defun render-boxed-text (cmd)
+(defun render-boxed-text (cmd poiu)
   (dissect-c-struct ((x :x) (y :y) (w :w) (h :h)
                      (length :length)
                      (height :height)
@@ -172,7 +172,7 @@
                      (b :foreground :b) (a :foreground :a))
       (cmd %nk:command-text)
     (let ((lisp-string (cffi:foreign-string-to-lisp string :count length)))
-      (render-text (text-renderer-of *context*) lisp-string
+      (render-text (text-renderer-of poiu) lisp-string
                    :position (vec2 #f x #f y)
                    :color (clamp r g b a)))))
 
@@ -189,10 +189,10 @@
   (declare (ignore cmd)))
 
 
-(defun render-poiu ()
+(defun render-poiu (&optional (poiu *context*))
   (let (commands)
-    (with-canvas ((canvas-of *context*) (width-of *context*) (height-of *context*))
-      (bodge-nuklear:docommands (cmd *handle*)
+    (with-canvas ((canvas-of poiu) (floor (width-of poiu)) (floor (height-of poiu)))
+      (bodge-nuklear:docommands (cmd (handle-value-of poiu))
         (case (autowrap:enum-key '(:enum (%nk:command-type))
                                  (c-ref cmd (:struct (%nk:command)) :type))
           (:nop)
@@ -214,4 +214,4 @@
           (:text (push cmd commands))
           (:image (render-image cmd)))))
     (dolist (cmd commands)
-      (render-boxed-text cmd))))
+      (render-boxed-text cmd poiu))))

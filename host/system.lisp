@@ -5,7 +5,7 @@
   ((enabled-p :initform nil)
    (state-condi-var :initform (make-condition-variable
                                :name "host-sys-state-condi-var"))
-   (window :initform nil)
+   (window :initform nil :reader window-of)
    (eve-sys :initform nil :reader event-system-of)
    (task-queue :initform (make-task-queue)))
   (:default-initargs :depends-on '(event-system)))
@@ -142,6 +142,21 @@
 (define-system-function (setf viewport-title) host-system (value &key (host-sys *system*))
   (with-slots (window) host-sys
     (glfw:set-window-title (format nil "~a" value) window)))
+
+
+(define-system-function viewport-size host-system ()
+  (destructuring-bind (w h) (glfw:get-window-size (window-of *system*))
+    (values w h)))
+
+
+(define-system-function cursor-position host-system ()
+  (destructuring-bind (x y) (glfw:get-cursor-position (window-of *system*))
+    (values x y)))
+
+
+(define-system-function mouse-button-state host-system (button)
+  (glfw-enumval->button-state
+   (glfw:get-mouse-button (mouse-button->glfw-enumval button) (window-of *system*))))
 
 
 (define-system-function lock-cursor host-system (&key (host *system*))
