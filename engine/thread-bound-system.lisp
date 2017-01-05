@@ -31,7 +31,7 @@
 
 (defgeneric acquire-system-executor (system)
   (:method ((this thread-bound-system))
-    (acquire-executor :single-threaded-p t :exclusive-p t)))
+    (acquire-executor :single-threaded-p t)))
 
 
 (defgeneric release-system-executor (system executor)
