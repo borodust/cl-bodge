@@ -145,13 +145,16 @@
 
 
 (define-system-function viewport-size host-system ()
-  (destructuring-bind (w h) (glfw:get-window-size (window-of *system*))
-    (values w h)))
+  (glfw:get-window-size (window-of *system*)))
+
+
+(define-system-function (setf viewport-size) host-system (value)
+  (destructuring-bind (w h) value
+    (glfw:set-window-size w h (window-of *system*))))
 
 
 (define-system-function cursor-position host-system ()
-  (destructuring-bind (x y) (glfw:get-cursor-position (window-of *system*))
-    (values x y)))
+  (glfw:get-cursor-position (window-of *system*)))
 
 
 (define-system-function mouse-button-state host-system (button)

@@ -2,9 +2,11 @@
 
 
 (defun %get-property (key properties &optional (default-value nil))
-  (cond ((cdr (assoc key properties :test #'equal)))
-	((functionp default-value) (funcall default-value))
-	(t default-value)))
+  (if-let ((property (assoc key properties :test #'equal)))
+    (cdr property)
+    (if (functionp default-value)
+        (funcall default-value)
+	default-value)))
 
 
 (defun %load-properties (path)

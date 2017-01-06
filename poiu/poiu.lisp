@@ -74,22 +74,6 @@
      ,@body))
 
 
-(defmacro layout-row ((height columns) &body body)
-  `(prog2
-       (%nk:layout-row-begin *handle* %nk:+static+ ,height ,columns)
-       (progn ,@body)
-     (%nk:layout-row-end *handle*)))
-
-
-(defmacro in-window ((x y w h &optional (title "") &rest options) &body body)
-  `(unwind-protect
-        (progn
-          (c-with ((rect (:struct (%nk:rect))))
-            (%nk:begin *handle* ,title (%nk:rect rect ,x ,y ,w ,h) (nk:panel-mask ,@options))
-            ,@body))
-     (%nk:end *handle*)))
-
-
 (defmacro with-poiu-input ((poiu) &body body)
   `(with-poiu (,poiu)
      (prog2
@@ -98,7 +82,7 @@
        (%nk:input-end *handle*))))
 
 
-(definline clear-poiu (&optional (poiu *context*))
+(definline clear-poiu-context (&optional (poiu *context*))
   (%nk:clear (handle-value-of poiu)))
 
 

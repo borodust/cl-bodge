@@ -189,7 +189,7 @@
   (declare (ignore cmd)))
 
 
-(defun render-poiu (&optional (poiu *context*))
+(defmethod render ((poiu nuklear-context))
   (let (commands)
     (with-canvas ((canvas-of poiu) (floor (width-of poiu)) (floor (height-of poiu)))
       (bodge-nuklear:docommands (cmd (handle-value-of poiu))

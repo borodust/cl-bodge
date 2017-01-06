@@ -6,11 +6,16 @@
   (:use :cl :cl-bodge.engine :cl-bodge.utils :cl-bodge.graphics :plus-c
         :cl-bodge.canvas :autowrap :cl-bodge.text :cl-bodge.assets)
   (:export make-poiu-context
-           with-poiu
-           with-poiu-input
-           in-window
-           render-poiu
-           clear-poiu
+           clear-poiu-context
 
+           make-poiu
+           compose-poiu
+           window
+           make-window
+           make-menu-bar
+           make-static-row-layout
+           make-label-button
+
+           with-poiu-input
            register-cursor-position
            register-mouse-input))

@@ -224,6 +224,7 @@
   :serial t
   :components ((:file "packages")
                (:file "poiu")
+               (:file "elements")
                (:file "text-renderer")
                (:file "rendering-backend")
                (:module shaders
