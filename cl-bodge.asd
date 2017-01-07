@@ -11,7 +11,7 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (alexandria uiop log4cl local-time dissect split-sequence)
+  :depends-on (alexandria uiop log4cl local-time dissect split-sequence cl-autowrap)
   :pathname "utils"
   :serial t
   :components ((:file "packages")

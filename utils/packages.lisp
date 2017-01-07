@@ -57,4 +57,5 @@
            reexporting
            when-debugging
            flatten-array
-           split-sequence))
+           split-sequence
+           foreign-function-pointer))

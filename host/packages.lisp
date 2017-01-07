@@ -20,6 +20,8 @@
            state-from
            keyboard-event
            key-from
+           character-input-event
+           character-from
            mouse-event
            button-from
            cursor-event

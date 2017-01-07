@@ -30,61 +30,6 @@
     (expand-element-hierarchy `((window ,@win-opts) ,@elements))))
 
 
-
-;;;
-;;;
-;;;
-(defclass window (layout disposable)
-  ((x :initarg :x :initform 0.0)
-   (y :initarg :y :initform 0.0)
-   (panel-mode-p :initarg :panel-mode-p)
-   (width :initarg :width)
-   (height :initarg :height)
-   (background :initarg :background-color)
-   (title :initarg :title :initform "")
-   (option-mask :initarg :option-mask :initform '())
-
-   (nk-rect :initform (calloc '(:struct (%nk:rect))))
-   (nk-vec2 :initform (calloc '(:struct (%nk:vec2))))
-   (nk-color :initform (calloc '(:struct (%nk:color))))
-   (nk-style-item :initform (calloc '(:struct (%nk:style-item))))))
-
-
-(define-destructor window (nk-rect nk-color nk-style-item nk-vec2)
-  (free nk-style-item)
-  (free nk-vec2)
-  (free nk-color)
-  (free nk-rect))
-
-
-(defun make-window (x y w h &key (title "") (background-color nil)
-                              (headerless-p t) (scrollable-p nil)
-                              (borderless-p t) (panel-mode-p nil) (resizable-p nil)
-                              (minimizable-p nil) (movable-p nil))
-  (macrolet ((opt (key option)
-               `(when ,key
-                  (list ,option))))
-    (make-instance 'window
-                 :x x :y y :width w :height h
-                 :panel-mode-p panel-mode-p
-                 :title title
-                 :background-color background-color
-                 :option-mask (apply #'nk:panel-mask
-                                     (nconc (opt (not headerless-p) :title)
-                                            (opt (not scrollable-p) :no-scrollbar)
-                                            (opt (not borderless-p) :border)
-                                            (opt resizable-p :scalable)
-                                            (opt minimizable-p :minimizable)
-                                            (opt movable-p :movable))))))
-
-
-(defun style-item-color (style-item-buf color-buf color)
-  (%nk:style-item-color style-item-buf
-                        (%nk:rgba-f color-buf
-                                    (x color) (y color)
-                                    (z color) (w color))))
-
-
 ;; todo: wrap each push/pop into proper unwind-protect?
 (defmacro with-styles ((&rest styles) &body body)
   (with-gensyms (ctx)
@@ -110,16 +55,75 @@
            ,@(reverse (mapcar #'fourth stack-ops)))))))
 
 
+;;;
+;;;
+;;;
+(defclass window (layout disposable)
+  ((x :initarg :x :initform 0.0)
+   (y :initarg :y :initform 0.0)
+   (panel-mode-p :initarg :panel-mode-p)
+   (width :initarg :width)
+   (height :initarg :height)
+   (background :initarg :background-color)
+   (title :initarg :title :initform "")
+   (option-mask :initarg :option-mask :initform '())
+   (hidden-p :initform nil)
+
+   (nk-rect :initform (calloc '(:struct (%nk:rect))))
+   (nk-vec2 :initform (calloc '(:struct (%nk:vec2))))
+   (nk-color :initform (calloc '(:struct (%nk:color))))
+   (nk-style-item :initform (calloc '(:struct (%nk:style-item))))))
+
+
+(define-destructor window (nk-rect nk-color nk-style-item nk-vec2)
+  (free nk-style-item)
+  (free nk-vec2)
+  (free nk-color)
+  (free nk-rect))
+
+
+(defun make-window (x y w h &key (title "") (background-color nil)
+                              (headerless-p t) (scrollable-p nil) (backgrounded-p nil)
+                              (borderless-p t) (panel-mode-p nil) (resizable-p nil)
+                              (minimizable-p nil) (movable-p nil) (closable-p nil))
+  (macrolet ((opt (key option)
+               `(when ,key
+                  (list ,option))))
+    (make-instance 'window
+                 :x x :y y :width w :height h
+                 :panel-mode-p panel-mode-p
+                 :title title
+                 :background-color background-color
+                 :option-mask (apply #'nk:panel-mask
+                                     (nconc (opt (not headerless-p) :title)
+                                            (opt (not scrollable-p) :no-scrollbar)
+                                            (opt (not borderless-p) :border)
+                                            (opt closable-p :closable)
+                                            (opt backgrounded-p :background)
+                                            (opt resizable-p :scalable)
+                                            (opt minimizable-p :minimizable)
+                                            (opt movable-p :movable))))))
+
+
+(defun style-item-color (style-item-buf color-buf color)
+  (%nk:style-item-color style-item-buf
+                        (%nk:rgba-f color-buf
+                                    (x color) (y color)
+                                    (z color) (w color))))
+
+
 (defmethod compose ((this window))
   (with-slots (x y width height title option-mask nk-rect background nk-color nk-style-item
-                 panel-mode-p)
+                 panel-mode-p hidden-p)
       this
-    (with-styles ((%nk:style-item (when background
-                                    (style-item-color nk-style-item nk-color background))
-                                  :window :fixed-background))
-      (%nk:begin *handle* title (%nk:rect nk-rect x y width height) option-mask)
-      (call-next-method)
-      (%nk:end *handle*))))
+    (unless hidden-p
+      (with-styles ((%nk:style-item (when background
+                                      (style-item-color nk-style-item nk-color background))
+                                    :window :fixed-background))
+        (if (= 0 (%nk:begin *handle* title (%nk:rect nk-rect x y width height) option-mask))
+            (setf hidden-p t)
+            (call-next-method))
+        (%nk:end *handle*)))))
 
 
 ;;;
@@ -223,3 +227,29 @@
 (defmethod compose ((this label))
   (with-slots (text align) this
     (%nk:label *handle* text align)))
+
+
+;;;
+;;;
+;;;
+(defclass text-edit (disposable widget)
+  ((buffer :initform (calloc '(:struct (%nk:text-edit))))))
+
+
+(defmethod initialize-instance :after ((this text-edit) &key)
+  (with-slots (buffer) this
+    (%nk:textedit-init-default buffer)))
+
+
+(define-destructor text-edit (buffer)
+  (free buffer))
+
+
+(defun make-text-edit (&key name)
+  (make-instance 'text-edit :name name))
+
+
+(defmethod compose ((this text-edit))
+  (with-slots (buffer) this
+    (%nk:edit-buffer *handle* %nk:+edit-simple+ buffer
+                     (ge.util:foreign-function-pointer '%nk:filter-default))))

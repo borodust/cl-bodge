@@ -242,3 +242,9 @@
                                      :element-type (array-element-type array))))
             (copy-dimension result array '() dims)
             result)))))
+
+
+(defun foreign-function-pointer (function-name)
+  (when-let* ((fn (autowrap:find-function function-name)))
+    (let ((name (autowrap:foreign-symbol-c-symbol fn)))
+      (cffi-sys:%foreign-symbol-pointer name :default))))

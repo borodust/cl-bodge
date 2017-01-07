@@ -63,9 +63,16 @@
   (post (make-framebuffer-size-change-event w h) (event-system-of *system*)))
 
 
+(%glfw:define-glfw-callback on-character-input ((window :pointer) (char-code :unsigned-int))
+  (declare (ignore window))
+  (let ((character (code-char char-code)))
+    (post (make-character-input-event character) (event-system-of *system*))))
+
+
 (defun %register-event-classes ()
   (register-event-classes (engine-system 'event-system)
                           'keyboard-event
+                          'character-input-event
                           'mouse-event
                           'cursor-event
                           'scroll-event
@@ -95,6 +102,7 @@
             (glfw:set-cursor-position-callback 'on-cursor-movement)
             (glfw:set-scroll-callback 'on-scroll)
             (glfw:set-framebuffer-size-callback 'on-framebuffer-size-change)
+            (glfw:set-char-callback 'on-character-input)
             (with-system-lock-held (this)
               (setf window glfw:*window*
                     eve-sys (engine-system 'event-system)

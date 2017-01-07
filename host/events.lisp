@@ -78,6 +78,10 @@
   (key state))
 
 
+(defevent character-input-event (input-event)
+  (character))
+
+
 (defevent mouse-event (input-event)
   (button state))
 

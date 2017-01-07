@@ -18,10 +18,13 @@
            make-dynamic-row-layout
            make-label-button
            make-text-label
+           make-text-edit
 
            with-poiu-input
            register-cursor-position
            register-mouse-input
+           register-character-input
+           register-keyboard-input
 
            button-click-event
            poiu-button-from

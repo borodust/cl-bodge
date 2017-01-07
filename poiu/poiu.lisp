@@ -22,7 +22,9 @@
 (defhandle nuklear-context-handle
     :closeform (bodge-nuklear:destroy-context *handle-value*))
 
-
+;;;
+;;;
+;;;
 (defclass nuklear-context (foreign-object)
   ((nuklear-font :initarg :nuklear-font)
    (width :initarg :width :reader width-of)
@@ -90,12 +92,29 @@
   (%nk:input-motion *handle* (floor x) (floor y)))
 
 
+(defun register-character-input (character)
+  (%nk:input-unicode *handle* (char-code character)))
+
+
+(defun button-state->nk (state)
+  (ecase state
+    (:pressed 1)
+    (:released 0)))
+
+
+(defun key->nk (key)
+  (ecase key
+    (:backspace %nk:+key-backspace+)))
+
+
+(defun register-keyboard-input (key state)
+  (%nk:input-key *handle* (key->nk key) (button-state->nk state)))
+
+
 (defun register-mouse-input (x y button state)
   (let ((nk-button (ecase button
                      (:left %nk:+button-left+)
                      (:middle %nk:+button-middle+)
                      (:right %nk:+button-right+)))
-        (nk-state (ecase state
-                    (:pressed 1)
-                    (:released 0))))
+        (nk-state (button-state->nk state)))
     (%nk:input-button *handle* nk-button (floor x) (floor y) nk-state)))
