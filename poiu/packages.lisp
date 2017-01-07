@@ -14,6 +14,7 @@
            make-window
            make-menu-bar
            make-static-row-layout
+           make-dynamic-row-layout
            make-label-button
 
            with-poiu-input

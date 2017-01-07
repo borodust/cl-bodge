@@ -37,27 +37,87 @@
 (defclass window (layout disposable)
   ((x :initarg :x :initform 0.0)
    (y :initarg :y :initform 0.0)
-   (rect :initform (calloc '(:struct (%nk:rect))))
+   (panel-mode-p :initarg :panel-mode-p)
    (width :initarg :width)
    (height :initarg :height)
+   (background :initarg :background-color)
    (title :initarg :title :initform "")
-   (option-mask :initarg :option-mask :initform '())))
+   (option-mask :initarg :option-mask :initform '())
+
+   (nk-rect :initform (calloc '(:struct (%nk:rect))))
+   (nk-vec2 :initform (calloc '(:struct (%nk:vec2))))
+   (nk-color :initform (calloc '(:struct (%nk:color))))
+   (nk-style-item :initform (calloc '(:struct (%nk:style-item))))))
 
 
-(define-destructor window (rect)
-  (free rect))
+(define-destructor window (nk-rect nk-color nk-style-item nk-vec2)
+  (free nk-style-item)
+  (free nk-vec2)
+  (free nk-color)
+  (free nk-rect))
 
 
-(defun make-window (x y w h &optional (title "") &rest options)
-  (make-instance 'window
+(defun make-window (x y w h &key (title "") (background-color nil)
+                              (headerless-p t) (scrollable-p nil)
+                              (borderless-p t) (panel-mode-p nil) (resizable-p nil)
+                              (minimizable-p nil) (movable-p nil))
+  (macrolet ((opt (key option)
+               `(when ,key
+                  (list ,option))))
+    (make-instance 'window
                  :x x :y y :width w :height h
-                 :title title :option-mask (apply #'nk:panel-mask options)))
+                 :panel-mode-p panel-mode-p
+                 :title title
+                 :background-color background-color
+                 :option-mask (apply #'nk:panel-mask
+                                     (nconc (opt (not headerless-p) :title)
+                                            (opt (not scrollable-p) :no-scrollbar)
+                                            (opt (not borderless-p) :border)
+                                            (opt resizable-p :scalable)
+                                            (opt minimizable-p :minimizable)
+                                            (opt movable-p :movable))))))
+
+
+(defun style-item-color (style-item-buf color-buf color)
+  (%nk:style-item-color style-item-buf
+                        (%nk:rgba-f color-buf
+                                    (x color) (y color)
+                                    (z color) (w color))))
+
+
+;; todo: wrap each push/pop into proper unwind-protect?
+(defmacro with-styles ((&rest styles) &body body)
+  (with-gensyms (ctx)
+    (let ((stack-ops (loop with nk-package = (find-package :%nk)
+                        for style in styles
+                        collect
+                          (destructuring-bind (type new-value &rest path) style
+                            (with-gensyms (val)
+                              (list val
+                                    new-value
+                                    `(when ,val
+                                       (,(format-symbol nk-package "~A~A" 'style-push- type)
+                                         ,ctx (,ctx :style ,@path) ,val))
+                                    `(when ,val
+                                       (,(format-symbol nk-package "~A~A"'style-pop- type)
+                                         ,ctx))))))))
+      `(c-let ((,ctx (:struct (%nk:context)) :from *handle*))
+         (let ,(mapcar (lambda (l) (list (first l) (second l))) stack-ops)
+           (unwind-protect
+                (progn
+                  ,@(mapcar #'third stack-ops)
+                  ,@body))
+           ,@(reverse (mapcar #'fourth stack-ops)))))))
 
 
 (defmethod compose ((this window))
-  (with-slots (x y width height title option-mask rect) this
-    (progn
-      (%nk:begin *handle* title (%nk:rect rect x y width height) option-mask)
+  (with-slots (x y width height title option-mask nk-rect background nk-color nk-style-item
+                 panel-mode-p)
+      this
+    (with-styles ((%nk:style-item (when background
+                                    (style-item-color nk-style-item nk-color background))
+                                  :window :fixed-background))
+      (%nk:begin *handle* title (%nk:rect nk-rect x y width height) option-mask)
       (call-next-method)
       (%nk:end *handle*))))
 
@@ -93,11 +153,31 @@
 
 
 (defmethod compose ((this static-row))
-  (with-slots (height item-width columns) this
+  (with-slots (height item-width) this
     (%nk:layout-row-static *handle* height (floor item-width) (length (children-of this)))
     (call-next-method)))
 
 
+;;;
+;;;
+;;;
+(defclass dynamic-row (layout)
+  ((height :initarg :height :initform (error ":height missing"))))
+
+
+(defun make-dynamic-row-layout (height)
+  (make-instance 'dynamic-row :height height))
+
+
+(defmethod compose ((this dynamic-row))
+  (with-slots (height) this
+    (%nk:layout-row-dynamic *handle* height (length (children-of this)))
+    (call-next-method)))
+
+
+;;;
+;;;
+;;;
 (defclass widget () ())
 
 
