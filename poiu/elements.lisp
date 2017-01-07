@@ -178,17 +178,48 @@
 ;;;
 ;;;
 ;;;
-(defclass widget () ())
+(defclass widget ()
+  ((name :initarg :name :initform nil :reader name-of)))
 
 
+;;;
+;;;
+;;;
 (defclass label-button (widget)
   ((label :initarg :label :initform (error ":label missing"))))
 
 
-(defun make-label-button (text)
-  (make-instance 'label-button :label text))
+(defun make-label-button (text &key name)
+  (make-instance 'label-button :label text :name name))
 
 
 (defmethod compose ((this label-button))
   (with-slots (label) this
-    (%nk:button-label *handle* label)))
+    (unless (= (%nk:button-label *handle* label) 0)
+      ;; fixme: propagate event system here somehow
+      (post (make-button-click-event this) (events)))))
+
+
+;;;
+;;;
+;;;
+(defclass label (widget)
+  ((text :initarg :text :initform (error ":text missing"))
+   (align :initarg :align :initform (error ":align missing"))))
+
+
+(defun text-align->nk (align)
+  (ecase align
+    (:left %nk:+text-align-left+)))
+
+
+(defun make-text-label (text &key name (align :left))
+  (make-instance 'label
+                 :text text
+                 :name name
+                 :align (text-align->nk align)))
+
+
+(defmethod compose ((this label))
+  (with-slots (text align) this
+    (%nk:label *handle* text align)))
