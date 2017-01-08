@@ -52,24 +52,6 @@
                (:file "thread-bound-system")))
 
 
-(defsystem cl-bodge/assets
-  :description "Bodacious Game Engine assets system"
-  :version "0.3.0"
-  :author "Pavel Korolev"
-  :mailto "dev@borodust.org"
-  :license "MIT"
-  :depends-on (cl-bodge/engine cl-bodge/utils log4cl asdf)
-  :pathname "assets"
-  :serial t
-  :components ((:file "packages")
-               (:file "assets")
-               (:file "graphics")
-               (:file "audio")
-               (:file "registry")
-               (:file "distribution")
-               (:file "system")))
-
-
 (defsystem cl-bodge/events
   :description "Bodacious Game Engine event system"
   :version "0.3.0"
@@ -96,6 +78,24 @@
   :serial t
   :components ((:file "packages")
                (:file "events")
+               (:file "system")))
+
+
+(defsystem cl-bodge/assets
+  :description "Bodacious Game Engine assets system"
+  :version "0.3.0"
+  :author "Pavel Korolev"
+  :mailto "dev@borodust.org"
+  :license "MIT"
+  :depends-on (cl-bodge/engine cl-bodge/utils log4cl asdf)
+  :pathname "assets"
+  :serial t
+  :components ((:file "packages")
+               (:file "assets")
+               (:file "graphics")
+               (:file "audio")
+               (:file "registry")
+               (:file "distribution")
                (:file "system")))
 
 
