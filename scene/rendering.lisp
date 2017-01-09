@@ -23,7 +23,7 @@
   (with-slots (clear-color) this
     (gl:clear-color (x clear-color) (y clear-color) (z clear-color) (w clear-color)))
   (gl:clear :color-buffer :depth-buffer)
-  (let ((*transform-matrix* (identity-mat4)))
+  (let ((*model-matrix* (identity-mat4)))
     (scene-pass root this nil))
   (swap-buffers (host-of this)))
 

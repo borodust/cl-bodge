@@ -1,8 +1,7 @@
 (in-package :cl-bodge.scene)
 
 
-(declaim (special *scene*
-                  *transform-matrix*))
+(declaim (special *scene*))
 
 
 ;;;

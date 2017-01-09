@@ -42,7 +42,7 @@
                                     new-value
                                     `(when ,val
                                        (,(format-symbol nk-package "~A~A" 'style-push- type)
-                                         ,ctx (,ctx :style ,@path) ,val))
+                                         ,ctx (,ctx :style ,@path &) ,val))
                                     `(when ,val
                                        (,(format-symbol nk-package "~A~A"'style-pop- type)
                                          ,ctx))))))))
@@ -61,9 +61,9 @@
 (defclass window (layout disposable)
   ((x :initarg :x :initform 0.0)
    (y :initarg :y :initform 0.0)
-   (panel-mode-p :initarg :panel-mode-p)
-   (width :initarg :width)
-   (height :initarg :height)
+   (panel-p :initarg :panel-p)
+   (width :initform nil)
+   (height :initform nil)
    (background :initarg :background-color)
    (title :initarg :title :initform "")
    (option-mask :initarg :option-mask :initform '())
@@ -75,6 +75,12 @@
    (nk-style-item :initform (calloc '(:struct (%nk:style-item))))))
 
 
+(defmethod initialize-instance :after ((this window) &key width height)
+  (with-slots ((w width) (h height)) this
+    (setf w (float width 0f0)
+          h (float height 0f0))))
+
+
 (define-destructor window (nk-rect nk-color nk-style-item nk-vec2)
   (free nk-style-item)
   (free nk-vec2)
@@ -84,14 +90,14 @@
 
 (defun make-window (x y w h &key (title "") (background-color nil)
                               (headerless-p t) (scrollable-p nil) (backgrounded-p nil)
-                              (borderless-p t) (panel-mode-p nil) (resizable-p nil)
+                              (borderless-p t) (panel-p nil) (resizable-p nil)
                               (minimizable-p nil) (movable-p nil) (closable-p nil))
   (macrolet ((opt (key option)
                `(when ,key
                   (list ,option))))
     (make-instance 'window
                  :x x :y y :width w :height h
-                 :panel-mode-p panel-mode-p
+                 :panel-p panel-p
                  :title title
                  :background-color background-color
                  :option-mask (apply #'nk:panel-mask
@@ -105,26 +111,50 @@
                                             (opt movable-p :movable))))))
 
 
+(defun hide-window (window)
+  (with-slots (hidden-p) window
+    (setf hidden-p t)))
+
+
+(defun show-window (window)
+  (with-slots (hidden-p) window
+    (setf hidden-p nil)))
+
+
 (defun style-item-color (style-item-buf color-buf color)
   (%nk:style-item-color style-item-buf
                         (%nk:rgba-f color-buf
                                     (x color) (y color)
                                     (z color) (w color))))
 
+(defun compose-window (win next-method)
+  (with-slots (x y width height title option-mask nk-rect) win
+    (let ((val (%nk:begin *handle* title (%nk:rect nk-rect x y width height) option-mask)))
+      (if (= 0 val)
+          (hide-window win)
+          (funcall next-method win))
+      (%nk:end *handle*))))
+
+
+(defun compose-panel (win next-method)
+  (with-slots (nk-vec2) win
+    (with-styles ((%nk:vec2 nk-vec2 :window :spacing)
+                  (%nk:vec2 nk-vec2 :window :padding)
+                  (%nk:vec2 nk-vec2 :window :header :label-padding)
+                  (%nk:vec2 nk-vec2 :window :header :padding)
+                  (:float 0.0 :window :border))
+      (compose-window win next-method))))
+
 
 (defmethod compose ((this window))
-  (with-slots (x y width height title option-mask nk-rect background nk-color nk-style-item
-                 panel-mode-p hidden-p)
-      this
+  (with-slots (background nk-color nk-style-item panel-p hidden-p) this
     (unless hidden-p
       (with-styles ((%nk:style-item (when background
                                       (style-item-color nk-style-item nk-color background))
                                     :window :fixed-background))
-        (if (= 0 (%nk:begin *handle* title (%nk:rect nk-rect x y width height) option-mask))
-            (setf hidden-p t)
-            (call-next-method))
-        (%nk:end *handle*)))))
-
+        (if panel-p
+            (compose-panel this #'call-next-method)
+            (compose-window this #'call-next-method))))))
 
 ;;;
 ;;;

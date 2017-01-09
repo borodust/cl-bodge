@@ -13,6 +13,8 @@
            name-of
            window
            make-window
+           show-window
+           hide-window
            make-menu-bar
            make-static-row-layout
            make-dynamic-row-layout

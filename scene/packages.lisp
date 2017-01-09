@@ -24,7 +24,8 @@
 
            *scene*
            *projection-matrix*
-           *transform-matrix*
+           *view-matrix*
+           *model-matrix*
 
            rendering-pass
            make-rendering-pass
@@ -36,6 +37,9 @@
 
            projection-node
            update-projection
+
+           camera-node
+           camera-transform
 
            transform-node
 

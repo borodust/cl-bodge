@@ -1,10 +1,14 @@
 (in-package :cl-bodge.scene)
 
 
-(declaim (special *projection-matrix*))
+(declaim (special *projection-matrix*
+                  *model-matrix*
+                  *view-matrix*))
 
-
-
+(defun model-view-projection-matrix ()
+  (mult *projection-matrix*
+        *view-matrix*
+        *model-matrix*))
 ;;;
 ;;;
 ;;;
@@ -23,11 +27,24 @@
   (update-projection this w h))
 
 
-(defmethod scene-pass ((this projection-node) (pass rendering-pass) input)
+(defmethod scene-pass ((this projection-node) pass input)
   (with-slots (proj-mat) this
     (let ((*projection-matrix* proj-mat))
       (call-next-method))))
 
+
+;;;
+;;;
+;;;
+(defclass camera-node (scene-node) ())
+
+
+(defgeneric camera-transform (camera-node))
+
+
+(defmethod scene-pass ((this camera-node) pass input)
+  (let ((*view-matrix* (camera-transform this)))
+    (call-next-method)))
 
 ;;;
 ;;;
@@ -65,5 +82,5 @@
 
 (defmethod scene-pass ((this transform-node) (pass rendering-pass) input)
   (with-slots (mat) this
-    (let ((*transform-matrix* (mult *transform-matrix* mat)))
+    (let ((*model-matrix* (mult *model-matrix* mat)))
       (call-next-method))))
