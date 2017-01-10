@@ -18,7 +18,7 @@
   (:method (context system) (declare (ignore context system))))
 
 
-(defmethod dispatch ((this thread-bound-system) fn &key (priority :medium) important-p)
+(defmethod dispatch ((this thread-bound-system) fn &key (priority :medium) (important-p t))
   (unless (call-next-method)
     (flet ((invoker ()
              (log-errors

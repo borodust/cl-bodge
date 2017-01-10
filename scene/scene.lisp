@@ -81,7 +81,7 @@
 
 (defun process-pass-chain-flow (chain root-node)
   (flet ((make-processor (pass)
-           (-> (pass) ()
+           (-> (pass :important-p nil) ()
              (run-scene-pass pass root-node))))
     (mapcar #'make-processor (passes-of chain))))
 

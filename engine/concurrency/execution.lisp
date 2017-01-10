@@ -51,7 +51,7 @@
 
 (defmethod execute ((this discarding-executor) (task function) &key
                                                                  (priority :medium)
-                                                                 important-p)
+                                                                 (important-p t))
   (if important-p
       (put-into (task-queue-of this) task priority)
       (try-put-replacing (task-queue-of this) task priority)))
@@ -86,7 +86,7 @@
 
 (defmethod execute ((this single-threaded-executor) (task function) &key
                                                                       (priority :medium)
-                                                                      important-p)
+                                                                      (important-p t))
   (with-slots (executor) this
     (execute executor task :priority priority :important-p important-p)))
 
