@@ -6,7 +6,8 @@
 
 vec4 sdfTest(vec4 baseColor, vec2 sdfCoords, SDFMap map) {
   float d = texture(map.sdf, sdfCoords).r;
-  float width = fwidth(d);
+  // float width = fwidth(d);
+  float width = length(vec2(dFdx(d), dFdy(d))) * 0.70710678118654757;
   float a = smoothstep(0.5 - width, 0.5 + width, d);
 
   if (a == 0.0) discard;

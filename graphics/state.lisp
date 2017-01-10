@@ -17,6 +17,7 @@
   (gl:cull-face :back)
   (gl:front-face :ccw)
   (gl:clear-color 1.0 1.0 1.0 1.0)
+  (gl:clear-depth 1.0)
   (gl:blend-func :src-alpha :one-minus-src-alpha)
 
   (gl:use-program (foreign-handle *active-shading-program* 0))
@@ -34,11 +35,10 @@
               (use-texture *active-texture*))
             (gl:bind-texture :texture-2d 0))
 
+  (gl:bind-vertex-array (foreign-handle *active-vertex-array* 0))
   (if-bound *active-buffer*
             (when (eq :array-buffer (target-of *active-buffer*))
               (use-buffer *active-buffer*))
             (gl:bind-buffer :array-buffer 0))
 
-  (gl:bind-buffer :uniform-buffer 0)
-
-  (gl:bind-vertex-array (foreign-handle *active-vertex-array* 0)))
+  (gl:bind-buffer :uniform-buffer 0))

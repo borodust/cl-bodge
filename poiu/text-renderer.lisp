@@ -36,7 +36,7 @@
                                   (font-descender-height font)
                                   (font-line-gap font)))
           proj (mult (orthographic-projection-mat width height -1.0 1.0)
-                     (translation-mat4 #f(- (/ width 2)) #f(- (/ height 2)) 0.0)))))
+                     (translation-mat4 #f(- (/ width 2)) #f(- (/ height 2)) -1.0)))))
 
 
 (define-system-function make-text-renderer graphics-system
@@ -60,7 +60,7 @@
                                    (translation-mat4 (x position)
                                                      (- height (y position)
                                                         (* scale (font-ascender-height font)))
-                                                     -1.0))
+                                                    0.0))
                              proj)))
       (with-active-shading-program (shading-program)
         (setf (program-uniform-variable shading-program "atlas") 0
