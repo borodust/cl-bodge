@@ -187,6 +187,7 @@
   :serial t
   :components ((:file "packages")
                (:file "ode")
+               (:file "contacts")
                (:file "universe")
                (:file "system")
                (:file "mass")

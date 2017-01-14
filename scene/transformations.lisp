@@ -16,15 +16,17 @@
   ((proj-mat :initform nil)))
 
 
-(defun update-projection (projection-node w h)
+(defun update-projection (projection-node aspect &key (width 2.0) (near 2.0) (far 1000.0))
   (setf (slot-value projection-node 'proj-mat)
-        (if (> w h)
-            (perspective-projection-mat #f2 #f(* 2 (/ h w)) #f2 #f1000)
-            (perspective-projection-mat #f(* 2 (/ w h)) #f2 #f2 #f1000))))
+        (perspective-projection-mat #fwidth #f(/ width aspect) #fnear #ffar)))
 
 
-(defmethod initialize-instance :after ((this projection-node) &key ((:width w)) ((:height h)))
-  (update-projection this w h))
+(defmethod initialize-instance :after ((this projection-node)
+                                       &key (width 2.0)
+                                         (aspect (error ":aspect missing"))
+                                         (near 2.0)
+                                         (far 1000.0))
+  (update-projection this aspect :width width :near near :far far))
 
 
 (defmethod scene-pass ((this projection-node) pass input)

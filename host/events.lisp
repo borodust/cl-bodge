@@ -90,7 +90,7 @@
   (x y))
 
 
-(defevent framebuffer-size-change-event (event)
+(defevent viewport-size-change-event (event)
   (width height))
 
 

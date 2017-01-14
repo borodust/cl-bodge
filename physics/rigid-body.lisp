@@ -44,7 +44,7 @@
 ;; fixme memory sink
 (defmethod position-of ((this rigid-body))
   (let ((ode-pos (%ode:body-get-position (handle-value-of this))))
-    (flet ((el (idx) #f(c-aref ode-pos idx '%ode:real)))
+    (flet ((el (idx) #f(c-ref ode-pos %ode:real idx)))
       (vec3 (el 0) (el 1) (el 2)))))
 
 
@@ -59,7 +59,7 @@
     (macrolet ((init ()
                  `(mat3 ,@(loop for i from 0 below 3 append
                                (loop for j from 0 below 3 collect
-                                    `(float (c-aref m3 ,(+ (* j 4) i) '%ode:real)))))))
+                                    `(float (c-ref m3 %ode:real ,(+ (* j 4) i)) 0f0))))))
       (init))))
 
 

@@ -1,5 +1,6 @@
 (in-package :cl-bodge.physics)
 
+
 (defstruct (physics-context
              (:conc-name ctx-))
   (universe (make-universe) :read-only t))
@@ -8,14 +9,6 @@
 (declaim (inline universe))
 (define-system-function universe physics-system ()
   (ctx-universe *system-context*))
-
-
-(defun register-collision-callback (callback)
-  (%register-collision-callback (universe) callback))
-
-
-(defun register-contact-callback (callback)
-  (%register-contact-callback (universe) callback))
 
 
 (defclass physics-system (thread-bound-system) ())
@@ -39,6 +32,6 @@
   (%observe-universe (universe) timestep))
 
 
-(defun (setf gravity) (vec)
+(define-system-function (setf gravity) physics-system (vec)
   (%ode:world-set-gravity (world-of (universe))
                           (vref vec 0) (vref vec 1) (vref vec 2)))

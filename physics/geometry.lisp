@@ -5,8 +5,7 @@
     :closeform (%ode:geom-destroy *handle-value*))
 
 
-(defclass geom (ode-object)
-  ())
+(defclass geom (ode-object) ())
 
 
 (defmethod initialize-instance :around ((this geom) &key)
@@ -31,9 +30,8 @@
 (defclass volume-geom (geom) ())
 
 
-(defgeneric bind-geom (geom rigid-body)
-  (:method ((this volume-geom) rigid-body)
-    (%ode:geom-set-body (handle-value-of this) (handle-value-of rigid-body))))
+(defun bind-geom (geom rigid-body)
+  (%ode:geom-set-body (handle-value-of geom) (handle-value-of rigid-body)))
 
 ;;;
 ;;;
@@ -41,11 +39,12 @@
 (defclass sphere-geom (volume-geom) ())
 
 
-(define-system-function make-sphere-geom physics-system (radius &key (system *system*))
-  (make-instance 'sphere-geom
-                 :system system
-                 :handle (make-geom-handle (%ode:create-sphere (space-of (universe)) radius))))
-
+(defmethod initialize-instance ((this sphere-geom) &rest args
+                                &key (radius (error ":radius missing")))
+  (apply #'call-next-method
+         this
+         :handle (make-geom-handle (%ode:create-sphere (space-of (universe)) radius))
+         args))
 
 ;;;
 ;;;
@@ -53,10 +52,15 @@
 (defclass box-geom (volume-geom) ())
 
 
-(define-system-function make-box-geom physics-system (x y z &key (system *system*))
-  (make-instance 'box-geom
-                 :system system
-                 :handle (make-geom-handle (%ode:create-box (space-of (universe)) x y z))))
+(defmethod initialize-instance ((this box-geom) &rest args
+                                &key (dimensions (error ":dimensions missing")))
+  (apply #'call-next-method
+         this
+         :handle (make-geom-handle (%ode:create-box (space-of (universe))
+                                                    (x dimensions)
+                                                    (y dimensions)
+                                                    (z dimensions)))
+         args))
 
 
 
@@ -66,32 +70,50 @@
 (defclass plane-geom (geom) ())
 
 
-(define-system-function make-plane-geom physics-system (a b c z &key (system *system*))
-  (make-instance 'plane-geom :system system
-                 :handle (make-geom-handle (%ode:create-plane (space-of (universe)) a b c z))))
-
-
-;;;
-;;;
-;;;
-(defclass capped-cylinder-geom (volume-geom) ())
-
-
-(define-system-function make-capped-cylinder-geom physics-system
-    (radius length &key (system *system*))
-  (make-instance 'capped-cylinder-geom
-                 :system system
-                 :handle (make-geom-handle
-                          (%ode:create-cylinder (space-of (universe)) radius length))))
-
+(defmethod initialize-instance ((this plane-geom) &rest args
+                                &key (normal (error ":normal missing"))
+                                  (offset 0.0))
+  (apply #'call-next-method
+         this
+         :handle (make-geom-handle
+                  (%ode:create-plane (space-of (universe))
+                                     (x normal) (y normal) (z normal) offset))
+         args))
 
 ;;;
 ;;;
 ;;;
-(defclass ray-geom (geom) ())
+(defclass ray-geom (geom)
+  ((position :reader position-of)
+   (direction :reader direction-of)))
 
 
-(define-system-function make-ray-geom physics-system (length &key (system *system*))
-  (make-instance 'ray-geom
-                 :system system
-                 :handle (make-geom-handle (%ode:create-ray (space-of (universe)) length))))
+(defmethod initialize-instance ((this ray-geom) &rest args
+                                &key (position (vec3 0.0 0.0 0.0))
+                                  (direction (error ":direction missing"))
+                                  (length (error ":length missing")))
+  (with-slots ((pos position) (dir direction)) this
+    (let ((ode-ray (%ode:create-ray (space-of (universe)) length)))
+      (setf pos position
+            dir direction)
+      (%ode:geom-ray-set ode-ray
+                         (x position) (y position) (z position)
+                         (x direction) (y direction) (z direction))
+      (apply #'call-next-method
+             this
+             :handle (make-geom-handle ode-ray)
+             args))))
+
+
+(defmethod (setf position-of) ((position vec3) (this ray-geom))
+  (with-slots (direction) this
+    (%ode:geom-ray-set (handle-value-of this)
+                       (x position) (y position) (z position)
+                       (x direction) (y direction) (z direction))))
+
+
+(defmethod (setf direction-of) ((direction vec3) (this ray-geom))
+  (with-slots (position) this
+    (%ode:geom-ray-set (handle-value-of this)
+                       (x position) (y position) (z position)
+                       (x direction) (y direction) (z direction))))

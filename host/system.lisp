@@ -60,7 +60,7 @@
 
 (glfw:def-framebuffer-size-callback on-framebuffer-size-change (window w h)
   (declare (ignore window))
-  (post (make-framebuffer-size-change-event w h) (event-system-of *system*)))
+  (post (make-viewport-size-change-event w h) (event-system-of *system*)))
 
 
 (%glfw:define-glfw-callback on-character-input ((window :pointer) (char-code :unsigned-int))
@@ -76,7 +76,7 @@
                           'mouse-event
                           'cursor-event
                           'scroll-event
-                          'framebuffer-size-change-event
+                          'viewport-size-change-event
                           'viewport-hiding-event))
 
 

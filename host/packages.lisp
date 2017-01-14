@@ -30,7 +30,7 @@
            scroll-event
            x-offset-from
            y-offset-from
-           framebuffer-size-change-event
+           viewport-size-change-event
            width-from
            height-from
            viewport-hiding-event))

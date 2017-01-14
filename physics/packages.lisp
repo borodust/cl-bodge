@@ -9,8 +9,10 @@
            physics
            observe-universe
            gravity
-           register-collision-callback
-           register-contact-callback
+
+           contact-position
+           contact-normal
+           contact-depth
 
            make-rigid-body
            position-of
@@ -27,11 +29,15 @@
            make-double-hinge-joint
            make-angular-motor-joint
 
-           make-sphere-geom
-           make-box-geom
-           make-plane-geom
-           make-capped-cylinder-geom
-           make-ray-geom
+           collide
+           filter-contacts
+           collidable
+           collidablep
+           sphere-geom
+           box-geom
+           plane-geom
+           ray-geom
+           direction-of
            bind-geom
 
            make-box-mass
