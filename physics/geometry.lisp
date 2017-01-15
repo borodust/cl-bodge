@@ -106,14 +106,16 @@
 
 
 (defmethod (setf position-of) ((position vec3) (this ray-geom))
-  (with-slots (direction) this
+  (with-slots (direction (pos position)) this
+    (setf pos position)
     (%ode:geom-ray-set (handle-value-of this)
                        (x position) (y position) (z position)
                        (x direction) (y direction) (z direction))))
 
 
 (defmethod (setf direction-of) ((direction vec3) (this ray-geom))
-  (with-slots (position) this
+  (with-slots (position (dir direction)) this
+    (setf dir direction)
     (%ode:geom-ray-set (handle-value-of this)
                        (x position) (y position) (z position)
                        (x direction) (y direction) (z direction))))

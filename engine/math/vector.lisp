@@ -92,6 +92,10 @@
   (%raw-> vec3 (v3:+ (value-of this) (value-of that))))
 
 
+(defmethod subtract ((this vec3) (that vec3))
+  (%raw-> vec3 (v3:- (value-of this) (value-of that))))
+
+
 (defmethod lerp ((this vec3) (that vec3) f)
   (%raw-> vec3 (v3:lerp (value-of this) (value-of that) f)))
 

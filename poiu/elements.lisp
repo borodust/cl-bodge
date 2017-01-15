@@ -244,19 +244,23 @@
 
 (defun text-align->nk (align)
   (ecase align
-    (:left %nk:+text-align-left+)))
+    (:left %nk:+text-align-left+)
+    (:right %nk:+text-align-right+)))
 
 
-(defun make-text-label (text &key name (align :left))
+(defun make-text-label (text-or-supplier &key name (align :left))
   (make-instance 'label
-                 :text text
+                 :text text-or-supplier
                  :name name
                  :align (text-align->nk align)))
 
 
 (defmethod compose ((this label))
   (with-slots (text align) this
-    (%nk:label *handle* text align)))
+    (let ((text (if (functionp text)
+                    (funcall text)
+                    text)))
+      (%nk:label *handle* text align))))
 
 
 ;;;
@@ -283,3 +287,31 @@
   (with-slots (buffer) this
     (%nk:edit-buffer *handle* %nk:+edit-simple+ buffer
                      (ge.util:foreign-function-pointer '%nk:filter-default))))
+
+
+;;;
+;;;
+;;;
+(defclass health-monitor ()
+  ((window :initform nil)))
+
+
+(defmethod initialize-instance :after ((this health-monitor) &key width height)
+  (with-slots (window) this
+    (setf window (make-window 0.0 0.0 width height
+                              :title "Health monitor"
+                              :headerless-p nil :scrollable-p t :resizable-p t
+                              :movable-p t :closable-p t))))
+
+
+(defun report (win label supplier)
+  (with-slots (window) win
+    (let ((row (make-dynamic-row-layout 24)))
+      (adopt row (make-text-label label))
+      (adopt row (make-text-label supplier :align :right))
+      (adopt window row))))
+
+
+(defmethod compose ((this health-monitor))
+  (with-slots (window) this
+    (compose window)))

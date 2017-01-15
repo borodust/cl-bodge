@@ -12,7 +12,8 @@
 
 (defun %register-geom (universe geom)
   (with-slots (geoms) universe
-    (setf (gethash (cffi:pointer-address (ptr (handle-value-of geom))) geoms) geom)))
+    (let ((ptr-addr (cffi:pointer-address (ptr (handle-value-of geom)))))
+      (setf (gethash ptr-addr geoms) geom))))
 
 
 (defmethod initialize-instance :after ((this universe) &key)
