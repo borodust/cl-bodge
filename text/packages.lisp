@@ -12,5 +12,6 @@
 
            measure-string
            make-text
+           update-text
            width-of
            height-of))
