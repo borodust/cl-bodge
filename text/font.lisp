@@ -78,25 +78,53 @@
                  :line-gap line-gap))
 
 
-(defun measure-string (string font)
+(defun walk-string (string font &optional walker)
   (let* ((line-height (+ (font-ascender-height font)
                          (font-descender-height font)
                          (font-line-gap font)))
-         (len (length string)))
-    (loop with y = 0.0 and x-max = 0.0 and idx = 0
-       for next-idx = (or (position #\Newline string :start idx) len)
-       for x = 0.0
-       for prev-g = nil
-       do (loop for i from idx below next-idx
-             for c = (aref string i)
-             for g = (find-glyph font c)
-             for advance = (glyph-advance-width g)
-             do (let ((kerning (if prev-g (find-kerning prev-g g) 0)))
-                  (setf x (+ x kerning advance)
-                        prev-g g))
-             finally
-               (when (> x x-max) (setf x-max x))
-               (incf y line-height)
-               (setf idx (1+ next-idx)))
-       until (= next-idx len)
-       finally (return (list x-max y)))))
+         (len (length string))
+         (atlas (font-atlas-texture font)))
+    (destructuring-bind (atlas-w atlas-h) (dimensions-of atlas)
+      (loop with y = 0.0 and x-max = 0.0 and idx = 0 and size = 0
+         for next-idx = (or (position #\Newline string :start idx) len)
+         for x = 0.0
+         for prev-g = nil
+         append (loop for i from idx below next-idx
+                   for c = (aref string i)
+                   for g = (find-glyph font c)
+                   for (x0-box y0-box x1-box y1-box) = (glyph-bounding-box g)
+                   for (x-orig y-orig) = (glyph-origin g)
+                   for advance = (glyph-advance-width g)
+                   collect (let ((kerning (if prev-g (find-kerning prev-g g) 0)))
+                             (prog1
+                                 (when walker
+                                   (let ((x-offset #f(- x x-orig))
+                                         (y-offset #f(- y y-orig)))
+                                     (funcall walker
+                                              x-offset
+                                              y-offset
+                                              #f(+ x-offset (- x1-box x0-box))
+                                              #f(+ y-offset (- y1-box y0-box))
+
+                                              #f(/ x0-box atlas-w)
+                                              #f(/ (- atlas-h y1-box) atlas-h)
+                                              #f(/ x1-box atlas-w)
+                                              #f(/ (- atlas-h y0-box) atlas-h))))
+                               (setf x (+ x kerning advance)
+                                     prev-g g)))
+                   into line-result
+                   finally
+                     (when (> x x-max) (setf x-max x))
+                     (incf y line-height)
+                     (incf size (- next-idx idx))
+                     (setf idx (1+ next-idx))
+                     (return line-result))
+         into result
+         until (= next-idx len)
+         finally (return (values size x-max (abs y)))))))
+
+
+(defun measure-string (string font)
+  (multiple-value-bind (size width height) (walk-string string font)
+    (declare (ignore size))
+    (list width height)))

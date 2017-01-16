@@ -16,48 +16,27 @@
 
 (defmethod initialize-instance :after ((this text) &key text font)
   (with-slots (text-mesh atlas-tex width height) this
-    (let* ((lines (split-sequence #\Newline text))
-           (size (reduce #'+ lines :key #'length))
-           (box-array (make-array (list size 4) :element-type 'single-float))
-           (tex-coord-array (make-array (list size 4) :element-type 'single-float))
-           (atlas (font-atlas-texture font))
-           (line-height (+ (font-ascender-height font) (font-descender-height font)
-                           (font-line-gap font))))
-      (destructuring-bind (atlas-w atlas-h) (dimensions-of atlas)
-        (setf text-mesh (make-mesh size :points)
-              atlas-tex atlas)
-        (loop with y = 0.0 and i = 0 and x-max = 0.0
-           for line in lines
-           for x = 0.0
-           for prev-g = nil
-           do (loop for c across line
-                 for g = (find-glyph font c)
-                 for (x0-box y0-box x1-box y1-box) = (glyph-bounding-box g)
-                 for (x-orig y-orig) = (glyph-origin g)
-                 for advance = (glyph-advance-width g)
-                 do (let ((kerning (if prev-g (find-kerning prev-g g) 0)))
-                      (setf (aref box-array i 0) #f(- x x-orig)
-                            (aref box-array i 1) #f(- y y-orig)
-                            (aref box-array i 2) #f(+ (aref box-array i 0) (- x1-box x0-box))
-                            (aref box-array i 3) #f(+ (aref box-array i 1) (- y1-box y0-box))
-
-                            (aref tex-coord-array i 0) #f(/ x0-box atlas-w)
-                            (aref tex-coord-array i 1) #f(/ (- atlas-h y1-box) atlas-h)
-                            (aref tex-coord-array i 2) #f(/ x1-box atlas-w)
-                            (aref tex-coord-array i 3) #f(/ (- atlas-h y0-box) atlas-h)
-
-                            x (+ x kerning advance)
-                            prev-g g)
-                      (incf i))
-                 finally
-                   (when (> x x-max) (setf x-max x))
-                   (decf y line-height))
-           finally (setf width x-max
-                         height (abs y)))
-        (with-disposable ((pbuf (make-array-buffer box-array))
-                          (tbuf (make-array-buffer tex-coord-array)))
-          (attach-array-buffer pbuf text-mesh 0)
-          (attach-array-buffer tbuf text-mesh 1))))))
+    (let ((pos-list (list))
+          (tex-list (list)))
+      (flet ((set-coords (x0 y0 x1 y1 s0 t0 s1 t1)
+               (push (list x0 y0 x1 y1) pos-list)
+               (push (list s0 t0 s1 t1) tex-list)))
+        (multiple-value-bind (size text-width text-height)
+            (walk-string text font #'set-coords)
+          (setf width text-width
+                height text-height
+                text-mesh (make-mesh size :points)
+                atlas-tex (font-atlas-texture font))
+          (let ((box-array (make-array (list size 4)
+                                       :element-type 'single-float
+                                       :initial-contents (nreverse pos-list)))
+                (tex-coord-array (make-array (list size 4)
+                                             :element-type 'single-float
+                                             :initial-contents (nreverse tex-list))))
+            (with-disposable ((pbuf (make-array-buffer box-array))
+                              (tbuf (make-array-buffer tex-coord-array)))
+              (attach-array-buffer pbuf text-mesh 0)
+              (attach-array-buffer tbuf text-mesh 1))))))))
 
 
 (defun make-text (string font)
