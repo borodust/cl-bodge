@@ -51,7 +51,7 @@
                  :default-color color))
 
 
-(defun render-text (renderer string &key position color)
+(defun render-cached-text (renderer string &key position color)
   (with-slots (text-cache shading-program proj default-color height scale) renderer
     (let* ((text (get-text text-cache string))
            (font (text-cache-font text-cache))

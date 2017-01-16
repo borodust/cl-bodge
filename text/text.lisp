@@ -4,8 +4,8 @@
 (defclass text (disposable)
   ((text :initform nil)
    (font :initarg :font)
-   (position :initform nil)
    (text-mesh :initform nil)
+   (glyphs-count :initform 0)
    (position-buffer :initform nil)
    (texture-coord-buffer :initform nil)
    (width :initform nil :reader width-of)
@@ -52,16 +52,17 @@
 
 (defmethod initialize-instance :after ((this text) &key text font)
   (with-slots ((this-text text) text-mesh atlas-tex width height
-               position-buffer texture-coord-buffer)
+               position-buffer texture-coord-buffer glyphs-count)
       this
     (setf this-text (make-array (length text)
                                 :element-type 'character
                                 :initial-contents text))
     (multiple-value-bind (box-array tex-coord-array text-width text-height)
         (prepare-text this-text font)
-      (setf width text-width
+      (setf glyphs-count (array-dimension box-array 0)
+            width text-width
             height text-height
-            text-mesh (make-mesh (array-dimension box-array 0) :points)
+            text-mesh (make-mesh glyphs-count :points)
             atlas-tex (font-atlas-texture font))
       (let ((pbuf (make-array-buffer box-array))
             (tbuf (make-array-buffer tex-coord-array)))
@@ -75,7 +76,11 @@
   (make-instance 'text :text string :font font))
 
 
-(defmethod render ((this text))
-  (with-slots (text-mesh atlas-tex) this
+(defun render-text (text start &optional end)
+  (with-slots (text-mesh atlas-tex glyphs-count) text
     (with-bound-texture (atlas-tex)
-      (render text-mesh))))
+      (render-mesh text-mesh start (or end glyphs-count)))))
+
+
+(defmethod render ((this text))
+  (render-text this 0))

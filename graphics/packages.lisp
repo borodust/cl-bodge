@@ -22,6 +22,7 @@
            primitive
            make-mesh
            submesh
+           render-mesh
            make-patch-mesh
 
            load-shader-source

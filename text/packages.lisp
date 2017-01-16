@@ -12,6 +12,7 @@
 
            measure-string
            make-text
+           render-text
            update-text
            width-of
            height-of))

@@ -172,7 +172,7 @@
                      (b :foreground :b) (a :foreground :a))
       (cmd %nk:command-text)
     (let ((lisp-string (cffi:foreign-string-to-lisp string :count length)))
-      (render-text (text-renderer-of poiu) lisp-string
+      (render-cached-text (text-renderer-of poiu) lisp-string
                    :position (vec2 #f x #f y)
                    :color (clamp r g b a)))))
 
