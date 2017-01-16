@@ -6,6 +6,9 @@
   :lines-adjacency :triangles-adjacency)
 
 
+(defgeneric render-mesh (mesh start end))
+
+
 (defclass mesh (disposable)
   ((vertex-array :initarg :vertex-array :reader vertex-array-of)
    (primitive-type :initarg :primitive-type)))
@@ -15,10 +18,15 @@
   (dispose vertex-array))
 
 
-(defmethod render ((this mesh))
+(defmethod render-mesh ((this mesh) start end)
   (with-slots (vertex-array primitive-type) this
     (with-bound-vertex-array (vertex-array)
-      (gl:draw-arrays primitive-type 0 (vertex-count-of vertex-array)))))
+      (gl:draw-arrays primitive-type start (- end start)))))
+
+
+(defmethod render ((this mesh))
+  (with-slots (vertex-array primitive-type) this
+    (render-mesh this 0 (vertex-count-of vertex-array))))
 
 ;;;
 ;;;
@@ -43,13 +51,17 @@
                      :index-buffer (make-index-buffer index-array))))
 
 
-(defmethod render ((this indexed-mesh))
+(defmethod render-mesh ((this indexed-mesh) start end)
   (with-slots (vertex-array primitive-type index-buffer) this
     (with-bound-vertex-array (vertex-array)
       (with-bound-buffer (index-buffer)
-        (gl:draw-elements primitive-type (gl:make-null-gl-array :uint)
-                          :count (index-count-of index-buffer))))))
+        (%gl:draw-range-elements primitive-type start (1- end) (- end start)
+                                 :unsigned-int (cffi:null-pointer))))))
 
+
+(defmethod render ((this indexed-mesh))
+  (with-slots (vertex-array primitive-type index-buffer) this
+    (render-mesh this 0 (index-count-of index-buffer))))
 
 ;;;
 ;;;
@@ -96,3 +108,20 @@
 
 (defmethod attach-array-buffer (buffer (mesh mesh) index)
   (attach-array-buffer buffer (vertex-array-of mesh) index))
+
+;;;
+;;;
+;;;
+(defclass submesh ()
+  ((mesh :initarg :mesh)
+   (start :initarg :start)
+   (end :initarg :end)))
+
+
+(defun submesh (mesh start-element end-element)
+  (make-instance 'submesh :mesh mesh :start start-element :end end-element))
+
+
+(defmethod render ((this submesh))
+  (with-slots (mesh start end) this
+    (render-mesh mesh start end)))
