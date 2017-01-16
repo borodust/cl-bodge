@@ -15,6 +15,7 @@
            make-vertex-array
 
            attach-array-buffer
+           update-array-buffer
            make-array-buffer
            make-index-buffer
 

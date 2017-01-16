@@ -17,6 +17,7 @@
 
 
 (defgeneric attach-array-buffer (buffer target index))
+(defgeneric update-array-buffer (buffer data))
 
 
 (definline use-buffer (buffer)
@@ -49,29 +50,40 @@
                  :vertex-attribute-data vertex-attribute-data))
 
 
-(defmethod initialize-instance :after ((this array-buffer) &key vertex-attribute-data)
+(defun %update-array-buffer (this array-data)
   (declare (type (or (simple-array * (*))
                      (simple-array * (* 1))
                      (simple-array * (* 2))
                      (simple-array * (* 3))
                      (simple-array * (* 4)))
-                 vertex-attribute-data))
-  (destructuring-bind (data-vertex-count &optional (data-attrib-size 1 attrib-size-provided-p))
-      (array-dimensions vertex-attribute-data)
-    (flet ((component-type ()
-             (let ((c (if attrib-size-provided-p
-                          (aref vertex-attribute-data 0 0)
-                          (aref vertex-attribute-data 0 ))))
-               (etypecase c
-                 (integer :int)
-                 (single-float :float)))))
+                 array-data))
+  (destructuring-bind (element-count &optional (element-size 1 attrib-size-provided-p))
+      (array-dimensions array-data)
+    (let ((component-type (let ((c (if attrib-size-provided-p
+                                       (aref array-data 0 0)
+                                       (aref array-data 0 ))))
+                            (etypecase c
+                              (integer :int)
+                              (single-float :float)))))
       (with-slots (attribute-size vertex-count) this
-        (setf attribute-size data-attrib-size
-              vertex-count data-vertex-count)
-        (gl:with-gl-array (gl-array (component-type) :count (* vertex-count attribute-size))
-          (map-to-gl-array vertex-attribute-data gl-array)
+        (setf attribute-size element-size
+              vertex-count element-count)
+        (gl:with-gl-array (gl-array component-type :count (* vertex-count attribute-size))
+          (map-to-gl-array array-data gl-array)
           (with-bound-buffer (this)
-            (gl:buffer-data :array-buffer :static-draw gl-array)))))))
+            (%gl:buffer-data :array-buffer
+                             (gl:gl-array-byte-size gl-array)
+                             (cffi:null-pointer)
+                             :static-draw)
+            (gl:buffer-sub-data :array-buffer gl-array)))))))
+
+
+(defmethod initialize-instance :after ((this array-buffer) &key vertex-attribute-data)
+  (%update-array-buffer this vertex-attribute-data))
+
+
+(defmethod update-array-buffer ((this array-buffer) array-data)
+  (%update-array-buffer this array-data))
 
 
 ;;;
