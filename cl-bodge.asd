@@ -227,6 +227,8 @@
                (:file "poiu")
                (:file "events")
                (:file "elements")
+               (:file "rated-queue")
+               (:file "text-cache")
                (:file "text-renderer")
                (:file "rendering-backend")
                (:module shaders

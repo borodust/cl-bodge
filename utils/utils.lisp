@@ -97,6 +97,10 @@
   (+ (timestamp-to-unix timestamp) (/ (nsec-of timestamp) 1000000000)))
 
 
+(defun real-time-seconds ()
+  (/ (get-internal-real-time) internal-time-units-per-second))
+
+
 (defmacro definline (name lambda-list &body body)
   `(progn
      (declaim (inline ,name))

@@ -105,10 +105,16 @@
            quat->rotation-mat4))
 
 
+(defpackage :cl-bodge.algorithm
+  (:nicknames :ge.algo)
+  (:use :cl :cl-bodge.utils)
+  (:export))
+
+
 (ge.util:define-package :cl-bodge.engine
   (:nicknames :ge.ng)
   (:use :cl-bodge.utils :cl :bordeaux-threads :cl-muth)
-  (:use-reexport :cl-bodge.concurrency :cl-bodge.memory :cl-bodge.math)
+  (:use-reexport :cl-bodge.concurrency :cl-bodge.memory :cl-bodge.math :cl-bodge.algorithm)
   (:export system
            enable
            disable

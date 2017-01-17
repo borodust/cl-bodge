@@ -39,6 +39,7 @@
            defenum
            f
            epoch-seconds
+           real-time-seconds
            definline
            ensure-not-null
            bound-symbol-value

@@ -1,19 +1,6 @@
 (in-package :cl-bodge.poiu)
 
 
-(defstruct (text-cache
-             (:constructor make-text-cache (font)))
-  (font nil :read-only t)
-  (table (make-hash-table :test 'equal) :read-only t))
-
-
-(definline get-text (text-cache string)
-  (if-let ((text (gethash string (text-cache-table text-cache))))
-    text
-    (setf (gethash string (text-cache-table text-cache))
-          (make-text string (text-cache-font text-cache)))))
-
-
 (defclass text-renderer ()
   ((default-color :initarg :default-color)
    (shading-program :initarg :shading-program)
