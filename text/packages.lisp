@@ -14,5 +14,6 @@
            make-text
            render-text
            update-text
+           string-of
            width-of
            height-of))

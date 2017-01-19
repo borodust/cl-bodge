@@ -3,8 +3,6 @@
 
 (defclass host-system (dispatcher generic-system)
   ((enabled-p :initform nil)
-   (state-condi-var :initform (make-condition-variable
-                               :name "host-sys-state-condi-var"))
    (window :initform nil :reader window-of)
    (eve-sys :initform nil :reader event-system-of)
    (task-queue :initform (make-task-queue)))
@@ -82,57 +80,55 @@
 
 ;; if current thread is the main one, this function will block
 (defmethod initialize-system :after ((this host-system))
-  (with-slots (enabled-p task-queue window state-condi-var eve-sys) this
-    (with-system-lock-held (this state-lock)
-      (when enabled-p
-        (error "Host system already enabled"))
-      (%register-event-classes)
+  (with-slots (enabled-p task-queue window eve-sys) this
+    (when enabled-p
+      (error "Host system already enabled"))
+    (wait-with-latch (latch)
       (with-body-in-main-thread ()
-        (log-errors
-          (glfw:with-init-window (:title "Scene" :width 640 :height 480
-                                         :context-version-major 4
-                                         :context-version-minor 1
-                                         :opengl-profile :opengl-core-profile
-                                         :opengl-forward-compat t
-                                         :depth-bits 32
-                                         :samples 4)
-            (glfw:set-window-close-callback 'on-close)
-            (glfw:set-key-callback 'on-key-action)
-            (glfw:set-mouse-button-callback 'on-mouse-action)
-            (glfw:set-cursor-position-callback 'on-cursor-movement)
-            (glfw:set-scroll-callback 'on-scroll)
-            (glfw:set-framebuffer-size-callback 'on-framebuffer-size-change)
-            (glfw:set-char-callback 'on-character-input)
-            (with-system-lock-held (this)
-              (setf window glfw:*window*
-                    eve-sys (engine-system 'event-system)
-                    enabled-p t))
-            (condition-notify state-condi-var)
-            (log:debug "Host main loop running")
-            (let ((*system* this))
-              (loop while enabled-p
-                 do (log-errors
-                      (glfw:wait-events)
-                      (drain task-queue)))
-              (condition-notify state-condi-var)))
-          (log:debug "Main loop stopped. Host system offline")))
-      (loop until enabled-p do
-           (condition-wait state-condi-var state-lock)))))
+        (log:debug "Initializing GLFW context")
+        (unwind-protect
+             (log-errors
+               (%register-event-classes)
+               (glfw:with-init-window (:title "Scene" :width 640 :height 480
+                                              :context-version-major 4
+                                              :context-version-minor 1
+                                              :opengl-profile :opengl-core-profile
+                                              :opengl-forward-compat t
+                                              :depth-bits 32
+                                              :samples 4)
+                 (glfw:set-window-close-callback 'on-close)
+                 (glfw:set-key-callback 'on-key-action)
+                 (glfw:set-mouse-button-callback 'on-mouse-action)
+                 (glfw:set-cursor-position-callback 'on-cursor-movement)
+                 (glfw:set-scroll-callback 'on-scroll)
+                 (glfw:set-framebuffer-size-callback 'on-framebuffer-size-change)
+                 (glfw:set-char-callback 'on-character-input)
+                 (setf window glfw:*window*
+                       eve-sys (engine-system 'event-system)
+                       enabled-p t)
+                 (open-latch latch)
+                 (log:debug "Host main loop running")
+                 (let ((*system* this))
+                   (loop while enabled-p
+                      do (log-errors
+                           (glfw:wait-events)
+                           (drain task-queue)))))
+               (log:debug "Main loop stopped. Host system offline"))
+          (open-latch latch))))))
 
 
 (defmethod discard-system :before ((this host-system))
-  (with-slots (enabled-p state-condi-var task-queue) this
-    (with-system-lock-held (this state-lock)
-      (unless enabled-p
-        (error "Host system already disabled"))
+  (with-slots (enabled-p task-queue) this
+    (unless enabled-p
+      (error "Host system already disabled"))
+    (wait-with-latch (latch)
       (run
        (-> this ()
-         (with-system-lock-held (this)
-           (setf enabled-p nil)
-           (clearup task-queue))))
-      (loop while enabled-p do
-           (condition-wait state-condi-var state-lock))
-      (stop-main-runner))))
+         (setf enabled-p nil)
+         (clearup task-queue)
+         (open-latch latch))))
+    (log:debug "Stopping main thread runner")
+    (stop-main-runner)))
 
 
 (defun bind-rendering-context (host-sys)

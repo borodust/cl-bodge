@@ -305,14 +305,12 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (cl-bodge/engine cl-bodge/utils fiveam)
+  :depends-on (cl-bodge cl-bodge/utils fiveam)
   :pathname "t/"
   :serial t
   :components ((:file "packages")
-               (:module concurrency
-                        :serial t
-                        :components ((:file "suite")
-                                     (:file "dispatch")))))
+               (:file "suites")
+               (:file "rated-queue")))
 
 
 (defsystem cl-bodge

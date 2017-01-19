@@ -2,7 +2,7 @@
 
 
 (defclass text (disposable)
-  ((text :initform nil)
+  ((text :initform nil :reader string-of)
    (font :initarg :font)
    (text-mesh :initform nil)
    (glyphs-count :initform 0)
@@ -13,11 +13,10 @@
    (atlas-tex :initform nil)))
 
 
-(define-destructor text (text-mesh atlas-tex position-buffer texture-coord-buffer)
+(define-destructor text (text-mesh position-buffer texture-coord-buffer)
   (dispose texture-coord-buffer)
   (dispose position-buffer)
-  (dispose text-mesh)
-  (dispose atlas-tex))
+  (dispose text-mesh))
 
 
 (defun prepare-text (text font)
