@@ -252,3 +252,9 @@
   (when-let* ((fn (autowrap:find-function function-name)))
     (let ((name (autowrap:foreign-symbol-c-symbol fn)))
       (cffi-sys:%foreign-symbol-pointer name :default))))
+
+
+(defun stringify (value &optional (format-string "~A"))
+  (if (stringp value)
+      value
+      (format nil format-string value)))

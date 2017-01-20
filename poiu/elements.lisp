@@ -67,7 +67,7 @@
    (background :initarg :background-color)
    (title :initarg :title :initform "")
    (option-mask :initarg :option-mask :initform '())
-   (hidden-p :initform nil)
+   (hidden-p :initform nil :initarg :hidden-p)
 
    (nk-rect :initform (calloc '(:struct (%nk:rect))))
    (nk-vec2 :initform (calloc '(:struct (%nk:vec2))))
@@ -91,7 +91,8 @@
 (defun make-window (x y w h &key (title "") (background-color nil)
                               (headerless-p t) (scrollable-p nil) (backgrounded-p nil)
                               (borderless-p t) (panel-p nil) (resizable-p nil)
-                              (minimizable-p nil) (movable-p nil) (closable-p nil))
+                              (minimizable-p nil) (movable-p nil) (closable-p nil)
+                              (hidden-p nil))
   (macrolet ((opt (key option)
                `(when ,key
                   (list ,option))))
@@ -100,6 +101,7 @@
                  :panel-p panel-p
                  :title title
                  :background-color background-color
+                 :hidden-p hidden-p
                  :option-mask (apply #'nk:panel-mask
                                      (nconc (opt (not headerless-p) :title)
                                             (opt (not scrollable-p) :no-scrollbar)
@@ -205,7 +207,7 @@
 
 (defmethod compose ((this dynamic-row))
   (with-slots (height) this
-    (%nk:layout-row-dynamic *handle* height (length (children-of this)))
+    (%nk:layout-row-dynamic *handle* (float height 0f0) (length (children-of this)))
     (call-next-method)))
 
 
@@ -258,7 +260,7 @@
 (defmethod compose ((this label))
   (with-slots (text align) this
     (let ((text (if (functionp text)
-                    (funcall text)
+                    (stringify (funcall text))
                     text)))
       (%nk:label *handle* text align))))
 
@@ -296,15 +298,29 @@
   ((window :initform nil)))
 
 
-(defmethod initialize-instance :after ((this health-monitor) &key width height)
+(defmethod initialize-instance :after ((this health-monitor) &key x y width height hidden-p)
   (with-slots (window) this
-    (setf window (make-window 0.0 0.0 width height
+    (setf window (make-window x y width height
                               :title "Health monitor"
                               :headerless-p nil :scrollable-p t :resizable-p t
-                              :movable-p t :closable-p t))))
+                              :movable-p t :closable-p t :hidden-p hidden-p))))
 
 
-(defun report (win label supplier)
+(defun make-health-monitor (x y &key (width 640.0) (height 480.0) (hidden-p t))
+  (make-instance 'health-monitor :x x :y y :width width :height height :hidden-p hidden-p))
+
+
+(defun show-health-monitor (mon)
+  (with-slots (window) mon
+    (show-window window)))
+
+
+(defun hide-health-monitor (mon)
+  (with-slots (window) mon
+    (hide-window window)))
+
+
+(defun add-simple-reporter (win label supplier)
   (with-slots (window) win
     (let ((row (make-dynamic-row-layout 24)))
       (adopt row (make-text-label label))

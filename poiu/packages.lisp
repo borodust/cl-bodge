@@ -21,6 +21,10 @@
            make-label-button
            make-text-label
            make-text-edit
+           make-health-monitor
+           show-health-monitor
+           hide-health-monitor
+           add-simple-reporter
 
            with-poiu-input
            register-cursor-position

@@ -59,4 +59,5 @@
            when-debugging
            flatten-array
            split-sequence
-           foreign-function-pointer))
+           foreign-function-pointer
+           stringify))
