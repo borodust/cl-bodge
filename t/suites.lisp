@@ -4,4 +4,4 @@
 (def-suite :bodge)
 
 
-(def-suite :bodge-poiu :in :bodge)
+(def-suite :bodge-text :in :bodge)

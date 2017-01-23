@@ -12,21 +12,21 @@
              :cull-face
              :depth-test
              :program-point-size)
-  (gl:disable :scissor-test)
+  (gl:disable :scissor-test
+              :stencil-test)
 
   (gl:cull-face :back)
   (gl:front-face :ccw)
   (gl:clear-color 1.0 1.0 1.0 1.0)
+  (gl:color-mask t t t t)
   (gl:clear-depth 1.0)
   (gl:blend-func :src-alpha :one-minus-src-alpha)
-
-  (gl:use-program (foreign-handle *active-shading-program* 0))
-
-  (gl:color-mask t t t t)
+  (gl:clear-stencil 0)
   (gl:stencil-mask #xffffffff)
+  (gl:stencil-func :always 0 #xffffffff)
   (gl:stencil-op :keep :keep :keep)
 
-  (gl:stencil-func :always 0 #xffffffff)
+  (gl:use-program (foreign-handle *active-shading-program* 0))
 
   ;; fixme: reset others units
   (use-texture-unit (bound-symbol-value *active-texture-unit* 0))

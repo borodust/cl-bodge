@@ -7,6 +7,11 @@
 ;;;
 ;;;
 ;;;
+
+(defgeneric pass-data-of (node)
+  (:method (node) nil))
+
+
 (defclass scene-node (node)
   ((pass-data :initform nil :accessor pass-data-of)))
 
@@ -37,8 +42,8 @@
 
 
 (defgeneric scene-pass (node pass input)
-  (:method ((this scene-node) pass input)
-    (dochildren (child this)
+  (:method (node pass input)
+    (dochildren (child node)
       (when (node-enabled-p child)
         (setf (pass-data-of child)
               (scene-pass child pass (pass-data-of child)))))
@@ -51,9 +56,9 @@
 
 
 (defgeneric run-scene-pass (pass node)
-  (:method (pass node)
-    (scene-pass node pass nil)))
-
+  (:method (pass root)
+    (when (node-enabled-p root)
+      (scene-pass root pass (pass-data-of root)))))
 
 
 (defmethod dispatch ((this scene-pass) (task function) &key)

@@ -30,17 +30,24 @@
    (width :initarg :width :reader width-of)
    (height :initarg :height :reader height-of)
    (canvas :initarg :canvas :reader canvas-of)
+   (framebuffer :initform nil :reader framebuffer-of)
+   (depth-stencil-buffer :initform nil)
+   (overlay-texture :initform nil :reader overlay-of)
    (text-renderer :initarg :text-renderer :reader text-renderer-of)))
 
 
-(defun font-of (ctx)
+(defmethod font-of ((ctx nuklear-context))
   (with-slots (text-renderer) ctx
-    (text-renderer-font text-renderer)))
+    (font-of text-renderer)))
 
 
-(define-destructor nuklear-context (nuklear-font canvas)
+(define-destructor nuklear-context (nuklear-font canvas framebuffer depth-stencil-buffer
+                                                 overlay-texture)
   (dispose nuklear-font)
-  (dispose canvas))
+  (dispose canvas)
+  (dispose framebuffer)
+  (dispose depth-stencil-buffer)
+  (dispose overlay-texture))
 
 
 (bodge-nuklear:define-font-width-callback calc-string-width (handle height string)
@@ -59,6 +66,16 @@
            :nuklear-font nk-font
            :text-renderer (make-text-renderer width height font line-height)
            keys)))
+
+
+(defmethod initialize-instance :after ((this nuklear-context) &key)
+  (with-slots (width height filter-texture framebuffer depth-stencil-buffer overlay-texture)
+      this
+    (setf overlay-texture (make-2d-texture (make-blank-image width height) :grey
+                                           :generate-mipmaps-p nil)
+          framebuffer (make-framebuffer)
+          depth-stencil-buffer (make-renderbuffer :depth-stencil width height))
+    (attach-depth-stencil-buffer framebuffer depth-stencil-buffer)))
 
 
 (definline make-poiu-context (width height font line-height &key antialiased-p)

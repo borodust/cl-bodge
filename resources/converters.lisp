@@ -93,15 +93,15 @@
 
 (define-system-function chunk->font ge.gx:graphics-system (font-chunk atlas-image)
   (let ((glyphs (loop for g in (children-of font-chunk)
-                   collect (ge.txt:make-glyph (code-char (glyph-metrics-character g))
-                                              (glyph-metrics-origin g)
-                                              (glyph-metrics-bounding-box g)
-                                              (glyph-metrics-advance-width g)
-                                              (glyph-metrics-kernings g)))))
-    (ge.txt:make-font atlas-image glyphs
-                      (font-atlas-chunk-ascender font-chunk)
-                      (- (font-atlas-chunk-descender font-chunk))
-                      (font-atlas-chunk-line-gap font-chunk))))
+                   collect (ge.text:make-glyph (code-char (glyph-metrics-character g))
+                                               (glyph-metrics-origin g)
+                                               (glyph-metrics-bounding-box g)
+                                               (glyph-metrics-advance-width g)
+                                               (glyph-metrics-kernings g)))))
+    (ge.text:make-font atlas-image glyphs
+                       (font-atlas-chunk-ascender font-chunk)
+                       (- (font-atlas-chunk-descender font-chunk))
+                       (font-atlas-chunk-line-gap font-chunk))))
 
 
 (defmethod chunk-asset-flow ((this font-atlas-chunk) loader)

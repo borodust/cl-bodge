@@ -1,4 +1,4 @@
-(in-package :cl-bodge.poiu)
+(in-package :cl-bodge.text)
 
 
 (define-constant +default-cleanup-size+ 10)

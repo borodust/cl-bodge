@@ -1,4 +1,4 @@
-(in-package :cl-bodge.poiu)
+(in-package :cl-bodge.text)
 
 
 (defclass text-renderer ()
@@ -11,9 +11,10 @@
    (text-cache :initform nil)))
 
 
-(defun text-renderer-font (obj)
-  (with-slots (text-cache) obj
-    (text-cache-font text-cache)))
+(defgeneric font-of (obj)
+  (:method ((obj text-renderer))
+    (with-slots (text-cache) obj
+      (text-cache-font text-cache))))
 
 
 (defmethod initialize-instance :after ((this text-renderer) &key font width height line-height)
@@ -38,7 +39,14 @@
                  :default-color color))
 
 
-(defun render-cached-text (renderer string &key position color)
+(defun measure-scaled-string (renderer string)
+  (with-slots (text-cache scale) renderer
+    (flet ((scale (v)
+             (* v scale)))
+      (mapcar #'scale (measure-string string (text-cache-font text-cache))))))
+
+
+(defun draw-text (renderer string &key position color)
   (with-slots (text-cache shading-program proj default-color height scale) renderer
     (let* ((text (get-text text-cache string))
            (font (text-cache-font text-cache))

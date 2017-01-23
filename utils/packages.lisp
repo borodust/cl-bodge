@@ -43,6 +43,7 @@
            definline
            ensure-not-null
            bound-symbol-value
+           if-null
            if-bound
            when-bound
            class-name-of

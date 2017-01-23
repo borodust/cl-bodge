@@ -208,9 +208,12 @@
   :components ((:file "packages")
                (:file "font")
                (:file "text")
+               (:file "rated-queue")
+               (:file "text-cache")
                (:module shaders
-                        :components
-                        ((:file "text")))))
+                        :components ((:file "text-program/text")
+                                     (:file "text-library/text")))
+               (:file "text-renderer")))
 
 
 (defsystem cl-bodge/poiu
@@ -227,12 +230,7 @@
                (:file "poiu")
                (:file "events")
                (:file "elements")
-               (:file "rated-queue")
-               (:file "text-cache")
-               (:file "text-renderer")
-               (:file "rendering-backend")
-               (:module shaders
-                        :components ((:file "text")))))
+               (:file "rendering-backend")))
 
 
 (defsystem cl-bodge/scenegraph

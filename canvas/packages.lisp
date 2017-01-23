@@ -5,6 +5,8 @@
   (:nicknames :ge.vg)
   (:use :cl :cl-bodge.engine :cl-bodge.utils :cl-bodge.graphics :autowrap :plus-c)
   (:export make-canvas
+           begin-canvas
+           end-canvas
            with-canvas
            path
            fill-path
@@ -19,6 +21,4 @@
            draw-ellipse
            draw-arc
            draw-polygon
-           draw-polyline
-
-           make-text-renderer))
+           draw-polyline))

@@ -258,3 +258,9 @@
   (if (stringp value)
       value
       (format nil format-string value)))
+
+
+(definline if-null (value default)
+  (if (null value)
+      default
+      value))

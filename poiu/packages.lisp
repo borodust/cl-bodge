@@ -10,6 +10,7 @@
 
            make-poiu
            compose-poiu
+           render-poiu
            name-of
            window
            make-window
