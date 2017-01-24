@@ -115,7 +115,7 @@
 
 (defun startup (properties-pathspec)
   (when *engine*
-    (error "Engine already working"))
+    (error "Engine already running"))
   (setf *engine* (make-instance 'bodge-engine))
   (in-new-thread-waiting "startup-worker"
     (with-slots (systems properties disabling-order shared-pool shared-executors
@@ -210,8 +210,8 @@
   (value-flow nil))
 
 
-(defun run (fn &optional result-callback)
-  (cl-flow:run-flow (engine) fn result-callback))
+(defun run (fn)
+  (cl-flow:run-flow (engine) fn))
 
 ;;
 (defgeneric system-of (obj))

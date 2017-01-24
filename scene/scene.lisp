@@ -12,6 +12,10 @@
   (:method (node) nil))
 
 
+(defgeneric (setf pass-data-of) (value node)
+  (:method (value node) nil))
+
+
 (defclass scene-node (node)
   ((pass-data :initform nil :accessor pass-data-of)))
 

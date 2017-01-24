@@ -33,5 +33,6 @@
 (defun get-asset (registry name)
   (with-slots (asset-table) registry
     (if-let ((loader (gethash name asset-table)))
-      (load-asset loader name)
+      (prog1 (load-asset loader name)
+        (log:debug "Asset requested: '~A'" name))
       (null-flow))))
