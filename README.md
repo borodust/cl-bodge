@@ -97,7 +97,17 @@ Required foreign libraries:
 | `NanoVG`     | ?.?  | `bodge-nanovg`
 | `Nuklear`    | 1.20 | `bodge-nuklear`
 
-You need few CL dependencies manually installed (no quicklisp packages available):
+
+### [Quicklisp](http://quicklisp.org)
+```lisp
+(ql-dist:install-dist "http://bodge.borodust.org/dist/bodge-systems.txt")
+
+(ql:quickload :cl-bodge)
+```
+
+
+### Upstream sources
+You need few CL dependencies installed manually:
 * [`cl-muth`](https://github.com/borodust/cl-muth)
 * [`cl-flow`](https://github.com/borodust/cl-flow)
 * [`bodge-ode`](https://github.com/borodust/bodge-ode)
