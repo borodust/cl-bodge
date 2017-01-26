@@ -3,28 +3,26 @@
 
 (declaim (special *distribution*))
 
+(defun list-system-pathnames (system-designator)
+  (labels ((%extract-name (sys-def)
+             (if (listp sys-def)
+                 (ecase (first sys-def)
+                   (:version (second sys-def)))
+                 sys-def))
 
-(labels ((%extract-name (sys-def)
-           (if (listp sys-def)
-               (ecase (first sys-def)
-                 (:version (second sys-def)))
-               sys-def))
+           (%list-dependencies (system)
+             (mapcar #'%extract-name (asdf:system-depends-on system)))
 
-         (%list-dependencies (system)
-           (mapcar #'%extract-name (asdf:system-depends-on system)))
+           (%proper-path-p (sys-path)
+             (and sys-path
+                  (> (length (trim-whitespaces (namestring sys-path))) 0)))
 
-         (%proper-path-p (sys-path)
-           (and sys-path
-                (> (length (trim-whitespaces (namestring sys-path))) 0)))
-
-         (%list-system-pathnames (system-designator)
-           (let* ((system (asdf:find-system system-designator))
-                  (sys-path (asdf:system-definition-pathname system)))
-             (append (when (%proper-path-p sys-path) (list sys-path))
-                     (loop for sys-name in (%list-dependencies system) append
-                          (%list-system-pathnames sys-name))))))
-
-  (defun list-system-pathnames (system-designator)
+           (%list-system-pathnames (system-designator)
+             (let* ((system (asdf:find-system system-designator))
+                    (sys-path (asdf:system-definition-pathname system)))
+               (append (when (%proper-path-p sys-path) (list sys-path))
+                       (loop for sys-name in (%list-dependencies system) append
+                            (%list-system-pathnames sys-name))))))
     (remove-duplicates (%list-system-pathnames system-designator) :test #'equal)))
 
 
@@ -102,7 +100,7 @@
   (let* ((*distribution* (with-open-file (file distribution-descriptor)
                            (let ((*package* (find-package :ge.dist)))
                              (loop for form = (read file)
-                                until (and (listp form) (eq (car form) 'define-distribution))
+                                until (and (listp form) (eq (car form) 'distribution))
                                 finally (return (eval (macroexpand form))))))))
     (let ((*load-verbose* nil)
           (*compile-verbose* nil)

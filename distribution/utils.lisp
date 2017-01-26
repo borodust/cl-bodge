@@ -66,20 +66,17 @@
     (sb-posix:chmod path (logior mode sb-posix:s-iexec))))
 
 
-(defun copy-path (src dst &optional observer)
-  (flet ((walker (path)
-           (let ((last-el (enough-namestring path src)))
-             (if (fad:directory-pathname-p path)
-                 (copy-path path (path dst last-el))
-                 (copy-path path (file dst last-el))))))
-    (ensure-directories-exist dst)
-    (if (fad:directory-pathname-p src)
-        (fad:walk-directory src #'walker :follow-symlinks nil)
-        (progn
-          (fad:copy-file src dst)
-          (copy-permissions src dst)
-          (when (functionp observer)
-            (funcall observer src dst))))))
+(defun copy-path (source destination &optional observer)
+  (labels ((%copy-path (src dst)
+             (ensure-directories-exist dst)
+             (fad:copy-file src dst)
+             (copy-permissions src dst)
+             (when (functionp observer)
+               (funcall observer src dst)))
+           (walker (path)
+             (let ((last-el (enough-namestring path source)))
+               (%copy-path path (file destination last-el)))))
+    (fad:walk-directory source #'walker :follow-symlinks nil)))
 
 
 (defun compress-directory (path &optional name)

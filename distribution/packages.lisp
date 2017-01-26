@@ -4,5 +4,5 @@
 (defpackage :cl-bodge.distribution
   (:nicknames :ge.dist)
   (:use :cl :alexandria :asdf)
-  (:export define-distribution
+  (:export distribution
            make-distribution))

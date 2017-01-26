@@ -32,16 +32,18 @@
 (defmethod initialize-instance :after ((this distribution) &key build-directory
                                                              library-directory
                                                              assets
-                                                             engine-assets-directory)
+                                                             engine-assets-directory
+                                                             base-directory)
   (with-slots ((this-build-dir build-directory) (this-lib-dir library-directory)
                (this-assets assets) (this-engine-assets-dir engine-assets-directory)
                target-system name dist-directory)
       this
     (let* ((sys (find-system target-system))
-           (sys-path (component-pathname sys))
+           (base-path (fad:merge-pathnames-as-directory (component-pathname sys)
+                                                       base-directory))
            (dist-name (format nil "~(~a~)" name)))
       (setf this-build-dir (if (fad:pathname-relative-p build-directory)
-                               (fad:merge-pathnames-as-directory sys-path
+                               (fad:merge-pathnames-as-directory base-path
                                                                  (path build-directory))
                                (path build-directory))
             dist-directory (fad:merge-pathnames-as-directory this-build-dir
@@ -52,7 +54,7 @@
             this-engine-assets-dir (fad:merge-pathnames-as-directory
                                     dist-directory
                                     (path engine-assets-directory))
-            this-assets (expand-assets-path sys-path dist-directory assets)))))
+            this-assets (expand-assets-path base-path dist-directory assets)))))
 
 
 (defun parse-entry-function (entry-function)
@@ -63,17 +65,19 @@
      entry-function)))
 
 
-(defmacro define-distribution (name &key
-                                      target-system
-                                      (entry-function
-                                       (error ":entry-function must be specified"))
-                                      executable-name
-                                      (compressed-p t)
-                                      (build-directory #p"build/")
-                                      (library-directory #p"lib/")
-                                      (engine-assets-directory #p"assets/engine/")
-                                      assets
-                                      bundle)
+(defmacro distribution (name &body body
+                        &key target-system
+                          (entry-function
+                           (error ":entry-function must be specified"))
+                          (base-directory "./")
+                          executable-name
+                          (compressed-p t)
+                          (build-directory #p"build/")
+                          (library-directory #p"lib/")
+                          (engine-assets-directory #p"assets/engine/")
+                          assets
+                          bundle)
+  (declare (ignore body))
   (destructuring-bind (&key ((:name bundle-name) (format nil "~(~a~)" name))
                             ((:run-file bundle-run-file))
                             ((:compressed-p bundle-compressed-p) t))
@@ -83,6 +87,7 @@
 
     `(make-instance 'distribution
                     :name ,name
+                    :base-directory ,base-directory
                     :target-system ,(or target-system name)
                     :entry-function ,(parse-entry-function entry-function)
                     :executable-name ,(or executable-name (format nil "~(~a~).bin" name))

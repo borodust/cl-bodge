@@ -100,8 +100,10 @@ Required foreign libraries:
 
 ### [Quicklisp](http://quicklisp.org)
 ```lisp
+;; add cl-bodge distribution into quicklisp
 (ql-dist:install-dist "http://bodge.borodust.org/dist/bodge-systems.txt")
 
+;; load engine
 (ql:quickload :cl-bodge)
 ```
 
