@@ -20,7 +20,7 @@ Experimental **bod**acious **g**ame **e**ngine written in **C**ommon **L**isp.
 
 * ***Host***
 
-  Abstraction layer over host OS-dependent functionality: windows, OS resources
+  Abstraction layer over host OS-dependent functionality: windows, OS resource
   management, system and input events, etc. See `cl-bodge/host`.
 
 * ***Assets***
@@ -84,31 +84,32 @@ Experimental **bod**acious **g**ame **e**ngine written in **C**ommon **L**isp.
 
 ## Installation
 
-Required foreign libraries:
-
-| Library | Version | Dependent system
-|---------|:-------:|-------------------------
-| `libffi`     | 3.0  | `cl-bodge/engine`
-| `glfw3`      | 3.1  | `cl-bodge/host`
-| `OpenAL`     | 1.1  | `cl-bodge/audio`
-| `ODE`        | 0.14 | `cl-bodge/physics`
-| `libsndfile` | 1.0  | `cl-bodge/resources`
-| `OpenGL`     | 4.1  | `cl-bodge/graphics`
-| `NanoVG`     | ?.?  | `bodge-nanovg`
-| `Nuklear`    | 1.20 | `bodge-nuklear`
-
-
 ### [Quicklisp](http://quicklisp.org)
 ```lisp
 ;; add cl-bodge distribution into quicklisp
 (ql-dist:install-dist "http://bodge.borodust.org/dist/bodge-systems.txt")
 
-;; load engine
-(ql:quickload :cl-bodge)
+;; load precompiled native libraries and the engine
+(ql:quickload '(:bodge-blobs :cl-bodge))
 ```
 
-
 ### Upstream sources
+
+Required foreign libraries:
+
+| Library | Version | Dependent system
+|---------|:-------:|-------------------------
+| `libffi`     | 3.0  | `cl-bodge/host`
+| `glfw3`      | 3.1  | `cl-bodge/host`
+| `OpenAL`     | 1.1  | `cl-bodge/audio`
+| `ODE`        | 0.14 | `cl-bodge/physics`
+| `libsndfile` | 1.0  | `cl-bodge/resources`
+| `OpenGL`     | 4.1  | `cl-bodge/graphics`
+| `libepoxy`   | ?.?  | `bodge-nanovg`
+| `NanoVG`     | ?.?  | `bodge-nanovg`
+| `Nuklear`    | 1.20 | `bodge-nuklear`
+
+
 You need few CL dependencies installed manually:
 * [`cl-muth`](https://github.com/borodust/cl-muth)
 * [`cl-flow`](https://github.com/borodust/cl-flow)
@@ -120,7 +121,7 @@ You need few CL dependencies installed manually:
 Finally, you need to clone this repository to your local machine and setup
 [Quicklisp](https://www.quicklisp.org/), so it could find engine's source code.
 
-For instruction on how to setup local projects, please, refer to [Quicklisp
+For instructions on how to setup local projects, please, refer to [Quicklisp
 FAQ](https://www.quicklisp.org/beta/faq.html#local-project)
 
 
