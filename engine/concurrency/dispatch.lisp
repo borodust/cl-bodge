@@ -16,6 +16,8 @@
 
 
 (defmacro in-new-thread (thread-name &body body)
+  "Execute `body` in the new thread with name `thread-name` instantly returning execution to the
+ caller."
   `(bt:make-thread
     (lambda ()
       (progn
@@ -24,6 +26,8 @@
 
 
 (defmacro in-new-thread-waiting (thread-name &body body)
+  "Execute `body` in the new thread with name `thread-name` blocking caller until `body`
+returns."
   (with-gensyms (latch)
     `(wait-with-latch (,latch)
        (bt:make-thread

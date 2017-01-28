@@ -6,19 +6,25 @@
 
 (defclass thread-bound-system (enableable dispatcher generic-system)
   ((executor :initform nil :accessor %executor-of)
-   (context :initform nil :reader system-context-of)))
+   (context :initform nil :reader system-context-of))
+  (:documentation "Base class for systems that bound to single thread: either by underlying
+ requirements (stateful thread-unsafe foreign systems (e.g. OpenGL contexts) or as a way to
+ handle concurrency."))
 
 
 (defgeneric make-system-context (system)
+  (:documentation "Make context bound to system's thread.")
   (:method (system)
     (declare (ignore system) nil)))
 
 
 (defgeneric destroy-system-context (context system)
+  (:documentation "Destroy system context in the thread it was bound to.")
   (:method (context system) (declare (ignore context system))))
 
 
 (defmethod dispatch ((this thread-bound-system) fn &key (priority :medium) (important-p t))
+  "Dispatch task to be executed in the system's thread."
   (unless (call-next-method)
     (flet ((invoker ()
              (log-errors
@@ -30,11 +36,14 @@
 
 
 (defgeneric acquire-system-executor (system)
+  (:documentation "Acquire executor to use in the system as a dispatch target. Engine's single
+ threaded non-exclusive (shared) executor is acquired by default.")
   (:method ((this thread-bound-system))
     (acquire-executor :single-threaded-p t)))
 
 
 (defgeneric release-system-executor (system executor)
+  (:documentation "Release system's executor acquired earlier.")
   (:method ((this thread-bound-system) executor)
     (release-executor executor)))
 

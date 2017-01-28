@@ -3,9 +3,9 @@
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defmacro definline (name lambda-list &body body)
-  `(progn
-     (declaim (inline ,name))
-     (defun ,name ,lambda-list ,@body)))
+    `(progn
+       (declaim (inline ,name))
+       (defun ,name ,lambda-list ,@body)))
 
 
   (definline f (value)

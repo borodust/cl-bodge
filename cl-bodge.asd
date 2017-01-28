@@ -44,7 +44,7 @@
                         :serial t
                         :components ((:file "dispatch")
                                      (:file "execution")
-                                     (:file "job-queue")
+                                     (:file "task-queue")
                                      (:file "instance-lock")))
                (:file "properties")
                (:file "engine")

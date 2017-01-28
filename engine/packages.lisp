@@ -12,10 +12,6 @@
            with-disposable))
 
 
-(defpackage :cl-bodge.concurrency.generated
-  (:nicknames :ge.mt.gen))
-
-
 (defpackage :cl-bodge.concurrency
   (:nicknames :ge.mt)
   (:use :cl-bodge.utils :cl-bodge.memory
@@ -27,7 +23,6 @@
            clearup
 
            execute
-           make-simple-executor
            make-single-threaded-executor
            make-pooled-executor
 
@@ -105,16 +100,10 @@
            quat->rotation-mat4))
 
 
-(defpackage :cl-bodge.algorithm
-  (:nicknames :ge.algo)
-  (:use :cl :cl-bodge.utils)
-  (:export))
-
-
 (ge.util:define-package :cl-bodge.engine
   (:nicknames :ge.ng)
   (:use :cl-bodge.utils :cl :bordeaux-threads :cl-muth)
-  (:use-reexport :cl-bodge.concurrency :cl-bodge.memory :cl-bodge.math :cl-bodge.algorithm)
+  (:use-reexport :cl-bodge.concurrency :cl-bodge.memory :cl-bodge.math)
   (:export system
            enable
            disable
@@ -152,8 +141,6 @@
            destroy-system-context
            *system-context*
            *system*
-           check-system-context
-           thread-bound-object
            define-system-function
            acquire-system-executor
            release-system-executor

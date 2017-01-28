@@ -17,9 +17,11 @@
 
 
 (definline engine ()
+  "Return engine instance"
   *engine*)
 
 (defun engine-system (system-name)
+  "Return engine's system instance by class name. Throws error if system cannot be found."
   (with-slots (systems engine-lock) (engine)
     (with-recursive-lock-held (engine-lock)
       (if-let ((system (gethash system-name systems)))
@@ -28,28 +30,42 @@
 
 
 (defun working-directory ()
+  "Return working directory of the engine which corresponds to the directory where configuration
+file is stored."
   (working-directory-of (engine)))
 
 
 (defun merge-working-pathname (pathname)
+  "Merge `pathname` with engine's working directory."
   (merge-pathnames pathname (working-directory)))
 
 
 ;;
 (defclass system ()
-  ((dependencies :initarg :depends-on :initform '() :reader dependencies-of)))
+  ((dependencies :initarg :depends-on :initform '() :reader dependencies-of))
+  (:documentation "Base class for all engine systems"))
+
+
+(defgeneric notify-system (system notification &key &allow-other-keys)
+  (:method (system notification &key))
+  (:documentation "System's callback which is called by engine during various
+  events. `notification` can be one of those:
+:engine-started"))
 
 
 (defgeneric enable (system)
-  (:method (system) nil))
+  (:method (system) nil)
+  (:documentation "Enable engine's system synchronousy."))
 
-(defgeneric notify-system (system notification &key &allow-other-keys)
-  (:method (system notification &key)))
 
 (defgeneric disable (system)
-  (:method (system) nil))
+  (:method (system) nil)
+  (:documentation "Disable engine's system synchronously."))
 
-(defgeneric enabledp (system))
+
+(defgeneric enabledp (system)
+  (:documentation "Check if `system` is enabled. Must be thread-safe."))
+
 
 ;;
 (defun instantiate-systems (system-class-names &optional sys-alist)
@@ -88,6 +104,8 @@
 
 
 (defun property (key &optional (default-value nil))
+  "Return engine's property provided in the configuration file or `default-value` if it was not
+specified."
   (with-slots (properties) *engine*
     (%get-property key properties default-value)))
 
@@ -114,6 +132,10 @@
 
 
 (defun startup (properties-pathspec)
+  "Start engine synchronously loading configuration file (the config) from
+`properties-pathspec`. `:systems` property must be present in the config and should contain list
+of existing system class names loaded into current lisp image. Specified systems and their
+dependencies will be initialized in the correct order according to a dependency graph."
   (when *engine*
     (error "Engine already running"))
   (setf *engine* (make-instance 'bodge-engine))
@@ -141,6 +163,8 @@
 
 
 (defun shutdown ()
+  "Shutdown engine synchronously and deinitialize systems in the reverse order they were
+initialized."
   (unless *engine*
     (error "Engine already stopped"))
   (in-new-thread-waiting "shutdown-worker"
@@ -156,6 +180,11 @@
 
 (defun acquire-executor (&rest args &key (single-threaded-p nil) (exclusive-p nil)
                                       (special-variables nil))
+  "Acquire executor from the engine which corresponds to provided options:
+:single-threaded-p - if t, executor will be single-threaded, otherwise it can be pooled one
+:exclusive-p - if t, this executor cannot be acquired by other requester and :special-variables
+               can be specified for it, otherwise this executor could be shared among different
+               requesters."
   (with-slots (shared-pool shared-executors) *engine*
     (cond
       ((and (not exclusive-p) (not single-threaded-p) (not special-variables))
@@ -172,17 +201,23 @@
 
 
 (defun release-executor (executor)
+  "Release executor back to the engine"
   (with-slots (shared-pool shared-executors) *engine*
     (unless (or (shared-executor-p executor shared-executors)
                 (eq executor shared-pool))
       (dispose executor))))
 
 
-(defclass dispatcher () ())
+(defclass dispatcher () ()
+  (:documentation "Base class for all engine dispatchers"))
 
 
 (defmethod dispatch ((this bodge-engine) (task function) &rest keys &key (priority :medium)
                                                                       invariant concurrently-p)
+  "Use engine instance as a dispatcher. If :invariant and :concurrently-p are both nil task is
+not dispatched and just executed in the current thread. If :invariant is nil but :concurrently-p
+is t, task is dispatched to the engine's default pooled executor. If :invariant is specified,
+task is dispatched to the object provided under this key."
   (with-slots (shared-pool) this
     (etypecase invariant
       (null (if concurrently-p
@@ -193,34 +228,43 @@
 
 
 (defmacro instantly ((&rest lambda-list) &body body)
+  "Execute task in the current thread without dispatching."
   `(-> nil ,lambda-list
      ,@body))
 
 
 (defmacro concurrently ((&rest lambda-list) &body body)
+  "Push task to engine's pooled executor."
   `(-> (nil :concurrently-p t) ,lambda-list
      ,@body))
 
 
 (defun value-flow (value)
+  "Return flow that returns single value."
   (instantly () value))
 
 
 (defun null-flow ()
+  "Return flow that returns nil as single value."
   (value-flow nil))
 
 
 (defun run (fn)
+  "Dispatch flow using engine as a dispatcher."
   (cl-flow:run-flow (engine) fn))
 
 ;;
-(defgeneric system-of (obj))
+(defgeneric system-of (obj)
+  (:documentation "Return system obj has relation with."))
+
 
 (defclass system-object ()
-  (system))
+  (system)
+  (:documentation "Base class for objects that has any relationship with particular system."))
 
 
 (defmethod system-of ((this system-object))
+  "Return system this object has relationship with."
   (with-slots (system) this
     (tg:weak-pointer-value system)))
 
@@ -234,7 +278,9 @@
 ;;;
 ;;;
 (defclass enableable ()
-  ((enabled-p :initform nil)))
+  ((enabled-p :initform nil))
+  (:documentation "Mixin for systems for making them enableable: conform to
+ enabledp/enable/disable interface."))
 
 
 (defmethod enabledp ((this enableable))
@@ -263,10 +309,13 @@
 
 (defclass foreign-object (disposable system-object)
   ((handle :initarg :handle :initform (error "foreign object :handle must be supplied")
-           :reader handle-of)))
+           :reader handle-of))
+  (:documentation "Base class for disposable foreign system-dependent objects.  Simplifies
+handling of init/dispose lifecycle for such ojects."))
 
 
 (definline handle-value-of (foreign-object)
+  "Return value stored in the handle of the provided foreign object"
   (with-slots (handle) foreign-object
     (value-of handle)))
 
@@ -279,6 +328,10 @@
 
 (defmacro defhandle (name &key (initform nil)
                             (closeform (error ":closeform must be supplied")))
+  "Define foreign object handle that keeps track of foreign instance. :closeform has access to
+*handle-value* which contains foreign instance that must be disposed. Foreign instance can be
+initialized and returned by :initform or provided to the generated handle constructor ('make- +
+`name`)."
   (with-gensyms (handle value)
     `(progn
        (defclass ,name (handle) ())
@@ -299,6 +352,8 @@
 
 
 (defmacro define-system-function (name system-class lambda-list &body body)
+  "Define function that bound to the system, i.e. its body must be executed only when *system*
+special variable corresponds to the instance of the `system-class`."
   (multiple-value-bind (forms decls doc) (parse-body body :documentation t)
     `(defun ,name ,lambda-list
        ,@(when doc (list doc))

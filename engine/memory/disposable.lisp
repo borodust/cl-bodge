@@ -25,6 +25,7 @@
 
 
 (defun dispose (obj)
+  "Call destructor for object `obj`."
   (if (finalizedp obj)
       (error "Attempt to dispose already finalized object.")
       (loop for finalizer in (destructor-of obj) do
@@ -40,6 +41,12 @@ Check define-destructor documentation.")
 
 
 (defmacro define-destructor (class-name (&rest slots) &body body)
+  "Define destructor for the objects of `class-name`. `class-name` should be a subclass of
+ 'disposable.
+
+Destructor can be invoked manually by calling `#'dispose` or automatically during garbage
+collection.  `slots` (slot names of the object instance) should be set during instance
+initialization and cannot be null."
   (with-gensyms (this finalized-p-holder)
     `(defmethod ge.mem::destructor-of ((,this ,class-name))
        (let ,(loop for slot in slots collecting
@@ -53,6 +60,8 @@ Check define-destructor documentation.")
 
 
 (defmacro with-disposable ((&rest bindings) &body body)
+  "let*-like bindings that will be disposed at the end of `with-disposable` block in reverse
+order"
   `(let* ,(loop for (name value) in bindings collecting `(,name ,value))
      (unwind-protect
           (progn

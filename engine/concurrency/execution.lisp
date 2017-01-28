@@ -7,7 +7,9 @@
 (define-constant +default-pool-size+ 4)
 
 
-(defgeneric execute (executor task &key &allow-other-keys))
+(defgeneric execute (executor task &key &allow-other-keys)
+  (:documentation "Abstract execution facility: run `task` bin a way defined by
+executor. Executor must operate in thread-safe manner."))
 
 
 (defclass generic-executor (disposable)
@@ -81,12 +83,20 @@
 
 
 (definline make-single-threaded-executor (&optional special-variables)
+  "Make executor that run tasks in the same dedicated thread. Symbols specified in the
+`special-variables` would be available to the tasks ran by this executor.
+
+ Executor has maximum number of tasks it can take in until it block next call to #'execute if
+:important-p key is not specified or set to 't. If :important-p is set to 'nil when maximum
+number of tasks is reached new incoming tasks will be discarded until number of tasks will drop
+below maximum allowed."
   (make-instance 'single-threaded-executor :special-variables special-variables))
 
 
 (defmethod execute ((this single-threaded-executor) (task function) &key
                                                                       (priority :medium)
                                                                       (important-p t))
+  "Execute task in the dedicated thread. Block execution of the #'execute caller if maximum number of queued tasks is reached and :important-p is set to 't. Discard task if maximum number of queued tasks is reached, but :important-p is set to 'nil."
   (with-slots (executor) this
     (execute executor task :priority priority :important-p important-p)))
 
@@ -108,9 +118,11 @@
 
 
 (definline make-pooled-executor (&optional (size +default-pool-size+))
+  "Make executor that run tasks concurrently in the dedicated thread-pool."
   (make-instance 'pooled-executor :size size))
 
 
 (defmethod execute ((this pooled-executor) (task function) &key (priority :medium))
+  "Run task concurrently in the thread pool."
   (with-slots (pool) this
     (push-to-pool pool task priority)))

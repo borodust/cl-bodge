@@ -3,18 +3,22 @@
 
 (defclass generic-system (system)
   ((state-lock :initform (make-recursive-lock "generic-system-state-lock")
-               :reader lock-of)))
+               :reader lock-of))
+  (:documentation "Base class for systems with generic behaviour: simple lifecycle, lockable"))
 
 
 (defgeneric initialize-system (system)
+  (:documentation "Initialize system during engine startup. Prefer :after methods.")
   (:method (system) nil))
 
 
 (defgeneric discard-system (system)
+  (:documentation "Discard system during engine shutdown. Prefer :before methods.")
   (:method (system) nil))
 
 
 (defmacro with-system-lock-held ((system &optional lock-var) &body body)
+  "Hold system's lock during `body`."
   (once-only (system)
     `(let ,(unless (null lock-var)
                    `((,lock-var (ge.ng::lock-of ,system))))
