@@ -1,6 +1,9 @@
 (in-package :cl-bodge.physics)
 
 
+(define-constant +precision+ (if ode:+double-precision-p+ 0d0 0f0)
+  :test #'=)
+
 (defclass ode-object (foreign-object) ())
 
 
@@ -32,3 +35,7 @@
 
 (defmethod collide ((this collidable) (that collidable))
   nil)
+
+
+(definline ode-real (value)
+  (float value +precision+))

@@ -43,7 +43,7 @@
                                 &key (radius (error ":radius missing")))
   (apply #'call-next-method
          this
-         :handle (make-geom-handle (%ode:create-sphere (space-of (universe)) radius))
+         :handle (make-geom-handle (%ode:create-sphere (space-of (universe)) (ode-real radius)))
          args))
 
 ;;;
@@ -57,9 +57,9 @@
   (apply #'call-next-method
          this
          :handle (make-geom-handle (%ode:create-box (space-of (universe))
-                                                    (x dimensions)
-                                                    (y dimensions)
-                                                    (z dimensions)))
+                                                    (ode-real (x dimensions))
+                                                    (ode-real (y dimensions))
+                                                    (ode-real (z dimensions))))
          args))
 
 
@@ -77,7 +77,10 @@
          this
          :handle (make-geom-handle
                   (%ode:create-plane (space-of (universe))
-                                     (x normal) (y normal) (z normal) offset))
+                                     (ode-real (x normal))
+                                     (ode-real (y normal))
+                                     (ode-real (z normal))
+                                     (ode-real offset)))
          args))
 
 ;;;
@@ -88,17 +91,25 @@
    (direction :reader direction-of)))
 
 
+(definline set-ray (ray position direction)
+  (%ode:geom-ray-set ray
+                     (ode-real (x position))
+                     (ode-real (y position))
+                     (ode-real (z position))
+                     (ode-real (x direction))
+                     (ode-real (y direction))
+                     (ode-real (z direction))))
+
+
 (defmethod initialize-instance ((this ray-geom) &rest args
                                 &key (position (vec3 0.0 0.0 0.0))
                                   (direction (error ":direction missing"))
                                   (length (error ":length missing")))
   (with-slots ((pos position) (dir direction)) this
-    (let ((ode-ray (%ode:create-ray (space-of (universe)) length)))
+    (let ((ode-ray (%ode:create-ray (space-of (universe)) (ode-real length))))
       (setf pos position
             dir direction)
-      (%ode:geom-ray-set ode-ray
-                         (x position) (y position) (z position)
-                         (x direction) (y direction) (z direction))
+      (set-ray ode-ray position direction)
       (apply #'call-next-method
              this
              :handle (make-geom-handle ode-ray)
@@ -108,14 +119,10 @@
 (defmethod (setf position-of) ((position vec3) (this ray-geom))
   (with-slots (direction (pos position)) this
     (setf pos position)
-    (%ode:geom-ray-set (handle-value-of this)
-                       (x position) (y position) (z position)
-                       (x direction) (y direction) (z direction))))
+    (set-ray (handle-value-of this) position direction)))
 
 
 (defmethod (setf direction-of) ((direction vec3) (this ray-geom))
   (with-slots (position (dir direction)) this
     (setf dir direction)
-    (%ode:geom-ray-set (handle-value-of this)
-                       (x position) (y position) (z position)
-                       (x direction) (y direction) (z direction))))
+    (set-ray (handle-value-of this) position direction)))

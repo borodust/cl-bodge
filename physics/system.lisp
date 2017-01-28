@@ -34,4 +34,6 @@
 
 (define-system-function (setf gravity) physics-system (vec)
   (%ode:world-set-gravity (world-of (universe))
-                          (vref vec 0) (vref vec 1) (vref vec 2)))
+                          (ode-real (vref vec 0))
+                          (ode-real (vref vec 1))
+                          (ode-real (vref vec 2))))

@@ -8,16 +8,16 @@
 
 (defun contact-position (info)
   (c-let ((geom %ode:contact-geom :from (contact-geom info)))
-    (vec3 (geom :pos 0) (geom :pos 1) (geom :pos 2))))
+    (vec3 (f (geom :pos 0)) (f (geom :pos 1)) (f (geom :pos 2)))))
 
 
 (defun contact-normal (info)
   (c-let ((geom %ode:contact-geom :from (contact-geom info)))
-    (vec3 (geom :normal 0) (geom :normal 1) (geom :normal 2))))
+    (vec3 (f (geom :normal 0)) (f (geom :normal 1)) (f (geom :normal 2)))))
 
 
 (defun contact-depth (info)
-  (c-ref (contact-geom info) %ode:contact-geom :depth))
+  (f (c-ref (contact-geom info) %ode:contact-geom :depth)))
 
 
 (defun fill-contact-geom (contact-geom info)
@@ -27,6 +27,6 @@
 (defun fill-contact (contact info)
   (setf (%ode:contact.surface.mode contact) (mask 'contact-flags :approx0 :bounce)
         (%ode:contact.surface.mu contact) +infinity+
-        (%ode:contact.surface.bounce contact) 1.0)
+        (%ode:contact.surface.bounce contact) (ode-real 1.0))
   (fill-contact-geom (%ode:contact.geom contact) info)
   contact)

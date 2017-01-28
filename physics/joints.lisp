@@ -23,8 +23,8 @@
        (defclass ,class-name (joint) ())
        (declaim (inline ,class-ctor-name))
        (defun ,class-ctor-name (this-body &optional that-body)
-         (make-joint (lambda (w)
-                       (c-fun ,joint-ctor-name w 0))
+         (make-joint (lambda (world)
+                       (c-fun ,joint-ctor-name world 0))
                      ',class-name (universe) this-body that-body)))))
 
 

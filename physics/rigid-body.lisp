@@ -38,13 +38,16 @@
 
 (defmethod (setf position-of) (value (this rigid-body))
   (declare (type vec3 value))
-  (%ode:body-set-position (handle-value-of this) (vref value 0) (vref value 1) (vref value 2)))
+  (%ode:body-set-position (handle-value-of this)
+                          (ode-real (vref value 0))
+                          (ode-real (vref value 1))
+                          (ode-real (vref value 2))))
 
 
 ;; fixme memory sink
 (defmethod position-of ((this rigid-body))
   (let ((ode-pos (%ode:body-get-position (handle-value-of this))))
-    (flet ((el (idx) #f(c-ref ode-pos %ode:real idx)))
+    (flet ((el (idx) (f (c-ref ode-pos %ode:real idx))))
       (vec3 (el 0) (el 1) (el 2)))))
 
 
@@ -59,9 +62,12 @@
     (macrolet ((init ()
                  `(mat3 ,@(loop for i from 0 below 3 append
                                (loop for j from 0 below 3 collect
-                                    `(float (c-ref m3 %ode:real ,(+ (* j 4) i)) 0f0))))))
+                                    `(f (c-ref m3 %ode:real ,(+ (* j 4) i))))))))
       (init))))
 
 
 (defun apply-force (rigid-body vec3)
-  (%ode:body-add-force (handle-value-of rigid-body) (vref vec3 0) (vref vec3 1) (vref vec3 2)))
+  (%ode:body-add-force (handle-value-of rigid-body)
+                       (ode-real (vref vec3 0))
+                       (ode-real (vref vec3 1))
+                       (ode-real (vref vec3 2))))

@@ -18,8 +18,8 @@
 
 (defmethod initialize-instance :after ((this universe) &key)
   (with-slots (world) this
-    (%ode:world-set-erp world 0.8)
-    (%ode:world-set-cfm world 0.01)))
+    (%ode:world-set-erp world (ode-real 0.8))
+    (%ode:world-set-cfm world (ode-real 0.01))))
 
 
 (defun make-universe ()
@@ -87,4 +87,4 @@
 (defun %observe-universe (universe seconds-since-last-observation)
   (with-slots (world) universe
     (with-contact-joint-group () universe
-      (%ode:world-quick-step world #f seconds-since-last-observation))))
+      (%ode:world-quick-step world (ode-real seconds-since-last-observation)))))
