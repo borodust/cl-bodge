@@ -28,9 +28,11 @@
   "Call destructor for object `obj`."
   (if (finalizedp obj)
       (error "Attempt to dispose already finalized object.")
-      (loop for finalizer in (destructor-of obj) do
-           (funcall finalizer)
-         finally (setf (holder-value (slot-value obj 'finalized-p)) t))))
+      (loop for finalizer in (destructor-of obj)
+         do (funcall finalizer)
+         finally
+           (cancel-finalization obj)
+           (setf (holder-value (slot-value obj 'finalized-p)) t))))
 
 
 (definline %ensure-not-null (value)
