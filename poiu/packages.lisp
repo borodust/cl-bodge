@@ -22,6 +22,7 @@
            make-label-button
            make-text-label
            make-text-edit
+           make-spacing
            make-health-monitor
            show-health-monitor
            hide-health-monitor

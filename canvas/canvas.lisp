@@ -90,19 +90,19 @@
   (path (canvas)
     (move-to origin canvas)
     (%nvg:line-to (handle-value-of canvas) (x end) (y end))
-    (stroke-width thickness)
-    (stroke-color color)
-    (stroke-path)))
+    (stroke-width thickness canvas)
+    (stroke-color color canvas)
+    (stroke-path canvas)))
 
 
 (defun draw-curve (origin end ctrl0 ctrl1 color &key (thickness 1.0) (canvas *canvas*))
-  (path(canvas)
+  (path (canvas)
     (move-to origin canvas)
     (%nvg:bezier-to (handle-value-of canvas) (x ctrl0) (y ctrl0) (x ctrl1) (y ctrl1)
                     (x end) (y end))
-    (stroke-color color)
-    (stroke-width thickness)
-    (stroke-path)))
+    (stroke-color color canvas)
+    (stroke-width thickness canvas)
+    (stroke-path canvas)))
 
 
 (defun draw-rect (origin w h &key (fill-color nil) (stroke-color nil)

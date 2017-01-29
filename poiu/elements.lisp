@@ -59,7 +59,8 @@
 ;;;
 ;;;
 (defclass window (layout disposable)
-  ((x :initarg :x :initform 0.0)
+  ((id :initform (symbol-name (gensym "poiu-window")))
+   (x :initarg :x :initform 0.0)
    (y :initarg :y :initform 0.0)
    (panel-p :initarg :panel-p)
    (width :initform nil)
@@ -67,18 +68,29 @@
    (background :initarg :background-color)
    (title :initarg :title :initform "")
    (option-mask :initarg :option-mask :initform '())
-   (hidden-p :initform nil :initarg :hidden-p)
-
+   (compose-actions :initform nil)
    (nk-rect :initform (calloc '(:struct (%nk:rect))))
    (nk-vec2 :initform (calloc '(:struct (%nk:vec2))))
    (nk-color :initform (calloc '(:struct (%nk:color))))
    (nk-style-item :initform (calloc '(:struct (%nk:style-item))))))
 
 
-(defmethod initialize-instance :after ((this window) &key width height)
-  (with-slots ((w width) (h height)) this
+(defun hide-window (window)
+  (with-slots (compose-actions id) window
+    (push (lambda () (%nk:window-show *handle* id %nk:+hidden+)) compose-actions)))
+
+
+(defun show-window (window)
+  (with-slots (compose-actions id) window
+    (push (lambda () (%nk:window-show *handle* id %nk:+shown+)) compose-actions)))
+
+
+(defmethod initialize-instance :after ((this window) &key width height hidden-p)
+  (with-slots ((w width) (h height) title) this
     (setf w (float width 0f0)
-          h (float height 0f0))))
+          h (float height 0f0))
+    (when hidden-p
+      (hide-window this))))
 
 
 (define-destructor window (nk-rect nk-color nk-style-item nk-vec2)
@@ -90,7 +102,7 @@
 
 (defun make-window (x y w h &key (title "") (background-color nil)
                               (headerless-p t) (scrollable-p nil) (backgrounded-p nil)
-                              (borderless-p t) (panel-p nil) (resizable-p nil)
+                              (borderless-p nil) (panel-p nil) (resizable-p nil)
                               (minimizable-p nil) (movable-p nil) (closable-p nil)
                               (hidden-p nil))
   (macrolet ((opt (key option)
@@ -105,22 +117,12 @@
                  :option-mask (apply #'nk:panel-mask
                                      (nconc (opt (not headerless-p) :title)
                                             (opt (not scrollable-p) :no-scrollbar)
-                                            (opt (not borderless-p) :border)
+                                            (opt (not (or panel-p borderless-p)) :border)
                                             (opt closable-p :closable)
                                             (opt backgrounded-p :background)
                                             (opt resizable-p :scalable)
                                             (opt minimizable-p :minimizable)
                                             (opt movable-p :movable))))))
-
-
-(defun hide-window (window)
-  (with-slots (hidden-p) window
-    (setf hidden-p t)))
-
-
-(defun show-window (window)
-  (with-slots (hidden-p) window
-    (setf hidden-p nil)))
 
 
 (defun style-item-color (style-item-buf color-buf color)
@@ -130,10 +132,13 @@
                                     (z color) (w color))))
 
 (defun compose-window (win next-method)
-  (with-slots (x y width height title option-mask nk-rect) win
-    (let ((val (%nk:begin *handle* title (%nk:rect nk-rect x y width height) option-mask)))
+  (with-slots (x y width height title option-mask nk-rect compose-actions id) win
+    (mapc #'funcall compose-actions)
+    (setf compose-actions nil)
+    (let ((val (%nk:begin-titled *handle* id title (%nk:rect nk-rect x y width height)
+                                 option-mask)))
       (if (= 0 val)
-          (hide-window win)
+          (%nk:window-show *handle* id %nk:+hidden+)
           (funcall next-method win))
       (%nk:end *handle*))))
 
@@ -150,13 +155,12 @@
 
 (defmethod compose ((this window))
   (with-slots (background nk-color nk-style-item panel-p hidden-p) this
-    (unless hidden-p
-      (with-styles ((%nk:style-item (when background
-                                      (style-item-color nk-style-item nk-color background))
-                                    :window :fixed-background))
-        (if panel-p
-            (compose-panel this #'call-next-method)
-            (compose-window this #'call-next-method))))))
+    (with-styles ((%nk:style-item (when background
+                                    (style-item-color nk-style-item nk-color background))
+                                  :window :fixed-background))
+      (if panel-p
+          (compose-panel this #'call-next-method)
+          (compose-window this #'call-next-method)))))
 
 ;;;
 ;;;
@@ -300,8 +304,7 @@
 
 (defmethod initialize-instance :after ((this health-monitor) &key x y width height hidden-p)
   (with-slots (window) this
-    (setf window (make-window x y width height
-                              :title "Health monitor"
+    (setf window (make-window x y width height :title "Health monitor"
                               :headerless-p nil :scrollable-p t :resizable-p t
                               :movable-p t :closable-p t :hidden-p hidden-p))))
 
@@ -331,3 +334,17 @@
 (defmethod compose ((this health-monitor))
   (with-slots (window) this
     (compose window)))
+
+
+;;;
+;;;
+;;;
+(defclass spacing (layout) ())
+
+
+(defun make-spacing ()
+  (make-instance 'spacing))
+
+
+(defmethod compose ((this spacing))
+  (%nk:spacing *handle* 1))
