@@ -11,6 +11,7 @@
            make-poiu
            compose-poiu
            render-poiu
+           when-composing
            name-of
            window
            make-window

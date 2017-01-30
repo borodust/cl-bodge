@@ -31,6 +31,7 @@
    (height :initarg :height :reader height-of)
    (canvas :initarg :canvas :reader canvas-of)
    (framebuffer :initform nil :reader framebuffer-of)
+   (compose-tasks :initform (make-task-queue))
    (depth-stencil-buffer :initform nil)
    (overlay-texture :initform nil :reader overlay-of)
    (text-renderer :initarg :text-renderer :reader text-renderer-of)))
@@ -85,6 +86,20 @@
                  :font font
                  :line-height line-height
                  :antialiased-p antialiased-p))
+
+
+(defun push-compose-task (ctx fn)
+  (with-slots (compose-tasks) ctx
+    (push-task fn compose-tasks)))
+
+
+(defmacro when-composing ((ctx) &body body)
+  `(push-compose-task ,ctx (lambda () ,@body)))
+
+
+(defun drain-compose-task-queue (ctx)
+  (with-slots (compose-tasks) ctx
+    (drain compose-tasks)))
 
 
 (defmacro with-poiu ((ctx) &body body)

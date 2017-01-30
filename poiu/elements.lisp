@@ -6,6 +6,7 @@
 
 (defun compose-poiu (element context)
   (with-poiu (context)
+    (drain-compose-task-queue context)
     (compose element)))
 
 
@@ -17,7 +18,7 @@
     (compose element)))
 
 
-(defmacro window ((&rest win-opts) &body elements)
+(defmacro window ((poiu &rest win-opts) &body elements)
   (labels ((expand-element (descriptor)
              (destructuring-bind (name &rest params) (ensure-list descriptor)
                `(,(symbolicate 'make- name) ,@params)))
@@ -27,7 +28,7 @@
                   ,@(loop for child in (cdr root)
                        collect `(adopt ,parent ,(expand-element-hierarchy child)))
                   ,parent))))
-    (expand-element-hierarchy `((window ,@win-opts) ,@elements))))
+    (expand-element-hierarchy `((window ,poiu ,@win-opts) ,@elements))))
 
 
 ;; todo: wrap each push/pop into proper unwind-protect?
@@ -60,6 +61,7 @@
 ;;;
 (defclass window (layout disposable)
   ((id :initform (symbol-name (gensym "poiu-window")))
+   (poiu :initarg :poiu :initform (error ":poiu missing"))
    (x :initarg :x :initform 0.0)
    (y :initarg :y :initform 0.0)
    (panel-p :initarg :panel-p)
@@ -68,7 +70,6 @@
    (background :initarg :background-color)
    (title :initarg :title :initform "")
    (option-mask :initarg :option-mask :initform '())
-   (compose-actions :initform nil)
    (nk-rect :initform (calloc '(:struct (%nk:rect))))
    (nk-vec2 :initform (calloc '(:struct (%nk:vec2))))
    (nk-color :initform (calloc '(:struct (%nk:color))))
@@ -76,53 +77,57 @@
 
 
 (defun hide-window (window)
-  (with-slots (compose-actions id) window
-    (push (lambda () (%nk:window-show *handle* id %nk:+hidden+)) compose-actions)))
+  (with-slots (id) window
+    (%nk:window-show *handle* id %nk:+hidden+)))
 
 
 (defun show-window (window)
-  (with-slots (compose-actions id) window
-    (push (lambda () (%nk:window-show *handle* id %nk:+shown+)) compose-actions)))
+  (with-slots (id) window
+    (%nk:window-show *handle* id %nk:+shown+)))
 
 
 (defmethod initialize-instance :after ((this window) &key width height hidden-p)
-  (with-slots ((w width) (h height) title) this
+  (with-slots ((w width) (h height) title poiu) this
     (setf w (float width 0f0)
           h (float height 0f0))
     (when hidden-p
-      (hide-window this))))
+      (when-composing (poiu)
+        (hide-window this)))))
 
 
-(define-destructor window (nk-rect nk-color nk-style-item nk-vec2)
+(define-destructor window (nk-rect nk-color nk-style-item nk-vec2 poiu id)
+  (when-composing (poiu)
+    (%nk:window-close (handle-value-of poiu) id))
   (free nk-style-item)
   (free nk-vec2)
   (free nk-color)
   (free nk-rect))
 
 
-(defun make-window (x y w h &key (title "") (background-color nil)
-                              (headerless-p t) (scrollable-p nil) (backgrounded-p nil)
-                              (borderless-p nil) (panel-p nil) (resizable-p nil)
-                              (minimizable-p nil) (movable-p nil) (closable-p nil)
-                              (hidden-p nil))
+(defun make-window (poiu x y w h &key (title "") (background-color nil)
+                                   (headerless-p t) (scrollable-p nil) (backgrounded-p nil)
+                                   (borderless-p nil) (panel-p nil) (resizable-p nil)
+                                   (minimizable-p nil) (movable-p nil) (closable-p nil)
+                                   (hidden-p nil))
   (macrolet ((opt (key option)
                `(when ,key
                   (list ,option))))
     (make-instance 'window
-                 :x x :y y :width w :height h
-                 :panel-p panel-p
-                 :title title
-                 :background-color background-color
-                 :hidden-p hidden-p
-                 :option-mask (apply #'nk:panel-mask
-                                     (nconc (opt (not headerless-p) :title)
-                                            (opt (not scrollable-p) :no-scrollbar)
-                                            (opt (not (or panel-p borderless-p)) :border)
-                                            (opt closable-p :closable)
-                                            (opt backgrounded-p :background)
-                                            (opt resizable-p :scalable)
-                                            (opt minimizable-p :minimizable)
-                                            (opt movable-p :movable))))))
+                   :poiu poiu
+                   :x x :y y :width w :height h
+                   :panel-p panel-p
+                   :title title
+                   :background-color background-color
+                   :hidden-p hidden-p
+                   :option-mask (apply #'nk:panel-mask
+                                       (nconc (opt (not headerless-p) :title)
+                                              (opt (not scrollable-p) :no-scrollbar)
+                                              (opt (not (or panel-p borderless-p)) :border)
+                                              (opt closable-p :closable)
+                                              (opt backgrounded-p :background)
+                                              (opt resizable-p :scalable)
+                                              (opt minimizable-p :minimizable)
+                                              (opt movable-p :movable))))))
 
 
 (defun style-item-color (style-item-buf color-buf color)
@@ -132,9 +137,7 @@
                                     (z color) (w color))))
 
 (defun compose-window (win next-method)
-  (with-slots (x y width height title option-mask nk-rect compose-actions id) win
-    (mapc #'funcall compose-actions)
-    (setf compose-actions nil)
+  (with-slots (x y width height title option-mask nk-rect id) win
     (let ((val (%nk:begin-titled *handle* id title (%nk:rect nk-rect x y width height)
                                  option-mask)))
       (if (= 0 val)
@@ -302,15 +305,16 @@
   ((window :initform nil)))
 
 
-(defmethod initialize-instance :after ((this health-monitor) &key x y width height hidden-p)
+(defmethod initialize-instance :after ((this health-monitor) &key poiu x y width height hidden-p)
   (with-slots (window) this
-    (setf window (make-window x y width height :title "Health monitor"
+    (setf window (make-window poiu x y width height :title "Health monitor"
                               :headerless-p nil :scrollable-p t :resizable-p t
                               :movable-p t :closable-p t :hidden-p hidden-p))))
 
 
-(defun make-health-monitor (x y &key (width 640.0) (height 480.0) (hidden-p t))
-  (make-instance 'health-monitor :x x :y y :width width :height height :hidden-p hidden-p))
+(defun make-health-monitor (poiu x y &key (width 640.0) (height 480.0) (hidden-p t))
+  (make-instance 'health-monitor :poiu poiu
+                 :x x :y y :width width :height height :hidden-p hidden-p))
 
 
 (defun show-health-monitor (mon)
