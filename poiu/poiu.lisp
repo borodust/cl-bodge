@@ -121,7 +121,7 @@
 
 
 (defun register-cursor-position (x y)
-  (%nk:input-motion *handle* (floor x) (floor y)))
+  (%nk:input-motion *handle* (floor x) (floor (- (height-of *context*) y))))
 
 
 (defun register-character-input (character)
@@ -149,4 +149,5 @@
                      (:middle %nk:+button-middle+)
                      (:right %nk:+button-right+)))
         (nk-state (button-state->nk state)))
-    (%nk:input-button *handle* nk-button (floor x) (floor y) nk-state)))
+    (%nk:input-button *handle* nk-button
+                      (floor x) (floor (- (height-of *context*) y)) nk-state)))

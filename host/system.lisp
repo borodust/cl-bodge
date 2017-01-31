@@ -45,14 +45,14 @@
 
 
 (glfw:def-cursor-pos-callback on-cursor-movement (window x y)
-  (declare (ignore window))
-  (post (make-cursor-event x y)
-        (event-system-of *system*)))
+  (let ((height (second (glfw:get-window-size window))))
+    (post (make-cursor-event x (- height y))
+          (event-system-of *system*))))
 
 
 (glfw:def-scroll-callback on-scroll (window x y)
   (declare (ignore window))
-  (post (make-scroll-event x y)
+  (post (make-scroll-event x (- y))
         (event-system-of *system*)))
 
 
@@ -158,7 +158,9 @@
 
 
 (define-system-function cursor-position host-system ()
-  (glfw:get-cursor-position (window-of *system*)))
+  (let ((height (second (viewport-size))))
+    (destructuring-bind (x y) (glfw:get-cursor-position (window-of *system*))
+      (list x (- height y)))))
 
 
 (define-system-function mouse-button-state host-system (button)

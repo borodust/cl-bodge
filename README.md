@@ -93,21 +93,21 @@ Experimental **bod**acious **g**ame **e**ngine written in **C**ommon **L**isp.
 (ql:quickload '(:bodge-blobs :cl-bodge))
 ```
 
-### Upstream sources
+### Manually
 
 Required foreign libraries:
 
-| Library | Version | Dependent system
-|---------|:-------:|-------------------------
-| `libffi`     | 3.0  | `cl-bodge/host`
-| `glfw3`      | 3.1  | `cl-bodge/host`
-| `OpenAL`     | 1.1  | `cl-bodge/audio`
-| `ODE`        | 0.14 | `cl-bodge/physics`
-| `libsndfile` | 1.0  | `cl-bodge/resources`
-| `OpenGL`     | 4.1  | `cl-bodge/graphics`
-| `libepoxy`   | ?.?  | `bodge-nanovg`
-| `NanoVG`     | ?.?  | `bodge-nanovg`
-| `Nuklear`    | 1.20 | `bodge-nuklear`
+| Library      | Version | Dependent system
+|--------------|:-------:|-------------------------
+| `libffi`     | 3.0     | `cl-bodge/host`
+| `glfw3`      | 3.1     | `cl-bodge/host`
+| `OpenAL`     | 1.1     | `cl-bodge/audio`
+| `ODE`        | 0.14    | `cl-bodge/physics`
+| `libsndfile` | 1.0     | `cl-bodge/resources`
+| `OpenGL`     | 4.1     | `cl-bodge/graphics`
+| `libepoxy`   | ?.?     | `bodge-nanovg`
+| `NanoVG`     | ?.?     | `bodge-nanovg`
+| `Nuklear`    | 1.20    | `bodge-nuklear`
 
 
 You need few CL dependencies installed manually:
