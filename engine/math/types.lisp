@@ -6,7 +6,7 @@
 
 
 (defgeneric multiply (this that))
-(defgeneric summarize (this that))
+(defgeneric addere (this that))
 (defgeneric divide (this that))
 (defgeneric subtract (this that))
 
@@ -17,7 +17,7 @@
                         args :initial-value arg0))))
 
   (defreduced mult multiply)
-  (defreduced sum summarize)
+  (defreduced add addere)
   (defreduced div divide)
   (defreduced subt subtract))
 

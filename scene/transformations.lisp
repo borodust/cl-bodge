@@ -18,7 +18,7 @@
 
 (defun update-projection (projection-node aspect &key (width 2.0) (near 2.0) (far 1000.0))
   (setf (slot-value projection-node 'proj-mat)
-        (perspective-projection-mat #fwidth #f(/ width aspect) #fnear #ffar)))
+        (perspective-projection-mat (f width) (f (/ width aspect)) (f near) (f far))))
 
 
 (defmethod initialize-instance :after ((this projection-node)
@@ -47,6 +47,7 @@
 (defmethod scene-pass ((this camera-node) pass input)
   (let ((*view-matrix* (camera-transform this)))
     (call-next-method)))
+
 
 ;;;
 ;;;
@@ -82,7 +83,9 @@
       (setf mat (mult (euler-angles->mat4 (vec3 #f x #f y #f z)) mat)))))
 
 
-(defmethod scene-pass ((this transform-node) (pass rendering-pass) input)
+(defmethod scene-pass ((this transform-node) pass input)
   (with-slots (mat) this
-    (let ((*model-matrix* (mult *model-matrix* mat)))
+    (let ((*model-matrix* (if-bound *model-matrix*
+                                    (mult *model-matrix* mat)
+                                    mat)))
       (call-next-method))))

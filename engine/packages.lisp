@@ -46,7 +46,7 @@
   (:export lerp
            nlerp
            mult
-           sum
+           add
            div
            subt
            normalize
@@ -94,7 +94,7 @@
            quat
            identity-quat
            sequence->quat
-           euler-axis>-quat
+           euler-axis->quat
            euler-angles->quat
            quat->rotation-mat3
            quat->rotation-mat4))
