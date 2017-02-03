@@ -5,28 +5,6 @@
                   *shading-parameters*))
 
 
-(defclass rendering-pass (system-scene-pass)
-  ((host :initform (host) :reader host-of)
-   (clear-color :initarg :clear-color)))
-
-
-(defmethod initialize-instance ((this rendering-pass) &rest keys &key)
-  (apply #'call-next-method this :system (graphics) keys))
-
-
-(defun make-rendering-pass (&key (clear-color (vec4 1.0 1.0 1.0 1.0)))
-  (make-instance 'rendering-pass
-                 :clear-color clear-color))
-
-
-(defmethod run-scene-pass ((this rendering-pass) root)
-  (with-slots (clear-color) this
-    (gl:clear-color (x clear-color) (y clear-color) (z clear-color) (w clear-color)))
-  (gl:clear :color-buffer :depth-buffer)
-  (let ((*model-matrix* (identity-mat4)))
-    (call-next-method))
-  (swap-buffers (host-of this)))
-
 ;;;
 ;;;
 ;;;
@@ -119,51 +97,6 @@
       (with-bound-shading-pipeline (*shading-pipeline*)
         (call-next-method)))))
 
-
-;;;
-;;;
-;;;
-(defclass texture-node (scene-node)
-  ((tex :initarg :texture)
-   (unit :initarg :unit :initform 0)))
-
-
-(defmethod scene-pass ((this texture-node) (pass rendering-pass) input)
-  (with-slots (tex unit) this
-    (with-bound-texture (tex unit)
-      (call-next-method))))
-
-;;;
-;;;
-;;;
-(defclass mesh-node (scene-node)
-  ((mesh :initform nil)))
-
-
-(defgeneric make-node-mesh (node graphics-system))
-
-
-(defmethod initialize-node :after ((this mesh-node) (sys graphics-system))
-  (with-slots (mesh) this
-    (setf mesh (make-node-mesh this sys))))
-
-
-(defmethod node-enabled-p ((this mesh-node))
-  (with-slots (mesh) this
-    (not (null mesh))))
-
-
-(defmethod scene-pass ((this mesh-node) (pass rendering-pass) input)
-  (with-slots (mesh) this
-    (render mesh)
-    (call-next-method)))
-
-
-(defmethod discard-node :before ((this mesh-node))
-  (with-slots (mesh) this
-    (let ((m mesh))
-      (setf mesh nil)
-      (dispose m))))
 
 ;;;
 ;;;

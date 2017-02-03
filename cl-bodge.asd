@@ -248,7 +248,12 @@
                (:file "node")
                (:file "scene")
                (:file "simulation")
-               (:file "rendering")
+               (:module rendering
+                        :serial t
+                        :components ((:file "rendering-pass")
+                                     (:file "shading")
+                                     (:file "texturing")
+                                     (:file "mesh")))
                (:file "transformations")
                (:file "animation")
                (:file "model")))
