@@ -27,6 +27,10 @@
   (make-instance 'mat4 :value (m4:identity)))
 
 
+(definline identity-mat3 ()
+  (make-instance 'mat3 :value (m3:identity)))
+
+
 (definline euler-axis->mat4 (a vec3)
   (make-instance 'mat4 :value (m4:rotation-from-axis-angle (value-of vec3) a)))
 

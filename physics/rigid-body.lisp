@@ -36,7 +36,7 @@
   (> (%ode:body-is-enabled (handle-value-of this)) 0))
 
 
-(defmethod (setf position-of) (value (this rigid-body))
+(defmethod (setf position-of) ((value vec3) (this rigid-body))
   (declare (type vec3 value))
   (%ode:body-set-position (handle-value-of this)
                           (ode-real (vref value 0))
@@ -64,6 +64,18 @@
                                (loop for j from 0 below 3 collect
                                     `(f (c-ref m3 %ode:real ,(+ (* j 4) i))))))))
       (init))))
+
+
+(defmethod (setf rotation-of) ((value mat3) (this rigid-body))
+  (c-with ((m3 %ode:real :calloc t :count (* 4 3)))
+    (macrolet ((init ()
+                 `(progn
+                    ,@(loop for i from 0 below 3 append
+                           (loop for j from 0 below 3 collect
+                                `(setf (m3 ,(+ (* j 4) i))
+                                       (ode-real (mref value ,i ,j))))))))
+      (init)
+      (%ode:body-set-rotation (handle-value-of this) (m3 &)))))
 
 
 (defun apply-force (rigid-body vec3)

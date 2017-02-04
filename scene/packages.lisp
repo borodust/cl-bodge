@@ -35,6 +35,9 @@
            mesh-node
            make-node-mesh
 
+           light-node
+           *lights*
+
            projection-node
            update-projection
 

@@ -1,14 +1,8 @@
 #version 410
+#include <lighting>
 
-struct DirectionalLight {
-  vec3 ambient;
-  vec3 diffuse;
-  vec3 direction;
-};
 
-uniform DirectionalLight dLight;
-
-vec3 computeLight(vec3 base, vec3 norm) {
-  float f = max(-dot(dLight.direction, norm), 0);
-  return dLight.ambient * base + dLight.diffuse * f;
+vec4 computeLight(vec4 base, vec3 normal, DirectionalLight lightSource) {
+  float f = max(-dot(lightSource.direction, normal), 0);
+  return lightSource.ambient * base + lightSource.diffuse * f;
 }

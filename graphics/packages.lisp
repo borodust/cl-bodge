@@ -38,6 +38,9 @@
            with-active-shading-program
            program-uniform-variable
 
+           make-directional-light-source
+           apply-light-source
+
            dimensions-of
            with-bound-texture
            with-texture-unit

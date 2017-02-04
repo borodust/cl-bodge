@@ -1,7 +1,7 @@
 (in-package :cl-bodge.physics)
 
 
-(defvar *contact-points-per-collision* 3)
+(defvar *contact-points-per-collision* 4)
 
 
 (defclass universe ()

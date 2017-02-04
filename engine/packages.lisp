@@ -76,6 +76,7 @@
            mref
            mat->array
            make-mat3
+           identity-mat3
            identity-mat4
            sequence->mat4
            sequence->rotation-mat4
