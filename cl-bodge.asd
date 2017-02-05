@@ -269,7 +269,7 @@
   :license "MIT"
   :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/assets cl-bodge/graphics
                                cl-bodge/animation cl-bodge/scenegraph flexi-streams log4cl
-                               cl-bodge/text cl-fad bodge-sndfile opticl)
+                               cl-bodge/text cl-fad bodge-sndfile opticl chipz)
   :pathname "resources"
   :serial t
   :components ((:file "packages")

@@ -119,6 +119,21 @@
          collect (cons name chunk))))
 
 
+(defun read-deflated (in chunk-type parameters compression)
+  (if compression
+      (ecase compression
+        (:deflate
+         (destructuring-bind (&key (compressed-size (error ":compressed-size missing"))
+                                   &allow-other-keys)
+             parameters
+           (let* ((start-position (file-position in))
+                  (inflated (chipz:make-decompressing-stream 'chipz:deflate in)))
+             (prog1 (read-chunk-data chunk-type parameters inflated)
+               ;; fixme: dirty hack? mb better to allocate buffer from source stream
+               (file-position in (+ start-position compressed-size)))))))
+      (read-chunk-data chunk-type parameters in)))
+
+
 (defun load-resource (path)
   (flet ((resolve-references (resolvers)
            (dolist (fn resolvers)
@@ -136,7 +151,8 @@
                  (chunk-table (make-hash-table :test 'equal)))
             (loop for chunk-header = (read-preserving-whitespace char-stream nil nil nil)
                until (null chunk-header) do
-                 (destructuring-bind (chunk-type &rest parameters &key name &allow-other-keys)
+                 (destructuring-bind (chunk-type &rest parameters &key name compression
+                                                 &allow-other-keys)
                      chunk-header
                    (with-hash-entries ((chunk name)) chunk-table
                      (cond
@@ -144,8 +160,8 @@
                         (error "Nameless chunk header of type ~A found" chunk-type))
                        ((not (null chunk))
                         (error "Duplicate chunk with name ~A found" name)))
-                     (setf chunk (parse-chunk chunk-type parameters
-                                              (read-chunk-data chunk-type parameters in))))))
+                     (let ((chunk-data (read-deflated in chunk-type parameters compression)))
+                       (setf chunk (parse-chunk chunk-type parameters chunk-data))))))
             (resolve-references *resolvers*)
             (make-instance 'resource :chunks chunk-table)))))))
 
