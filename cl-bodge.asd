@@ -15,7 +15,8 @@
   :pathname "utils"
   :serial t
   :components ((:file "packages")
-               (:file "utils")))
+               (:file "utils")
+               (:file "arrays")))
 
 
 (defsystem cl-bodge/engine

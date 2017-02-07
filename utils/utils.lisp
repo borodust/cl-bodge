@@ -229,29 +229,6 @@
                    :initial-contents list)))))
 
 
-(defun flatten-array (array)
-  (let* ((dims (array-dimensions array)))
-    (labels ((total-offset (offsets sizes)
-               (if offsets
-                   (+ (* (first offsets) (reduce #'* sizes))
-                      (total-offset (rest offsets) (rest sizes)))
-                   0))
-             (copy-dimension (dst src offset rest-dims)
-               (if (null rest-dims)
-                   (let ((dst-offset (total-offset offset (rest dims))))
-                     (setf (aref dst dst-offset) (apply #'aref src offset)))
-                   (loop with size = (first rest-dims)
-                      for i from 0 below size
-                      do (copy-dimension dst src (append offset (list i)) (rest rest-dims))))))
-
-      (if (null (cdr dims))
-          array
-          (let* ((result (make-array (reduce #'* dims)
-                                     :element-type (array-element-type array))))
-            (copy-dimension result array '() dims)
-            result)))))
-
-
 (defun foreign-function-pointer (function-name)
   (when-let* ((fn (autowrap:find-function function-name)))
     (let ((name (autowrap:foreign-symbol-c-symbol fn)))

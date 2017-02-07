@@ -59,6 +59,7 @@
            reexporting
            when-debugging
            flatten-array
+           expand-array
            split-sequence
            foreign-function-pointer
            stringify))
