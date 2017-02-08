@@ -2,6 +2,10 @@
 
 
 (defvar *contact-points-per-collision* 4)
+(defvar *world-quick-step-iterations* 20)
+(defvar *auto-disable-bodies-p* t)
+(defvar *error-reduction-parameter* 0.5) ;; 0.1 ~ 0.8 recommended
+(defvar *constant-force-mixing* 0.0001) ;; 10e-9 ~ 1.0 recommended
 
 
 (defclass universe ()
@@ -18,8 +22,10 @@
 
 (defmethod initialize-instance :after ((this universe) &key)
   (with-slots (world) this
-    (%ode:world-set-erp world (ode-real 0.8))
-    (%ode:world-set-cfm world (ode-real 0.01))))
+    (%ode:world-set-quick-step-num-iterations world *world-quick-step-iterations*)
+    (%ode:world-set-auto-disable-flag world (if *auto-disable-bodies-p* 1 0))
+    (%ode:world-set-erp world (ode-real *error-reduction-parameter*))
+    (%ode:world-set-cfm world (ode-real *constant-force-mixing*))))
 
 
 (defun make-universe ()

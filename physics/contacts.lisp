@@ -27,6 +27,6 @@
 (defun fill-contact (contact info)
   (setf (%ode:contact.surface.mode contact) (mask 'contact-flags :approx0 :bounce)
         (%ode:contact.surface.mu contact) +infinity+
-        (%ode:contact.surface.bounce contact) (ode-real 1.0))
+        (%ode:contact.surface.bounce contact) (ode-real 0.1))
   (fill-contact-geom (%ode:contact.geom contact) info)
   contact)
