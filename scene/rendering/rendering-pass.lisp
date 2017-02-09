@@ -19,6 +19,5 @@
   (with-slots (clear-color) this
     (gl:clear-color (x clear-color) (y clear-color) (z clear-color) (w clear-color)))
   (gl:clear :color-buffer :depth-buffer)
-  (let ((*model-matrix* (identity-mat4)))
-    (call-next-method))
+  (call-next-method)
   (swap-buffers (host-of this)))

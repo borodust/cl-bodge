@@ -257,6 +257,7 @@
                                      (:file "texturing")
                                      (:file "lighting")
                                      (:file "mesh")))
+               (:file "shadowing")
                (:file "transformations")
                (:file "animation")
                (:file "model")))
