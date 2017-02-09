@@ -245,3 +245,12 @@
   (if (null value)
       default
       value))
+
+
+(defun apply-argument-list (lambda-list)
+  (multiple-value-bind (required optional rest keywords)
+      (parse-ordinary-lambda-list lambda-list)
+    (let ((args (append required (mapcar #'first optional))))
+      (if rest
+          (append args (list rest))
+          (append args (reduce #'nconc (mapcar #'car keywords)) (list nil))))))

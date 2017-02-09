@@ -1,7 +1,13 @@
 (in-package :cl-bodge.asdf)
 
 
-(defpackage :cl-bodge.graphics
+(defpackage :cl-bodge.graphics.state
+  (:nicknames :gx.state)
+  (:export enable
+           disable))
+
+
+(ge.util:define-package :cl-bodge.graphics
   (:nicknames :ge.gx)
   (:use :cl :cl-bodge.engine :cl-bodge.host :cl-bodge.utils
         :cl-bodge.event :cl-bodge.assets)
@@ -9,6 +15,7 @@
            graphics
            in-wireframe-mode
            preserving-state
+           reset-state
 
            render
 

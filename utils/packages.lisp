@@ -62,4 +62,5 @@
            expand-array
            split-sequence
            foreign-function-pointer
-           stringify))
+           stringify
+           apply-argument-list))
