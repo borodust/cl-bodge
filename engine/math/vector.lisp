@@ -32,6 +32,13 @@
   (%raw-> vec3 (v3:make (vref vec 0) (vref vec 1) (vref vec 2))))
 
 
+(defgeneric make-vec4 (val &key))
+
+
+(defmethod make-vec4 ((vec vec3) &key (w 0.0))
+  (%raw-> vec4 (v4:make (vref vec 0) (vref vec 1) (vref vec 2) w)))
+
+
 (definline sequence->vec3 (seq)
   (vec3 (elt seq 0)
         (elt seq 1)
@@ -110,3 +117,11 @@
 
 (defmethod divide ((this vec3) (scalar single-float))
   (%raw-> vec3 (v3:/s (value-of this) scalar)))
+
+
+(defmethod cross-product ((this vec3) (that vec3))
+  (%raw-> vec3 (v3:cross (value-of this) (value-of that))))
+
+
+(defmethod dot-product ((this vec3) (that vec3))
+  (%raw-> vec3 (v3:dot (value-of this) (value-of that))))

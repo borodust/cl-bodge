@@ -49,6 +49,8 @@
            add
            div
            subt
+           cross
+           dot
            normalize
            inverse
 
@@ -62,6 +64,7 @@
            sequence->vec3
            vref
            make-vec3
+           make-vec4
            x
            y
            z
@@ -89,6 +92,7 @@
            scaling-mat4
            vec->scaling-mat4
            mat4->mat3
+           basis->mat4
            perspective-projection-mat
            orthographic-projection-mat
 

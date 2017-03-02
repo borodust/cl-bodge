@@ -102,7 +102,7 @@
                                  (when depth-stencil-buffer
                                    (list `(detach-depth-stencil-buffer ,fbuf ,depth-buffer))))))
         (when (and (null attach-list) (null detach-list))
-          (error "At least one attachment must be specified for framebuffer"))
+          (error "At least one attachment must be specified for a framebuffer"))
         `(with-bound-framebuffer (,fbuf)
            (unwind-protect
                 (progn

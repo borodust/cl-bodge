@@ -6,7 +6,8 @@
 
 
 (defclass directional-light-source (light-source)
-  ((direction :initarg :direction :initform (error ":direction missing") :type vec3)
+  ((direction :initarg :direction :initform (error ":direction missing") :type vec3
+              :reader direction-of)
    (ambient :initarg :ambient-color :initform (error ":ambient-color missing") :type vec4)
    (diffuse :initarg :diffuse-color :initform (error ":diffuse-color missing") :type vec4)
    (prefix :initarg :prefix :initform nil :type (or null string))

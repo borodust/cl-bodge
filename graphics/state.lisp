@@ -132,6 +132,10 @@
           (push-mutator *state-slice* feature (lambda () (gl:disable feature))))))
 
 
+;;;
+;;; GLOBAL STATE only
+;;;
+
 (export-mutator gl:cull-face (face))
 (export-mutator gl:front-face (mode))
 (export-mutator gl:clear-color (red green blue alpha))

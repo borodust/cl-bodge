@@ -11,6 +11,10 @@
 (defgeneric subtract (this that))
 
 
+(defgeneric dot-product (this that))
+(defgeneric cross-product (this that))
+
+
 (macrolet ((defreduced (name generic)
              `(definline ,name (arg0 &rest args)
                 (reduce (lambda (this that) (,generic this that))
@@ -19,7 +23,9 @@
   (defreduced mult multiply)
   (defreduced add addere)
   (defreduced div divide)
-  (defreduced subt subtract))
+  (defreduced subt subtract)
+  (defreduced dot dot-product)
+  (defreduced cross cross-product))
 
 
 (definline nlerp (this that f)

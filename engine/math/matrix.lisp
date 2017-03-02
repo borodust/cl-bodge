@@ -18,7 +18,7 @@
 
 
 (definline (setf mref) (value mat row column)
-  ; fixme: hax, use generic
+  ;; fixme: hax, use generic and m2/3/4:melm
   (let ((len (if (= (length mat) 16) 4 3)))
     (setf (aref mat (+ row (* column len))) value)))
 
