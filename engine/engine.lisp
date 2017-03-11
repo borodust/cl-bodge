@@ -139,6 +139,7 @@ dependencies will be initialized in the correct order according to a dependency 
   (when *engine*
     (error "Engine already running"))
   (setf *engine* (make-instance 'bodge-engine))
+  (log:config :sane2)
   (in-new-thread-waiting "startup-worker"
     (with-slots (systems properties disabling-order shared-pool shared-executors
                          working-directory engine-lock)
@@ -149,10 +150,8 @@ dependencies will be initialized in the correct order according to a dependency 
             engine-lock (bt:make-recursive-lock "engine-lock")
             working-directory (uiop:pathname-directory-pathname properties-pathspec)
             shared-executors (list (make-single-threaded-executor)))
-
       (log:config (property :log-level :info))
       (reload-foreign-libraries)
-
       (let ((system-class-names
              (property :systems (lambda ()
                                   (error ":systems property should be defined")))))
@@ -180,7 +179,7 @@ initialized."
 
 (defun acquire-executor (&rest args &key (single-threaded-p nil) (exclusive-p nil)
                                       (special-variables nil))
-  "Acquire executor from the engine which corresponds to provided options:
+  "Acquire executor from the engine, properties of which correspond to provided options:
 :single-threaded-p - if t, executor will be single-threaded, otherwise it can be pooled one
 :exclusive-p - if t, this executor cannot be acquired by other requester and :special-variables
                can be specified for it, otherwise this executor could be shared among different
@@ -247,6 +246,22 @@ task is dispatched to the object provided under this key."
 (defun null-flow ()
   "Return flow that returns nil as single value."
   (value-flow nil))
+
+
+(defgeneric initialization-flow (object &key &allow-other-keys)
+  (:documentation "Return flow that initializes an object.
+Flow variant of #'initialize-instance, although no guarantees
+about object returned from the flow are provided.")
+  (:method (object &key &allow-other-keys)))
+
+
+(defgeneric assembly-flow (class &key &allow-other-keys)
+  (:documentation "Return flow that constructs an object and returns it.
+Flow variant of #'make-instance.")
+  (:method (class &rest initargs &key &allow-other-keys)
+    (let ((instance (apply #'make-instance class initargs)))
+      (>> (apply #'initialization-flow instance initargs)
+          (value-flow instance)))))
 
 
 (defun run (fn)

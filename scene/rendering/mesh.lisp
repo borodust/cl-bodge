@@ -7,12 +7,13 @@
   ((mesh :initform nil)))
 
 
-(defgeneric make-node-mesh (node graphics-system))
+(defgeneric make-node-mesh (node))
 
 
-(defmethod initialize-node :after ((this mesh-node) (sys graphics-system))
-  (with-slots (mesh) this
-    (setf mesh (make-node-mesh this sys))))
+(defmethod initialization-flow ((this mesh-node) &key)
+  (-> ((graphics)) ()
+    (with-slots (mesh) this
+      (setf mesh (make-node-mesh this)))))
 
 
 (defmethod node-enabled-p ((this mesh-node))

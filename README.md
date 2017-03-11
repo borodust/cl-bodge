@@ -134,6 +134,8 @@ dependencies are made available to Quicklisp you should be able to load engine w
 
 ## Demonstrations
 
+Examples and demos [repository](https://github.com/borodust/bodge-showcase).
+
 * Chicken mesh loading, rendering and animation:
   [Chicken](https://www.youtube.com/watch?v=ypZP4SNQOv8)
 

@@ -69,6 +69,7 @@
            y
            z
            w
+           vector-length
 
            mat
            square-mat
@@ -125,6 +126,8 @@
            concurrently
            value-flow
            null-flow
+           assembly-flow
+           initialization-flow
 
            system-object
            system-of

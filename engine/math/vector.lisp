@@ -25,6 +25,21 @@
   (%raw-> vec3 (v3:make (vref vec 0) (vref vec 1) (vref vec 2))))
 
 
+(defgeneric vector-length (vec))
+
+
+(defmethod vector-length ((this vec2))
+  (v2:length (value-of this)))
+
+
+(defmethod vector-length ((this vec3))
+  (v3:length (value-of this)))
+
+
+(defmethod vector-length ((this vec4))
+  (v4:length (value-of this)))
+
+
 (defgeneric make-vec3 (val &key))
 
 

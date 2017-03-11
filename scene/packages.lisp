@@ -18,9 +18,9 @@
            node-enabled-p
            initialize-node
            discard-node
+           node-initialization-flow
            tree-initialization-flow
            discard-tree
-
 
            *scene*
            *projection-matrix*
@@ -51,7 +51,7 @@
            shading-parameters-node
 
            model
-           make-model-graph
+           model-graph-assembly-flow
 
            simulation-pass
            make-simulation-pass
@@ -65,5 +65,8 @@
            bone-transform
            bone-node
            root-bone-of
+
+           *banner-texture*
+           banner-node
 
            scenegraph))

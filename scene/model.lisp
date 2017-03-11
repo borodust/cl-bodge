@@ -4,8 +4,10 @@
 (defclass model (scene-node) ())
 
 
-(defgeneric make-model-graph (model))
+(defgeneric model-graph-assembly-flow (model))
 
 
-(defmethod initialize-instance :after ((this model) &key)
-  (adopt this (make-model-graph this)))
+(defmethod initialization-flow ((this model) &key)
+  (>> (model-graph-assembly-flow this)
+      (instantly (subgraph)
+        (adopt this subgraph))))

@@ -24,20 +24,8 @@
   (:method (node) t))
 
 
-(defgeneric initialize-node (node system)
-  (:method (node system)))
-
-
 (defgeneric discard-node (node)
   (:method (node)))
-
-
-(defun tree-initialization-flow (root &rest systems)
-  (flet ((initializer (system)
-           (-> (system :priority :high :important-p t) ()
-             (dotree (node root)
-               (initialize-node node system)))))
-    (~> (mapcar #'initializer systems))))
 
 
 (defun discard-tree (root)
@@ -140,15 +128,25 @@
 ;;;
 ;;;
 ;;;
-(defmacro %parse-node (node-def)
-  (destructuring-bind (ctor-def &rest children) node-def
-    (destructuring-bind (class &rest plist) (if (listp ctor-def)
-                                                ctor-def
-                                                (list ctor-def))
-      `(let ((node (make-instance ',class ,@plist)))
-         ,@(loop for child-def in children collecting
-                `(adopt node (%parse-node ,child-def)))
-         node))))
+(defun %children-adoption-flow ()
+  (instantly (&rest nodes)
+    (let ((parent (caar nodes)))
+      (dolist (child (cdr nodes))
+        (adopt parent (car child)))
+      parent)))
+
+
+(defun %parse-tree (node-def)
+  (destructuring-bind (ctor-def &rest children) (ensure-list node-def)
+    (destructuring-bind (class &rest plist) (ensure-list ctor-def)
+      (if children
+          `(>> (~> (assembly-flow ',class ,@plist)
+                   ,@(loop for child-def in children collecting
+                          (%parse-tree child-def)))
+               (%children-adoption-flow))
+          `(assembly-flow ',class ,@plist)))))
+
 
 (defmacro scenegraph (root)
-  `(%parse-node ,root))
+  "Returns flow for constructing a scenegraph"
+  (%parse-tree root))
