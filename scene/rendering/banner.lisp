@@ -5,7 +5,7 @@
 
 
 (defclass banner-node (scene-node)
-  ((program :initarg :program)
+  ((program :initform nil)
    ;; FIXME: share mesh too
    (mesh :initform nil)))
 
@@ -15,10 +15,10 @@
     (dispose mesh)))
 
 
-(defmethod assemble-node ((class (eql 'banner-node)) &key)
-  (>> (call-next-method)
-      (-> ((graphics)) (this)
-        (with-slots (mesh) this
+(defmethod initialization-flow ((this banner-node) &key)
+  (with-slots (mesh (this-program program)) this
+    (>> (call-next-method)
+        (-> ((graphics)) ()
           (setf mesh (make-mesh 4 :triangle-strip))
           (with-disposable ((vbuf (make-array-buffer (make-array '(4 2)
                                                                  :element-type 'single-float
@@ -33,7 +33,9 @@
                                                          (0.0 1.0)))))
             (attach-array-buffer vbuf mesh 0)
             (attach-array-buffer tbuf mesh 1)))
-        this)))
+        (get-asset (asset-registry-of (assets)) "/engine/shading-program/banner")
+        (instantly (program)
+          (setf this-program program)))))
 
 
 (defmethod scene-pass ((this banner-node) (pass rendering-pass) input)

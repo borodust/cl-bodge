@@ -18,8 +18,6 @@
            node-enabled-p
            initialize-node
            discard-node
-           node-initialization-flow
-           tree-initialization-flow
            discard-tree
 
            *scene*

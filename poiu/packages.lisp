@@ -13,7 +13,7 @@
            render-poiu
            when-composing
            name-of
-           window
+           poiu-layout
            make-window
            show-window
            hide-window

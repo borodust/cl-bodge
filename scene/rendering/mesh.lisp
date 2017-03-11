@@ -11,9 +11,10 @@
 
 
 (defmethod initialization-flow ((this mesh-node) &key)
-  (-> ((graphics)) ()
-    (with-slots (mesh) this
-      (setf mesh (make-node-mesh this)))))
+  (>> (call-next-method)
+      (-> ((graphics)) ()
+        (with-slots (mesh) this
+          (setf mesh (make-node-mesh this))))))
 
 
 (defmethod node-enabled-p ((this mesh-node))

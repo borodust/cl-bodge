@@ -256,11 +256,28 @@
                                      (:file "shading")
                                      (:file "texturing")
                                      (:file "lighting")
-                                     (:file "mesh")))
-               (:file "shadowing")
+                                     (:file "mesh")
+                                     (:file "banner")))
                (:file "transformations")
                (:file "animation")
                (:file "model")))
+
+
+(defsystem cl-bodge/interactions
+  :description "Interactive components of Bodacious Game Engine"
+  :version "0.3.0"
+  :author "Pavel Korolev"
+  :mailto "dev@borodust.org"
+  :license "MIT"
+  :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/poiu cl-bodge/physics
+                               cl-bodge/host cl-bodge/events cl-bodge/scenegraph)
+  :pathname "interactions"
+  :serial t
+  :components ((:file "packages")
+               (:file "input-state")
+               (:file "control-ray")
+               (:file "board")
+               (:file "system")))
 
 
 (defsystem cl-bodge/resources
@@ -329,5 +346,6 @@
   :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/events cl-bodge/host
                                cl-bodge/graphics cl-bodge/audio cl-bodge/physics
                                cl-bodge/resources cl-bodge/assets cl-bodge/scenegraph
-                               cl-bodge/poiu cl-bodge/text cl-bodge/canvas)
+                               cl-bodge/poiu cl-bodge/text cl-bodge/canvas
+                               cl-bodge/interactions)
   :components ((:file "packages")))

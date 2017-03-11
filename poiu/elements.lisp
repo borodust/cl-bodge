@@ -18,7 +18,7 @@
     (compose element)))
 
 
-(defmacro window ((poiu &rest win-opts) &body elements)
+(defmacro poiu-layout (&body elements)
   (labels ((expand-element (descriptor)
              (destructuring-bind (name &rest params) (ensure-list descriptor)
                `(,(symbolicate 'make- name) ,@params)))
@@ -28,7 +28,7 @@
                   ,@(loop for child in (cdr root)
                        collect `(adopt ,parent ,(expand-element-hierarchy child)))
                   ,parent))))
-    (expand-element-hierarchy `((window ,poiu ,@win-opts) ,@elements))))
+    (mapcar #'expand-element-hierarchy elements)))
 
 
 ;; todo: wrap each push/pop into proper unwind-protect?
@@ -114,7 +114,7 @@
                   (list ,option))))
     (make-instance 'window
                    :poiu poiu
-                   :x x :y y :width w :height h
+                   :x (float x 0f0) :y (float y 0f0) :width w :height h
                    :panel-p panel-p
                    :title title
                    :background-color background-color

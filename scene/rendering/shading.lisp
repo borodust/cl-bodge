@@ -78,9 +78,10 @@
 
 
 (defmethod initialization-flow ((this shading-pipeline-node) &key)
-  (-> ((graphics)) ()
-    (with-slots (pipeline) this
-      (setf pipeline (make-shading-pipeline)))))
+  (>> (call-next-method)
+      (-> ((graphics)) ()
+        (with-slots (pipeline) this
+          (setf pipeline (make-shading-pipeline))))))
 
 
 (defmethod discard-node :before ((this shading-pipeline-node))
@@ -113,10 +114,11 @@
 
 
 (defmethod initialization-flow ((this shading-program-node) &key)
-  (-> ((graphics)) ()
-    (with-slots (program sources parameters) this
-      (setf program (build-shading-program sources)
-            parameters (mapcar #'uniform-name (uniforms-of program))))))
+  (>> (call-next-method)
+      (-> ((graphics)) ()
+        (with-slots (program sources parameters) this
+          (setf program (build-shading-program sources)
+                parameters (mapcar #'uniform-name (uniforms-of program)))))))
 
 
 (defmethod discard-node :before ((this shading-program-node))

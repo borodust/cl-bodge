@@ -27,7 +27,8 @@
            deletef
            alist-hash-table
            ensure-list
-           assoc-value)
+           assoc-value
+           doplist)
   (:import-from :uiop
                 define-package)
   (:export define-package)

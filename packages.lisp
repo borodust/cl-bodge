@@ -15,4 +15,5 @@
                  :cl-bodge.scene
                  :cl-bodge.poiu
                  :cl-bodge.text
-                 :cl-bodge.canvas))
+                 :cl-bodge.canvas
+                 :cl-bodge.interactions))

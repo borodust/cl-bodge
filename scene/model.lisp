@@ -8,6 +8,7 @@
 
 
 (defmethod initialization-flow ((this model) &key)
-  (>> (model-graph-assembly-flow this)
+  (>> (call-next-method)
+      (model-graph-assembly-flow this)
       (instantly (subgraph)
         (adopt this subgraph))))

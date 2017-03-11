@@ -255,13 +255,14 @@ about object returned from the flow are provided.")
   (:method (object &key &allow-other-keys)))
 
 
-(defgeneric assembly-flow (class &key &allow-other-keys)
-  (:documentation "Return flow that constructs an object and returns it.
-Flow variant of #'make-instance.")
-  (:method (class &rest initargs &key &allow-other-keys)
-    (let ((instance (apply #'make-instance class initargs)))
-      (>> (apply #'initialization-flow instance initargs)
-          (value-flow instance)))))
+(defun assembly-flow (class &rest initargs &key &allow-other-keys)
+  "Return flow that constructs an object and returns it.
+Flow variant of #'make-instance."
+  (>> (instantly ()
+        (apply #'make-instance class :allow-other-keys t initargs))
+      (->> (instance)
+        (>> (apply #'initialization-flow instance initargs)
+            (instantly () instance)))))
 
 
 (defun run (fn)

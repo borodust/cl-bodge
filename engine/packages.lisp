@@ -33,6 +33,7 @@
            >>
            *>
            ~>
+           ->>
            dispatch
            define-flow
 

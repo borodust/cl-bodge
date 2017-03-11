@@ -59,7 +59,7 @@
                              proj)))
       (with-active-shading-program (shading-program)
         (setf (program-uniform-variable shading-program "atlas") 0
-              (program-uniform-variable shading-program "scale") scale
+              (program-uniform-variable shading-program "scale") (float scale 0f0)
               (program-uniform-variable shading-program "baseColor") (or color default-color)
               (program-uniform-variable shading-program "proj") model-view-mat)
         (render text)))))

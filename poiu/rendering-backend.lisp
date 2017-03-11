@@ -269,5 +269,4 @@
       (gx.state:clear-color 0.0 0.0 0.0 0.0)
       (gx.state:clear-depth 1.0)
       (gl:clear :color-buffer :depth-buffer :stencil-buffer)
-
       (render poiu))))
