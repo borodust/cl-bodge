@@ -8,7 +8,6 @@
         :cl-bodge.host :cl-bodge.scene :cl-bodge.assets)
   (:export interactions-system
 
-           *interactive-board-texture*
            interactive-board-node
            make-board-window
            enable-mouse-input

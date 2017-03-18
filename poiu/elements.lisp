@@ -18,7 +18,7 @@
     (compose element)))
 
 
-(defmacro poiu-layout ((&optional parent-layout) &body elements)
+(defmacro adopt-layout-by ((&optional parent-layout) &body elements)
   (labels ((expand-element (descriptor)
              (destructuring-bind (name &rest params) (ensure-list descriptor)
                `(,(symbolicate 'make- name) ,@params)))
@@ -125,7 +125,7 @@
                   (list ,option))))
     (make-instance 'window
                    :poiu poiu
-                   :x (float x 0f0) :y (float y 0f0) :width w :height h
+                   :x (f x) :y (f y) :width w :height h
                    :panel-p panel-p
                    :title title
                    :background-color background-color

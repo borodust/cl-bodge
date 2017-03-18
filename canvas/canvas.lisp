@@ -150,8 +150,7 @@
                                        (thickness 1.0) (canvas *canvas*))
   (path (canvas)
     (%nvg:arc (handle-value-of canvas) (x center) (%invert (y center) canvas) (f radius)
-              ;; fixme: invert angles here?
-              (f a0) (f a1) %nvg:+ccw+)
+              (f a0) (f a1) %nvg:+cw+)
     (stroke-and-fill stroke-color fill-color thickness canvas)))
 
 

@@ -12,7 +12,7 @@
            compose-poiu
            when-composing
            name-of
-           poiu-layout
+           adopt-layout-by
            make-window
            show-window
            hide-window

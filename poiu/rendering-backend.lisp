@@ -23,9 +23,10 @@
   (- (height-of ctx) y h))
 
 
-(defun draw-bounding-box (poiu x y w h r g b a)
+(defun draw-bounding-box (poiu x y w h &optional (r 255) (g 0) (b 0) (a 255))
   (draw-rect (vec2 x (%invert y poiu h)) w h
-                   :stroke-color (clamp r g b a) :canvas (canvas-of poiu)))
+             :stroke-color (clamp r g b a)
+             :canvas (canvas-of poiu)))
 
 
 (defun render-scissor (cmd poiu)
@@ -190,7 +191,7 @@
   (let ((width (width-of poiu))
         (height (height-of poiu)))
     (dissect-c-struct ((x :x) (y :y) (w :w) (h :h)) (cmd %nk:command-scissor)
-      (gl:scissor (saturate x width) (saturate (%invert y poiu h) height)
+      (gl:scissor (saturate x width) (%invert (saturate y height) poiu h)
                   (saturate w width) (saturate h height)))))
 
 
@@ -211,10 +212,10 @@
 (defun render-clipped-text (cmd last-scissor poiu)
   (preserving-state
     (gx.state:enable :scissor-test)
-    (gl:scissor 0.0 0.0 (width-of poiu) (height-of poiu))
     (gx.state:blend-func-separate :src-alpha :one-minus-src-alpha :zero :one)
-    (when last-scissor
-      (apply-pretext-scissors last-scissor poiu))
+    (if last-scissor
+        (apply-pretext-scissors last-scissor poiu)
+        (gl:scissor 0.0 0.0 (width-of poiu) (height-of poiu)))
     (render-boxed-text cmd poiu)))
 
 
@@ -223,7 +224,7 @@
                      (r :foreground :r) (g :foreground :g)
                      (b :foreground :b) (a :foreground :a))
       (cmd %nk:command-text)
-    (draw-bounding-box (canvas-of poiu) x y w h r g b a)))
+    (draw-bounding-box poiu x y w h r g b a)))
 
 
 (defun render-image (cmd poiu)

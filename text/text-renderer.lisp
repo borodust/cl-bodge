@@ -59,14 +59,13 @@
   (with-slots (text-cache shading-program proj default-color height scale) renderer
     (let* ((text (get-text text-cache string))
            (model-view-mat (if position
-                             (mult proj
-                                   (translation-mat4 (x position)
-                                                     (y position)
-                                                     0.0))
+                             (mult proj (translation-mat4 (x position)
+                                                          (y position)
+                                                          0.0))
                              proj)))
       (with-active-shading-program (shading-program)
         (setf (program-uniform-variable shading-program "atlas") 0
-              (program-uniform-variable shading-program "scale") (float scale 0f0)
+              (program-uniform-variable shading-program "scale") (f scale)
               (program-uniform-variable shading-program "baseColor") (or color default-color)
               (program-uniform-variable shading-program "proj") model-view-mat)
         (render text)))))
