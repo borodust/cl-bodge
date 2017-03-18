@@ -13,12 +13,8 @@
 ;;;
 ;;;
 (defclass projection-node (scene-node)
-  ((proj-mat :initform nil)))
-
-
-(defun update-projection (projection-node aspect &key (width 2.0) (near 2.0) (far 1000.0))
-  (setf (slot-value projection-node 'proj-mat)
-        (perspective-projection-mat (f width) (f (/ width aspect)) (f near) (f far))))
+  ((perspective-p :initform t :initarg :perspective-p)
+    (proj-mat :initform nil)))
 
 
 (defmethod initialize-instance :after ((this projection-node)
@@ -27,6 +23,19 @@
                                          (near 2.0)
                                          (far 1000.0))
   (update-projection this aspect :width width :near near :far far))
+
+
+(defun update-projection (projection-node aspect &key (width 2.0) (near 2.0) (far 1000.0))
+  (with-slots (proj-mat perspective-p) projection-node
+    (setf proj-mat (if perspective-p
+                       (perspective-projection-mat (f width)
+                                                   (f (/ width aspect))
+                                                   (f near)
+                                                   (f far))
+                       (orthographic-projection-mat (f width)
+                                                    (f (/ width aspect))
+                                                    (f near)
+                                                    (f far))))))
 
 
 (defmethod scene-pass ((this projection-node) pass input)
@@ -38,14 +47,12 @@
 ;;;
 ;;;
 ;;;
-(defclass camera-node (scene-node) ())
-
-
-(defgeneric camera-transform (camera-node))
+(defclass camera-node (scene-node)
+  ((transform :initform (identity-mat4) :accessor transform-of :initarg :transform)))
 
 
 (defmethod scene-pass ((this camera-node) pass input)
-  (let ((*view-matrix* (camera-transform this)))
+  (let ((*view-matrix* (transform-of this)))
     (call-next-method)))
 
 

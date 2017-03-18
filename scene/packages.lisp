@@ -40,7 +40,7 @@
            update-projection
 
            camera-node
-           camera-transform
+           transform-of
 
            transform-node
 
@@ -64,7 +64,6 @@
            bone-node
            root-bone-of
 
-           *banner-texture*
            banner-node
 
            scenegraph))

@@ -7,5 +7,9 @@
         :cl-bodge.physics :cl-bodge.poiu :cl-bodge.graphics :cl-bodge.event
         :cl-bodge.host :cl-bodge.scene :cl-bodge.assets)
   (:export interactions-system
+
+           *interactive-board-texture*
+           interactive-board-node
            make-board-window
-           interactive-board-node))
+           enable-mouse-input
+           enable-cursor-input))

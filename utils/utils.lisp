@@ -254,3 +254,14 @@
       (if rest
           (append args (list rest))
           (append args (reduce #'nconc (mapcar #'car keywords)) (list nil))))))
+
+
+(defmacro with-float-traps-masked (&body body)
+  (let ((masking #+sbcl '(sb-int:with-float-traps-masked (:overflow
+                                                          :underflow
+                                                          :inexact
+                                                          :invalid
+                                                          :divide-by-zero))
+                 #-sbcl '(progn)))
+    `(,@masking
+      ,@body)))

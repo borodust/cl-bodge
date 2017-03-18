@@ -18,17 +18,25 @@
     (compose element)))
 
 
-(defmacro poiu-layout (&body elements)
+(defmacro poiu-layout ((&optional parent-layout) &body elements)
   (labels ((expand-element (descriptor)
              (destructuring-bind (name &rest params) (ensure-list descriptor)
                `(,(symbolicate 'make- name) ,@params)))
            (expand-element-hierarchy (root)
              (with-gensyms (parent)
-               `(let ((,parent ,(expand-element (car root))))
-                  ,@(loop for child in (cdr root)
-                       collect `(adopt ,parent ,(expand-element-hierarchy child)))
-                  ,parent))))
-    (mapcar #'expand-element-hierarchy elements)))
+               (let ((children (cdr root))
+                     (element (expand-element (car root))))
+                 (if children
+                     `(let ((,parent ,element))
+                        ,@(loop for child in children
+                             collect `(adopt ,parent ,(expand-element-hierarchy child)))
+                        ,parent)
+                     element)))))
+    (with-gensyms (p)
+      `(let ((,p ,(or parent-layout '(make-instance 'layout))))
+         ,@(loop for element in (mapcar #'expand-element-hierarchy elements)
+              collect `(adopt ,p ,element))
+         ,p))))
 
 
 ;; todo: wrap each push/pop into proper unwind-protect?
@@ -69,6 +77,7 @@
    (height :initform nil)
    (background :initarg :background-color)
    (title :initarg :title :initform "")
+   (closed-p :initform nil)
    (option-mask :initarg :option-mask :initform '())
    (nk-rect :initform (calloc '(:struct (%nk:rect))))
    (nk-vec2 :initform (calloc '(:struct (%nk:vec2))))
@@ -82,7 +91,9 @@
 
 
 (defun show-window (window)
-  (with-slots (id) window
+  (with-slots (id closed-p) window
+    (when closed-p
+      (setf closed-p nil))
     (%nk:window-show *handle* id %nk:+shown+)))
 
 
@@ -140,9 +151,8 @@
   (with-slots (x y width height title option-mask nk-rect id) win
     (let ((val (%nk:begin-titled *handle* id title (%nk:rect nk-rect x y width height)
                                  option-mask)))
-      (if (= 0 val)
-          (%nk:window-show *handle* id %nk:+hidden+)
-          (funcall next-method win))
+      (unless (= 0 val)
+        (funcall next-method win))
       (%nk:end *handle*))))
 
 
@@ -157,13 +167,16 @@
 
 
 (defmethod compose ((this window))
-  (with-slots (background nk-color nk-style-item panel-p hidden-p) this
-    (with-styles ((%nk:style-item (when background
-                                    (style-item-color nk-style-item nk-color background))
-                                  :window :fixed-background))
-      (if panel-p
-          (compose-panel this #'call-next-method)
-          (compose-window this #'call-next-method)))))
+  (with-slots (background nk-color nk-style-item panel-p closed-p id) this
+    (unless closed-p
+      (with-styles ((%nk:style-item (when background
+                                      (style-item-color nk-style-item nk-color background))
+                                    :window :fixed-background))
+        (if panel-p
+            (compose-panel this #'call-next-method)
+            (compose-window this #'call-next-method)))
+      (unless (= 0 (%nk:window-is-closed *handle* id))
+        (setf closed-p t)))))
 
 ;;;
 ;;;

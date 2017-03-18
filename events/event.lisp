@@ -72,4 +72,5 @@
                  (lambda ()
                    (with-system-lock-held (event-system)
                      (with-hash-entries ((handlers event-class)) handler-table
-                       (pushnew handler handlers)))))))))
+                       (pushnew handler handlers))))))))
+  handler)

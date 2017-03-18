@@ -64,4 +64,5 @@
            split-sequence
            foreign-function-pointer
            stringify
-           apply-argument-list))
+           apply-argument-list
+           with-float-traps-masked))
