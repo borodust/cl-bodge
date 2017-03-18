@@ -1,38 +1,53 @@
 (in-package :cl-bodge.canvas)
 
+
 (declaim (special *canvas*))
+
+
+(definline %invert (y canvas &optional (h 0.0))
+  (- (height-of canvas) y h))
 
 
 (defhandle canvas-handle
     :closeform (bodge-nanovg:destroy-context *handle-value*))
 
 
-(defclass canvas (foreign-object) ())
+(defclass canvas (foreign-object)
+  ((width :initarg :width :initform (error ":width missing") :reader width-of)
+   (height :initarg :height :initform (error ":height missing") :reader height-of)))
 
 
-(define-system-function make-canvas graphics-system (&key antialiased-p)
+(defun update-canvas-size (canvas width height)
+  (with-slots ((w width) (h height)) canvas
+    (setf w width
+          h height)))
+
+
+(define-system-function make-canvas graphics-system (width height &key antialiased-p)
   (let ((opts (append (list :stencil-strokes)
                       (when antialiased-p (list :antialias))
                       (when-debugging (list :debug)))))
     (make-instance 'canvas
-                   :handle (make-canvas-handle (apply #'bodge-nanovg:make-context opts)))))
+                   :handle (make-canvas-handle (apply #'bodge-nanovg:make-context opts))
+                   :width width
+                   :height height)))
 
 
-(definline begin-canvas (canvas width height &optional (pixel-ratio 1.0))
-  (%nvg:begin-frame (handle-value-of canvas) width height pixel-ratio))
+(definline begin-canvas (canvas &optional (pixel-ratio 1.0))
+  (%nvg:begin-frame (handle-value-of canvas) (width-of canvas) (height-of canvas) pixel-ratio))
 
 
 (definline end-canvas (canvas)
   (%nvg:end-frame (handle-value-of canvas)))
 
 
-(defmacro with-canvas ((canvas width height &optional (pixel-ratio 1.0)) &body body)
+(defmacro with-canvas ((canvas &optional (pixel-ratio 1.0)) &body body)
   (once-only (canvas)
     `(preserving-state
-       (let ((*canvas* (handle-value-of ,canvas)))
+       (let ((*canvas* ,canvas))
          (unwind-protect
               (progn
-                (begin-canvas ,canvas ,width ,height ,pixel-ratio)
+                (begin-canvas ,canvas ,pixel-ratio)
                 ,@body)
            (end-canvas ,canvas))))))
 
@@ -46,7 +61,7 @@
 
 
 (definline move-to (coords &optional (canvas *canvas*))
-  (%nvg:move-to (handle-value-of canvas) (x coords) (y coords)))
+  (%nvg:move-to (handle-value-of canvas) (x coords) (%invert (y coords) canvas)))
 
 
 (defun stroke-color (color &optional (canvas *canvas*))
@@ -56,7 +71,7 @@
 
 
 (definline stroke-width (width &optional (canvas *canvas*))
-  (%nvg:stroke-width (handle-value-of canvas) width))
+  (%nvg:stroke-width (handle-value-of canvas) (f width)))
 
 
 (defun fill-color (color &optional (canvas *canvas*))
@@ -73,7 +88,8 @@
 
 (defun scissors (origin w h &optional (canvas *canvas*))
   (path (canvas)
-    (%nvg:scissor (handle-value-of canvas) (x origin) (y origin) #f w #f h)))
+    (%nvg:scissor (handle-value-of canvas) (x origin) (%invert (y origin) canvas h)
+                  (f w) (f h))))
 
 
 (definline stroke-and-fill (stroke-color fill-color thickness canvas)
@@ -89,7 +105,7 @@
 (defun draw-line (origin end color &key (thickness 1.0) (canvas *canvas*))
   (path (canvas)
     (move-to origin canvas)
-    (%nvg:line-to (handle-value-of canvas) (x end) (y end))
+    (%nvg:line-to (handle-value-of canvas) (x end) (%invert (y end) canvas))
     (stroke-width thickness canvas)
     (stroke-color color canvas)
     (stroke-path canvas)))
@@ -98,8 +114,10 @@
 (defun draw-curve (origin end ctrl0 ctrl1 color &key (thickness 1.0) (canvas *canvas*))
   (path (canvas)
     (move-to origin canvas)
-    (%nvg:bezier-to (handle-value-of canvas) (x ctrl0) (y ctrl0) (x ctrl1) (y ctrl1)
-                    (x end) (y end))
+    (%nvg:bezier-to (handle-value-of canvas)
+                    (x ctrl0) (%invert (y ctrl0) canvas)
+                    (x ctrl1) (%invert (y ctrl1) canvas)
+                    (x end) (%invert (y end) canvas))
     (stroke-color color canvas)
     (stroke-width thickness canvas)
     (stroke-path canvas)))
@@ -108,28 +126,32 @@
 (defun draw-rect (origin w h &key (fill-color nil) (stroke-color nil)
                                (thickness 1.0) (rounding 0.0) (canvas *canvas*))
   (path (canvas)
-    (%nvg:rounded-rect (handle-value-of canvas) (x origin) (y origin) w h rounding)
+    (%nvg:rounded-rect (handle-value-of canvas)
+                       (x origin) (%invert (y origin) canvas h) (f w) (f h) (f rounding))
     (stroke-and-fill stroke-color fill-color thickness canvas)))
 
 
 (defun draw-circle (center radius &key (fill-color nil) (stroke-color nil)
                                     (thickness 1.0) (canvas *canvas*))
   (path (canvas)
-    (%nvg:circle (handle-value-of canvas) (x center) (y center) radius)
+    (%nvg:circle (handle-value-of canvas) (x center) (%invert (y center) canvas) (f radius))
     (stroke-and-fill stroke-color fill-color thickness canvas)))
 
 
 (defun draw-ellipse (center x-radius y-radius &key (fill-color nil) (stroke-color nil)
                                                 (thickness 1.0) (canvas *canvas*))
   (path (canvas)
-    (%nvg:ellipse (handle-value-of canvas) (x center) (y center) x-radius y-radius)
+    (%nvg:ellipse (handle-value-of canvas)
+                  (x center) (%invert (y center) canvas) (f x-radius) (f y-radius))
     (stroke-and-fill stroke-color fill-color thickness canvas)))
 
 
 (defun draw-arc (center radius a0 a1 &key (fill-color nil) (stroke-color nil)
                                        (thickness 1.0) (canvas *canvas*))
   (path (canvas)
-    (%nvg:arc (handle-value-of canvas) (x center) (y center) radius a0 a1 %nvg:+ccw+)
+    (%nvg:arc (handle-value-of canvas) (x center) (%invert (y center) canvas) (f radius)
+              ;; fixme: invert angles here?
+              (f a0) (f a1) %nvg:+ccw+)
     (stroke-and-fill stroke-color fill-color thickness canvas)))
 
 
@@ -139,8 +161,10 @@
     (let ((first-vertex (car vertices)))
       (move-to first-vertex canvas)
       (loop for vertex in (rest vertices)
-         do (%nvg:line-to (handle-value-of canvas) (x vertex) (y vertex)))
-      (%nvg:line-to (handle-value-of canvas) (x first-vertex) (y first-vertex)))
+         do (%nvg:line-to (handle-value-of canvas)
+                          (x vertex) (%invert (y vertex) canvas)))
+      (%nvg:line-to (handle-value-of canvas)
+                    (x first-vertex) (%invert (y first-vertex) canvas)))
     (stroke-and-fill stroke-color fill-color thickness canvas)))
 
 
@@ -148,7 +172,7 @@
   (path (canvas)
     (move-to (car points) canvas)
     (loop for point in (rest points)
-       do (%nvg:line-to (handle-value-of canvas) (x point) (y point)))
+       do (%nvg:line-to (handle-value-of canvas) (x point) (%invert (y point) canvas)))
     (stroke-color color)
     (stroke-width thickness)
     (stroke-path)))

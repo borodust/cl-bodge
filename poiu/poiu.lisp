@@ -30,10 +30,7 @@
    (width :initarg :width :reader width-of)
    (height :initarg :height :reader height-of)
    (canvas :initarg :canvas :reader canvas-of)
-   (framebuffer :initform nil :reader framebuffer-of)
    (compose-tasks :initform (make-task-queue))
-   (depth-stencil-buffer :initform nil)
-   (overlay-texture :initform nil :reader overlay-of)
    (text-renderer :initarg :text-renderer :reader text-renderer-of)))
 
 
@@ -42,13 +39,9 @@
     (font-of text-renderer)))
 
 
-(define-destructor nuklear-context (nuklear-font canvas framebuffer depth-stencil-buffer
-                                                 overlay-texture)
+(define-destructor nuklear-context (nuklear-font canvas)
   (dispose nuklear-font)
-  (dispose canvas)
-  (dispose framebuffer)
-  (dispose depth-stencil-buffer)
-  (dispose overlay-texture))
+  (dispose canvas))
 
 
 (bodge-nuklear:define-font-width-callback calc-string-width (handle height string)
@@ -63,20 +56,10 @@
     (apply #'call-next-method this
            :handle (make-nuklear-context-handle
                     (bodge-nuklear:make-context (handle-value-of nk-font)))
-           :canvas (make-canvas :antialiased-p antialiased-p)
+           :canvas (make-canvas width height :antialiased-p antialiased-p)
            :nuklear-font nk-font
            :text-renderer (make-text-renderer width height font line-height)
            keys)))
-
-
-(defmethod initialize-instance :after ((this nuklear-context) &key)
-  (with-slots (width height filter-texture framebuffer depth-stencil-buffer overlay-texture)
-      this
-    (setf overlay-texture (make-2d-texture (make-blank-image width height) :grey
-                                           :generate-mipmaps-p nil)
-          framebuffer (make-framebuffer)
-          depth-stencil-buffer (make-renderbuffer :depth-stencil width height))
-    (attach-depth-stencil-buffer framebuffer depth-stencil-buffer)))
 
 
 (definline make-poiu-context (width height font line-height &key antialiased-p)
@@ -126,6 +109,14 @@
 
 (defun register-character-input (character)
   (%nk:input-unicode *handle* (char-code character)))
+
+
+(defun update-poiu-canvas-size (poiu width height)
+  (with-slots ((w width) (h height) text-renderer canvas) poiu
+    (update-text-renderer-canvas-size text-renderer width height)
+    (update-canvas-size canvas width height)
+    (setf w width
+          h height)))
 
 
 (defun button-state->nk (state)

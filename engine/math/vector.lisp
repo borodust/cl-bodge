@@ -9,16 +9,16 @@
   (value-of vec))
 
 
-(definline vec3 (&optional (x #f0) (y #f0) (z #f0))
-  (%raw-> vec3 (v3:make x y z)))
+(definline vec3 (&optional (x 0.0) (y 0.0) (z 0.0))
+  (%raw-> vec3 (v3:make (f x) (f y) (f z))))
 
 
-(definline vec4 (&optional (x #f0) (y #f0) (z #f0) (w #f0))
-  (%raw-> vec4 (v4:make x y z w)))
+(definline vec4 (&optional (x 0.0) (y 0.0) (z 0.0) (w 0.0))
+  (%raw-> vec4 (v4:make (f x) (f y) (f z) (f w))))
 
 
-(definline vec2 (&optional (x #f0) (y #f0))
-  (%raw-> vec2 (v2:make x y)))
+(definline vec2 (&optional (x 0.0) (y 0.0))
+  (%raw-> vec2 (v2:make (f x) (f y))))
 
 
 (definline copy-vec3 (vec)
@@ -83,7 +83,7 @@
 
 
 (definline (setf x) (value vec)
-  (setf (v:x (value-of vec)) value))
+  (setf (v:x (value-of vec)) (f value)))
 
 
 (definline y (vec)
@@ -91,7 +91,7 @@
 
 
 (definline (setf y) (value vec)
-  (setf (v:y (value-of vec)) value))
+  (setf (v:y (value-of vec)) (f value)))
 
 
 (definline z (vec)
@@ -99,7 +99,7 @@
 
 
 (definline (setf z) (value vec)
-  (setf (v:z (value-of vec)) value))
+  (setf (v:z (value-of vec)) (f value)))
 
 
 (definline w (vec)
@@ -107,7 +107,7 @@
 
 
 (definline (setf w) (value vec)
-  (setf (v:w (value-of vec)) value))
+  (setf (v:w (value-of vec)) (f value)))
 
 
 (defmethod addere ((this vec3) (that vec3))

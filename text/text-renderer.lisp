@@ -17,14 +17,19 @@
       (text-cache-font text-cache))))
 
 
+(defun update-text-renderer-canvas-size (text-renderer width height)
+  (with-slots (proj) text-renderer
+    (setf proj (mult (orthographic-projection-mat width height -1.0 1.0)
+                     (translation-mat4 #f(- (/ width 2)) #f(- (/ height 2)) -1.0)))))
+
+
 (defmethod initialize-instance :after ((this text-renderer) &key font width height line-height)
-  (with-slots (text-cache proj scale) this
+  (with-slots (text-cache scale) this
     (setf text-cache (make-text-cache font)
           scale (/ line-height (+ (font-ascender-height font)
                                   (font-descender-height font)
-                                  (font-line-gap font)))
-          proj (mult (orthographic-projection-mat width height -1.0 1.0)
-                     (translation-mat4 #f(- (/ width 2)) #f(- (/ height 2)) -1.0)))))
+                                  (font-line-gap font)))))
+  (update-text-renderer-canvas-size this width height))
 
 
 (define-system-function make-text-renderer graphics-system
@@ -46,16 +51,18 @@
       (mapcar #'scale (measure-string string (text-cache-font text-cache))))))
 
 
+(defun text-line-height (text-renderer)
+  (* (scale-of text-renderer) (font-ascender-height (font-of text-renderer))))
+
+
 (defun draw-text (renderer string &key position color)
   (with-slots (text-cache shading-program proj default-color height scale) renderer
     (let* ((text (get-text text-cache string))
-           (font (text-cache-font text-cache))
            (model-view-mat (if position
                              (mult proj
                                    (translation-mat4 (x position)
-                                                     (- height (y position)
-                                                        (* scale (font-ascender-height font)))
-                                                    0.0))
+                                                     (y position)
+                                                     0.0))
                              proj)))
       (with-active-shading-program (shading-program)
         (setf (program-uniform-variable shading-program "atlas") 0

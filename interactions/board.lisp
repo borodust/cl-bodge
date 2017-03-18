@@ -14,8 +14,11 @@
    (x-axis :initform (vec3 1.0 0.0 0.0))
    (geom :initform nil)
    (poiu :initform nil)
-   (canvas-texture :initform nil)
    (y-axis :initform (vec3 0.0 1.0 0.0))
+
+   (framebuffer :initform nil :reader framebuffer-of)
+   (depth-stencil-buffer :initform nil)
+   (canvas-texture :initform nil)
 
    (cursor-callback :initform nil)
    (mouse-callback :initform nil)
@@ -23,11 +26,13 @@
 
 
 (defmethod discard-node :before ((this interactive-board-node))
-  (with-slots (poiu canvas-texture windows) this
+  (with-slots (poiu canvas-texture windows framebuffer depth-stencil-buffer) this
     (dolist (win windows)
       (dispose win))
     (dispose poiu)
-    (dispose canvas-texture)))
+    (dispose framebuffer)
+    (dispose canvas-texture)
+    (dispose depth-stencil-buffer)))
 
 
 (defmethod initialize-instance :after ((this interactive-board-node) &key)
@@ -37,12 +42,15 @@
 
 (defmethod initialization-flow ((this interactive-board-node)
                                 &key width height font)
-  (with-slots (geom poiu canvas-texture normal) this
+  (with-slots (geom poiu canvas-texture normal framebuffer depth-stencil-buffer) this
     (>> (call-next-method)
         (~> (-> ((graphics)) ()
                   (setf canvas-texture (make-2d-texture (make-blank-image width height)
                                                         :rgba :generate-mipmaps-p nil)
-                        poiu (make-poiu-context width height font 24 :antialiased-p t)))
+                        poiu (make-poiu-context width height font 24 :antialiased-p t)
+                        framebuffer (make-framebuffer)
+                        depth-stencil-buffer (make-renderbuffer :depth-stencil width height))
+                  (attach-depth-stencil-buffer framebuffer depth-stencil-buffer))
             (-> ((physics)) ()
               (setf geom (make-instance 'interactive-board-plane :normal normal)))))))
 
@@ -61,13 +69,22 @@
       (register-mouse-input x y :right (read-mouse-state state :right)))))
 
 
+(defun render-poiu (poiu)
+  (preserving-state
+    (gx.state:clear-color 0.0 0.0 0.0 0.5)
+    (gx.state:clear-depth 1.0)
+    (gl:clear :color-buffer :depth-buffer :stencil-buffer)
+    (render poiu)))
+
+
 (defmethod scene-pass ((this interactive-board-node) (pass rendering-pass) input)
-  (with-slots (canvas-texture banner poiu windows input-state) this
+  (with-slots (canvas-texture poiu windows input-state framebuffer) this
     (clear-poiu-context poiu)
     (process-user-input input-state poiu)
     (dolist (win windows)
       (compose-poiu win poiu))
-    (render-poiu poiu canvas-texture)
+    (with-complete-framebuffer (framebuffer :color-buffers canvas-texture)
+      (render-poiu poiu))
     (let ((*interactive-board-texture* canvas-texture))
       (call-next-method))))
 
@@ -77,6 +94,11 @@
     (let ((win (apply #'make-window poiu x y w h opts)))
       (push win windows)
       win)))
+
+
+(defun update-board-canvas-size (board width height)
+  (with-slots (poiu) board
+    (ge.poiu::update-poiu-canvas-size poiu width height)))
 
 
 (defun enable-cursor-input (interactive-node)

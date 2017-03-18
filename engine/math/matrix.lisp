@@ -76,7 +76,7 @@
 
 
 (definline translation-mat4 (x y z)
-  (make-instance 'mat4 :value (m4:translation (v3:make x y z))))
+  (make-instance 'mat4 :value (m4:translation (v3:make (f x) (f y) (f z)))))
 
 
 (definline sequence->translation-mat4 (sequence)
@@ -90,7 +90,7 @@
 
 
 (definline scaling-mat4 (x y z)
-  (make-instance 'mat4 :value (m4:scale (v3:make x y z))))
+  (make-instance 'mat4 :value (m4:scale (v3:make (f x) (f y) (f z)))))
 
 
 (definline vec->scaling-mat4 (vec)
@@ -102,9 +102,9 @@
 (defun mat3 (m11 m12 m13
              m21 m22 m23
              m31 m32 m33)
-  (make-instance 'mat3 :value (m3:make m11 m12 m13
-                                       m21 m22 m23
-                                       m31 m32 m33)))
+  (make-instance 'mat3 :value (m3:make (f m11) (f m12) (f m13)
+                                       (f m21) (f m22) (f m23)
+                                       (f m31) (f m32) (f m33))))
 
 
 (defun mat4->mat3 (mat4)
@@ -123,10 +123,10 @@
                 perspective-projection-mat)
          (inline perspective-projection-mat))
 (defun perspective-projection-mat (width height near far)
-  (let ((x0 (/ near width 1/2))
-        (y1 (/ near height 1/2))
-        (z2 (/ (+ near far) (- near far)))
-        (z3 (/ (* 2 far near) (- near far))))
+  (let ((x0 (f (/ near width 1/2)))
+        (y1 (f (/ near height 1/2)))
+        (z2 (f (/ (+ near far) (- near far))))
+        (z3 (f (/ (* 2 far near) (- near far)))))
     (make-instance 'mat4 :value (m4:make x0   0f0  0f0  0f0
                                          0f0  y1   0f0  0f0
                                          0f0  0f0  z2   z3

@@ -20,6 +20,8 @@
 
            make-text-renderer
            measure-scaled-string
+           text-line-height
+           update-text-renderer-canvas-size
            draw-text
            scale-of
            font-of))

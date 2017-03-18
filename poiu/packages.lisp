@@ -10,7 +10,6 @@
 
            make-poiu
            compose-poiu
-           render-poiu
            when-composing
            name-of
            poiu-layout
