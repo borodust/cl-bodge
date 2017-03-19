@@ -11,4 +11,5 @@
            interactive-board-node
            make-board-window
            enable-mouse-input
-           enable-cursor-input))
+           enable-cursor-input
+           enable-character-input))

@@ -213,10 +213,10 @@
   (preserving-state
     (gx.state:enable :scissor-test)
     (gx.state:blend-func-separate :src-alpha :one-minus-src-alpha :zero :one)
-    (if last-scissor
-        (apply-pretext-scissors last-scissor poiu)
-        (gl:scissor 0.0 0.0 (width-of poiu) (height-of poiu)))
-    (render-boxed-text cmd poiu)))
+    (when last-scissor
+      (apply-pretext-scissors last-scissor poiu))
+    (render-boxed-text cmd poiu)
+    (gl:scissor 0.0 0.0 (width-of poiu) (height-of poiu))))
 
 
 (defun render-text-bounding-box (cmd poiu)
@@ -238,15 +238,14 @@
 
 (defmethod render ((poiu nuklear-context))
   (let ((canvas (canvas-of poiu))
-        last-scissor)
+        prev-command)
     (unwind-protect
          (progn
            (begin-canvas canvas)
            (bodge-nuklear:docommands (cmd (handle-value-of poiu))
              (case (command-type cmd)
                (:nop)
-               (:scissor (render-scissor cmd poiu)
-                         (setf last-scissor cmd))
+               (:scissor (render-scissor cmd poiu))
                (:line (render-line cmd poiu))
                (:curve (render-curve cmd poiu))
                (:rect (render-rect cmd poiu))
@@ -262,8 +261,12 @@
                (:polygon-filled (render-polygon-filled cmd poiu))
                (:polyline (render-polyline cmd poiu))
                (:text (end-canvas (canvas-of poiu))
-                      (render-clipped-text cmd last-scissor poiu)
+                      (let ((scissor-cmd (when (and prev-command
+                                                    (eq :scissor (command-type prev-command)))
+                                           prev-command)))
+                        (render-clipped-text cmd scissor-cmd poiu))
                       (begin-canvas canvas))
-               (:image (render-image cmd poiu)))))
+               (:image (render-image cmd poiu)))
+             (setf prev-command cmd)))
       (end-canvas canvas)
       (reset-state))))

@@ -13,6 +13,7 @@
            when-composing
            name-of
            adopt-layout-by
+           make-container-layout
            make-window
            show-window
            hide-window

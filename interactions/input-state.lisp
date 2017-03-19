@@ -16,9 +16,10 @@
     (alexandria:nconcf (input-state-character-stream input) (list character))))
 
 
-(defun read-character (input)
+(defun read-characters (input)
   (bt:with-lock-held ((input-state-lock input))
-    (pop (input-state-character-stream input))))
+    (prog1 (input-state-character-stream input)
+      (setf (input-state-character-stream input) nil))))
 
 
 (defun register-key-action (input key action)

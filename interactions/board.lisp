@@ -15,6 +15,7 @@
 
    (cursor-callback :initform nil)
    (mouse-callback :initform nil)
+   (character-callback :initform nil)
    (input-state :initform (make-input-state))))
 
 
@@ -44,8 +45,8 @@
   (multiple-value-bind (x y) (read-cursor-state state)
     (with-poiu-input (poiu)
       (register-cursor-position x y)
-      (loop for character = (read-character state) while character
-           do (register-character-input character))
+      (loop for character in (read-characters state)
+         do (register-character-input character))
       #++
       (if (read-backspace-click state)
           (register-keyboard-input :backspace :pressed)
@@ -87,3 +88,11 @@
     (unless mouse-callback
       (setf mouse-callback (subscribe-body-to (mouse-event (button state)) (events)
                              (register-mouse-state input-state button state))))))
+
+
+(defun enable-character-input (interactive-node)
+  (with-slots (character-callback input-state) interactive-node
+    (unless character-callback
+      (setf character-callback
+            (subscribe-body-to (character-input-event (character)) (events)
+              (register-character input-state character))))))

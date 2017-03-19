@@ -18,7 +18,11 @@
     (compose element)))
 
 
-(defmacro adopt-layout-by ((&optional parent-layout) &body elements)
+(definline make-container-layout ()
+  (make-instance 'layout))
+
+
+(defmacro adopt-layout-by ((parent-layout) &body elements)
   (labels ((expand-element (descriptor)
              (destructuring-bind (name &rest params) (ensure-list descriptor)
                `(,(symbolicate 'make- name) ,@params)))
@@ -32,11 +36,10 @@
                              collect `(adopt ,parent ,(expand-element-hierarchy child)))
                         ,parent)
                      element)))))
-    (with-gensyms (p)
-      `(let ((,p ,(or parent-layout '(make-instance 'layout))))
+    (once-only (parent-layout)
+      `(prog1 ,parent-layout
          ,@(loop for element in (mapcar #'expand-element-hierarchy elements)
-              collect `(adopt ,p ,element))
-         ,p))))
+              collect `(adopt ,parent-layout ,element))))))
 
 
 ;; todo: wrap each push/pop into proper unwind-protect?
@@ -77,7 +80,7 @@
    (height :initform nil)
    (background :initarg :background-color)
    (title :initarg :title :initform "")
-   (closed-p :initform nil)
+   (hidden-p :initform nil)
    (option-mask :initarg :option-mask :initform '())
    (nk-rect :initform (calloc '(:struct (%nk:rect))))
    (nk-vec2 :initform (calloc '(:struct (%nk:vec2))))
@@ -86,15 +89,15 @@
 
 
 (defun hide-window (window)
-  (with-slots (id) window
-    (%nk:window-show *handle* id %nk:+hidden+)))
+  (with-slots (hidden-p) window
+    (unless hidden-p
+      (setf hidden-p t))))
 
 
 (defun show-window (window)
-  (with-slots (id closed-p) window
-    (when closed-p
-      (setf closed-p nil))
-    (%nk:window-show *handle* id %nk:+shown+)))
+  (with-slots (hidden-p) window
+    (when hidden-p
+      (setf hidden-p nil))))
 
 
 (defmethod initialize-instance :after ((this window) &key width height hidden-p)
@@ -102,8 +105,7 @@
     (setf w (float width 0f0)
           h (float height 0f0))
     (when hidden-p
-      (when-composing (poiu)
-        (hide-window this)))))
+      (hide-window this))))
 
 
 (define-destructor window (nk-rect nk-color nk-style-item nk-vec2 poiu id)
@@ -147,6 +149,7 @@
                                     (x color) (y color)
                                     (z color) (w color))))
 
+
 (defun compose-window (win next-method)
   (with-slots (x y width height title option-mask nk-rect id) win
     (let ((val (%nk:begin-titled *handle* id title (%nk:rect nk-rect x y width height)
@@ -167,8 +170,8 @@
 
 
 (defmethod compose ((this window))
-  (with-slots (background nk-color nk-style-item panel-p closed-p id) this
-    (unless closed-p
+  (with-slots (background nk-color nk-style-item panel-p hidden-p id) this
+    (unless hidden-p
       (with-styles ((%nk:style-item (when background
                                       (style-item-color nk-style-item nk-color background))
                                     :window :fixed-background))
@@ -176,7 +179,7 @@
             (compose-panel this #'call-next-method)
             (compose-window this #'call-next-method)))
       (unless (= 0 (%nk:window-is-closed *handle* id))
-        (setf closed-p t)))))
+        (setf hidden-p t)))))
 
 ;;;
 ;;;
