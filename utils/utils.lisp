@@ -170,6 +170,13 @@
       (deletef children child))))
 
 
+(defgeneric abandon-all (parent)
+  (:method ((this parent))
+    (with-slots (children) this
+      (prog1 children
+        (setf children nil)))))
+
+
 (defmacro dochildren ((var parent) &body body)
   `(dolist (,var (children-of ,parent))
      ,@body))

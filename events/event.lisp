@@ -64,8 +64,8 @@
 
 
 (defun subscribe-to (event-class-name handler event-system)
-  (let ((event-class (find-class event-class-name)))
-    (with-slots (executor handler-table) event-system
+  (with-slots (executor handler-table) event-system
+    (let ((event-class (find-class event-class-name)))
       (with-system-lock-held (event-system)
         (%check-event-class-registration event-class event-system)
         (execute executor
@@ -73,4 +73,15 @@
                    (with-system-lock-held (event-system)
                      (with-hash-entries ((handlers event-class)) handler-table
                        (pushnew handler handlers))))))))
+  handler)
+
+
+(defun unsubscribe-from (event-class-name handler event-system)
+  (with-slots (executor handler-table) event-system
+    (let ((event-class (find-class event-class-name)))
+      (execute executor
+               (lambda ()
+                 (with-system-lock-held (event-system)
+                   (with-hash-entries ((handlers event-class)) handler-table
+                     (deletef handlers handler)))))))
   handler)

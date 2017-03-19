@@ -13,9 +13,9 @@
    (poiu :initform nil)
    (y-axis :initform (vec3 0.0 1.0 0.0))
 
-   (cursor-callback :initform nil)
-   (mouse-callback :initform nil)
-   (character-callback :initform nil)
+   (cursor-listener :initform nil)
+   (mouse-listener :initform nil)
+   (character-listener :initform nil)
    (input-state :initform (make-input-state))))
 
 
@@ -77,22 +77,22 @@
 
 
 (defun enable-cursor-input (interactive-node)
-  (with-slots (cursor-callback input-state) interactive-node
-    (unless cursor-callback
-      (setf cursor-callback (subscribe-body-to (cursor-event (x y)) (events)
+  (with-slots (cursor-listener input-state) interactive-node
+    (unless cursor-listener
+      (setf cursor-listener (subscribe-body-to (cursor-event (x y)) (events)
                               (register-cursor-state input-state x y))))))
 
 
 (defun enable-mouse-input (interactive-node)
-  (with-slots (mouse-callback input-state) interactive-node
-    (unless mouse-callback
-      (setf mouse-callback (subscribe-body-to (mouse-event (button state)) (events)
+  (with-slots (mouse-listener input-state) interactive-node
+    (unless mouse-listener
+      (setf mouse-listener (subscribe-body-to (mouse-event (button state)) (events)
                              (register-mouse-state input-state button state))))))
 
 
 (defun enable-character-input (interactive-node)
-  (with-slots (character-callback input-state) interactive-node
-    (unless character-callback
-      (setf character-callback
+  (with-slots (character-listener input-state) interactive-node
+    (unless character-listener
+      (setf character-listener
             (subscribe-body-to (character-input-event (character)) (events)
               (register-character input-state character))))))

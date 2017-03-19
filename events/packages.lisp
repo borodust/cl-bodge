@@ -12,5 +12,6 @@
            register-event-classes
            post
            subscribe-to
+           unsubscribe-from
            subscribe-body-to
            define-event-handler))

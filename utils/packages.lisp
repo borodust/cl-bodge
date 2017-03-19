@@ -52,6 +52,7 @@
            parent
            adopt
            abandon
+           abandon-all
            dochildren
            children-of
            dotree
