@@ -24,6 +24,7 @@
            *projection-matrix*
            *view-matrix*
            *model-matrix*
+           model-view-projection-matrix
 
            rendering-pass
            make-rendering-pass
@@ -35,6 +36,7 @@
 
            light-node
            *lights*
+           apply-light-source-shading-parameter
 
            projection-node
            update-projection

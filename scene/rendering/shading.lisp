@@ -56,6 +56,7 @@
           (error "Parameter with name '~a' is unbound" name))
         (setf (program-uniform-variable (first programs) name) value)))))
 
+
 #++
 (defun shading-parameter (name)
   (with-slots (bindings) *shading-parameters*

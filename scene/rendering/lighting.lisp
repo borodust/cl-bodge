@@ -16,3 +16,7 @@
       (unwind-protect
            (call-next-method)
         (pop *lights*)))))
+
+
+(defun apply-light-source-shading-parameter (name variable)
+  (setf (shading-parameter name) variable))
