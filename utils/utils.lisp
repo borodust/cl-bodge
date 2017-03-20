@@ -37,7 +37,7 @@
                                                (dissect:present e stream))))
                              (log:error "~a" error-text)
                              (when-debugging
-                               (break))
+                               (break "~A: ~A" (type-of e) e))
                              (return-from ,name)))))
          (progn ,@body)))))
 

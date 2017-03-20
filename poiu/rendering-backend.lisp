@@ -25,7 +25,7 @@
 
 (defun draw-bounding-box (poiu x y w h &optional (r 255) (g 0) (b 0) (a 255))
   (draw-rect (vec2 x (%invert y poiu h)) w h
-             :stroke-color (clamp r g b a)
+             :stroke-paint (clamp r g b a)
              :canvas (canvas-of poiu)))
 
 
@@ -60,7 +60,7 @@
                      (r :color :r) (g :color :g) (b :color :b) (a :color :a))
       (cmd %nk:command-rect)
     (draw-rect (vec2 x (%invert y poiu h)) w h
-               :stroke-color (clamp r g b a)
+               :stroke-paint (clamp r g b a)
                :rounding rounding
                :canvas (canvas-of poiu))))
 
@@ -71,7 +71,7 @@
                      (r :color :r) (g :color :g) (b :color :b) (a :color :a))
       (cmd %nk:command-rect-filled)
     (draw-rect (vec2 x (%invert y poiu h)) w h
-               :fill-color (clamp r g b a)
+               :fill-paint (clamp r g b a)
                :rounding rounding
                :canvas (canvas-of poiu))))
 
@@ -88,7 +88,7 @@
     (let ((rx (/ w 2))
           (ry (/ h 2)))
       (draw-ellipse (vec2 (+ x rx) (+ (%invert y poiu) ry)) rx ry
-                    :stroke-color (clamp r g b a)
+                    :stroke-paint (clamp r g b a)
                     :thickness thickness
                     :canvas (canvas-of poiu)))))
 
@@ -100,7 +100,7 @@
     (let ((rx (/ w 2))
           (ry (/ h 2)))
       (draw-ellipse (vec2 (+ x rx) (+ (%invert y poiu) ry)) rx ry
-                    :fill-color (clamp r g b a)
+                    :fill-paint (clamp r g b a)
                     :canvas (canvas-of poiu)))))
 
 
@@ -109,7 +109,7 @@
                      (r :color :r) (g :color :g) (b :color :b) (a :color :a))
       (cmd %nk:command-arc)
     (draw-arc (vec2 x (%invert y poiu)) radius a0 a1
-              :stroke-color (clamp r g b a)
+              :stroke-paint (clamp r g b a)
               :canvas (canvas-of poiu))))
 
 
@@ -118,7 +118,7 @@
                      (r :color :r) (g :color :g) (b :color :b) (a :color :a))
       (cmd %nk:command-arc-filled)
     (draw-arc (vec2 x (%invert y poiu)) radius a0 a1
-              :fill-color (clamp r g b a)
+              :fill-paint (clamp r g b a)
               :canvas (canvas-of poiu))))
 
 
@@ -131,7 +131,7 @@
     (draw-polygon (list (vec2 x0 (%invert y0 poiu))
                         (vec2 x1 (%invert y1 poiu))
                         (vec2 x2 y2))
-                  :stroke-color (clamp r g b a)
+                  :stroke-paint (clamp r g b a)
                   :canvas (canvas-of poiu))))
 
 
@@ -144,7 +144,7 @@
     (draw-polygon (list (vec2 x0 (%invert y0 poiu))
                         (vec2 x1 (%invert y1 poiu))
                         (vec2 x2 (%invert y2 poiu)))
-                  :fill-color (clamp r g b a)
+                  :fill-paint (clamp r g b a)
                   :canvas (canvas-of poiu))))
 
 
@@ -157,7 +157,7 @@
                                             :points i :x)
                                      (c-ref cmd (:struct (%nk:command-polygon))
                                             :points i :y)))))
-      (draw-polygon vertices :stroke-color (clamp r g b a)
+      (draw-polygon vertices :stroke-paint (clamp r g b a)
                     :canvas (canvas-of poiu)))))
 
 
@@ -170,7 +170,7 @@
                                             :points i :x)
                                      (c-ref cmd (:struct (%nk:command-polygon))
                                             :points i :y)))))
-      (draw-polygon vertices :fill-color (clamp r g b a)
+      (draw-polygon vertices :fill-paint (clamp r g b a)
                     :canvas (canvas-of poiu)))))
 
 

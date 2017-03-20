@@ -26,8 +26,9 @@
            pixel-format-p
 
            pixel-format-of
-           image->array
-           size-of
+           foreign-array-of
+           width-of
+           height-of
 
            pcm-data
            sample-depth

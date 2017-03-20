@@ -11,4 +11,5 @@
            mesh-asset-transform
            mesh-asset-bones
 
-           load-ogg-vorbis-audio))
+           load-ogg-vorbis-audio
+           load-png-image))

@@ -1,4 +1,4 @@
 (in-package :cl-bodge.audio)
 
 
-(defclass al-object (foreign-object) ())
+(defclass al-object (system-foreign-object) ())

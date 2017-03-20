@@ -80,11 +80,13 @@
 
 
 (defun chunk->image (chunk)
-  (make-instance 'image
-                 :width (image-chunk-width chunk)
-                 :height (image-chunk-height chunk)
-                 :pixel-format (image-chunk-pixel-format chunk)
-                 :data (image-chunk-data chunk)))
+  (let ((raw-data (image-chunk-data chunk)))
+    (make-instance 'image
+                   :width (image-chunk-width chunk)
+                   :height (image-chunk-height chunk)
+                   :pixel-format (image-chunk-pixel-format chunk)
+                   :data (make-foreign-array (length raw-data)
+                                             :initial-contents raw-data))))
 
 
 (defmethod chunk-asset-flow ((this image-chunk) loader)

@@ -93,16 +93,17 @@
   (:default-initargs :target :texture-2d))
 
 
-(defmethod initialize-instance :after ((this texture-2d) &key data external-format
+(defmethod initialize-instance :after ((this texture-2d) &key image external-format
                                                            internal-format width height
                                                            generate-mipmaps-p)
   (with-slots (dimensions) this
     (setf dimensions (list width height)))
   (with-bound-texture (this)
-    (let ((target (target-of this)))
+    (let ((target (target-of this))
+          (data (foreign-array-of image)))
       (gl:pixel-store :unpack-alignment 1)
       (gl:tex-image-2d target 0 internal-format width height 0 external-format
-                       :unsigned-byte data :raw t)
+                       :unsigned-byte (foreign-pointer-of data))
       (gl:tex-parameter target :texture-mag-filter :linear)
       (if generate-mipmaps-p
           (progn
@@ -117,28 +118,31 @@
 (define-system-function make-2d-texture graphics-system
     (image texture-format &key (generate-mipmaps-p t) (system *system*))
   (let ((ex-format (%pixel-format->external-format (pixel-format-of image)))
-        (in-format (%texture-format->internal-format texture-format)))
-    (multiple-value-bind (width height) (size-of image)
+        (in-format (%texture-format->internal-format texture-format))
+        (width (width-of image))
+        (height (height-of image)))
       (make-instance 'texture-2d
                      :system system
-                     :data (image->array image)
+                     :image image
                      :external-format ex-format
                      :internal-format in-format
                      :generate-mipmaps-p generate-mipmaps-p
                      :width width
-                     :height height))))
+                     :height height)))
 
 
 ;;;
 ;;;
 ;;;
 (defclass blank-image ()
-  ((size :initform nil)))
+  ((width :initform nil :reader widht-of)
+   (height :initform nil :reader height-of)))
 
 
 (defmethod initialize-instance :after ((this blank-image) &key width height)
-  (with-slots (size) this
-    (setf size (list width height))))
+  (with-slots ((w width) (h height)) this
+    (setf w width
+          h height)))
 
 
 (definline make-blank-image (width height)
@@ -149,9 +153,5 @@
   :grey)
 
 
-(defmethod size-of ((this blank-image))
-  (values-list (slot-value this 'size)))
-
-
-(defmethod image->array ((this blank-image))
+(defmethod foreign-array-of ((this blank-image))
   nil)

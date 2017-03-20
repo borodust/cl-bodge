@@ -11,7 +11,8 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (alexandria uiop log4cl local-time dissect split-sequence cl-autowrap)
+  :depends-on (alexandria uiop log4cl local-time dissect split-sequence cl-autowrap
+                          static-vectors)
   :pathname "utils"
   :serial t
   :components ((:file "packages")
@@ -40,7 +41,8 @@
                                      (:file "quaternion")))
                (:module memory
                         :serial t
-                        :components ((:file "disposable")))
+                        :components ((:file "disposable")
+                                     (:file "foreign-array")))
                (:module concurrency
                         :serial t
                         :components ((:file "dispatch")
@@ -138,11 +140,15 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/graphics log4cl bodge-nanovg)
+  :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/assets cl-bodge/graphics
+                               log4cl bodge-nanovg)
   :pathname "canvas"
   :serial t
   :components ((:file "packages")
-               (:file "canvas")))
+               (:file "canvas")
+               (:file "image")
+               (:file "paint")
+               (:file "primitives")))
 
 
 (defsystem cl-bodge/animation

@@ -4,7 +4,7 @@
 (defgeneric render (renderable))
 
 
-(defclass gl-object (foreign-object) ())
+(defclass gl-object (system-foreign-object) ())
 
 
 

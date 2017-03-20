@@ -13,14 +13,16 @@
                           (:grey 1)
                           (:rgb 3)
                           (:rgba 4))
-     with result = (make-array (* width height channels) :element-type '(unsigned-byte 8))
+        with result = (make-foreign-array (* width height channels)
+                                          :element-type '(unsigned-byte 8))
+        with array = (simple-array-of result)
      for i from 0 below height do
        (loop for j from 0 below width do
             (if (= channels 1)
-                (setf (aref result (+ j (* i width)))
+                (setf (aref array (+ j (* i width)))
                        (aref data i j))
                 (loop for k from 0 below channels do
-                     (setf (aref result (+ k (* j channels) (* (- height i 1) width channels)))
+                     (setf (aref array (+ k (* j channels) (* (- height i 1) width channels)))
                            (aref data i j k)))))
      finally (return result)))
 
@@ -39,11 +41,7 @@
                      :pixel-format format))))
 
 
-(defmethod size-of ((this image))
-  (values (width-of this) (height-of this)))
-
-
-(defmethod image->array ((this image))
+(defmethod foreign-array-of ((this image))
   (data-of this))
 
 

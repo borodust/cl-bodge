@@ -4,7 +4,8 @@
 (define-constant +precision+ (if ode:+double-precision-p+ 0d0 0f0)
   :test #'=)
 
-(defclass ode-object (foreign-object) ())
+
+(defclass ode-object (system-foreign-object) ())
 
 
 (defgeneric direction-of (object))

@@ -1,15 +1,18 @@
 (in-package :cl-bodge.asdf)
 
 
-(defpackage :cl-bodge.memory
+(ge.util:define-package :cl-bodge.memory
   (:nicknames :ge.mem)
-  (:use :cl-bodge.utils
-        :cl :trivial-garbage)
+  (:use :cl :cl-bodge.utils :trivial-garbage :static-vectors)
   (:export define-destructor
            dispose
            disposable
            disposable-container
-           with-disposable))
+           with-disposable
+
+           make-foreign-array
+           simple-array-of
+           foreign-pointer-of))
 
 
 (defpackage :cl-bodge.concurrency
@@ -134,11 +137,12 @@
            system-of
            enableable
 
-           foreign-object
            handle-value-of
-           destroy-foreign-object
            defhandle
            *handle-value*
+
+           foreign-object
+           system-foreign-object
 
            generic-system
            with-system-lock-held

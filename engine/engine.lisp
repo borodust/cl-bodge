@@ -319,27 +319,20 @@ Flow variant of #'make-instance."
 ;;;
 ;;;
 ;;;
+(declaim (special *handle-value*))
+
+
 (defclass handle ()
   ((value :initarg :value :initform (error ":value initarg missing") :reader value-of)))
 
 
-(defclass foreign-object (disposable system-object)
-  ((handle :initarg :handle :initform (error "foreign object :handle must be supplied")
-           :reader handle-of))
-  (:documentation "Base class for disposable foreign system-dependent objects.  Simplifies
-handling of init/dispose lifecycle for such ojects."))
+(defgeneric destroy-handle (handle))
+(defgeneric handle-of (object))
 
 
-(definline handle-value-of (foreign-object)
+(definline handle-value-of (object)
   "Return value stored in the handle of the provided foreign object"
-  (with-slots (handle) foreign-object
-    (value-of handle)))
-
-
-(defgeneric destroy-foreign-object (handle))
-
-
-(declaim (special *handle-value*))
+  (value-of (handle-of object)))
 
 
 (defmacro defhandle (name &key (initform nil)
@@ -352,7 +345,7 @@ initialized and returned by :initform or provided to the generated handle constr
     `(progn
        (defclass ,name (handle) ())
 
-       (defmethod destroy-foreign-object ((,handle ,name))
+       (defmethod destroy-handle ((,handle ,name))
          (let ((*handle-value* (value-of ,handle)))
            ,closeform))
 
@@ -361,12 +354,32 @@ initialized and returned by :initform or provided to the generated handle constr
                                           (error "value or :initform must be provided")))))))
 
 
-(define-destructor foreign-object ((handle handle-of) (sys system-of))
-  (run
-   (-> (sys :priority :low :important-p t) ()
-     (destroy-foreign-object handle))))
+(defclass foreign-object (disposable)
+  ((handle :initarg :handle :initform (error "foreign object :handle must be supplied")
+           :reader handle-of))
+  (:documentation "Base class for disposable foreign objects. Simplifies
+handling of init/dispose lifecycle for such ojects."))
 
 
+(define-destructor foreign-object ((handle handle-of))
+  (destroy-handle handle))
+
+
+(defclass system-foreign-object (disposable system-object)
+  ((handle :initarg :handle :initform (error "foreign object :handle must be supplied")
+           :reader handle-of))
+  (:documentation "Base class for disposable system-dependent foreign objects. Simplifies
+handling of init/dispose lifecycle for such ojects."))
+
+
+(define-destructor system-foreign-object ((handle handle-of) (sys system-of))
+  (run (-> (sys :priority :low :important-p t) ()
+         (destroy-handle handle))))
+
+
+;;;
+;;;
+;;;
 (defmacro define-system-function (name system-class lambda-list &body body)
   "Define function that bound to the system, i.e. its body must be executed only when *system*
 special variable corresponds to the instance of the `system-class`."

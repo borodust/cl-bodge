@@ -1,11 +1,11 @@
 (in-package :cl-bodge.asdf)
 
 
-(defpackage :cl-bodge.utils
+(uiop:define-package :cl-bodge.utils
   (:nicknames :ge.util)
-  (:use :cl :local-time :alexandria :split-sequence)
-  ;; reexport from alexandria
-  (:export with-gensyms
+  (:use :cl :local-time :alexandria :split-sequence :static-vectors)
+  (:export ; from :alexandria
+           with-gensyms
            once-only
            symbolicate
            make-keyword

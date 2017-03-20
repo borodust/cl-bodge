@@ -10,8 +10,9 @@
 ;;;
 ;;;
 (defgeneric pixel-format-of (image))
-(defgeneric size-of (image))
-(defgeneric image->array (image))
+(defgeneric width-of (image))
+(defgeneric height-of (image))
+(defgeneric image->foreign-array (image))
 
 
 ;;;
