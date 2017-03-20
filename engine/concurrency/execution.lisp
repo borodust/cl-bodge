@@ -53,10 +53,12 @@ executor. Executor must operate in thread-safe manner."))
 
 (defmethod execute ((this discarding-executor) (task function) &key
                                                                  (priority :medium)
-                                                                 (important-p t))
-  (if important-p
-      (put-into (task-queue-of this) task priority)
-      (try-put-replacing (task-queue-of this) task priority)))
+                                                                 (important-p t)
+                                                                 processing-thread)
+  (if (or (not important-p) (and processing-thread
+                                 (equal (current-thread) processing-thread)))
+      (try-put-replacing (task-queue-of this) task priority)
+      (put-into (task-queue-of this) task priority)))
 
 
 (definline make-discarding-executor (&optional queue-size)
@@ -67,15 +69,19 @@ executor. Executor must operate in thread-safe manner."))
 ;;;
 ;;;
 (defclass single-threaded-executor (disposable)
-  ((executor :initarg :executor :initform (error ":executor missing"))))
+  ((executor :initarg :executor :initform (error ":executor missing"))
+   (processing-thread :initform nil)))
 
 
-(defmethod initialize-instance :after ((this single-threaded-executor) &key special-variables)
-  (with-slots (executor) this
-    (bt:make-thread (lambda ()
-                      (progv special-variables (mapcar (constantly nil) special-variables)
-                        (run executor)))
-                    :name "single-threaded-executor")))
+(defmethod initialize-instance :after ((this single-threaded-executor)
+                                       &key special-variables)
+  (with-slots (executor processing-thread) this
+    (setf processing-thread
+          (bt:make-thread (lambda ()
+                            (progv special-variables
+                                (mapcar (constantly nil) special-variables)
+                              (run executor)))
+                          :name "single-threaded-executor"))))
 
 
 (define-destructor single-threaded-executor (executor)
@@ -99,9 +105,13 @@ below maximum allowed."
 (defmethod execute ((this single-threaded-executor) (task function) &key
                                                                       (priority :medium)
                                                                       (important-p t))
-  "Execute task in the dedicated thread. Block execution of the #'execute caller if maximum number of queued tasks is reached and :important-p is set to 't. Discard task if maximum number of queued tasks is reached, but :important-p is set to 'nil."
-  (with-slots (executor) this
-    (execute executor task :priority priority :important-p important-p)))
+  "Execute task in the dedicated thread. Block execution of the #'execute caller if maximum
+number of queued tasks is reached and :important-p is set to 't. Discard task if maximum number
+of queued tasks is reached, but :important-p is set to nil or posting thread and processing
+thread are the same."
+  (with-slots (executor processing-thread) this
+    (execute executor task :priority priority :important-p important-p
+             :processing-thread processing-thread)))
 
 ;;;
 ;;;
