@@ -189,7 +189,7 @@ initialized."
       ((and (not exclusive-p) (not single-threaded-p) (not special-variables))
        shared-pool)
       ((and exclusive-p single-threaded-p)
-       (make-single-threaded-executor special-variables))
+       (make-single-threaded-executor :special-variables special-variables))
       ((and single-threaded-p (not exclusive-p) (not special-variables))
        (first shared-executors))
       (t (error "Cannot provide executor for combination of requirements: ~a" args)))))

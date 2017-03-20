@@ -67,7 +67,7 @@ executor. Executor must operate in thread-safe manner."))
 ;;;
 ;;;
 (defclass single-threaded-executor (disposable)
-  ((executor :initform (make-discarding-executor +default-queue-size+))))
+  ((executor :initarg :executor :initform (error ":executor missing"))))
 
 
 (defmethod initialize-instance :after ((this single-threaded-executor) &key special-variables)
@@ -82,7 +82,8 @@ executor. Executor must operate in thread-safe manner."))
   (dispose executor))
 
 
-(definline make-single-threaded-executor (&optional special-variables)
+(definline make-single-threaded-executor (&key (queue-size +default-queue-size+)
+                                               special-variables)
   "Make executor that run tasks in the same dedicated thread. Symbols specified in the
 `special-variables` would be available to the tasks ran by this executor.
 
@@ -90,7 +91,9 @@ executor. Executor must operate in thread-safe manner."))
 :important-p key is not specified or set to 't. If :important-p is set to 'nil when maximum
 number of tasks is reached new incoming tasks will be discarded until number of tasks will drop
 below maximum allowed."
-  (make-instance 'single-threaded-executor :special-variables special-variables))
+  (make-instance 'single-threaded-executor
+                 :executor (make-discarding-executor queue-size)
+                 :special-variables special-variables))
 
 
 (defmethod execute ((this single-threaded-executor) (task function) &key
