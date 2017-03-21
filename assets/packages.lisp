@@ -8,6 +8,7 @@
            asset-registry-of
            assets
            copy-assets
+           asset-flow
 
            engine-asset-id
 

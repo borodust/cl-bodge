@@ -12,3 +12,11 @@
 (defmethod initialize-system :after ((this asset-system))
   (with-slots (asset-registry) this
     (setf asset-registry (make-instance 'asset-registry))))
+
+
+(defun asset-flow (&rest asset-names)
+  (let ((reg (asset-registry-of (assets))))
+    (>> (~> (loop for name in asset-names
+               collecting (get-asset reg name)))
+        (instantly (&rest assets)
+          (values-list (mapcar #'first assets))))))
