@@ -18,5 +18,5 @@
   (let ((reg (asset-registry-of (assets))))
     (>> (~> (loop for name in asset-names
                collecting (get-asset reg name)))
-        (instantly (&rest assets)
+        (instantly (assets)
           (values-list (mapcar #'first assets))))))

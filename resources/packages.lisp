@@ -12,4 +12,7 @@
            mesh-asset-bones
 
            load-ogg-vorbis-audio
-           load-png-image))
+           load-png-image
+
+           font-atlas-asset-id
+           font-asset-id))

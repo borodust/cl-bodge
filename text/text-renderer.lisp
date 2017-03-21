@@ -5,6 +5,7 @@
   ((default-color :initarg :default-color)
    (shading-program :initarg :shading-program)
    (scale :initform 1.0 :reader scale-of)
+   (line-height :initarg :line-height :reader text-line-height)
    (proj :initform nil)
    (width :initarg :width :reader width-of)
    (height :initarg :height :reader height-of)
@@ -49,10 +50,6 @@
     (flet ((scale (v)
              (* v scale)))
       (mapcar #'scale (measure-string string (text-cache-font text-cache))))))
-
-
-(defun text-line-height (text-renderer)
-  (* (scale-of text-renderer) (font-ascender-height (font-of text-renderer))))
 
 
 (defun draw-text (renderer string &key position color)

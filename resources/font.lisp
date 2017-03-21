@@ -18,3 +18,11 @@
 
 (defmethod parse-chunk ((chunk-type (eql :font-atlas)) params data)
   (make-font-atlas-chunk data))
+
+
+(definline font-atlas-asset-id (font-name)
+  (format nil "/sdf/~A/image" font-name))
+
+
+(definline font-asset-id (font-name)
+  (format nil "/sdf/~A/font" font-name))

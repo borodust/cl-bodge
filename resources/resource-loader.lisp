@@ -13,7 +13,8 @@
 
 (defgeneric read-chunk-data (chunk-type parameters stream)
   (:method (chunk-type parameters stream)
-    (read (flexi-streams:make-flexi-stream stream :external-format :utf-8))))
+    (read-preserving-whitespace
+     (flexi-streams:make-flexi-stream stream :external-format :utf-8))))
 
 
 (defun push-object (id obj)
