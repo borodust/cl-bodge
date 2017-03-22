@@ -21,6 +21,7 @@
            make-text-renderer
            measure-scaled-string
            text-line-height
+           text-ascender-height
            update-text-renderer-canvas-size
            draw-text
            scale-of

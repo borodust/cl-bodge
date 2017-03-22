@@ -45,6 +45,10 @@
                  :default-color color))
 
 
+(defun text-ascender-height (text-renderer)
+  (* (scale-of text-renderer) (font-ascender-height (font-of text-renderer))))
+
+
 (defun measure-scaled-string (renderer string)
   (with-slots (text-cache scale) renderer
     (flet ((scale (v)

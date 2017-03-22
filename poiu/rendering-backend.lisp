@@ -205,7 +205,8 @@
       (cmd %nk:command-text)
     (let ((lisp-string (cffi:foreign-string-to-lisp string :count length)))
       (draw-text (text-renderer-of poiu) lisp-string
-                 :position (vec2 x (%invert y poiu (text-line-height (text-renderer-of poiu))))
+                 :position (vec2 x (%invert y poiu
+                                            (text-ascender-height (text-renderer-of poiu))))
                  :color (clamp r g b a)))))
 
 
