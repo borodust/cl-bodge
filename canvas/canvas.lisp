@@ -34,18 +34,18 @@
 
 
 (definline end-canvas (canvas)
-  (%nvg:end-frame (handle-value-of canvas)))
+  (%nvg:end-frame (handle-value-of canvas))
+  (reset-state))
 
 
 (defmacro with-canvas ((canvas &optional (pixel-ratio 1.0)) &body body)
   (once-only (canvas)
-    `(preserving-state
-       (let ((*canvas* ,canvas))
-         (unwind-protect
-              (progn
-                (begin-canvas ,canvas ,pixel-ratio)
-                ,@body)
-           (end-canvas ,canvas))))))
+    `(let ((*canvas* ,canvas))
+       (unwind-protect
+            (progn
+              (begin-canvas ,canvas ,pixel-ratio)
+              ,@body)
+         (end-canvas ,canvas)))))
 
 
 
