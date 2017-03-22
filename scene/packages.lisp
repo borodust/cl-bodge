@@ -14,7 +14,7 @@
            scene-node
            scene-pass
            make-pass-chain
-           animate
+           scene-processing-flow
            node-enabled-p
            initialize-node
            discard-node

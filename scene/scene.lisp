@@ -121,7 +121,7 @@
          ,@body))))
 
 
-(defun animate (scene)
+(defun scene-processing-flow (scene)
   (>> (process-pass-chain-flow (pass-chain-of scene) (root-of scene))))
 
 

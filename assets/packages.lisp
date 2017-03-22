@@ -14,7 +14,6 @@
 
            register-asset-loader
            release-assets
-           get-asset
 
            asset-names
            load-asset

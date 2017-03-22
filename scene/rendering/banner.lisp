@@ -33,7 +33,7 @@
                                                            (0.0 1.0)))))
               (attach-array-buffer vbuf mesh 0)
               (attach-array-buffer tbuf mesh 1))))
-        (get-asset (asset-registry-of (assets)) "/engine/shading-program/banner")
+        (asset-flow "/engine/shading-program/banner")
         (instantly (program)
           (setf this-program program)))))
 
