@@ -272,3 +272,28 @@
                  #-sbcl '(progn)))
     `(,@masking
       ,@body)))
+
+
+(defun make-mutable-string (&optional (length 0))
+  (make-array length :element-type 'character :fill-pointer t))
+
+
+(defun string->mutable (string)
+  (make-array (length string)
+              :element-type 'character
+              :fill-pointer t
+              :initial-contents string))
+
+
+(defun string->immutable (string)
+  (if (subtypep (type-of string) '(simple-array character *))
+      string
+      (make-array (length string)
+                  :element-type 'character
+                  :initial-contents string)))
+
+
+(defun mutate-string (string control-string &rest arguments)
+  (setf (fill-pointer string) 0)
+  (with-output-to-string (out string)
+    (apply #'format out control-string arguments)))

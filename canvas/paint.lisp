@@ -28,9 +28,9 @@
 
 
 (defmethod initialize-instance :after ((this image-paint) &key image (canvas *canvas*)
-                                                            origin flip-vertically-p)
+                                                            origin flip-vertically)
   (with-slots ((img image)) this
-    (setf img (image->nvg canvas image :flip-vertically-p flip-vertically-p))
+    (setf img (image->nvg canvas image :flip-vertically flip-vertically))
     (%nvg:image-pattern (handle-value-of this)
                         (handle-value-of canvas)
                         (when origin (x origin)) (when origin (%invert (y origin) canvas))
@@ -38,12 +38,12 @@
                         0.0 (id-of img) 1.0)))
 
 
-(defun make-image-paint (image &key origin (canvas *canvas*) flip-vertically-p)
+(defun make-image-paint (image &key origin (canvas *canvas*) flip-vertically)
   (make-instance 'image-paint
                  :image image
                  :canvas canvas
                  :origin origin
-                 :flip-vertically-p flip-vertically-p))
+                 :flip-vertically flip-vertically))
 
 
 (defmethod (setf fill-paint) ((value image-paint) (canvas canvas))

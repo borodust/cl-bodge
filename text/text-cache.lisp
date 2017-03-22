@@ -39,7 +39,7 @@
       (when (= count max-size)
         (cleanup text-cache))
       (let ((node (pushrf text rated-queue)))
-        (setf (gethash string table) node)))))
+        (setf (gethash (string->immutable string) table) node)))))
 
 
 (defun promote-text (text-cache node)

@@ -118,10 +118,10 @@
 
 
 (defun make-window (poiu x y w h &key (title "") (background-color nil)
-                                   (headerless-p t) (scrollable-p nil) (backgrounded-p nil)
-                                   (borderless-p nil) (panel-p nil) (resizable-p nil)
-                                   (minimizable-p nil) (movable-p nil) (closable-p nil)
-                                   (hidden-p nil))
+                                   (headerless t) (scrollable nil) (has-background nil)
+                                   (borderless nil) (panel-p nil) (resizable nil)
+                                   (minimizable nil) (movable nil) (closable nil)
+                                   (hidden nil))
   (macrolet ((opt (key option)
                `(when ,key
                   (list ,option))))
@@ -131,16 +131,16 @@
                    :panel-p panel-p
                    :title title
                    :background-color background-color
-                   :hidden-p hidden-p
+                   :hidden-p hidden
                    :option-mask (apply #'nk:panel-mask
-                                       (nconc (opt (not headerless-p) :title)
-                                              (opt (not scrollable-p) :no-scrollbar)
-                                              (opt (not (or panel-p borderless-p)) :border)
-                                              (opt closable-p :closable)
-                                              (opt backgrounded-p :background)
-                                              (opt resizable-p :scalable)
-                                              (opt minimizable-p :minimizable)
-                                              (opt movable-p :movable))))))
+                                       (nconc (opt (not headerless) :title)
+                                              (opt (not scrollable) :no-scrollbar)
+                                              (opt (not (or panel-p borderless)) :border)
+                                              (opt closable :closable)
+                                              (opt has-background :background)
+                                              (opt resizable :scalable)
+                                              (opt minimizable :minimizable)
+                                              (opt movable :movable))))))
 
 
 (defun style-item-color (style-item-buf color-buf color)
@@ -321,11 +321,11 @@
   ((window :initform nil)))
 
 
-(defmethod initialize-instance :after ((this health-monitor) &key poiu x y width height hidden-p)
+(defmethod initialize-instance :after ((this health-monitor) &key poiu x y width height hidden)
   (with-slots (window) this
     (setf window (make-window poiu x y width height :title "Health monitor"
-                              :headerless-p nil :scrollable-p t :resizable-p t
-                              :movable-p t :closable-p t :hidden-p hidden-p))))
+                              :headerless nil :scrollable t :resizable t
+                              :movable t :closable t :hidden hidden))))
 
 
 (defun make-health-monitor (poiu x y &key (width 640.0) (height 480.0) (hidden-p t))

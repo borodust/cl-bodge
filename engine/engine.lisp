@@ -212,14 +212,14 @@ initialized."
 
 
 (defmethod dispatch ((this bodge-engine) (task function) &rest keys &key (priority :medium)
-                                                                      invariant concurrently-p)
+                                                                      invariant concurrently)
   "Use engine instance as a dispatcher. If :invariant and :concurrently-p are both nil task is
 not dispatched and just executed in the current thread. If :invariant is nil but :concurrently-p
 is t, task is dispatched to the engine's default pooled executor. If :invariant is specified,
 task is dispatched to the object provided under this key."
   (with-slots (shared-pool) this
     (etypecase invariant
-      (null (if concurrently-p
+      (null (if concurrently
                 (execute shared-pool task :priority priority)
                 (funcall task)))
       (dispatcher (apply #'dispatch invariant task keys)))
@@ -234,7 +234,7 @@ task is dispatched to the object provided under this key."
 
 (defmacro concurrently ((&rest lambda-list) &body body)
   "Push task to engine's pooled executor."
-  `(-> (nil :concurrently-p t) ,lambda-list
+  `(-> (nil :concurrently t) ,lambda-list
      ,@body))
 
 
@@ -258,11 +258,9 @@ about object returned from the flow are provided.")
 (defun assembly-flow (class &rest initargs &key &allow-other-keys)
   "Return flow that constructs an object and returns it.
 Flow variant of #'make-instance."
-  (>> (instantly ()
-        (apply #'make-instance class :allow-other-keys t initargs))
-      (->> (instance)
-        (>> (apply #'initialization-flow instance initargs)
-            (instantly () instance)))))
+  (let ((instance (apply #'make-instance class :allow-other-keys t initargs)))
+    (>> (apply #'initialization-flow instance initargs)
+        (value-flow instance))))
 
 
 (defun run (fn)

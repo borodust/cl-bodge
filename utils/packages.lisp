@@ -66,4 +66,8 @@
            foreign-function-pointer
            stringify
            apply-argument-list
-           with-float-traps-masked))
+           with-float-traps-masked
+           make-mutable-string
+           string->mutable
+           string->immutable
+           mutate-string))
