@@ -31,6 +31,7 @@
 
            collide
            filter-contacts
+           contacts-per-collision
            collidable
            collidablep
            sphere-geom

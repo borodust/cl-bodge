@@ -1,7 +1,6 @@
 (in-package :cl-bodge.physics)
 
 
-(defvar *contact-points-per-collision* 4)
 (defvar *world-quick-step-iterations* 20)
 (defvar *auto-disable-bodies-p* t)
 (defvar *error-reduction-parameter* 0.5) ;; 0.1 ~ 0.8 recommended
@@ -50,12 +49,13 @@
     (let* ((geoms (geoms-of universe))
            (this-geom (gethash (cffi:pointer-address (ptr this)) geoms))
            (that-geom (gethash (cffi:pointer-address (ptr that)) geoms))
+           (contacts-per-collision (contacts-per-collision this-geom that-geom))
            (world (world-of universe)))
       (unless (collide this-geom that-geom)
         ;; todo: move allocation into universe/world/space object
-        (c-with ((contact-geoms %ode:contact-geom :count *contact-points-per-collision*))
+        (c-with ((contact-geoms %ode:contact-geom :count contacts-per-collision))
           (let ((contact-count (%ode:collide this that
-                                             *contact-points-per-collision*
+                                             contacts-per-collision
                                              contact-geoms
                                              (foreign-type-size
                                               (find-type '%ode:contact-geom)))))

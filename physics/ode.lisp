@@ -4,6 +4,8 @@
 (define-constant +precision+ (if ode:+double-precision-p+ 0d0 0f0)
   :test #'=)
 
+(defvar *contact-points-per-collision* 1)
+
 
 (defclass ode-object (system-foreign-object) ())
 
@@ -18,6 +20,11 @@
 
 (defgeneric filter-contacts (contacts this-geom that-geom)
   (:method (contacts this-geom that-geom) contacts))
+
+
+(defgeneric contacts-per-collision (this-geom that-geom)
+  (:method (this that) *contact-points-per-collision*))
+
 
 
 ;;;
