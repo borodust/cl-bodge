@@ -19,6 +19,9 @@
            initialize-node
            discard-node
            discard-tree
+           enableable-node
+           enable-node
+           disable-node
 
            *scene*
            *projection-matrix*

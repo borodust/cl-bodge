@@ -126,12 +126,12 @@
   (%raw-> vec3 (v3:normalize (value-of this))))
 
 
-(defmethod multiply ((this vec3) (scalar single-float))
-  (%raw-> vec3 (v3:*s (value-of this) scalar)))
+(defmethod multiply ((this vec3) (scalar number))
+  (%raw-> vec3 (v3:*s (value-of this) (f scalar))))
 
 
-(defmethod divide ((this vec3) (scalar single-float))
-  (%raw-> vec3 (v3:/s (value-of this) scalar)))
+(defmethod divide ((this vec3) (scalar number))
+  (%raw-> vec3 (v3:/s (value-of this) (f scalar))))
 
 
 (defmethod cross-product ((this vec3) (that vec3))
@@ -140,3 +140,11 @@
 
 (defmethod dot-product ((this vec3) (that vec3))
   (%raw-> vec3 (v3:dot (value-of this) (value-of that))))
+
+
+(defmethod multiply ((this vec4) (scalar number))
+  (%raw-> vec4 (v4:*s (value-of this) (f scalar))))
+
+
+(defmethod divide ((this vec4) (scalar number))
+  (%raw-> vec4 (v4:/s (value-of this) (f scalar))))

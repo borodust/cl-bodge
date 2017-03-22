@@ -150,3 +150,26 @@
 (defmacro scenegraph (root)
   "Returns flow for constructing a scenegraph"
   (%parse-tree root))
+
+;;;
+;;;
+;;;
+(defclass enableable-node ()
+  ((enabled-p :initform t :initarg :enabled-p)))
+
+
+(defmethod node-enabled-p ((this enableable-node))
+  (with-slots (enabled-p) this
+    enabled-p))
+
+
+(defgeneric enable-node (node)
+  (:method ((node enableable-node))
+    (with-slots (enabled-p) node
+      (setf enabled-p t))))
+
+
+(defgeneric disable-node (node)
+  (:method ((node enableable-node))
+    (with-slots (enabled-p) node
+      (setf enabled-p nil))))
