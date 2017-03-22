@@ -118,7 +118,7 @@
 
 
 (defun make-window (poiu x y w h &key (title "") (background-color nil)
-                                   (headerless t) (scrollable nil) (has-background nil)
+                                   (headerless t) (scrollable nil) (background-p nil)
                                    (borderless nil) (panel-p nil) (resizable nil)
                                    (minimizable nil) (movable nil) (closable nil)
                                    (hidden nil))
@@ -137,7 +137,7 @@
                                               (opt (not scrollable) :no-scrollbar)
                                               (opt (not (or panel-p borderless)) :border)
                                               (opt closable :closable)
-                                              (opt has-background :background)
+                                              (opt background-p :background)
                                               (opt resizable :scalable)
                                               (opt minimizable :minimizable)
                                               (opt movable :movable))))))

@@ -36,7 +36,7 @@
   (with-slots (geom poiu normal) this
     (>> (call-next-method)
         (~> (-> ((graphics)) ()
-                  (setf poiu (make-poiu-context width height font 24 :antialiased-p t)))
+                  (setf poiu (make-poiu-context width height font 24 :antialiased t)))
             (-> ((physics)) ()
               (setf geom (make-instance 'interactive-board-plane :normal normal)))))))
 

@@ -268,5 +268,4 @@
                       (begin-canvas canvas))
                (:image (render-image cmd poiu)))
              (setf prev-command cmd)))
-      (end-canvas canvas)
-      (reset-state))))
+      (end-canvas canvas))))

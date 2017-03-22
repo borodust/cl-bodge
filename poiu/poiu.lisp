@@ -51,24 +51,24 @@
 
 (defmethod initialize-instance ((this nuklear-context) &rest keys &key width height
                                                                     font line-height
-                                                                    antialiased-p)
+                                                                    antialiased)
   (let ((nk-font (make-nuklear-font line-height 'calc-string-width)))
     (apply #'call-next-method this
            :handle (make-nuklear-context-handle
                     (bodge-nuklear:make-context (handle-value-of nk-font)))
-           :canvas (make-canvas width height :antialiased-p antialiased-p)
+           :canvas (make-canvas width height :antialiased antialiased)
            :nuklear-font nk-font
            :text-renderer (make-text-renderer width height font line-height)
            keys)))
 
 
-(definline make-poiu-context (width height font line-height &key antialiased-p)
+(definline make-poiu-context (width height font line-height &key antialiased)
   (make-instance 'nuklear-context
                  :width width
                  :height height
                  :font font
                  :line-height line-height
-                 :antialiased-p antialiased-p))
+                 :antialiased antialiased))
 
 
 (defun push-compose-task (ctx fn)

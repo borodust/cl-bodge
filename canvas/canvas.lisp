@@ -19,9 +19,9 @@
           h height)))
 
 
-(define-system-function make-canvas graphics-system (width height &key antialiased-p)
+(define-system-function make-canvas graphics-system (width height &key antialiased)
   (let ((opts (append (list :stencil-strokes)
-                      (when antialiased-p (list :antialias))
+                      (when antialiased (list :antialias))
                       (when-debugging (list :debug)))))
     (make-instance 'canvas
                    :handle (make-canvas-handle (apply #'bodge-nanovg:make-context opts))
