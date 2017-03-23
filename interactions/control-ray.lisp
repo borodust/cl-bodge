@@ -52,8 +52,8 @@
 
 (defun update-ray-position (control-ray-node x y)
   (with-slots (origin end width height) control-ray-node
-    (setf (x origin) #f(- (/ x width 0.5) 1.0)
-          (y origin) #f(- (/ y height 0.5) 1.0)
+    (setf (x origin) (f (- (/ x width 0.5) 1.0))
+          (y origin) (f (- (/ y height 0.5) 1.0))
           (x end) (x origin)
           (y end) (y origin))))
 
@@ -71,7 +71,7 @@
       (flet ((deperspectify (vec)
                (let* ((hg (mult inverted vec))
                       (w (w hg)))
-                 (vec3 #f(/ (x hg) w) #f(/ (y hg) w) #f(/ (z hg) w)))))
+                 (vec3 (f (/ (x hg) w)) (f (/ (y hg) w)) (f (/ (z hg) w))))))
         (let* ((t-pos (deperspectify origin))
                (b-pos (deperspectify end))
                (dir (subt b-pos t-pos)))

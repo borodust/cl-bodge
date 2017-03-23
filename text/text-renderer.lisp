@@ -21,7 +21,7 @@
 (defun update-text-renderer-canvas-size (text-renderer width height)
   (with-slots (proj) text-renderer
     (setf proj (mult (orthographic-projection-mat width height 0.0 1.0)
-                     (translation-mat4 #f(- (/ width 2)) #f(- (/ height 2)) 0.0)))))
+                     (translation-mat4 (- (/ width 2)) (- (/ height 2)) 0.0)))))
 
 
 (defmethod initialize-instance :after ((this text-renderer) &key font width height line-height)

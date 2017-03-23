@@ -38,17 +38,17 @@
 
 
 (defclass vec2 (vec)
-  ((value :initarg :value :initform (v2:make #f0 #f0) :type rtg-math.types:vec2
+  ((value :initarg :value :initform (v2:make 0.0 0.0) :type rtg-math.types:vec2
           :reader value-of)))
 
 
 (defclass vec3 (vec)
-  ((value :initarg :value :initform (v3:make #f0 #f0 #f0) :type rtg-math.types:vec3
+  ((value :initarg :value :initform (v3:make 0.0 0.0 0.0) :type rtg-math.types:vec3
           :reader value-of)))
 
 
 (defclass vec4 (vec)
-  ((value :initarg :value :initform (v4:make #f0 #f0 #f0 #f0) :type rtg-math.types:vec4
+  ((value :initarg :value :initform (v4:make 0.0 0.0 0.0 0.0) :type rtg-math.types:vec4
           :reader value-of)))
 
 ;;;
@@ -62,7 +62,7 @@
 
 (defclass mat2 (square-mat)
   ((value :initarg :value
-          :initform (make-array 4 :element-type 'single-float :initial-element #f0)
+          :initform (make-array 4 :element-type 'single-float :initial-element 0.0)
           :type (simple-array single-float (4)) :reader value-of)))
 
 

@@ -1,25 +1,14 @@
 (in-package :cl-bodge.utils)
 
 
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (defmacro definline (name lambda-list &body body)
-    `(progn
-       (declaim (inline ,name))
-       (defun ,name ,lambda-list ,@body)))
+(defmacro definline (name lambda-list &body body)
+  `(progn
+     (declaim (inline ,name))
+     (defun ,name ,lambda-list ,@body)))
 
 
-  (definline f (value)
-    (float value 0f0))
-
-
-  (set-dispatch-macro-character
-   #\# #\f
-   (lambda (stream key arg)
-     (declare (ignore key arg))
-     (let ((sexp (read stream t nil t)))
-       (if (numberp sexp)
-           (f sexp)
-           `(ge.util::f ,sexp))))))
+(definline f (value)
+  (float value 0f0))
 
 
 (defmacro when-debugging (&body body)

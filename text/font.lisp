@@ -98,18 +98,18 @@
                    collect (let ((kerning (if prev-g (find-kerning prev-g g) 0)))
                              (prog1
                                  (when walker
-                                   (let ((x-offset #f(- x x-orig))
-                                         (y-offset #f(- y y-orig)))
+                                   (let ((x-offset (f (- x x-orig)))
+                                         (y-offset (f (- y y-orig))))
                                      (funcall walker
                                               x-offset
                                               y-offset
-                                              #f(+ x-offset (- x1-box x0-box))
-                                              #f(+ y-offset (- y1-box y0-box))
+                                              (f (+ x-offset (- x1-box x0-box)))
+                                              (f (+ y-offset (- y1-box y0-box)))
 
-                                              #f(/ x0-box atlas-w)
-                                              #f(/ (- atlas-h y1-box) atlas-h)
-                                              #f(/ x1-box atlas-w)
-                                              #f(/ (- atlas-h y0-box) atlas-h))))
+                                              (f (/ x0-box atlas-w))
+                                              (f (/ (- atlas-h y1-box) atlas-h))
+                                              (f (/ x1-box atlas-w))
+                                              (f (/ (- atlas-h y0-box) atlas-h)))))
                                (setf x (+ x kerning advance)
                                      prev-g g)))
                    into line-result

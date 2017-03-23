@@ -33,7 +33,7 @@
 
 
 (defmethod multiply ((this quat) (that number))
-  (make-instance 'quat :value (q:*s (value-of this) #f that)))
+  (make-instance 'quat :value (q:*s (value-of this) (f that))))
 
 
 (defmethod multiply ((that number) (this quat))

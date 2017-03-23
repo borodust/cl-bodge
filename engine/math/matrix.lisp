@@ -20,7 +20,7 @@
 (definline (setf mref) (value mat row column)
   ;; fixme: hax, use generic and m2/3/4:melm
   (let ((len (if (= (length mat) 16) 4 3)))
-    (setf (aref mat (+ row (* column len))) value)))
+    (setf (aref mat (+ row (* column len))) (f value))))
 
 
 (definline identity-mat4 ()
@@ -32,7 +32,7 @@
 
 
 (definline euler-axis->mat4 (a vec3)
-  (make-instance 'mat4 :value (m4:rotation-from-axis-angle (value-of vec3) a)))
+  (make-instance 'mat4 :value (m4:rotation-from-axis-angle (value-of vec3) (f a))))
 
 
 (defmethod inverse ((this mat4))
@@ -44,9 +44,9 @@
 
 
 (definline sequence->rotation-mat4 (sequence)
-  (make-instance 'mat4 :value (m4:rotation-from-euler (v3:make (elt sequence 0)
-                                                               (elt sequence 1)
-                                                               (elt sequence 2)))))
+  (make-instance 'mat4 :value (m4:rotation-from-euler (v3:make (f (elt sequence 0))
+                                                               (f (elt sequence 1))
+                                                               (f (elt sequence 2))))))
 
 (defgeneric mat->rotation-mat4 (mat)
   (:method ((mat mat3))
@@ -60,7 +60,7 @@
   (mat4->mat3 that))
 
 
-(definline sequence->mat4 (sequence)
+(defun sequence->mat4 (sequence)
   "row major"
   (let ((val (m4:0!)))
     (macrolet ((%array->m4 (arr)
@@ -68,7 +68,7 @@
                    `(setf
                      ,@(loop for i from 0 below 4 append
                             (loop for j from 0 below 4 append
-                                 `((m4:melm val ,i ,j) (aref ,arr ,(+ (* i 4) j)))))))))
+                                 `((m4:melm val ,i ,j) (f (aref ,arr ,(+ (* i 4) j))))))))))
       (if (listp sequence)
           (%array->m4 (make-array 16 :initial-contents sequence))
           (%array->m4 sequence)))

@@ -81,13 +81,13 @@
 (defgeneric translate-node (node x y z)
   (:method ((this transform-node) x y z)
     (with-slots (mat) this
-      (setf mat (mult (translation-mat4 #f x #f y #f z) mat)))))
+      (setf mat (mult (translation-mat4 x y z) mat)))))
 
 
 (defgeneric rotate-node (node x y z)
   (:method ((this transform-node) x y z)
     (with-slots (mat) this
-      (setf mat (mult (euler-angles->mat4 (vec3 #f x #f y #f z)) mat)))))
+      (setf mat (mult (euler-angles->mat4 (vec3 x y z)) mat)))))
 
 
 (defmethod scene-pass ((this transform-node) pass input)
