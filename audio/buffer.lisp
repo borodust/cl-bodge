@@ -17,7 +17,8 @@
                         (8 :uint8)
                         (16 :int16)))
         (foreign-size (* (/ sample-depth 8) (length pcm-data))))
-    (cffi:with-foreign-array (raw-data pcm-data (list :array foreign-type (length pcm-data)))
+    ;; fixme: remove :: hax
+    (cffi::with-foreign-array (raw-data pcm-data (list :array foreign-type (length pcm-data)))
       (al:buffer-data (handle-value-of this) pcm-format raw-data foreign-size sampling-rate))))
 
 

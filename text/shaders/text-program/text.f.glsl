@@ -12,5 +12,5 @@ uniform sampler2D atlas;
 uniform vec4 baseColor;
 
 void main() {
-  fColor = sdfTest(baseColor, sdfCoord, SDFMap(atlas, 0.5));
+  fColor = sdfTest(baseColor, sdfCoord, atlas);
 }

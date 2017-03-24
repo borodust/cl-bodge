@@ -3,12 +3,7 @@
 
 #ifdef FRAGMENT_SHADER
 
-struct SDFMap {
-  sampler2D sdf;
-  float threshold;
-};
-
-vec4 sdfTest(vec4 baseColor, vec2 sdfCoords, SDFMap map);
+vec4 sdfTest(vec4 baseColor, vec2 sdfCoords, sampler2D atlas);
 
 #endif // FRAGMENT_SHADER
 
