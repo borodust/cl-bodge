@@ -105,7 +105,6 @@ Required foreign libraries:
 | `ODE`        | 0.14    | `cl-bodge/physics`
 | `libsndfile` | 1.0     | `cl-bodge/resources`
 | `OpenGL`     | 4.1     | `cl-bodge/graphics`
-| `libepoxy`   | ?.?     | `bodge-nanovg`
 | `NanoVG`     | ?.?     | `bodge-nanovg`
 | `Nuklear`    | 1.20    | `bodge-nuklear`
 
@@ -117,6 +116,7 @@ You need few CL dependencies installed manually:
 * [`bodge-sndfile`](https://github.com/borodust/bodge-sndfile)
 * [`bodge-nuklear`](https://github.com/borodust/bodge-nuklear)
 * [`bodge-nanovg`](https://github.com/borodust/bodge-nanovg)
+* [`bodge-glad`](https://github.com/borodust/bodge-glad)
 
 Finally, you need to clone this repository to your local machine and setup
 [Quicklisp](https://www.quicklisp.org/), so it could find engine's source code.

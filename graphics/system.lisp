@@ -33,6 +33,7 @@
                (gl:get* :shading-language-version)
                (gl:get* :vendor)
                (gl:get* :renderer))
+    (glad:init)
 
     (let ((ctx (make-graphics-context)))
       (with-current-state-slice ((ctx-state ctx))

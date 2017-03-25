@@ -109,7 +109,7 @@
   :mailto "dev@borodust.org"
   :license "MIT"
   :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/host cl-bodge/assets cl-opengl
-                               log4cl local-time cffi)
+                               bodge-glad log4cl local-time cffi)
   :pathname "graphics"
   :serial t
   :components ((:file "packages")
