@@ -93,9 +93,9 @@
                                               :context-version-major 4
                                               :context-version-minor 1
                                               :opengl-profile :opengl-core-profile
-                                              :opengl-forward-compat t
-                                              :depth-bits 32
-                                              :samples 4)
+					      :opengl-forward-compat t
+					      :depth-bits 24
+					      :stencil-bits 8)
                  (glfw:set-window-close-callback 'on-close)
                  (glfw:set-key-callback 'on-key-action)
                  (glfw:set-mouse-button-callback 'on-mouse-action)
@@ -108,6 +108,7 @@
                        enabled-p t)
                  (open-latch latch)
                  (log:debug "Host main loop running")
+		 (glfw:make-context-current (cffi:null-pointer))
                  (let ((*system* this))
                    (loop while enabled-p
                       do (log-errors
