@@ -31,11 +31,11 @@
                                                             origin flip-vertically)
   (with-slots ((img image)) this
     (setf img (image->nvg canvas image :flip-vertically flip-vertically))
-    (%nvg:image-pattern (handle-value-of this)
-                        (handle-value-of canvas)
-                        (when origin (x origin)) (when origin (%invert (y origin) canvas))
-                        (f (width-of image)) (f (height-of image))
-                        0.0 (id-of img) 1.0)))
+    (%nvg:bge-init-image-pattern (handle-value-of this)
+                                 (handle-value-of canvas)
+                                 (when origin (x origin)) (when origin (%invert (y origin) canvas))
+                                 (f (width-of image)) (f (height-of image))
+                                 0.0 (id-of img) 1.0)))
 
 
 (defun make-image-paint (image &key origin (canvas *canvas*) flip-vertically)
@@ -47,8 +47,8 @@
 
 
 (defmethod (setf fill-paint) ((value image-paint) (canvas canvas))
-  (%nvg:fill-paint (handle-value-of canvas) (handle-value-of value)))
+  (%nvg:bge-fill-paint (handle-value-of canvas) (handle-value-of value)))
 
 
 (defmethod (setf stroke-paint) ((value image-paint) (canvas canvas))
-  (%nvg:fill-paint (handle-value-of canvas) (handle-value-of value)))
+  (%nvg:bge-fill-paint (handle-value-of canvas) (handle-value-of value)))

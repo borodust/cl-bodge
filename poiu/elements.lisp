@@ -45,19 +45,18 @@
 ;; todo: wrap each push/pop into proper unwind-protect?
 (defmacro with-styles ((&rest styles) &body body)
   (with-gensyms (ctx)
-    (let ((stack-ops (loop with nk-package = (find-package :%nk)
-                        for style in styles
+    (let ((stack-ops (loop for style in styles
                         collect
-                          (destructuring-bind (type new-value &rest path) style
+                          (destructuring-bind (new-value &rest path) style
                             (with-gensyms (val)
                               (list val
                                     new-value
                                     `(when ,val
-                                       (,(format-symbol nk-package "~A~A" 'style-push- type)
-                                         ,ctx (,ctx :style ,@path &) ,val))
+                                       (push-style *context* (,ctx :style ,@path &) ,val))
                                     `(when ,val
-                                       (,(format-symbol nk-package "~A~A"'style-pop- type)
-                                         ,ctx))))))))
+                                       (if (subtypep (class-of ,val) 'style-item)
+                                           (pop-style *context* 'style-item)
+                                           (pop-style *context* (class-name-of ,val))))))))))
       `(c-let ((,ctx (:struct (%nk:context)) :from *handle*))
          (let ,(mapcar (lambda (l) (list (first l) (second l))) stack-ops)
            (unwind-protect
@@ -78,14 +77,10 @@
    (panel-p :initarg :panel-p)
    (width :initform nil)
    (height :initform nil)
-   (background :initarg :background-color)
+   (background-style-item :initform nil)
    (title :initarg :title :initform "")
    (hidden-p :initform nil)
-   (option-mask :initarg :option-mask :initform '())
-   (nk-rect :initform (calloc '(:struct (%nk:rect))))
-   (nk-vec2 :initform (calloc '(:struct (%nk:vec2))))
-   (nk-color :initform (calloc '(:struct (%nk:color))))
-   (nk-style-item :initform (calloc '(:struct (%nk:style-item))))))
+   (option-mask :initarg :option-mask :initform '())))
 
 
 (defun hide-window (window)
@@ -100,21 +95,19 @@
       (setf hidden-p nil))))
 
 
-(defmethod initialize-instance :after ((this window) &key width height hidden-p)
-  (with-slots ((w width) (h height) title poiu) this
+(defmethod initialize-instance :after ((this window) &key width height hidden-p background-color)
+  (with-slots ((w width) (h height) title poiu background-style-item) this
     (setf w (float width 0f0)
           h (float height 0f0))
+    (when background-color
+      (setf background-style-item (make-instance 'color-style-item :color background-color)))
     (when hidden-p
       (hide-window this))))
 
 
-(define-destructor window (nk-rect nk-color nk-style-item nk-vec2 poiu id)
+(define-destructor window (poiu id)
   (when-composing (poiu)
-    (%nk:window-close (handle-value-of poiu) id))
-  (free nk-style-item)
-  (free nk-vec2)
-  (free nk-color)
-  (free nk-rect))
+    (%nk:window-close (handle-value-of poiu) id)))
 
 
 (defun make-window (poiu x y w h &key (title "") (background-color nil)
@@ -143,38 +136,32 @@
                                               (opt movable :movable))))))
 
 
-(defun style-item-color (style-item-buf color-buf color)
-  (%nk:style-item-color style-item-buf
-                        (%nk:rgba-f color-buf
-                                    (x color) (y color)
-                                    (z color) (w color))))
+(defun style-item-color (style-item color)
+  (%nk:bge-init-color-style-item style-item (x color) (y color) (z color) (w color)))
 
 
 (defun compose-window (win next-method)
-  (with-slots (x y width height title option-mask nk-rect id) win
-    (let ((val (%nk:begin-titled *handle* id title (%nk:rect nk-rect x y width height)
-                                 option-mask)))
+  (with-slots (x y width height title option-mask id) win
+    (let ((val (%nk:bge-begin-titled *handle* id title x y width height option-mask)))
       (unless (= 0 val)
         (funcall next-method win))
       (%nk:end *handle*))))
 
 
 (defun compose-panel (win next-method)
-  (with-slots (nk-vec2) win
-    (with-styles ((%nk:vec2 nk-vec2 :window :spacing)
-                  (%nk:vec2 nk-vec2 :window :padding)
-                  (%nk:vec2 nk-vec2 :window :header :label-padding)
-                  (%nk:vec2 nk-vec2 :window :header :padding)
-                  (:float 0.0 :window :border))
+  (let ((vec (vec2 0.0 0.0)))
+    (with-styles ((vec :window :spacing)
+                  (vec :window :padding)
+                  (vec :window :header :label-padding)
+                  (vec :window :header :padding)
+                  (0.0 :window :border))
       (compose-window win next-method))))
 
 
 (defmethod compose ((this window))
-  (with-slots (background nk-color nk-style-item panel-p hidden-p id) this
+  (with-slots (background-style-item panel-p hidden-p id) this
     (unless hidden-p
-      (with-styles ((%nk:style-item (when background
-                                      (style-item-color nk-style-item nk-color background))
-                                    :window :fixed-background))
+      (with-styles ((background-style-item :window :fixed-background))
         (if panel-p
             (compose-panel this #'call-next-method)
             (compose-window this #'call-next-method)))

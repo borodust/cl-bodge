@@ -72,15 +72,11 @@
 
 
 (defun stroke-color (color &optional (canvas *canvas*))
-  (c-with ((nk-color (:struct (%nk:color))))
-    (%nvg:rgba-f nk-color (x color) (y color) (z color) (w color))
-    (%nvg:stroke-color (handle-value-of canvas) nk-color)))
+  (%nvg:bge-stroke-color (handle-value-of canvas) (x color) (y color) (z color) (w color)))
 
 
 (defun fill-color (color &optional (canvas *canvas*))
-  (c-with ((nk-color (:struct (%nk:color))))
-    (%nvg:rgba-f nk-color (x color) (y color) (z color) (w color))
-    (%nvg:fill-color (handle-value-of canvas) nk-color)))
+  (%nvg:bge-fill-color (handle-value-of canvas) (x color) (y color) (z color) (w color)))
 
 
 (definline %invert (y canvas &optional (h 0.0))

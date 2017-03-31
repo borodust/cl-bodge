@@ -7,7 +7,7 @@
                   (f w) (f h))))
 
 
-(definline stroke-and-fill (stroke-paint fill-paint thickness canvas)
+(defun stroke-and-fill (stroke-paint fill-paint thickness canvas)
   (when fill-paint
     (setf (fill-paint canvas) fill-paint)
     (fill-path canvas))

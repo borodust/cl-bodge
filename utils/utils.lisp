@@ -20,7 +20,9 @@
 (defmacro log-errors (&body body)
   (with-gensyms (name)
     `(block ,name
-       (handler-bind ((t (lambda (e)
+       (handler-bind ((warning (lambda (w)
+                                 (log:warn w)))
+                      (t (lambda (e)
                            (let ((error-text (with-output-to-string (stream)
                                                (format stream "Unhandled error:~%")
                                                (dissect:present e stream))))
