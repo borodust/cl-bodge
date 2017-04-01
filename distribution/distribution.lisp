@@ -65,7 +65,7 @@
      entry-function)))
 
 
-(defmacro distribution (name &body body
+(defmacro descriptor (name &body body
                         &key target-system
                           (entry-function
                            (error ":entry-function must be specified"))
@@ -84,18 +84,20 @@
       bundle
     (when (and bundle (null bundle-run-file))
       (error ":run-file must be specified for the bundle"))
-
-    `(make-instance 'distribution
-                    :name ,name
-                    :base-directory ,base-directory
-                    :target-system ,(or target-system name)
-                    :entry-function ,(parse-entry-function entry-function)
-                    :executable-name ,(or executable-name (format nil "~(~a~).bin" name))
-                    :compressed-p ,compressed-p
-                    :build-directory ,build-directory
-                    :library-directory ,library-directory
-                    :engine-assets-directory ,engine-assets-directory
-                    :assets ',assets
-                    :bundle-name ,bundle-name
-                    :bundle-compressed-p ,bundle-compressed-p
-                    :bundle-run-file ,bundle-run-file)))
+    (once-only (name)
+      `(register-distribution
+        ,name
+        (make-instance 'distribution
+                       :name ,name
+                       :base-directory ,base-directory
+                       :target-system ,(or target-system name)
+                       :entry-function ,(parse-entry-function entry-function)
+                       :executable-name ,(or executable-name `(format nil "~(~a~).bin" ,name))
+                       :compressed-p ,compressed-p
+                       :build-directory ,build-directory
+                       :library-directory ,library-directory
+                       :engine-assets-directory ,engine-assets-directory
+                       :assets ',assets
+                       :bundle-name ,bundle-name
+                       :bundle-compressed-p ,bundle-compressed-p
+                       :bundle-run-file ,bundle-run-file)))))

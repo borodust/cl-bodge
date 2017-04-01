@@ -1,8 +1,8 @@
 (in-package :cl-bodge.distribution)
 
 
-(define-constant +system-path+ (asdf:component-pathname (find-system :cl-bodge/distribution))
-  :test #'equal)
+(defun distribution-system-path ()
+  (asdf:component-pathname (find-system :cl-bodge/distribution)))
 
 
 (defun trim-whitespaces (string)

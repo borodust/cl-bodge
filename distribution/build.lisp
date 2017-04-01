@@ -11,7 +11,8 @@
                  sys-def))
 
            (%list-dependencies (system)
-             (mapcar #'%extract-name (asdf:system-depends-on system)))
+             (mapcar #'%extract-name (append (asdf:system-depends-on system)
+                                             (asdf:system-defsystem-depends-on system))))
 
            (%proper-path-p (sys-path)
              (and sys-path
@@ -38,16 +39,18 @@
 
 
 (defun build-executable ()
-  (let ((manifest-file (generate-manifest)))
-    (run-program "buildapp ~{\"~a\" ~}"
-                 (list "--output" (fad:merge-pathnames-as-file (directory-of *distribution*)
-                                                               (format nil "~(~a~).bin"
-                                                                       (name-of *distribution*)))
-                       "--entry" (entry-function-of *distribution*)
-                       "--manifest-file" manifest-file
-                       "--load" (file +system-path+ "prologue.lisp")
-                       "--load-system" (format nil "~(~a~)" (target-system-of *distribution*))
-                       "--compress-core"))))
+  (let ((manifest-file (generate-manifest))
+        (output-file (fad:merge-pathnames-as-file (directory-of *distribution*)
+                                                  (format nil "~(~a~).bin"
+                                                          (name-of *distribution*)))))
+    (unless (fad:file-exists-p output-file)
+      (run-program "buildapp ~{\"~a\" ~}"
+                   (list "--output"
+                         "--entry" (entry-function-of *distribution*)
+                         "--manifest-file" manifest-file
+                         "--load" (file (distribution-system-path) "prologue.lisp")
+                         "--load-system" (format nil "~(~a~)" (target-system-of *distribution*))
+                         "--compress-core")))))
 
 
 (defun prepare ()
@@ -70,8 +73,8 @@
                                                         (file-namestring lib-path)))))
       (unless (fad:file-exists-p dst)
         (fad:copy-file lib-path dst)
-        (loop for dep in (list-foreign-dependencies lib-path) do
-             (copy-foreign-dependencies dep lib-dir))))))
+        (loop for dep in (list-foreign-dependencies lib-path)
+           do (copy-foreign-dependencies dep lib-dir))))))
 
 
 (defun pack-foreign-libraries ()
@@ -96,12 +99,13 @@
         (funcall copy-fn dir)))))
 
 
-(defun make-distribution (distribution-descriptor)
-  (let* ((*distribution* (with-open-file (file distribution-descriptor)
-                           (let ((*package* (find-package :ge.dist)))
-                             (loop for form = (read file)
-                                until (and (listp form) (eq (car form) 'distribution))
-                                finally (return (eval (macroexpand form))))))))
+(defun shout (string)
+  (format t "~%~A" string)
+  (finish-output))
+
+
+(defun make-distribution (name)
+  (let* ((*distribution* (distribution-by-name name)))
     (let ((*load-verbose* nil)
           (*compile-verbose* nil)
           (*load-print* nil)
@@ -109,21 +113,21 @@
       (declare #+sbcl (sb-ext:muffle-conditions sb-ext:compiler-note))
       (handler-bind ((style-warning #'muffle-warning))
         (load-system (target-system-of *distribution*) :verbose nil)))
-    (format t "~%Preparing build directory")
+    (shout "Preparing build directory")
     (prepare)
-    (format t "~%Building executable")
+    (shout "Building executable")
     (build-executable)
-    (format t "~%Packing foreign libraries")
+    (shout "Packing foreign libraries")
     (pack-foreign-libraries)
-    (format t "~%Copying system assets")
+    (shout "Copying system assets")
     (copy-assets)
-    (format t "~%Copying engine assets")
-    (copy-engine-assets)
+    (shout "Copying engine assets")
+    #++(copy-engine-assets)
     (when (compressedp *distribution*)
-      (format t "~%Compressing distribution")
+      (shout "Compressing distribution")
       (compress))
     (when (bundle-run-file-of *distribution*)
-      (format t "~%Creating bundle")
+      (shout "Creating bundle")
       (make-app-bundle))
     (format t "~%Done~%")
     *distribution*))

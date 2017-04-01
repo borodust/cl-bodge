@@ -319,11 +319,17 @@
   :components ((:file "packages")
                (:file "utils")
                (:file "distribution")
-               #+darwin
-               (:file  "build-darwin")
-               #+(and unix (not darwin))
-               (:file "build-unix")
-               #-(or darwin unix)
+               (:file "registry")
+               (:module darwin
+                        :if-feature :darwin
+                        :components ((:file "build")))
+               (:module unix
+                        :if-feature (:and :unix (:not :darwin))
+                        :components ((:file "build")))
+               (:module windows
+                        :if-feature :windows
+                        :components ((:file "build")))
+               #-(or darwin unix windows)
                (:file "build-unknown")
                (:file "build")
                (:static-file "build.sh")))

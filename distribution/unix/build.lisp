@@ -1,6 +1,22 @@
 (in-package :cl-bodge.distribution)
 
 
+(define-constant +system-libraries+
+    (list "linux"
+          "libc.so"
+          "libdl.so"
+          "libm.so"
+          "libpthread.so"
+          "librt.so"
+          "libstdc++.so"
+          "libxcb.so"
+          "libgcc"
+          "libGL"
+          "libX"
+          "libdrm")
+  :test #'equal)
+
+
 (defun list-foreign-dependencies (parent-library-path)
   (with-program-output (dep-string) ("ldd \"~a\"" (namestring parent-library-path))
     (let ((deps (split-sequence:split-sequence #\Newline dep-string)))
@@ -16,10 +32,8 @@
   (let ((path (namestring lib-pathname)))
     (flet ((substringp (substring)
              (search substring path :test #'equal)))
-    (or (starts-with-subseq "/lib" path)
-        (substringp "libGL")
-        (substringp "libX")
-        (substringp "libdrm")))))
+      (or (starts-with-subseq "/lib" path)
+          (some #'substringp +system-libraries+)))))
 
 
 (defun list-platform-search-paths ()
