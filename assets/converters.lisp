@@ -1,4 +1,4 @@
-(in-package :cl-bodge.resources)
+(in-package :cl-bodge.assets)
 
 
 (defun chunk->animation (chunk)
@@ -107,7 +107,7 @@
 
 
 (defmethod chunk-asset-flow ((this font-atlas-chunk) loader)
-  (>> (load-asset loader (font-atlas-chunk-image-name this))
+  (>> (get-resource (font-atlas-chunk-image-name this))
       (-> ((ge.gx:graphics) :important-p t) (image)
         (chunk->font this image))))
 

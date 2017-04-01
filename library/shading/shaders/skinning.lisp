@@ -1,4 +1,4 @@
-(in-package :cl-bodge.animation)
+(in-package :cl-bodge.library.shading)
 
 
 (define-shader-library skinning-library

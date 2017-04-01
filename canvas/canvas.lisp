@@ -22,7 +22,7 @@
 (define-system-function make-canvas graphics-system (width height &key antialiased)
   (let ((opts (append (list :stencil-strokes)
                       (when antialiased (list :antialias))
-                      (when-debugging (list :debug)))))
+                      (in-development-mode (list :debug)))))
     (make-instance 'canvas
                    :handle (make-canvas-handle (apply #'bodge-nanovg:make-context opts))
                    :width width

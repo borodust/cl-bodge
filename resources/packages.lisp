@@ -3,16 +3,18 @@
 
 (defpackage :cl-bodge.resources
   (:nicknames :ge.rsc)
-  (:use :cl :cl-bodge.utils :cl-bodge.engine :cl-bodge.assets
-        :bodge-sndfile)
-  (:export make-resource-loader
+  (:use :cl :cl-bodge.utils :cl-bodge.engine)
+  (:export register-resource-loader
 
-           mesh-asset-mesh
-           mesh-asset-transform
-           mesh-asset-bones
+           release-resources
+           get-resource
+           resource-flow
 
-           load-ogg-vorbis-audio
-           load-png-image
+           engine-resource-id
 
-           font-atlas-asset-id
-           font-asset-id))
+           list-resource-names
+           load-resource
+           release-resource
+
+           encode-resource
+           decode-resource))

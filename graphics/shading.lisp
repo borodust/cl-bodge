@@ -4,6 +4,22 @@
 (declaim (special *active-shading-program*
                   *active-shading-pipeline*))
 
+;;;
+;;;
+;;;
+(defenum shader-type
+  :vertex-shader
+  :tessellation-control-shader
+  :tessellation-evaluation-shader
+  :geometry-shader
+  :fragment-shader
+  :compute-shader)
+
+
+(defgeneric shader-type-of (shader))
+(defgeneric shader-name-of (shader))
+(defgeneric shader-text-of (shader))
+
 
 (defun shader-type->gl (type)
   (ecase type
@@ -12,6 +28,9 @@
     (:tessellation-evaluation-shader :tess-evaluation-shader)))
 
 
+;;;
+;;;
+;;;
 (defhandle shader-handle
     :closeform (gl:delete-shader *handle-value*))
 
@@ -44,9 +63,8 @@
                      :name (shader-name-of shader-source)
                      :source (shader-text-of shader-source)
                      :system system)
-    (reload-source-and-compile ()
-      (compile-shader (reload-shader-text shader-source)))))
-
+    (recompile-shader ()
+      (compile-shader shader-source))))
 
 ;;;
 ;;;

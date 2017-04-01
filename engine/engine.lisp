@@ -265,7 +265,7 @@ Flow variant of #'make-instance."
 
 (defun run (fn)
   "Dispatch flow using engine as a dispatcher."
-  (cl-flow:run-flow (engine) fn))
+  (cl-flow:run (engine) fn))
 
 ;;
 (defgeneric system-of (obj)
@@ -385,7 +385,7 @@ special variable corresponds to the instance of the `system-class`."
     `(defun ,name ,lambda-list
        ,@(when doc (list doc))
        ,@decls
-       (when-debugging
+       (in-development-mode
          (cond
            ((or (not (boundp '*system*)) (null *system*))
             (error (concatenate 'string "~a executed in the wrong system thread:"

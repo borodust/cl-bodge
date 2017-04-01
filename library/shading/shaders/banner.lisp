@@ -1,4 +1,4 @@
-(in-package :cl-bodge.graphics)
+(in-package :cl-bodge.library.shading)
 
 
 (define-shading-program banner

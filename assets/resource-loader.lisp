@@ -1,4 +1,4 @@
-(in-package :cl-bodge.resources)
+(in-package :cl-bodge.assets)
 
 
 (declaim (special *objects*
@@ -11,10 +11,11 @@
     (error "Unknown chunk type: ~a" chunk-type)))
 
 
-(defgeneric read-chunk-data (chunk-type parameters stream)
+(defgeneric read-chunk (chunk-type parameters stream)
   (:method (chunk-type parameters stream)
-    (read-preserving-whitespace
-     (flexi-streams:make-flexi-stream stream :external-format :utf-8))))
+    (parse-chunk chunk-type parameters
+                 (read-preserving-whitespace
+                  (flexi-streams:make-flexi-stream stream :external-format :utf-8)))))
 
 
 (defun push-object (id obj)
@@ -129,13 +130,13 @@
              parameters
            (let* ((start-position (file-position in))
                   (inflated (chipz:make-decompressing-stream 'chipz:deflate in)))
-             (prog1 (read-chunk-data chunk-type parameters inflated)
+             (prog1 (read-chunk chunk-type parameters inflated)
                ;; fixme: dirty hack? mb better to allocate buffer from source stream
                (file-position in (+ start-position compressed-size)))))))
-      (read-chunk-data chunk-type parameters in)))
+      (read-chunk chunk-type parameters in)))
 
 
-(defun load-resource (path)
+(defun load-asset (path)
   (flet ((resolve-references (resolvers)
            (dolist (fn resolvers)
              (funcall fn))))
@@ -161,8 +162,7 @@
                         (error "Nameless chunk header of type ~A found" chunk-type))
                        ((not (null chunk))
                         (error "Duplicate chunk with name ~A found" name)))
-                     (let ((chunk-data (read-deflated in chunk-type parameters compression)))
-                       (setf chunk (parse-chunk chunk-type parameters chunk-data))))))
+                     (setf chunk (read-deflated in chunk-type parameters compression)))))
             (resolve-references *resolvers*)
             (make-instance 'resource :chunks chunk-table)))))))
 
@@ -183,7 +183,7 @@
 (defmethod initialize-instance :after ((this resource-loader) &key resource-paths)
   (with-slots (chunk-table) this
     (loop for path in resource-paths
-       for chunks = (list-chunks (load-resource path))
+       for chunks = (list-chunks (load-asset path))
        do (loop for (name . chunk) in chunks
              do (with-hash-entries ((cached name)) chunk-table
                   (when cached
@@ -195,7 +195,7 @@
   (make-instance 'resource-loader :resource-paths resource-paths))
 
 
-(defmethod asset-names ((this resource-loader))
+(defmethod list-resource-names ((this resource-loader))
   (with-slots (chunk-table) this
     (loop for name being the hash-key of chunk-table
        collect name)))
@@ -206,7 +206,7 @@
   (:method (chunk asset loader)))
 
 
-(defmethod load-asset ((this resource-loader) name)
+(defmethod load-resource ((this resource-loader) name)
   (with-slots (chunk-table) this
     (if-let ((cached (gethash name chunk-table)))
       (with-instance-lock-held (this)

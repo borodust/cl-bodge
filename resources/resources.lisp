@@ -1,4 +1,4 @@
-(in-package :cl-bodge.assets)
+(in-package :cl-bodge.resources)
 
 
 (defun assets-root ()
@@ -6,7 +6,7 @@
     (merge-working-pathname (fad:pathname-as-directory configured))))
 
 
-(defun engine-asset-id (name-control-string &rest args)
+(defun engine-resource-id (name-control-string &rest args)
   (with-output-to-string (name-stream)
     (format name-stream  "/engine/")
     (apply #'format name-stream name-control-string args)))

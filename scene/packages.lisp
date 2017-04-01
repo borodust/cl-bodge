@@ -4,7 +4,8 @@
 (defpackage :cl-bodge.scene
   (:nicknames :ge.sg)
   (:use :cl :cl-bodge.utils :cl-bodge.engine :cl-bodge.graphics :cl-bodge.physics
-        :cl-bodge.host :cl-bodge.animation :cl-bodge.audio :cl-bodge.assets)
+        :cl-bodge.host :cl-bodge.animation :cl-bodge.audio :cl-bodge.resources
+        :cl-bodge.library.shading)
   (:export node
            find-node
            parent-of

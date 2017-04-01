@@ -16,4 +16,5 @@
                  :cl-bodge.poiu
                  :cl-bodge.text
                  :cl-bodge.canvas
-                 :cl-bodge.interactions))
+                 :cl-bodge.interactions
+                 :cl-bodge.library.shading))

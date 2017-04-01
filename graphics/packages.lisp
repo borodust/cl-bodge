@@ -10,7 +10,7 @@
 (ge.util:define-package :cl-bodge.graphics
   (:nicknames :ge.gx)
   (:use :cl :cl-bodge.engine :cl-bodge.host :cl-bodge.utils
-        :cl-bodge.event :cl-bodge.assets)
+        :cl-bodge.event)
   (:export graphics-system
            graphics
            in-wireframe-mode
@@ -32,7 +32,9 @@
            render-mesh
            make-patch-mesh
 
-           load-shader-source
+           shader-type-of
+           shader-name-of
+           shader-text-of
            compile-shader
            make-shading-program
            make-separable-shading-program
@@ -72,11 +74,4 @@
            detach-depth-stencil-buffer
            with-complete-framebuffer
 
-           make-renderbuffer
-
-           define-shader-library
-           define-shading-program
-           shading-program-asset-name
-           find-program-descriptor
-           load-shading-program
-           build-shading-program))
+           make-renderbuffer))

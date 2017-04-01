@@ -13,7 +13,7 @@
   :license "MIT"
   :depends-on (alexandria uiop log4cl local-time dissect split-sequence cl-autowrap
                           static-vectors)
-  :pathname "utils"
+  :pathname "utils/"
   :serial t
   :components ((:file "packages")
                (:file "utils")
@@ -28,7 +28,7 @@
   :license "MIT"
   :depends-on (cl-bodge/utils cl-muth rtg-math log4cl bordeaux-threads local-time
                               trivial-garbage uiop cffi cl-flow)
-  :pathname "engine"
+  :pathname "engine/"
   :serial t
   :components ((:file "packages")
                (:module math
@@ -49,6 +49,9 @@
                                      (:file "execution")
                                      (:file "task-queue")
                                      (:file "instance-lock")))
+               (:module resources
+                        :components ((:file "audio")
+                                     (:file "graphics")))
                (:file "properties")
                (:file "engine")
                (:file "generic-system")
@@ -62,7 +65,7 @@
   :mailto "dev@borodust.org"
   :license "MIT"
   :depends-on (cl-bodge/engine cl-bodge/utils log4cl)
-  :pathname "events"
+  :pathname "events/"
   :serial t
   :components ((:file "packages")
                (:file "event")
@@ -77,28 +80,10 @@
   :license "MIT"
   :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/events cl-glfw3 log4cl bordeaux-threads
                                cl-muth trivial-main-thread)
-  :pathname "host"
+  :pathname "host/"
   :serial t
   :components ((:file "packages")
                (:file "events")
-               (:file "system")))
-
-
-(defsystem cl-bodge/assets
-  :description "Bodacious Game Engine assets system"
-  :version "0.3.0"
-  :author "Pavel Korolev"
-  :mailto "dev@borodust.org"
-  :license "MIT"
-  :depends-on (cl-bodge/engine cl-bodge/utils log4cl asdf)
-  :pathname "assets"
-  :serial t
-  :components ((:file "packages")
-               (:file "assets")
-               (:file "graphics")
-               (:file "audio")
-               (:file "registry")
-               (:file "distribution")
                (:file "system")))
 
 
@@ -108,9 +93,9 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/host cl-bodge/assets cl-opengl
+  :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/host cl-opengl
                                bodge-glad log4cl local-time cffi)
-  :pathname "graphics"
+  :pathname "graphics/"
   :serial t
   :components ((:file "packages")
                (:file "gl")
@@ -119,18 +104,8 @@
                (:file "mesh")
                (:file "shading")
                (:file "textures")
-               (:file "lighting")
                (:file "framebuffer")
                (:file "state")
-               (:file "shader-source")
-               (:file "shader-library")
-               (:file "shading-program")
-               (:file "shader-loader")
-               (:module shaders
-                        :components
-                        ((:file "math")
-                         (:file "lighting")
-                         (:file "banner")))
                (:file "system")))
 
 
@@ -140,9 +115,9 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/assets cl-bodge/graphics
+  :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/graphics
                                log4cl bodge-nanovg)
-  :pathname "canvas"
+  :pathname "canvas/"
   :serial t
   :components ((:file "packages")
                (:file "canvas")
@@ -158,13 +133,10 @@
   :mailto "dev@borodust.org"
   :license "MIT"
   :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/graphics)
-  :pathname "animation"
+  :pathname "animation/"
   :serial t
   :components ((:file "packages")
-               (:file "keyframed")
-               (:module shaders
-                        :components
-                        ((:file "skinning")))))
+               (:file "keyframed")))
 
 
 (defsystem cl-bodge/audio
@@ -173,9 +145,9 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/host cl-bodge/assets log4cl
+  :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/host log4cl
                                cl-openal cl-alc)
-  :pathname "audio"
+  :pathname "audio/"
   :serial t
   :components ((:file "packages")
                (:file "al")
@@ -191,7 +163,7 @@
   :mailto "dev@borodust.org"
   :license "MIT"
   :depends-on (cl-bodge/engine bodge-ode log4cl cl-autowrap cl-plus-c local-time)
-  :pathname "physics"
+  :pathname "physics/"
   :serial t
   :components ((:file "packages")
                (:file "ode")
@@ -204,14 +176,51 @@
                (:file "geometry")))
 
 
+(defsystem cl-bodge/resources
+  :description "Bodacious Game Engine resource management"
+  :version "0.3.0"
+  :author "Pavel Korolev"
+  :mailto "dev@borodust.org"
+  :license "MIT"
+  :depends-on (cl-bodge/engine cl-bodge/utils)
+  :pathname "resources/"
+  :serial t
+  :components ((:file "packages")
+               (:file "resources")
+               (:file "serialization")
+               (:file "registry")))
+
+
+(defsystem cl-bodge/shading-library
+  :description "Bodacious Game Engine shading library"
+  :version "0.3.0"
+  :author "Pavel Korolev"
+  :mailto "dev@borodust.org"
+  :license "MIT"
+  :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/resources cl-bodge/graphics flexi-streams)
+  :pathname "library/shading/"
+  :serial t
+  :components ((:file "packages")
+               (:file "lighting")
+               (:file "shader-source")
+               (:file "shader-library")
+               (:file "shading-program")
+               (:module shaders
+                        :components
+                        ((:file "math")
+                         (:file "lighting")
+                         (:file "banner")
+                         (:file "skinning")))))
+
+
 (defsystem cl-bodge/text
   :description "Bodacious Game Engine text rendering"
   :version "0.3.0"
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/graphics cl-bodge/assets log4cl)
-  :pathname "text"
+  :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/graphics cl-bodge/shading-library log4cl)
+  :pathname "text/"
   :serial t
   :components ((:file "packages")
                (:file "font")
@@ -231,8 +240,8 @@
   :mailto "dev@borodust.org"
   :license "MIT"
   :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/graphics bodge-nuklear cl-bodge/text
-                               cl-bodge/canvas cl-autowrap cl-plus-c cl-bodge/assets)
-  :pathname "poiu"
+                               cl-bodge/canvas cl-autowrap cl-plus-c)
+  :pathname "poiu/"
   :serial t
   :components ((:file "packages")
                (:file "poiu")
@@ -248,9 +257,9 @@
   :mailto "dev@borodust.org"
   :license "MIT"
   :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/graphics cl-bodge/physics
-                               cl-bodge/host cl-muth cl-bodge/animation cl-bodge/assets
-                               cl-bodge/audio)
-  :pathname "scene"
+                               cl-bodge/host cl-muth cl-bodge/animation
+                               cl-bodge/audio cl-bodge/shading-library)
+  :pathname "scene/"
   :serial t
   :components ((:file "packages")
                (:file "node")
@@ -277,7 +286,7 @@
   :license "MIT"
   :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/poiu cl-bodge/physics
                                cl-bodge/host cl-bodge/events cl-bodge/scenegraph)
-  :pathname "interactions"
+  :pathname "interactions/"
   :serial t
   :components ((:file "packages")
                (:file "input-state")
@@ -286,24 +295,25 @@
                (:file "system")))
 
 
-(defsystem cl-bodge/resources
-  :description "Bodacious Game Engine .BRF resource handling"
+(defsystem cl-bodge/assets
+  :description "Bodacious Game Engine .BRF"
   :version "0.3.0"
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/assets cl-bodge/graphics
-                               cl-bodge/animation cl-bodge/scenegraph flexi-streams log4cl
-                               cl-bodge/text cl-fad bodge-sndfile opticl chipz)
-  :pathname "resources"
+  :depends-on (cl-bodge/engine cl-bodge/utils  cl-bodge/graphics
+                               cl-bodge/animation cl-bodge/text
+                               cl-bodge/scenegraph bodge-sndfile
+                               opticl cl-fad chipz flexi-streams log4cl)
+  :pathname "assets/"
   :serial t
   :components ((:file "packages")
                (:file "resource-loader")
                (:file "audio")
                (:file "basic-chunks")
-               (:file "simple-model-chunk")
                (:file "image")
                (:file "font")
+               (:file "encoded")
                (:file "converters")))
 
 
@@ -314,7 +324,7 @@
   :mailto "dev@borodust.org"
   :license "MIT"
   :depends-on (alexandria asdf uiop cl-fad cffi split-sequence)
-  :pathname "distribution"
+  :pathname "distribution/"
   :serial t
   :components ((:file "packages")
                (:file "utils")
@@ -357,7 +367,7 @@
   :license "MIT"
   :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/events cl-bodge/host
                                cl-bodge/graphics cl-bodge/audio cl-bodge/physics
-                               cl-bodge/resources cl-bodge/assets cl-bodge/scenegraph
+                               cl-bodge/resources cl-bodge/scenegraph
                                cl-bodge/poiu cl-bodge/text cl-bodge/canvas
-                               cl-bodge/interactions)
+                               cl-bodge/interactions cl-bodge/assets)
   :components ((:file "packages")))

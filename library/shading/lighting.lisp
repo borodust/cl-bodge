@@ -1,4 +1,4 @@
-(in-package :cl-bodge.graphics)
+(in-package :cl-bodge.library.shading)
 
 
 (defclass light-source () ())
@@ -25,15 +25,6 @@
       (setf direction-uniform-name (prefixify "direction")
             ambient-uniform-name (prefixify "ambient")
             diffuse-uniform-name (prefixify "diffuse")))))
-
-
-(defmethod apply-light-source ((this directional-light-source) (program shading-program))
-  (with-slots (direction ambient diffuse
-                         direction-uniform-name ambient-uniform-name diffuse-uniform-name)
-      this
-    (setf (program-uniform-variable program direction-uniform-name) direction
-          (program-uniform-variable program ambient-uniform-name) ambient
-          (program-uniform-variable program diffuse-uniform-name) diffuse)))
 
 
 (defmethod apply-light-source ((this directional-light-source) (applier function))

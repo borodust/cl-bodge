@@ -25,7 +25,7 @@ executor. Executor must operate in thread-safe manner."))
   (interrupt queue))
 
 
-(defun run (executor)
+(defun ignite (executor)
   (block interruptible
     (loop
        (block continued
@@ -34,8 +34,8 @@ executor. Executor must operate in thread-safe manner."))
                                        (return-from interruptible))) ; leave loop
                         (t (lambda (e)
                              (log:error "Uncaught error during task execution: ~a" e)
-                             (when-debugging
-                               (break))
+                             (in-development-mode
+                               (break "~A: ~A" (type-of e) e))
                              (return-from continued)))) ; continue looping
            (funcall (pop-from (task-queue-of executor))))))))
 
@@ -80,7 +80,7 @@ executor. Executor must operate in thread-safe manner."))
           (bt:make-thread (lambda ()
                             (progv special-variables
                                 (mapcar (constantly nil) special-variables)
-                              (run executor)))
+                              (ignite executor)))
                           :name "single-threaded-executor"))))
 
 

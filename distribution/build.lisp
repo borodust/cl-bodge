@@ -91,8 +91,8 @@
 
 (defun copy-engine-assets ()
   (let ((dir (engine-assets-directory-of *distribution*)))
-    (when (asdf:system-registered-p :cl-bodge/assets)
-      (when-let* ((pkg (find-package :ge.as))
+    (when (asdf:system-registered-p :cl-bodge/resources)
+      (when-let* ((pkg (find-package :ge.rsc))
                   (fsym (find-symbol (symbol-name 'copy-assets) pkg))
                   (copy-fn (symbol-function fsym)))
         (ensure-directories-exist dir)

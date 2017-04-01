@@ -1,4 +1,4 @@
-(in-package :cl-bodge.resources)
+(in-package :cl-bodge.assets)
 
 
 (defclass image ()
@@ -54,14 +54,14 @@
   (data nil :read-only t))
 
 
-(defmethod read-chunk-data ((type (eql :image)) parameters stream)
+(defmethod read-chunk ((type (eql :image)) parameters stream)
   (destructuring-bind (&key size &allow-other-keys) parameters
     (let* ((image-data (make-array size :element-type '(unsigned-byte 8)))
            (bytes-read (read-sequence image-data stream)))
       (unless (= size bytes-read)
         (error "Incorrect :size provided for image chunk data: ~a supplied, but ~a read"
                size bytes-read))
-      image-data)))
+      (parse-chunk type parameters image-data))))
 
 
 (defmethod parse-chunk ((type (eql :image)) parameters data)

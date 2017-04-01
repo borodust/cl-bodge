@@ -110,10 +110,32 @@
            quat->rotation-mat4))
 
 
+(defpackage :cl-bodge.engine.resources
+  (:nicknames :ge.ng.rsc)
+  (:use :cl :cl-bodge.utils)
+  (:export pixel-format
+           pixel-format-p
+
+           pixel-format-of
+           foreign-array-of
+           width-of
+           height-of
+
+           pcm-data
+           sample-depth
+           channel-format
+
+           pcm-audio-data-of
+           audio-channel-format-of
+           audio-sample-depth-of
+           audio-sampling-rate-of))
+
+
 (ge.util:define-package :cl-bodge.engine
   (:nicknames :ge.ng)
   (:use :cl-bodge.utils :cl :bordeaux-threads :cl-muth)
-  (:use-reexport :cl-bodge.concurrency :cl-bodge.memory :cl-bodge.math)
+  (:use-reexport :cl-bodge.concurrency :cl-bodge.memory :cl-bodge.math
+                 :cl-bodge.engine.resources)
   (:export system
            enable
            disable
@@ -125,13 +147,13 @@
            merge-working-pathname
 
            dispatcher
-           run
            instantly
            concurrently
            value-flow
            null-flow
            assembly-flow
            initialization-flow
+           run
 
            system-object
            system-of

@@ -3,8 +3,7 @@
 
 (defpackage :cl-bodge.canvas
   (:nicknames :ge.vg)
-  (:use :cl :cl-bodge.engine :cl-bodge.utils :cl-bodge.graphics :cl-bodge.assets
-        :autowrap :plus-c)
+  (:use :cl :cl-bodge.engine :cl-bodge.utils :cl-bodge.graphics :autowrap :plus-c)
   (:export make-canvas
            update-canvas-size
            begin-canvas

@@ -3,7 +3,8 @@
 
 (defpackage :cl-bodge.text
   (:nicknames :ge.text)
-  (:use :cl :cl-bodge.utils :cl-bodge.engine :cl-bodge.graphics :cl-bodge.assets)
+  (:use :cl :cl-bodge.utils :cl-bodge.engine :cl-bodge.graphics
+        :cl-bodge.resources :cl-bodge.library.shading)
   (:export make-glyph
            make-font
            font-ascender-height

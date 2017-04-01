@@ -16,6 +16,7 @@
            when-let*
            if-let
            switch
+           eswitch
            define-constant
            alist-hash-table
            plist-alist
@@ -59,7 +60,7 @@
            search-sorted
            list->array
            reexporting
-           when-debugging
+           in-development-mode
            flatten-array
            expand-array
            split-sequence

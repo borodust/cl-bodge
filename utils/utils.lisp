@@ -11,9 +11,9 @@
   (float value 0f0))
 
 
-(defmacro when-debugging (&body body)
+(defmacro in-development-mode (&body body)
   (declare (ignorable body))
-  #+bodge-development-mode
+  #-bodge-production-mode
   `(progn ,@body))
 
 
@@ -27,7 +27,7 @@
                                                (format stream "Unhandled error:~%")
                                                (dissect:present e stream))))
                              (log:error "~a" error-text)
-                             (when-debugging
+                             (in-development-mode
                                (break "~A: ~A" (type-of e) e))
                              (return-from ,name)))))
          (progn ,@body)))))

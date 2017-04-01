@@ -23,10 +23,10 @@ Experimental **bod**acious **g**ame **e**ngine written in **C**ommon **L**isp.
   Abstraction layer over host OS-dependent functionality: windows, OS resource
   management, system and input events, etc. See `cl-bodge/host`.
 
-* ***Assets***
+* ***Resources***
 
   Asset management routines for asynchronous resource loading, preparation, retrieving and
-  releasing. See `cl-bodge/assets`.
+  releasing. See `cl-bodge/resources`.
 
 * ***Graphics***
 
@@ -70,10 +70,10 @@ Experimental **bod**acious **g**ame **e**ngine written in **C**ommon **L**isp.
   passes (rendering, simulation, etc); graphics-oriented, physics-oriented, transformation,
   animation, generic model and other types of nodes. See `cl-bodge/scenegraph`.
 
-* ***Resources***
+* ***Assets***
 
   Engine's universal Bodge Resource File and various external formats parsing and loading: images,
-  audio, fonts, meshes, skeletons, animations, etc. See `cl-bodge/resources`
+  audio, fonts, meshes, skeletons, animations, etc. See `cl-bodge/assets`
 
 * ***Distribution***
 

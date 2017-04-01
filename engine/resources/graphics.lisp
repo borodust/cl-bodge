@@ -1,4 +1,4 @@
-(in-package :cl-bodge.assets)
+(in-package :cl-bodge.engine.resources)
 
 ;;;
 ;;;

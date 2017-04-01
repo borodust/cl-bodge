@@ -1,4 +1,4 @@
-(in-package :cl-bodge.graphics)
+(in-package :cl-bodge.library.shading)
 
 
 (defenum library-shader-type
@@ -11,22 +11,19 @@
   :any-shader)
 
 
-(defstruct (shader-manager
-             (:conc-name sm-))
-  (libs (make-hash-table :test #'equal) :read-only t))
-
-(defvar *shader-manager* (make-shader-manager))
+(defun shader-library-asset-name (name)
+  (engine-resource-id "shader-library/descriptor/~(~A~)" name))
 
 
-(defun list-shader-libraries ()
-  (loop for lib being the hash-value of (sm-libs *shader-manager*)
-     collecting lib))
+(defun shader-resource-name (name shader-type)
+  (engine-resource-id "shader-library/~(~A~)/~(~A~)" shader-type name))
 
 
 (defclass shader-library ()
   ((descriptor-path :initarg :descriptor-path)
    (name :initarg :name :type string :reader name-of)
    (types :initarg :shader-types :type library-shader-type :reader supported-shader-types)
+   (descriptor-asset-name :initarg :descriptor-asset-name)
    (header-path :initarg :header-path)
    (source-path :initarg :source-path)
    (shader-alist :initform nil)))
@@ -58,7 +55,7 @@
     (when (or (null start) (null end))
       (error "Malformed include: \"~a\"" line))
     (let* ((lib-name (subseq line (1+ start) end))
-           (lib (library-by-name lib-name)))
+           (lib (get-resource (shader-library-asset-name lib-name))))
       (when (null lib)
         (error "Library '~a' not found" lib-name))
       (values (header-of lib) lib-name))))
@@ -148,14 +145,17 @@
 
 (defmacro define-shader-library (name &key ((:name glsl-name)) (types :any-shader)
                                         header source descriptor-path)
-  `(progn
-     (defclass ,(symbolicate name) (shader-library) ()
-       (:default-initargs :descriptor-path ',(or descriptor-path (%descriptor-path))
-         :name ,glsl-name
-         :shader-types ,types
-         :header-path ,header
-         :source-path ,source))
-     (register-library ',name)))
+  (let ((class-name (symbolicate name)))
+    `(progn
+       (defclass ,class-name (shader-library) ()
+         (:default-initargs :descriptor-path ',(or descriptor-path (%descriptor-path))
+           :name ,glsl-name
+           :descriptor-asset-name (shader-library-asset-name ,glsl-name)
+           :shader-types ,types
+           :header-path ,header
+           :source-path ,source))
+       (in-development-mode
+         (register-resource-loader (make-instance ',class-name))))))
 
 
 ;;;
@@ -163,29 +163,12 @@
 ;;;
 ;; TODO unload shaders later
 (defun load-shader (library &optional shader-type)
-  (with-slots (name types shader-alist) library
+  (with-slots (types shader-alist) library
     (when-let ((source (shader-source library shader-type)))
-      (let ((shader (assoc (cons name (shader-type-of source)) shader-alist :test #'equal)))
+      (let ((shader (assoc-value shader-alist (shader-type-of source))))
         (if (null shader)
-            (cdar (push (cons (cons name (shader-type-of source))
-                              (compile-shader source))
-                        shader-alist))
-            (cdr shader))))))
-
-
-;;;
-;;;
-;;;
-(defun register-library (classname)
-  (let ((lib (make-instance classname)))
-    (with-hash-entries ((lib-entry (name-of lib))) (sm-libs *shader-manager*)
-      (unless (null lib-entry)
-        (warn "Library with name '~a' was registered earlier" (name-of lib)))
-      (setf lib-entry lib))))
-
-
-(defun library-by-name (name)
-  (gethash name (sm-libs *shader-manager*)))
+            (setf (assoc-value shader-alist (shader-type-of source)) (compile-shader source))
+            shader)))))
 
 
 (defun clear-library-cache (library)
@@ -195,6 +178,12 @@
        finally (setf shader-alist '()))))
 
 
-(defun clear-all-library-caches ()
-  (loop for lib being the hash-value in (sm-libs *shader-manager*)
-     do (clear-library-cache lib)))
+(defmethod list-resource-names ((this shader-library))
+  (with-slots (descriptor-asset-name) this
+    (list descriptor-asset-name)))
+
+
+(defmethod load-resource ((this shader-library) name)
+  (with-slots (descriptor-asset-name) this
+    (when (equal name descriptor-asset-name)
+      this)))
