@@ -129,27 +129,28 @@
 ;;;
 ;;;
 (defun %children-adoption-flow ()
-  (instantly (&rest nodes)
-    (let ((parent (caar nodes)))
-      (dolist (child (cdr nodes))
-        (adopt parent (car child)))
-      parent)))
+  (labels ((%adopt (nodes)
+             (let ((parent (caar nodes)))
+               (dolist (child (cdr nodes))
+                 (adopt parent (caar child))
+                 (%adopt child)))))
+    (instantly (nodes)
+      (%adopt nodes)
+      (caar nodes))))
 
 
 (defun %parse-tree (node-def)
   (destructuring-bind (ctor-def &rest children) (ensure-list node-def)
     (destructuring-bind (class &rest plist) (ensure-list ctor-def)
-      (if children
-          `(>> (~> (assembly-flow ',class ,@plist)
-                   ,@(loop for child-def in children collecting
-                          (%parse-tree child-def)))
-               (%children-adoption-flow))
-          `(assembly-flow ',class ,@plist)))))
+      `(list (assembly-flow ',class ,@plist)
+             ,@(loop for child-def in children collecting
+                    (%parse-tree child-def))))))
 
 
 (defmacro scenegraph (root)
   "Returns flow for constructing a scenegraph"
-  (%parse-tree root))
+  `(>> (~> ,(%parse-tree root))
+       (%children-adoption-flow)))
 
 ;;;
 ;;;
