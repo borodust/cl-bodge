@@ -51,9 +51,7 @@
             this-lib-dir (fad:merge-pathnames-as-directory
                           dist-directory
                           (path library-directory))
-            this-engine-assets-dir (fad:merge-pathnames-as-directory
-                                    dist-directory
-                                    (path engine-assets-directory))
+            this-engine-assets-dir (path engine-assets-directory)
             this-assets (expand-assets-path base-path dist-directory assets)))))
 
 

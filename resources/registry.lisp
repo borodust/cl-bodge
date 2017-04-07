@@ -1,5 +1,24 @@
 (in-package :cl-bodge.resources)
 
+
+(define-constant +engine-external-resource-prefix+ "/engine/external/"
+  :test #'equal)
+
+
+(defun engine-resource-name (name-control-string &rest args)
+  (with-output-to-string (name-stream)
+    (format name-stream  "/engine/")
+    (apply #'format name-stream name-control-string args)))
+
+
+(defun engine-external-resource-name (name-control-string &rest args)
+  (with-output-to-string (name-stream)
+    (format name-stream  +engine-external-resource-prefix+)
+    (apply #'format name-stream name-control-string args)))
+
+
+
+
 ;;;
 ;;;  Resource loader
 ;;;
@@ -30,7 +49,7 @@
               (setf resource-entry loader))))))
 
 
-(defun release-resources (names)
+(defun release-resources (&rest names)
   (with-instance-lock-held (*resource-registry*)
     (with-slots (resource-table) *resource-registry*
       (loop for name in names
@@ -53,3 +72,10 @@
                               rsc))))
       (instantly (resources)
         (values-list (mapcar #'first resources)))))
+
+
+(defun list-registered-resource-names ()
+  (with-instance-lock-held (*resource-registry*)
+    (with-slots (resource-table) *resource-registry*
+      (loop for key being the hash-key of resource-table
+         collect key))))

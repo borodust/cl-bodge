@@ -3,6 +3,11 @@
 
 (declaim (special *distribution*))
 
+
+(define-constant +engine-resource-filename+ "bodge.brf"
+  :test #'equal)
+
+
 (defun list-system-pathnames (system-designator)
   (labels ((%extract-name (sys-def)
              (if (listp sys-def)
@@ -39,18 +44,24 @@
 
 
 (defun build-executable ()
-  (let ((manifest-file (generate-manifest))
-        (output-file (fad:merge-pathnames-as-file (directory-of *distribution*)
+  (let ((output-file (fad:merge-pathnames-as-file (directory-of *distribution*)
                                                   (format nil "~(~a~).bin"
                                                           (name-of *distribution*)))))
     (unless (fad:file-exists-p output-file)
-      (run-program "buildapp ~{\"~a\" ~}"
-                   (list "--output"
-                         "--entry" (entry-function-of *distribution*)
-                         "--manifest-file" manifest-file
-                         "--load" (file (distribution-system-path) "prologue.lisp")
-                         "--load-system" (format nil "~(~a~)" (target-system-of *distribution*))
-                         "--compress-core")))))
+      (let ((manifest-file (generate-manifest))
+            (asset-file (fad:merge-pathnames-as-file (engine-assets-directory-of *distribution*)
+                                                     +engine-resource-filename+)))
+        (unless (fad:file-exists-p output-file)
+          (run-program "buildapp ~{\"~a\" ~}"
+                       (list "--output" output-file
+                             "--entry" (entry-function-of *distribution*)
+                             "--manifest-file" manifest-file
+                             "--load" (file (distribution-system-path) "prologue.lisp")
+                             "--load-system" (format nil "~(~a~)" (target-system-of *distribution*))
+                             "--eval" (format nil "(defvar *engine-assets-path* \\\"~A\\\")"
+                                              asset-file)
+                             "--load" (file (distribution-system-path) "epilogue.lisp")
+                             "--compress-core")))))))
 
 
 (defun prepare ()
@@ -58,8 +69,9 @@
 
 
 (defun copy-assets ()
-  (loop for (src dst) in (assets-of *distribution*) do
-       (copy-path src dst)))
+  (loop for (src dst) in (assets-of *distribution*)
+     do (unless (fad:file-exists-p dst)
+          (copy-path src dst))))
 
 
 (defun compress ()
@@ -89,14 +101,22 @@
              (error "Cannot find foreign library ~a" (cffi:foreign-library-name lib)))))))
 
 
-(defun copy-engine-assets ()
-  (let ((dir (engine-assets-directory-of *distribution*)))
-    (when (asdf:system-registered-p :cl-bodge/resources)
-      (when-let* ((pkg (find-package :ge.rsc))
-                  (fsym (find-symbol (symbol-name 'copy-assets) pkg))
-                  (copy-fn (symbol-function fsym)))
-        (ensure-directories-exist dir)
-        (funcall copy-fn dir)))))
+(defun serialize-engine-assets ()
+  (let* ((engine-asset-dir (path (directory-of *distribution*)
+                             (engine-assets-directory-of *distribution*)))
+         (engine-asset-file (file engine-asset-dir
+                                  +engine-resource-filename+)))
+    (ensure-directories-exist engine-asset-dir)
+    (unless (fad:file-exists-p engine-asset-file)
+      (with-open-file (out engine-asset-file
+                           :direction :output
+                           :element-type '(unsigned-byte 8))
+        (dolist (resource-name (ge.rsc:list-registered-resource-names))
+          (when (starts-with-subseq ge.rsc:+engine-external-resource-prefix+ resource-name)
+            (let ((asset (ge.rsc:get-resource resource-name))
+                  (flexi (flexi-streams:make-flexi-stream out :external-format :utf-8)))
+              (prin1 (list :encoded :asset-class (ge.util:class-name-of asset)) flexi)
+              (ge.rsc:encode-resource asset out))))))))
 
 
 (defun shout (string)
@@ -122,7 +142,7 @@
     (shout "Copying system assets")
     (copy-assets)
     (shout "Copying engine assets")
-    #++(copy-engine-assets)
+    (serialize-engine-assets)
     (when (compressedp *distribution*)
       (shout "Compressing distribution")
       (compress))

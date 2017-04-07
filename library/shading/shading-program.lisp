@@ -2,10 +2,10 @@
 
 
 (defun shading-program-descriptor-asset-name (program-name)
-  (engine-resource-id "shading-program/descriptor/~(~A~)"  program-name))
+  (engine-external-resource-name "shading-program/descriptor/~(~A~)"  program-name))
 
 (defun shading-program-resource-name (program-name)
-  (engine-resource-id "shading-program/~(~A~)"  program-name))
+  (engine-resource-name "shading-program/~(~A~)"  program-name))
 
 
 (defclass shading-program-descriptor ()
@@ -26,7 +26,7 @@
 (defmethod encode-resource ((this shading-program-descriptor) stream)
   (with-slots (shader-sources) this
     (let ((flexi (flexi-streams:make-flexi-stream stream :external-format :utf-8)))
-      (princ (encode-shader-sources shader-sources) flexi))))
+      (prin1 (encode-shader-sources shader-sources) flexi))))
 
 
 (defun decode-shader-sources (stream)

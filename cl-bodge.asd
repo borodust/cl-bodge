@@ -186,7 +186,6 @@
   :pathname "resources/"
   :serial t
   :components ((:file "packages")
-               (:file "resources")
                (:file "serialization")
                (:file "registry")))
 
@@ -323,7 +322,8 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (alexandria asdf uiop cl-fad cffi split-sequence)
+  :depends-on (cl-bodge/utils cl-bodge/assets asdf uiop cl-fad cffi
+                              split-sequence flexi-streams)
   :pathname "distribution/"
   :serial t
   :components ((:file "packages")

@@ -12,11 +12,11 @@
 
 
 (defun shader-library-asset-name (name)
-  (engine-resource-id "shader-library/descriptor/~(~A~)" name))
+  (engine-external-resource-name "shader-library/descriptor/~(~A~)" name))
 
 
 (defun shader-resource-name (name shader-type)
-  (engine-resource-id "shader-library/~(~A~)/~(~A~)" shader-type name))
+  (engine-resource-name "shader-library/~(~A~)/~(~A~)" shader-type name))
 
 
 (defclass shader-library ()
@@ -24,8 +24,8 @@
    (name :initarg :name :type string :reader name-of)
    (types :initarg :shader-types :type library-shader-type :reader supported-shader-types)
    (descriptor-asset-name :initarg :descriptor-asset-name)
-   (header-path :initarg :header-path)
-   (source-path :initarg :source-path)
+   (header :initarg :header :reader header-of)
+   (source :initarg :source :reader source-of)
    (shader-alist :initform nil)))
 
 
@@ -36,17 +36,6 @@
       (if (fad:pathname-relative-p descriptor-path)
           (fad:merge-pathnames-as-file (assets-root) descriptor-path)
           descriptor-path)))))
-
-
-(defmethod assets-of ((this shader-library))
-  (with-slots (header-path source-path descriptor-path) this
-    (let ((descriptor-dir (fad:pathname-directory-pathname descriptor-path))
-          (assets (list descriptor-path)))
-      (when header-path
-        (push (fad:merge-pathnames-as-file descriptor-dir header-path) assets))
-      (when source-path
-        (push (fad:merge-pathnames-as-file descriptor-dir source-path) assets))
-      assets)))
 
 
 (defun process-include (line)
@@ -111,31 +100,11 @@
           (error "Library ~a doesn't support compilation for ~a" lib-name shader-type))))
 
 
-(defgeneric header-of (library))
-(defgeneric shader-source (library &optional type))
-
-(flet ((load-source (path base &optional type)
-         (preprocess (read-file-into-string
-                      (if (fad:pathname-absolute-p path)
-                          (fad:canonical-pathname path)
-                          (fad:merge-pathnames-as-file base path)))
-                     type)))
-
-  (defmethod header-of((this shader-library))
-    (with-slots (header-path) this
-      (if header-path
-          (load-source header-path (path-to this))
-          (list ""))))
-
-
-  (defmethod shader-source ((this shader-library) &optional type)
-      (with-slots (source-path types) this
-        (unless (null source-path)
-          (let* ((shader-types (if (listp types) types (list types)))
-                 (type (%select-shader-type (class-name-of this) type shader-types)))
-            (make-shader-source (file-namestring (fad:canonical-pathname source-path))
-                                type
-                                (load-source source-path (path-to this) type)))))))
+(defun load-source (path base)
+  (read-file-into-string
+   (if (fad:pathname-absolute-p path)
+       (fad:canonical-pathname path)
+       (fad:merge-pathnames-as-file base path))))
 
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
@@ -143,17 +112,26 @@
     (or *compile-file-truename* *load-truename*)))
 
 
+(defun decode-shader-library (class stream)
+  (let ((flexi (flexi-streams:make-flexi-stream stream :external-format :utf-8)))
+    (destructuring-bind (header source) (read-preserving-whitespace flexi nil)
+      (make-instance class :header header :source source))))
+
+
 (defmacro define-shader-library (name &key ((:name glsl-name)) (types :any-shader)
                                         header source descriptor-path)
-  (let ((class-name (symbolicate name)))
+  (let ((class-name (symbolicate name))
+        (path (or descriptor-path (%descriptor-path))))
     `(progn
        (defclass ,class-name (shader-library) ()
-         (:default-initargs :descriptor-path ',(or descriptor-path (%descriptor-path))
+         (:default-initargs :descriptor-path ,path
            :name ,glsl-name
            :descriptor-asset-name (shader-library-asset-name ,glsl-name)
            :shader-types ,types
-           :header-path ,header
-           :source-path ,source))
+           :header (when ,header (load-source ,header ,path))
+           :source (when ,source (load-source ,source ,path))))
+       (defmethod decode-resource ((class (eql ',class-name)) stream)
+         (decode-shader-library class stream))
        (in-development-mode
          (register-resource-loader (make-instance ',class-name))))))
 
@@ -163,12 +141,15 @@
 ;;;
 ;; TODO unload shaders later
 (defun load-shader (library &optional shader-type)
-  (with-slots (types shader-alist) library
-    (when-let ((source (shader-source library shader-type)))
-      (let ((shader (assoc-value shader-alist (shader-type-of source))))
-        (if (null shader)
-            (setf (assoc-value shader-alist (shader-type-of source)) (compile-shader source))
-            shader)))))
+  (with-slots (shader-alist source) library
+    (if-let ((shader (assoc-value shader-alist shader-type)))
+      shader
+      (let* ((types (ensure-list (supported-shader-types library)))
+             (type (%select-shader-type (class-name-of library) shader-type types))
+             (processed-source (preprocess source type))
+             (source (make-shader-source (name-of library) type processed-source)))
+        (setf (assoc-value shader-alist (shader-type-of source)) (compile-shader source))))))
+
 
 
 (defun clear-library-cache (library)
@@ -187,3 +168,9 @@
   (with-slots (descriptor-asset-name) this
     (when (equal name descriptor-asset-name)
       this)))
+
+
+(defmethod encode-resource ((this shader-library) stream)
+  (with-slots (header source) this
+    (let ((flexi (flexi-streams:make-flexi-stream stream :external-format :utf-8)))
+      (prin1 (list header source) flexi))))
