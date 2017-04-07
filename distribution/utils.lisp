@@ -76,7 +76,9 @@
            (walker (path)
              (let ((last-el (enough-namestring path source)))
                (%copy-path path (file destination last-el)))))
-    (fad:walk-directory source #'walker :follow-symlinks nil)))
+    (if (fad:directory-pathname-p source)
+        (fad:walk-directory source #'walker :follow-symlinks nil)
+        (%copy-path source destination))))
 
 
 (defun compress-directory (path &optional name)

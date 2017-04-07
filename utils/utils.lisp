@@ -21,7 +21,8 @@
   (with-gensyms (name)
     `(block ,name
        (handler-bind ((warning (lambda (w)
-                                 (log:warn w)))
+                                 (log:warn w)
+                                 (return-from ,name)))
                       (t (lambda (e)
                            (let ((error-text (with-output-to-string (stream)
                                                (format stream "Unhandled error:~%")

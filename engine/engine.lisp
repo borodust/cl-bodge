@@ -1,5 +1,6 @@
 (in-package :cl-bodge.engine)
 
+(defvar *engine-startup-hooks* nil)
 
 (declaim (special *system*))
 
@@ -152,6 +153,9 @@ dependencies will be initialized in the correct order according to a dependency 
             shared-executors (list (make-single-threaded-executor)))
       (log:config (property :log-level :info))
       (reload-foreign-libraries)
+      (log-errors
+        (dolist (hook *engine-startup-hooks*)
+          (funcall hook)))
       (let ((system-class-names
              (property :systems (lambda ()
                                   (error ":systems property should be defined")))))

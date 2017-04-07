@@ -180,7 +180,7 @@
            acquire-system-executor
            release-system-executor
 
-
+           *engine-startup-hooks*
            engine-system
            engine
            property

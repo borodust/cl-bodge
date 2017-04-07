@@ -111,12 +111,16 @@
       (with-open-file (out engine-asset-file
                            :direction :output
                            :element-type '(unsigned-byte 8))
-        (dolist (resource-name (ge.rsc:list-registered-resource-names))
-          (when (starts-with-subseq ge.rsc:+engine-external-resource-prefix+ resource-name)
-            (let ((asset (ge.rsc:get-resource resource-name))
-                  (flexi (flexi-streams:make-flexi-stream out :external-format :utf-8)))
-              (prin1 (list :encoded :asset-class (ge.util:class-name-of asset)) flexi)
-              (ge.rsc:encode-resource asset out))))))))
+        (let ((flexi (flexi-streams:make-flexi-stream out :external-format :utf-8)))
+          (prin1 '(:brf 1) flexi)
+          (dolist (resource-name (ge.rsc:list-registered-resource-names))
+            (when (starts-with-subseq ge.rsc:+engine-external-resource-prefix+ resource-name)
+              (let ((asset (ge.rsc:get-resource resource-name)))
+                (prin1 (list :encoded
+                             :asset-class (ge.util:class-name-of asset)
+                             :name resource-name)
+                       flexi)
+                (ge.rsc:encode-resource asset out)))))))))
 
 
 (defun shout (string)
