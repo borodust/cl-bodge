@@ -61,6 +61,7 @@
                              "--eval" (format nil "(defvar *engine-assets-path* \\\"~A\\\")"
                                               asset-file)
                              "--load" (file (distribution-system-path) "epilogue.lisp")
+			     #-windows ;; SBCL on windows does not support compression
                              "--compress-core")))))))
 
 
