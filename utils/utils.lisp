@@ -24,14 +24,15 @@
                                  (log:warn w)
                                  (return-from ,name)))
                       (t (lambda (e)
-                           (let ((error-text (with-output-to-string (stream)
-                                               (format stream "Unhandled error:~%")
-                                               (dissect:present e stream))))
-                             (log:error "~a" error-text)
-                             (in-development-mode
-                               (break "~A: ~A" (type-of e) e))
-                             (return-from ,name)))))
-         (progn ,@body)))))
+			   (dissect:with-capped-stack ()
+			     (let ((error-text (with-output-to-string (stream)
+						 (format stream "Unhandled error:~%")
+						 (dissect:present e stream))))
+			       (log:error "~a" error-text)
+			       (in-development-mode
+				 (break "~A: ~A" (type-of e) e))
+			       (return-from ,name))))))
+         (dissect:with-truncated-stack () ,@body)))))
 
 
 (defmacro with-hash-entries ((&rest keys) hash-table &body body)
