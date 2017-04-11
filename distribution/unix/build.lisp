@@ -8,7 +8,6 @@
           "libm.so"
           "libpthread.so"
           "librt.so"
-          "libstdc++.so"
           "libxcb.so"
           "libgcc"
           "libGL"
