@@ -323,7 +323,7 @@
   :mailto "dev@borodust.org"
   :license "MIT"
   :depends-on (cl-bodge/utils cl-bodge/assets asdf uiop cl-fad cffi
-                              split-sequence flexi-streams)
+                              inferior-shell split-sequence flexi-streams)
   :pathname "distribution/"
   :serial t
   :components ((:file "packages")

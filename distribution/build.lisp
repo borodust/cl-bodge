@@ -52,17 +52,17 @@
             (asset-file (fad:merge-pathnames-as-file (engine-assets-directory-of *distribution*)
                                                      +engine-resource-filename+)))
         (unless (fad:file-exists-p output-file)
-          (run-program "buildapp ~{\"~a\" ~}"
-                       (list "--output" output-file
-                             "--entry" (entry-function-of *distribution*)
-                             "--manifest-file" manifest-file
-                             "--load" (file (distribution-system-path) "prologue.lisp")
-                             "--load-system" (format nil "~(~a~)" (target-system-of *distribution*))
-                             "--eval" (format nil "(defvar *engine-assets-path* \\\"~A\\\")"
-                                              asset-file)
-                             "--load" (file (distribution-system-path) "epilogue.lisp")
-			     #-windows ;; SBCL on windows does not support compression
-                             "--compress-core")))))))
+	  (run-program "buildapp"
+		       "--output" output-file
+		       "--entry" (entry-function-of *distribution*)
+		       "--manifest-file" manifest-file
+		       "--load" (file (distribution-system-path) "prologue.lisp")
+		       "--load-system" (format nil "~(~a~)" (target-system-of *distribution*))
+		       "--eval" (format nil "(defvar *engine-assets-path* \"~A\")"
+					asset-file)
+		       "--load" (file (distribution-system-path) "epilogue.lisp")
+		       #-windows ;; SBCL on windows does not support compression
+		       "--compress-core"))))))
 
 
 (defun prepare ()
@@ -125,7 +125,7 @@
 
 
 (defun shout (string)
-  (format t "~%~A" string)
+  (format t "~%~A~%" string)
   (finish-output))
 
 

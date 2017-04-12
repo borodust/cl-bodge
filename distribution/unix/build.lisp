@@ -17,7 +17,7 @@
 
 
 (defun list-foreign-dependencies (parent-library-path)
-  (with-program-output (dep-string) ("ldd \"~a\"" (namestring parent-library-path))
+  (with-program-output (dep-string) ("ldd" (namestring parent-library-path))
     (let ((deps (split-sequence:split-sequence #\Newline dep-string)))
       (loop for dep in deps
          for div-idx = (search "=>" dep)

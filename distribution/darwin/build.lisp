@@ -2,7 +2,7 @@
 
 
 (defun list-foreign-dependencies (parent-library-path)
-  (with-program-output (dep-string) ("otool -L \"~a\"" (namestring parent-library-path))
+  (with-program-output (dep-string) ("otool" "-L" (namestring parent-library-path))
     (let ((deps (cddr (split-sequence:split-sequence #\Newline dep-string))))
       (loop for dep in deps
          for path = (trim-whitespaces (subseq dep 0 (position #\( dep)))

@@ -9,18 +9,19 @@
   (string-trim '(#\Space #\Tab #\Newline) string))
 
 
-(defun run-program (command-control-string &rest args)
-  (uiop:run-program (apply #'format nil (nconc (list command-control-string) args))
-                    :force-shell t :output nil :error-output *error-output*))
+(defun launch-program (output command)
+  (inferior-shell:run command :output output :error-output *error-output*))
 
 
-(defmacro with-program-output ((var) (control-string &rest args) &body body)
-  `(let ((,var (with-output-to-string (stream)
-                 (uiop:run-program (format nil ,control-string ,@args)
-                                   :force-shell t
-                                   :output stream
-                                   :error-output *error-output*))))
-     ,@body))
+(defun run-program (command &rest args)
+  (funcall #'launch-program *standard-output* (append (list command) args)))
+
+
+(defmacro with-program-output ((var) (command &rest args) &body body)
+  (with-gensyms (stream)
+    `(let ((,var (with-output-to-string (,stream)
+		   (launch-program ,stream (list ,command ,@args)))))
+       ,@body)))
 
 
 (defun temporary-directory (name &optional postfix)
@@ -46,7 +47,7 @@
 
 
 (defun file (&rest names)
-  (let ((rev (nreverse names)))
+  (let ((rev (reverse names)))
     (apply #'fad:merge-pathnames-as-file
            (append (mapcar #'fad:pathname-as-directory (reverse (cdr rev)))
                    (list (fad:pathname-as-file (car rev)))))))
@@ -85,4 +86,6 @@
   (let* ((parent-path (fad:pathname-parent-directory path))
          (last-path-el (enough-namestring path parent-path))
          (name (or name (file last-path-el))))
-  (run-program "cd \"~A\" && zip -r \"~A.zip\" \"~A\"" parent-path name last-path-el)))
+    (inferior-shell:run/nil `("sh" "-c" ,(inferior-shell:token-string
+					  `(,(format nil "cd \"~A\" && " parent-path)
+					     ("zip -r " ,(format nil "~A.zip" name) " " ,last-path-el)))))))
