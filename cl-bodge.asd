@@ -337,10 +337,9 @@
                         :if-feature (:and :unix (:not :darwin))
                         :components ((:file "build")))
                (:module windows
-                        :if-feature :windows
+                        :if-feature (:or :windows :win32)
                         :components ((:file "build")))
-               #-(or darwin unix windows)
-               (:file "build-unknown")
+               (:file "build-unknown" :if-feature (:not (:or :darwin :unix :win32 :windows)))
                (:file "build")
                (:static-file "build.sh")))
 
