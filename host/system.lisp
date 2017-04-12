@@ -150,12 +150,12 @@
 
 
 (define-system-function viewport-size host-system ()
-  (glfw:get-window-size (window-of *system*)))
+  (let ((val (glfw:get-window-size (window-of *system*))))
+    (vec2 (first val) (second val))))
 
 
 (define-system-function (setf viewport-size) host-system (value)
-  (destructuring-bind (w h) value
-    (glfw:set-window-size w h (window-of *system*))))
+  (glfw:set-window-size (floor (x value)) (floor (y value)) (window-of *system*)))
 
 
 (define-system-function cursor-position host-system ()

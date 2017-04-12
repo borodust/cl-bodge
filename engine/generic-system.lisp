@@ -1,9 +1,8 @@
 (in-package :cl-bodge.engine)
 
 
-(defclass generic-system (system)
-  ((state-lock :initform (make-recursive-lock "generic-system-state-lock")
-               :reader lock-of))
+(defclass generic-system (lockable system)
+  ()
   (:documentation "Base class for systems with generic behaviour: simple lifecycle, lockable"))
 
 
@@ -19,11 +18,8 @@
 
 (defmacro with-system-lock-held ((system &optional lock-var) &body body)
   "Hold system's lock during `body`."
-  (once-only (system)
-    `(let ,(unless (null lock-var)
-                   `((,lock-var (ge.ng::lock-of ,system))))
-       (with-recursive-lock-held ((ge.ng::lock-of ,system))
-         ,@body))))
+  `(with-instance-lock-held (,system ,lock-var)
+     ,@body))
 
 
 (defmethod enabledp :around ((this generic-system))

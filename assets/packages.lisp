@@ -13,5 +13,5 @@
            load-ogg-vorbis-audio
            load-png-image
 
-           font-atlas-asset-id
-           font-asset-id))
+           font-atlas-resource-name
+           font-resource-name))

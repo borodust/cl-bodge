@@ -20,9 +20,9 @@
   (make-font-atlas-chunk data))
 
 
-(definline font-atlas-asset-id (font-name)
+(definline font-atlas-resource-name (font-name)
   (format nil "/sdf/~A/image" font-name))
 
 
-(definline font-asset-id (font-name)
+(definline font-resource-name (font-name)
   (format nil "/sdf/~A/font" font-name))

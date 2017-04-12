@@ -5,7 +5,7 @@
   (if (listp key)
       (if-let ((rest-keys (rest key)))
         (%get-property rest-keys (getf properties (first key)) default-value)
-        (%get-property (first key) properties))
+        (%get-property (first key) properties default-value))
       (getf properties key default-value)))
 
 

@@ -6,7 +6,10 @@
   (:documentation "Mixin for quick instance locking facility"))
 
 
-(defmacro with-instance-lock-held ((instance) &body body)
+(defmacro with-instance-lock-held ((instance &optional lock-var) &body body)
   "Hold instance lock for the duration of the `body`."
-  `(bt:with-recursive-lock-held ((instance-lock-of ,instance))
-     ,@body))
+  (once-only (instance)
+    `(let ,(unless (null lock-var)
+             `((,lock-var (instance-lock-of ,instance))))
+       (with-recursive-lock-held ((instance-lock-of ,instance))
+         ,@body))))
