@@ -27,6 +27,8 @@
            copy-array
            deletef
            alist-hash-table
+           alist-plist
+           hash-table-plist
            ensure-list
            assoc-value
            doplist)

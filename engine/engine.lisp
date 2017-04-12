@@ -132,33 +132,36 @@ specified."
   (pushnew #'unload-foreign-libraries sb-ext:*save-hooks*))
 
 
-(defun startup (properties-pathspec)
-  "Start engine synchronously loading configuration file (the config) from
-`properties-pathspec`. `:systems` property must be present in the config and should contain list
+(defun startup (properties &optional (working-directory (truename #p".")))
+  "Start engine synchronously loading configuration from `properties` (file, hash-table, plist
+or alist). `(:engine :systems)` property must be present in the config and should contain list
 of existing system class names loaded into current lisp image. Specified systems and their
-dependencies will be initialized in the correct order according to a dependency graph."
+dependencies will be initialized in the correct order according to a dependency graph. All
+directories used by the engine are relative to 'working-directory parameter."
   (when *engine*
     (error "Engine already running"))
   (setf *engine* (make-instance 'bodge-engine))
   (log:config :sane2)
   (in-new-thread-waiting "startup-worker"
-    (with-slots (systems properties disabling-order shared-pool shared-executors
-                         working-directory engine-lock)
+    (with-slots (systems (this-properties properties)
+                         (this-working-directory working-directory)
+                         disabling-order shared-pool shared-executors
+                         engine-lock)
         *engine*
-      (setf properties (%load-properties properties-pathspec)
+      (setf this-properties (%load-properties properties)
             shared-pool (make-pooled-executor
                          (property :engine-shared-pool-size 2))
             engine-lock (bt:make-recursive-lock "engine-lock")
-            working-directory (uiop:pathname-directory-pathname properties-pathspec)
+            this-working-directory working-directory
             shared-executors (list (make-single-threaded-executor)))
-      (log:config (property :log-level :info))
+      (log:config (property '(:engine :log-level) :info))
       (reload-foreign-libraries)
       (log-errors
         (dolist (hook *engine-startup-hooks*)
           (funcall hook)))
-      (let ((system-class-names
-             (property :systems (lambda ()
-                                  (error ":systems property should be defined")))))
+      (let ((system-class-names (property '(:engine :systems))))
+        (when (null system-class-names)
+          (error "(:engine :systems) property should be defined and cannot be nil"))
         (setf systems (alist-hash-table (instantiate-systems system-class-names))
               disabling-order (enable-requested-systems systems)))
       (loop for system being the hash-value of systems
