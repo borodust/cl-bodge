@@ -87,7 +87,7 @@ Experimental **bod**acious **g**ame **e**ngine written in **C**ommon **L**isp.
 ### [Quicklisp](http://quicklisp.org)
 ```lisp
 ;; add cl-bodge distribution into quicklisp
-(ql-dist:install-dist "http://bodge.borodust.org/dist/bodge-systems.txt")
+(ql-dist:install-dist "http://bodge.borodust.org/dist/org.borodust.bodge.txt")
 
 ;; load precompiled native libraries and the engine
 (ql:quickload '(:bodge-blobs :cl-bodge))
