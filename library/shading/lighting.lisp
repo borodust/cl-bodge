@@ -36,6 +36,15 @@
     (funcall applier diffuse-uniform-name diffuse)))
 
 
+(defmethod apply-light-source ((this directional-light-source) (applier shading-program))
+  (with-slots (direction ambient diffuse
+                         direction-uniform-name ambient-uniform-name diffuse-uniform-name)
+      this
+    (setf (program-uniform-variable applier direction-uniform-name) direction
+          (program-uniform-variable applier ambient-uniform-name) ambient
+          (program-uniform-variable applier diffuse-uniform-name) diffuse)))
+
+
 (definline make-directional-light-source (direction ambient-color diffuse-color
                                                     &optional parameter-prefix)
   (make-instance 'directional-light-source

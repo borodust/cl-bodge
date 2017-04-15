@@ -36,6 +36,7 @@
            shader-name-of
            shader-text-of
            compile-shader
+           shading-program
            make-shading-program
            make-separable-shading-program
            link-separable-shading-program
