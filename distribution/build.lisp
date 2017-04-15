@@ -12,12 +12,15 @@
   (labels ((%extract-name (sys-def)
              (if (listp sys-def)
                  (ecase (first sys-def)
+                   (:feature (when (uiop:featurep (second sys-def))
+                               (%extract-name (third sys-def))))
                    (:version (second sys-def)))
                  sys-def))
 
            (%list-dependencies (system)
-             (mapcar #'%extract-name (append (asdf:system-depends-on system)
-                                             (asdf:system-defsystem-depends-on system))))
+             (remove-if #'null (mapcar #'%extract-name
+                                       (append (asdf:system-depends-on system)
+                                               (asdf:system-defsystem-depends-on system)))))
 
            (%proper-path-p (sys-path)
              (and sys-path
