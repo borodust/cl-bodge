@@ -51,8 +51,15 @@
                         :initial-contents (sort sequence #'< :key #'%timestamp)))))
 
 
-  (defun transform-at (animation-sequence timestamp)
-    (let ((kframes (keyframes-of animation-sequence)))
+  (defun transform-at (animation-sequence timestamp &optional looped)
+    (let* ((kframes (keyframes-of animation-sequence))
+           (len (length kframes))
+           (timestamp (if looped
+                          (let ((last-timestamp (timestamp-of (aref kframes (1- len)))))
+                            (if (/= last-timestamp 0.0)
+                                (mod timestamp last-timestamp)
+                                0.0))
+                          timestamp)))
       (flet ((%interpolate (this-idx that-idx)
                (let* ((this (aref kframes this-idx))
                       (that (aref kframes that-idx))
@@ -61,13 +68,12 @@
                                (- (timestamp-of that) this-timestamp)))))
                  (transform-of (lerp this that f)))))
         (multiple-value-bind (frame idx) (search-sorted timestamp kframes :key #'%timestamp)
-          (let* ((len (length kframes)))
-            (if (null frame)
-                (cond
-                  ((= idx 0) (transform-of (aref kframes 0)))
-                  ((= idx len) (transform-of (aref kframes (1- len))))
-                  (t (%interpolate (1- idx) idx)))
-                (transform-of frame))))))))
+          (if (null frame)
+              (cond
+                ((= idx 0) (transform-of (aref kframes 0)))
+                ((= idx len) (transform-of (aref kframes (1- len))))
+                (t (%interpolate (1- idx) idx)))
+              (transform-of frame)))))))
 
 
 (defun make-keyframe-sequence (frames)
@@ -76,6 +82,7 @@
 
 (defclass keyframe-animation ()
   ((sequences :initarg :sequence-alist :initform (error "Keyframe sequences must be supplied"))
+   (looped :initform nil)
    (started-at :initform nil)))
 
 
@@ -84,25 +91,27 @@
 
 
 (defun frame-at (animation &optional (timestamp (local-time:now)))
-  (with-slots (sequences started-at) animation
+  (with-slots (sequences started-at looped) animation
     (unless (null started-at)
       (let ((delta (max (- (epoch-seconds timestamp) started-at) 0.0)))
-        (loop for (id . seq) in sequences collecting
-             (cons id (transform-at seq delta)))))))
+        (loop for (id . seq) in sequences
+           collecting (cons id (transform-at seq delta looped)))))))
 
 
 (defun frame-transform-of (frame id)
   (cdr (assoc id frame :test #'equal)))
 
 
-(defun start-animation (animation)
-  (with-slots (started-at) animation
-    (setf started-at (epoch-seconds))))
+(defun start-animation (animation &optional looped)
+  (with-slots (started-at (this-looped looped)) animation
+    (setf started-at (epoch-seconds)
+          this-looped looped)))
 
 
 (defun reset-animation (animation)
-  (with-slots (started-at) animation
-    (setf started-at nil)))
+  (with-slots (started-at looped) animation
+    (setf started-at nil
+          looped nil)))
 
 
 (defmacro keyframed (&body sequences)

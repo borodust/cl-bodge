@@ -17,10 +17,10 @@
       (call-next-method))))
 
 
-(defun start-node-animation (animated-bone-node)
+(defun start-node-animation (animated-bone-node &optional looped)
   (unless (null animated-bone-node)
     (with-slots (animation) animated-bone-node
-      (start-animation animation))))
+      (start-animation animation looped))))
 
 
 (defun reset-node-animation (animated-bone-node)
