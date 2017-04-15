@@ -5,7 +5,7 @@
 ;;;
 ;;;
 (declaim (special *animation-frame*
-                  *skeleton*))
+                  *skeletons*))
 
 (defclass animation-node (scene-node)
   ((animation :initarg :frames :initform (error ":frames initarg missing"))))
@@ -64,12 +64,16 @@
                                         (frame-transform-of *animation-frame* (name-of bone)))))
                      (mult parent animated)
                      (mult parent (transform-of bone)))))))
-    (with-slots (bones) *skeleton*
+    (with-slots (bones) (first *skeletons*)
       (if-let ((bone (gethash bone-name bones)))
         (%transform-for bone)
-        (error "Bone '~a' missing" bone-name)))))
+        (if-let ((*skeletons* (rest *skeletons*)))
+          (bone-transform bone-name)
+          (error "Bone '~a' missing" bone-name))))))
 
 
 (defmethod scene-pass ((this animated-skeleton-node) (pass rendering-pass) input)
-  (let ((*skeleton* this))
-    (call-next-method)))
+  (let ((*skeletons* (if-bound *skeletons* (push this *skeletons*) (list this))))
+    (unwind-protect
+         (call-next-method)
+      (pop *skeletons*))))
