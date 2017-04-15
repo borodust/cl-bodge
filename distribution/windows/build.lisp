@@ -16,14 +16,7 @@
 
 
 (defun list-foreign-dependencies (parent-library-path)
-  (with-program-output (dep-string) ("ldd" (namestring parent-library-path))
-    (let ((deps (split-sequence:split-sequence #\Newline dep-string)))
-      (loop for dep in deps
-         for div-idx = (search "=>" dep)
-         for path = (trim-whitespaces (subseq dep
-                                              (if div-idx (+ 2 div-idx) 0)
-                                              (search "(0x" dep)))
-         when (> (length path) 0) collect (convert-msys-namestring path)))))
+  (find-dependencies-with-ldd parent-library-path))
 
 
 (defun system-library-p (lib-pathname)

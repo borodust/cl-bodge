@@ -6,7 +6,9 @@
     (let ((deps (cddr (split-sequence:split-sequence #\Newline dep-string))))
       (loop for dep in deps
          for path = (trim-whitespaces (subseq dep 0 (position #\( dep)))
-         when (> (length path) 0) collect path))))
+         when (> (length path) 0)
+         collect (cons (file-namestring path)
+                       (uiop:pathname-directory-pathname path))))))
 
 
 (defun system-library-p (lib-pathname)
@@ -22,7 +24,9 @@
 
 (defun make-bundle-runner (bundle-name run-file target-dir)
   (ensure-directories-exist target-dir)
-  (let ((runner-template (read-file-into-string (file +system-path+ "macos-runner.template")))
+  (let ((runner-template (read-file-into-string (file (distribution-system-path)
+                                                      "darwin/"
+                                                      "macos-runner.template")))
         (runner-file (file target-dir bundle-name)))
     (write-string-into-file (format nil runner-template run-file) runner-file)
     (add-execution-permission runner-file)))

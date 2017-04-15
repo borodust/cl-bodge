@@ -88,4 +88,20 @@
          (name (or name (file last-path-el))))
     (inferior-shell:run/nil `("sh" "-c" ,(inferior-shell:token-string
 					  `(,(format nil "cd \"~A\" && " parent-path)
-					     ("zip -r " ,(format nil "~A.zip" name) " " ,last-path-el)))))))
+					     ("zip -r " ,(format nil "~A.zip" name) " "
+                                                        ,last-path-el)))))))
+
+
+(defun find-dependencies-with-ldd (parent-library-path)
+  (with-program-output (dep-string) ("ldd" (namestring parent-library-path))
+    (let ((deps (split-sequence:split-sequence #\Newline dep-string)))
+      (loop for dep in deps
+         for div-idx = (search "=>" dep)
+         for path-start-pos = (if div-idx (+ 2 div-idx) 0)
+         for path-end-pos = (search "(0x" dep :from-end t)
+         for path = (uiop:pathname-directory-pathname
+                     (trim-whitespaces (subseq dep path-start-pos path-end-pos)))
+         for lib = (if div-idx
+                       (trim-whitespaces (subseq dep 0 div-idx))
+                       (file-namestring path))
+         collect (cons lib path)))))

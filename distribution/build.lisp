@@ -83,14 +83,17 @@
                       (format nil "~(~A~)" (name-of *distribution*))))
 
 
-(defun copy-foreign-dependencies (lib-path lib-dir &optional target-filename)
-  (unless (system-library-p lib-path)
-    (let ((dst (fad:merge-pathnames-as-file lib-dir (or target-filename
-                                                        (file-namestring lib-path)))))
-      (unless (fad:file-exists-p dst)
-        (fad:copy-file lib-path dst)
-        (loop for dep in (list-foreign-dependencies lib-path)
-           do (copy-foreign-dependencies dep lib-dir))))))
+(defun copy-foreign-dependencies (lib-name target-dir dirs)
+  (unless (system-library-p lib-name)
+    (if-let (lib-path (cffi::find-file lib-name dirs))
+      (let ((dst (fad:merge-pathnames-as-file target-dir lib-name)))
+        (unless (fad:file-exists-p dst)
+          (fad:copy-file lib-path dst)
+          (loop for (dep-lib-name . dep-lib-path) in (list-foreign-dependencies lib-path)
+             do (copy-foreign-dependencies
+                 dep-lib-name target-dir
+                 (append dirs (list (uiop:pathname-directory-pathname  dep-lib-path)))))))
+      (error "Cannot find foreign library ~A" lib-name))))
 
 
 (defun pack-foreign-libraries ()
@@ -98,11 +101,10 @@
         (dirs (append (cffi::parse-directories cffi:*foreign-library-directories*)
                       (list-platform-search-paths))))
     (ensure-directories-exist lib-dir)
-    (loop for lib in (cffi:list-foreign-libraries) do
-         (let ((path (cffi:foreign-library-pathname lib)))
-           (if-let (file (cffi::find-file path dirs))
-             (copy-foreign-dependencies file lib-dir (file-namestring path))
-             (error "Cannot find foreign library ~a" (cffi:foreign-library-name lib)))))))
+    (loop for lib in (cffi:list-foreign-libraries)
+       do (let* ((path (cffi:foreign-library-pathname lib))
+                 (name (file-namestring path)))
+            (copy-foreign-dependencies name lib-dir dirs)))))
 
 
 (defun serialize-engine-assets ()

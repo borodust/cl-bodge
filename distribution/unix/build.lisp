@@ -2,37 +2,29 @@
 
 
 (define-constant +system-libraries+
-    (list "linux"
-          "libc.so"
-          "libdl.so"
-          "libm.so"
-          "libpthread.so"
-          "librt.so"
-          "libxcb.so"
-          "libgcc"
-          "libGL"
-          "libX"
-          "libdrm")
+    (list "linux-[\\w_-]+\\.so"
+          "libc[.]so"
+          "libdl[.]so"
+          "libm[.]so"
+          "libpthread[.]so"
+          "librt[.]so"
+          "libxcb[.]so"
+          "libgcc.*[.]so"
+          "libGL.*[.]so"
+          "libX.*[.]so"
+          "libdrm.*[.]so")
   :test #'equal)
 
 
 (defun list-foreign-dependencies (parent-library-path)
-  (with-program-output (dep-string) ("ldd" (namestring parent-library-path))
-    (let ((deps (split-sequence:split-sequence #\Newline dep-string)))
-      (loop for dep in deps
-         for div-idx = (search "=>" dep)
-         for path = (trim-whitespaces (subseq dep
-                                              (if div-idx (+ 2 div-idx) 0)
-                                              (position #\( dep)))
-         when (> (length path) 0) collect path))))
+  (find-dependencies-with-ldd parent-library-path))
 
 
 (defun system-library-p (lib-pathname)
   (let ((path (namestring lib-pathname)))
-    (flet ((substringp (substring)
-             (search substring path :test #'equal)))
-      (or (starts-with-subseq "/lib" path)
-          (some #'substringp +system-libraries+)))))
+    (flet ((matchesp (regex)
+             (ppcre:scan regex path)))
+      (some #'matchesp +system-libraries+))))
 
 
 (defun list-platform-search-paths ()
