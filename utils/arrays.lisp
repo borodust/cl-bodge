@@ -61,3 +61,15 @@
        do (setf (apply #'aref result slice-indexes)
                 (aref array (flat-index slice))))
     result))
+
+
+(defun find-dimensions (sequence)
+  (unless (atom sequence)
+    (cons (length sequence) (find-dimensions (elt sequence 0)))))
+
+
+(defmacro float-array (initial-contents)
+  (once-only (initial-contents)
+    `(make-array (find-dimensions ,initial-contents)
+                 :element-type 'single-float
+                 :initial-contents ,initial-contents)))

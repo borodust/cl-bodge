@@ -65,6 +65,7 @@
            in-development-mode
            flatten-array
            expand-array
+           float-array
            split-sequence
            foreign-function-pointer
            stringify
