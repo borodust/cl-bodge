@@ -63,9 +63,9 @@
            vec3
            vec4
            vec->array
+           sequence->vec2
            sequence->vec3
            sequence->vec4
-           sequence->vec3
            vref
            make-vec3
            make-vec4

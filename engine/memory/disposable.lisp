@@ -19,9 +19,9 @@
 
 (defmethod initialize-instance :around ((this disposable) &key)
   (call-next-method)
-  (if-let ((destructor (destructor-of this)))
-    (loop for finalizer in (destructor-of this) do
-         (finalize this finalizer))))
+  (when-let ((destructor (destructor-of this)))
+    (loop for finalizer in (destructor-of this)
+       do (finalize this finalizer))))
 
 
 (defun dispose (obj)

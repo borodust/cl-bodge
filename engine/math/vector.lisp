@@ -54,10 +54,23 @@
   (%raw-> vec4 (v4:make (vref vec 0) (vref vec 1) (vref vec 2) w)))
 
 
+
+(definline sequence->vec2 (seq)
+  (vec2 (elt seq 0)
+        (elt seq 1)))
+
+
 (definline sequence->vec3 (seq)
   (vec3 (elt seq 0)
         (elt seq 1)
         (elt seq 2)))
+
+
+(definline sequence->vec4 (seq)
+  (vec4 (elt seq 0)
+        (elt seq 1)
+        (elt seq 2)
+        (elt seq 3)))
 
 
 (defun vref (vec idx)

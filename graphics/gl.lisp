@@ -7,7 +7,6 @@
 (defclass gl-object (system-foreign-object) ())
 
 
-
 ;; up to 2 dimensions
 (defun map-to-gl-array (array gl-array)
   (destructuring-bind (vertex-count &optional (attrib-size 1 attrib-size-present-p))
