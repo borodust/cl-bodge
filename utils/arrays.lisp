@@ -64,8 +64,9 @@
 
 
 (defun find-dimensions (sequence)
-  (unless (atom sequence)
-    (cons (length sequence) (find-dimensions (elt sequence 0)))))
+  (typecase sequence
+    (array (array-dimensions sequence))
+    (list (cons (length sequence) (find-dimensions (elt sequence 0))))))
 
 
 (defmacro float-array (initial-contents)
