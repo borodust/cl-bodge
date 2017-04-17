@@ -1,13 +1,14 @@
 (in-package :cl-bodge.engine)
 
 (defvar *engine-startup-hooks* nil)
+(defvar *system-startup-hooks* (mt:make-guarded-reference (make-hash-table)))
+(defvar *system-shutdown-hooks* (mt:make-guarded-reference (make-hash-table)))
 
 (declaim (special *system*))
 
 ;;
-(defclass bodge-engine ()
+(defclass bodge-engine (lockable)
   ((systems :initform nil)
-   (engine-lock :initform nil)
    (properties :initform '())
    (working-directory :initform nil :reader working-directory-of)
    (shared-executors :initform nil)
@@ -21,13 +22,38 @@
   "Return engine instance"
   *engine*)
 
+
 (defun engine-system (system-name)
   "Return engine's system instance by class name. Throws error if system cannot be found."
-  (with-slots (systems engine-lock) (engine)
-    (with-recursive-lock-held (engine-lock)
+  (with-slots (systems) (engine)
+    (with-instance-lock-held ((engine))
       (if-let ((system (gethash system-name systems)))
         system
         (error (format nil "~a not found" system-name))))))
+
+
+(defun after-system-startup (system-name hook)
+  (mt:with-guarded-reference (hooks *system-startup-hooks*)
+    (push hook (gethash system-name hooks))))
+
+
+(defun invoke-system-startup-hooks (system-name)
+  (mt:with-guarded-reference (hooks *system-startup-hooks*)
+    (log-errors
+      (dolist (hook (gethash system-name hooks))
+        (funcall hook)))))
+
+
+(defun before-system-shutdown (system-name hook)
+  (mt:with-guarded-reference (hooks *system-shutdown-hooks*)
+    (push hook (gethash system-name hooks))))
+
+
+(defun invoke-system-shutdown-hooks (system-name)
+  (mt:with-guarded-reference (hooks *system-shutdown-hooks*)
+    (log-errors
+      (dolist (hook (gethash system-name hooks))
+        (funcall hook)))))
 
 
 (defun working-directory ()
@@ -93,6 +119,7 @@ file is stored."
            (error (format nil "Circular dependency found for '~a'" system-class)))
          (log:debug "Enabling ~a" system-class)
          (enable system)
+         (invoke-system-startup-hooks system-class)
          (cons system-class result))
         (t result)))))
 
@@ -145,13 +172,11 @@ directories used by the engine are relative to 'working-directory parameter."
   (in-new-thread-waiting "startup-worker"
     (with-slots (systems (this-properties properties)
                          (this-working-directory working-directory)
-                         disabling-order shared-pool shared-executors
-                         engine-lock)
+                         disabling-order shared-pool shared-executors)
         *engine*
       (setf this-properties (%load-properties properties)
             shared-pool (make-pooled-executor
                          (property :engine-shared-pool-size 2))
-            engine-lock (bt:make-recursive-lock "engine-lock")
             this-working-directory working-directory
             shared-executors (list (make-single-threaded-executor)))
       (log:config (property '(:engine :log-level) :info))
@@ -175,8 +200,10 @@ initialized."
     (error "Engine already stopped"))
   (in-new-thread-waiting "shutdown-worker"
     (with-slots (systems disabling-order shared-pool shared-executors) *engine*
-      (loop for system-class in disabling-order do
+      (loop for system-class in disabling-order
+         do
            (log:debug "Disabling ~a" system-class)
+           (invoke-system-shutdown-hooks system-class)
            (disable (gethash system-class systems)))
       (dispose shared-pool)
       (dolist (ex shared-executors)

@@ -16,6 +16,17 @@
    (cached-program :initform nil)))
 
 
+(defun clear-cached-program (program)
+  (with-slots (cached-program) program
+    (unless (null cached-program)
+      (dispose cached-program))
+    (setf cached-program nil)))
+
+
+(defmethod initialize-instance :after ((this shading-program-descriptor) &key)
+  (before-system-shutdown 'graphics-system (lambda () (clear-cached-program this))))
+
+
 (defun encode-shader-sources (sources)
   (loop for source in sources
      collect (list (list :type (shader-type-of source)
@@ -84,13 +95,6 @@
     (if (null cached-program)
         (setf cached-program (build-shading-program shader-sources))
         cached-program)))
-
-
-(defun clear-cached-program (program)
-  (with-slots (cached-program) program
-    (unless (null cached-program)
-      (dispose cached-program))
-    (setf cached-program nil)))
 
 
 ;;;

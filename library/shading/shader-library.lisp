@@ -29,13 +29,16 @@
    (shader-alist :initform nil)))
 
 
-(defmethod path-to ((this shader-library))
-  (with-slots (descriptor-path) this
-    (fad:canonical-pathname
-     (fad:pathname-directory-pathname
-      (if (fad:pathname-relative-p descriptor-path)
-          (fad:merge-pathnames-as-file (assets-root) descriptor-path)
-          descriptor-path)))))
+(defun clear-library-cache (library)
+  (with-slots (shader-alist) library
+    (loop for (type . shader) in shader-alist
+       do (dispose shader)
+       finally (setf shader-alist '()))))
+
+
+(defmethod initialize-instance :after ((this shader-library) &key)
+  (before-system-shutdown 'graphics-system
+                          (lambda () (clear-library-cache this))))
 
 
 (defun process-include (line)
@@ -149,14 +152,6 @@
              (processed-source (preprocess source type))
              (source (make-shader-source (name-of library) type processed-source)))
         (setf (assoc-value shader-alist (shader-type-of source)) (compile-shader source))))))
-
-
-
-(defun clear-library-cache (library)
-  (with-slots (shader-alist) library
-    (loop for (type . shader) in shader-alist
-       do (dispose shader)
-       finally (setf shader-alist '()))))
 
 
 (defmethod list-resource-names ((this shader-library))

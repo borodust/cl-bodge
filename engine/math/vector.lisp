@@ -54,7 +54,6 @@
   (%raw-> vec4 (v4:make (vref vec 0) (vref vec 1) (vref vec 2) w)))
 
 
-
 (definline sequence->vec2 (seq)
   (vec2 (elt seq 0)
         (elt seq 1)))

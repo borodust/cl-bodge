@@ -181,6 +181,8 @@
            release-system-executor
 
            *engine-startup-hooks*
+           after-system-startup
+           before-system-shutdown
            engine-system
            engine
            property
