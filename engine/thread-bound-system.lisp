@@ -23,7 +23,8 @@
   (:method (context system) (declare (ignore context system))))
 
 
-(defmethod dispatch ((this thread-bound-system) fn &key (priority :medium) (important-p t))
+(defmethod dispatch ((this thread-bound-system) fn invariant &key (priority :medium)
+                                                               (important-p t))
   "Dispatch task to be executed in the system's thread."
   (unless (call-next-method)
     (flet ((invoker ()

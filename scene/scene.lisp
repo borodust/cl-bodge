@@ -53,7 +53,7 @@
       (scene-pass root pass (pass-data-of root)))))
 
 
-(defmethod dispatch ((this scene-pass) (task function) &key)
+(defmethod dispatch ((this scene-pass) (task function) invariant &key)
   (funcall task)
   t)
 
@@ -62,8 +62,8 @@
   ((system :initarg :system :reader system-of)))
 
 
-(defmethod dispatch ((this system-scene-pass) (task function) &rest keys &key)
-  (apply #'dispatch (append (list (system-of this) task) keys)))
+(defmethod dispatch ((this system-scene-pass) (task function) invariant &rest keys &key)
+  (apply #'dispatch (system-of this) task invariant keys))
 
 
 ;;;

@@ -4,15 +4,15 @@
 (declaim (special *active-dispatcher*))
 
 
-(defmethod dispatch (dispatcher fn &key)
+(defmethod dispatch (dispatcher fn invariant &key)
   nil)
 
 
-(defmethod dispatch :around (dispatcher fn &rest keys &key)
+(defmethod dispatch :around (dispatcher fn invariant &rest keys &key &allow-other-keys)
   (flet ((wrapped ()
            (let ((*active-dispatcher* dispatcher))
              (funcall fn))))
-    (apply #'call-next-method dispatcher #'wrapped keys)))
+    (apply #'call-next-method dispatcher #'wrapped invariant keys)))
 
 
 (defmacro in-new-thread (thread-name &body body)

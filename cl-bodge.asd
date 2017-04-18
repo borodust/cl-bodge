@@ -27,7 +27,7 @@
   :mailto "dev@borodust.org"
   :license "MIT"
   :depends-on (cl-bodge/utils cl-muth rtg-math log4cl bordeaux-threads local-time
-                              trivial-garbage uiop cffi cl-flow)
+                              trivial-garbage uiop cffi cl-flow uiop)
   :pathname "engine/"
   :serial t
   :components ((:file "packages")

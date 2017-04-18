@@ -159,7 +159,7 @@ specified."
   (pushnew #'unload-foreign-libraries sb-ext:*save-hooks*))
 
 
-(defun startup (properties &optional (working-directory (truename #p".")))
+(defun startup (properties &optional (working-directory (truename (uiop:getcwd))))
   "Start engine synchronously loading configuration from `properties` (file, hash-table, plist
 or alist). `(:engine :systems)` property must be present in the config and should contain list
 of existing system class names loaded into current lisp image. Specified systems and their
@@ -245,8 +245,8 @@ initialized."
   (:documentation "Base class for all engine dispatchers"))
 
 
-(defmethod dispatch ((this bodge-engine) (task function) &rest keys &key (priority :medium)
-                                                                      invariant concurrently)
+(defmethod dispatch ((this bodge-engine) (task function) invariant &rest keys
+                     &key (priority :medium) concurrently)
   "Use engine instance as a dispatcher. If :invariant and :concurrently-p are both nil task is
 not dispatched and just executed in the current thread. If :invariant is nil but :concurrently-p
 is t, task is dispatched to the engine's default pooled executor. If :invariant is specified,
@@ -256,7 +256,7 @@ task is dispatched to the object provided under this key."
       (null (if concurrently
                 (execute shared-pool task :priority priority)
                 (funcall task)))
-      (dispatcher (apply #'dispatch invariant task keys)))
+      (dispatcher (apply #'dispatch invariant task nil keys)))
     t))
 
 

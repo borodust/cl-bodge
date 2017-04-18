@@ -17,7 +17,7 @@
   (slot-value this 'enabled-p))
 
 
-(defmethod dispatch ((this host-system) (fn function) &key)
+(defmethod dispatch ((this host-system) (fn function) invariant &key)
   (with-slots (task-queue) this
     (with-system-lock-held (this)
       (push-task fn task-queue)
