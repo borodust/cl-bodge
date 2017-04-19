@@ -1,33 +1,28 @@
 (in-package :cl-bodge.scene)
 
-
-;;;
-;;;
-;;;
+;;
 (declaim (special *animation-frame*
                   *skeletons*))
 
 (defclass animation-node (scene-node)
-  ((animation :initarg :frames :initform (error ":frames initarg missing"))))
+  ((channel :initform nil)))
+
+
+(defmethod initialize-instance :after ((this animation-node)
+                                       &key (initial-animation (error ":initial-animation missing")))
+  (with-slots (channel) this
+    (setf channel (make-animation-channel initial-animation))))
 
 
 (defmethod scene-pass ((this animation-node) (pass rendering-pass) input)
-  (with-slots (animation) this
-    (let ((*animation-frame* (frame-at animation)))
+  (with-slots (channel) this
+    (let ((*animation-frame* (current-frame-of channel)))
       (call-next-method))))
 
 
-(defun start-node-animation (animated-bone-node &optional looped)
-  (unless (null animated-bone-node)
-    (with-slots (animation) animated-bone-node
-      (start-animation animation looped))))
-
-
-(defun reset-node-animation (animated-bone-node)
-  (unless (null animated-bone-node)
-    (with-slots (animation) animated-bone-node
-      (reset-animation animation))))
-
+(defun play-node-animation (animated-bone-node animation &optional (overlap-interval 0.0))
+  (with-slots (channel) animated-bone-node
+    (play-animation channel animation overlap-interval)))
 
 ;;;
 ;;;

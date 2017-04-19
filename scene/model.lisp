@@ -2,7 +2,7 @@
 
 
 (defclass model (scene-node)
-  ((model-root)))
+  ((model-root :initform nil :reader model-root-of)))
 
 
 (defgeneric model-graph-assembly-flow (model))

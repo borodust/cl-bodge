@@ -136,7 +136,8 @@
   :pathname "animation/"
   :serial t
   :components ((:file "packages")
-               (:file "keyframed")))
+               (:file "keyframed")
+               (:file "stream")))
 
 
 (defsystem cl-bodge/audio

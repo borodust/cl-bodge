@@ -55,14 +55,14 @@
            shading-parameters-node
 
            model
+           model-root-of
            model-graph-assembly-flow
 
            simulation-pass
            make-simulation-pass
 
            animation-node
-           start-node-animation
-           reset-node-animation
+           play-node-animation
 
            *skeleton*
            animated-skeleton-node

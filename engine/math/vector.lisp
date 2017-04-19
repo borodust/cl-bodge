@@ -130,8 +130,8 @@
   (%raw-> vec3 (v3:- (value-of this) (value-of that))))
 
 
-(defmethod lerp ((this vec3) (that vec3) f)
-  (%raw-> vec3 (v3:lerp (value-of this) (value-of that) f)))
+(defmethod lerp ((this vec3) (that vec3) (f number))
+  (%raw-> vec3 (v3:lerp (value-of this) (value-of that) (f f))))
 
 
 (defmethod normalize ((this vec3))

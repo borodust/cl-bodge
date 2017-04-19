@@ -56,5 +56,5 @@
   (make-instance 'mat4 :value (q:to-mat4 (value-of q))))
 
 
-(defmethod lerp ((this quat) (that quat) f)
-  (make-instance 'quat :value (q:lerp (value-of this) (value-of that) f)))
+(defmethod lerp ((this quat) (that quat) (f number))
+  (make-instance 'quat :value (q:lerp (value-of this) (value-of that) (f f))))

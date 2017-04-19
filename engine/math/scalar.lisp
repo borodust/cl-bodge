@@ -1,5 +1,5 @@
 (in-package :cl-bodge.math)
 
 
-(defmethod lerp ((this number) (that number) f)
-  (+ this (* (- that this) f)))
+(defmethod lerp ((this number) (that number) (f number))
+  (+ this (* (- that this) (f f))))

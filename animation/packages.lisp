@@ -9,7 +9,9 @@
            transform-at
            make-keyframe-animation
            frame-at
+           frame-key-of
            frame-transform-of
-           start-animation
-           reset-animation
+           make-animation-channel
+           current-frame-of
+           play-animation
            keyframed))

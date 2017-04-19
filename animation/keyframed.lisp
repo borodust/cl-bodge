@@ -1,6 +1,5 @@
 (in-package :cl-bodge.animation)
 
-
 ;;;
 ;;;
 ;;;
@@ -51,7 +50,7 @@
                         :initial-contents (sort sequence #'< :key #'%timestamp)))))
 
 
-  (defun transform-at (animation-sequence timestamp &optional looped)
+  (defun keyframe-at (animation-sequence timestamp &optional looped)
     (let* ((kframes (keyframes-of animation-sequence))
            (len (length kframes))
            (timestamp (if looped
@@ -66,54 +65,71 @@
                       (this-timestamp (timestamp-of this))
                       (f (f (/ (- timestamp this-timestamp)
                                (- (timestamp-of that) this-timestamp)))))
-                 (transform-of (lerp this that f)))))
+                 (lerp this that f))))
         (multiple-value-bind (frame idx) (search-sorted timestamp kframes :key #'%timestamp)
           (if (null frame)
               (cond
-                ((= idx 0) (transform-of (aref kframes 0)))
-                ((= idx len) (transform-of (aref kframes (1- len))))
+                ((= idx 0) (aref kframes 0))
+                ((= idx len) (aref kframes (1- len)))
                 (t (%interpolate (1- idx) idx)))
-              (transform-of frame)))))))
+              frame)))))
+
+  (defun transform-at (animation-sequence timestamp &optional looped)
+    (transform-of (keyframe-at animation-sequence timestamp looped))))
 
 
 (defun make-keyframe-sequence (frames)
   (make-instance 'keyframe-sequence :sequence frames))
 
 
+;;
+(defclass animation-frame ()
+  ((keyframe-by-id :initarg :keyframe-by-id)))
+
+
+(defun frame-key-of (frame id)
+  (with-slots (keyframe-by-id) frame
+    (gethash id keyframe-by-id)))
+
+
+(defun frame-transform-of (frame id)
+  (transform-of (frame-key-of frame id)))
+
+
+(defmethod lerp ((this animation-frame) (that animation-frame) (factor number))
+  (with-slots ((this-keyframes keyframe-by-id)) this
+    (with-slots ((that-keyframes keyframe-by-id)) that
+      (let ((keyframes (make-hash-table :test 'equal)))
+        (loop for id being the hash-key of this-keyframes
+           do (setf (gethash id keyframes)
+                    (if-let ((that-keyframe (gethash id that-keyframes)))
+                      (lerp (gethash id this-keyframes) that-keyframe factor)
+                      (gethash id this-keyframes))))
+        (loop for id being the hash-key of that-keyframes
+           unless (gethash id keyframes)
+           do (setf (gethash id keyframes) (gethash id that-keyframes)))
+        (make-instance 'animation-frame :keyframe-by-id keyframes)))))
+
+
+;;
 (defclass keyframe-animation ()
-  ((sequences :initarg :sequence-alist :initform (error "Keyframe sequences must be supplied"))
-   (looped :initform nil)
-   (started-at :initform nil)))
+  ((sequences :initarg :sequence-alist :initform (error "Keyframe sequences must be supplied"))))
 
 
 (defun make-keyframe-animation (sequence-alist)
   (make-instance 'keyframe-animation :sequence-alist sequence-alist))
 
 
-(defun frame-at (animation &optional (timestamp (local-time:now)))
-  (with-slots (sequences started-at looped) animation
-    (unless (null started-at)
-      (let ((delta (max (- (epoch-seconds timestamp) started-at) 0.0)))
-        (loop for (id . seq) in sequences
-           collecting (cons id (transform-at seq delta looped)))))))
+(defun frame-at (animation time &optional looped)
+  (with-slots (sequences) animation
+    (let ((keyframe-by-id (make-hash-table :test #'equal)))
+      (loop for (id . seq) in sequences
+         do (setf (gethash id keyframe-by-id) (keyframe-at seq time looped)))
+      (make-instance 'animation-frame
+                     :keyframe-by-id keyframe-by-id))))
 
 
-(defun frame-transform-of (frame id)
-  (cdr (assoc id frame :test #'equal)))
-
-
-(defun start-animation (animation &optional looped)
-  (with-slots (started-at (this-looped looped)) animation
-    (setf started-at (epoch-seconds)
-          this-looped looped)))
-
-
-(defun reset-animation (animation)
-  (with-slots (started-at looped) animation
-    (setf started-at nil
-          looped nil)))
-
-
+;;
 (defmacro keyframed (&body sequences)
   (labels ((parse-frame (frame)
              `(make-keyframe ,(first frame) :rotation (euler-angles->quat ,@(second frame))))
