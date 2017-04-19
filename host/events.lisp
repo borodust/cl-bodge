@@ -21,7 +21,7 @@
 
 
 (defenum button-state
-  :pressed :released)
+  :pressed :released :repeating)
 
 
 (defenum keyboard-key-modifier
@@ -58,9 +58,10 @@
 
 
 (defun glfw-enumval->button-state (value)
-  (if (eq value :press)
-      :pressed
-      :released))
+  (ecase value
+    (:press :pressed)
+    (:release :released)
+    (:repeat :repeating)))
 
 
 (defun glfw-enumval->mouse-button (value)
