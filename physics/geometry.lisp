@@ -33,6 +33,24 @@
 (defun bind-geom (geom rigid-body)
   (%ode:geom-set-body (handle-value-of geom) (handle-value-of rigid-body)))
 
+
+(defmethod position-of ((this volume-geom))
+  (ode->vec3 (%ode:geom-get-position (handle-value-of this))))
+
+
+(defmethod (setf position-of) ((value vec3) (this volume-geom))
+  (%ode:geom-set-position (handle-value-of this)
+                          (x value) (y value) (z value)))
+
+
+(defmethod rotation-of ((this volume-geom))
+  (ode->mat3 (%ode:geom-get-rotation (handle-value-of this))))
+
+
+(defmethod (setf rotation-of) ((value mat3) (this volume-geom))
+  (with-ode-mat3 (m3 value)
+    (%ode:geom-set-rotation (handle-value-of this) m3)))
+
 ;;;
 ;;;
 ;;;

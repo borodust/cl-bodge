@@ -44,11 +44,8 @@
                           (ode-real (vref value 2))))
 
 
-;; fixme memory sink
 (defmethod position-of ((this rigid-body))
-  (let ((ode-pos (%ode:body-get-position (handle-value-of this))))
-    (flet ((el (idx) (f (c-ref ode-pos %ode:real idx))))
-      (vec3 (el 0) (el 1) (el 2)))))
+  (ode->vec3 (%ode:body-get-position (handle-value-of this))))
 
 
 (defmethod (setf mass-of) (value (this rigid-body))
@@ -56,26 +53,13 @@
   (%ode:body-set-mass (handle-value-of this) (value-of value)))
 
 
-;; fixme memory sink
 (defmethod rotation-of ((this rigid-body))
-  (let ((m3 (%ode:body-get-rotation (handle-value-of this))))
-    (macrolet ((init ()
-                 `(mat3 ,@(loop for i from 0 below 3 append
-                               (loop for j from 0 below 3 collect
-                                    `(c-ref m3 %ode:real ,(+ (* j 4) i)))))))
-      (init))))
+  (ode->mat3 (%ode:body-get-rotation (handle-value-of this))))
 
 
 (defmethod (setf rotation-of) ((value mat3) (this rigid-body))
-  (c-with ((m3 %ode:real :calloc t :count (* 4 3)))
-    (macrolet ((init ()
-                 `(progn
-                    ,@(loop for i from 0 below 3 append
-                           (loop for j from 0 below 3 collect
-                                `(setf (m3 ,(+ (* j 4) i))
-                                       (ode-real (mref value ,i ,j))))))))
-      (init)
-      (%ode:body-set-rotation (handle-value-of this) (m3 &)))))
+  (with-ode-mat3 (m3 value)
+    (%ode:body-set-rotation (handle-value-of this) m3)))
 
 
 (defun apply-force (rigid-body vec3)

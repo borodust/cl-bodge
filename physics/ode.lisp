@@ -47,3 +47,35 @@
 
 (definline ode-real (value)
   (float value +precision+))
+
+
+(defun ode->vec3 (pointer)
+  (c-let ((vec %ode:real :ptr pointer))
+    (vec3 (vec 0) (vec 1) (vec 2))))
+
+
+(defun ode->mat3 (pointer)
+  (c-let ((mat %ode:real :ptr pointer))
+    (macrolet ((init ()
+                 `(mat3 ,@(loop for i from 0 below 3 append
+                               (loop for j from 0 below 3 collect
+                                    `(mat ,(+ (* j 4) i)))))))
+      (init))))
+
+
+(defun copy-mat3 (pointer mat3)
+  (c-let ((m3 %ode:real :ptr pointer))
+    (macrolet ((init ()
+                 `(progn
+                    ,@(loop for i from 0 below 3 append
+                           (loop for j from 0 below 3 collect
+                                `(setf (m3 ,(+ (* j 4) i))
+                                       (ode-real (mref mat3 ,i ,j))))))))
+      (init)
+      pointer)))
+
+
+(defmacro with-ode-mat3 ((ode-mat bodge-mat3) &body body)
+  `(c-with ((,ode-mat %ode:real :calloc t :count (* 4 3)))
+     (copy-mat3 ,ode-mat ,bodge-mat3)
+     ,@body))
