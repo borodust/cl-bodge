@@ -13,6 +13,8 @@
            contact-position
            contact-normal
            contact-depth
+           surface-friction
+           surface-bounciness
 
            make-rigid-body
            position-of
@@ -37,6 +39,7 @@
            sphere-geom
            box-geom
            plane-geom
+           cylinder-geom
            ray-geom
            direction-of
            bind-geom

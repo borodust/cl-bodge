@@ -1,23 +1,46 @@
 (in-package :cl-bodge.physics)
 
 
+(defstruct (contact-surface
+             (:constructor make-contact-surface))
+  (friction +infinity+)
+  (bounciness 0.0))
+
+
 (defstruct (contact
              (:constructor make-contact (geom)))
-  (geom nil :read-only t))
+  (geom nil :read-only t)
+  (surface (make-contact-surface)))
 
 
 (defun contact-position (info)
   (c-let ((geom %ode:contact-geom :from (contact-geom info)))
-    (vec3 (f (geom :pos 0)) (f (geom :pos 1)) (f (geom :pos 2)))))
+    (vec3 (geom :pos 0) (geom :pos 1) (geom :pos 2))))
 
 
 (defun contact-normal (info)
   (c-let ((geom %ode:contact-geom :from (contact-geom info)))
-    (vec3 (f (geom :normal 0)) (f (geom :normal 1)) (f (geom :normal 2)))))
+    (vec3 (geom :normal 0) (geom :normal 1) (geom :normal 2))))
 
 
 (defun contact-depth (info)
-  (f (c-ref (contact-geom info) %ode:contact-geom :depth)))
+  (c-ref (contact-geom info) %ode:contact-geom :depth))
+
+
+(defun surface-friction (info)
+  (contact-surface-friction (contact-surface info)))
+
+
+(defun (setf surface-friction) (value info)
+  (setf (contact-surface-friction (contact-surface info)) value))
+
+
+(defun surface-bounciness (info)
+  (contact-surface-bounciness (contact-surface info)))
+
+
+(defun (setf surface-bounciness) (value info)
+  (setf (contact-surface-bounciness (contact-surface info)) value))
 
 
 (defun fill-contact-geom (contact-geom info)
@@ -26,7 +49,7 @@
 
 (defun fill-contact (contact info)
   (setf (%ode:contact.surface.mode contact) (mask 'contact-flags :approx0 :bounce)
-        (%ode:contact.surface.mu contact) +infinity+
-        (%ode:contact.surface.bounce contact) (ode-real 0.1))
+        (%ode:contact.surface.mu contact) (ode-real (surface-friction info))
+        (%ode:contact.surface.bounce contact) (ode-real (surface-bounciness info)))
   (fill-contact-geom (%ode:contact.geom contact) info)
   contact)

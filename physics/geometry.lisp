@@ -67,6 +67,24 @@
 ;;;
 ;;;
 ;;;
+(defclass cylinder-geom (volume-geom) ())
+
+
+(defmethod initialize-instance ((this cylinder-geom) &rest args
+                                &key (length (error ":length missing"))
+                                  (radius (error ":radius missing")))
+  (apply #'call-next-method
+         this
+         :handle (make-geom-handle (%ode:create-cylinder (space-of (universe))
+                                                         (ode-real radius)
+                                                         (ode-real length)))
+         args))
+
+
+
+;;;
+;;;
+;;;
 (defclass plane-geom (geom) ())
 
 
