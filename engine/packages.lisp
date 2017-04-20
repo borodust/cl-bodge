@@ -58,6 +58,8 @@
            normalize
            inverse
 
+           transform-of
+
            vec
            vec2
            vec3
@@ -90,13 +92,17 @@
            sequence->rotation-mat4
            mat->rotation-mat4
            euler-axis->mat4
+           angle->mat2
            euler-angles->mat4
+           euler-angles->mat3
+           rotation-translation->mat4
            translation-mat4
            sequence->translation-mat4
            vec->translation-mat4
            scaling-mat4
            vec->scaling-mat4
            mat4->mat3
+           mat3->mat4
            basis->mat4
            perspective-projection-mat
            orthographic-projection-mat

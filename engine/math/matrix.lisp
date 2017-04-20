@@ -13,14 +13,34 @@
   (value-of mat))
 
 
-(definline mref (mat row column)
-  (m:elt (value-of mat) row column))
+(defgeneric mref (mat row column))
 
 
-(definline (setf mref) (value mat row column)
-  ;; fixme: hax, use generic and m2/3/4:melm
-  (let ((len (if (= (length mat) 16) 4 3)))
-    (setf (aref mat (+ row (* column len))) (f value))))
+(defmethod mref ((this mat2) row column)
+  (aref (value-of this) (+ row (* column 2))))
+
+
+(defmethod mref ((this mat3) row column)
+  (m3:melm (value-of this) row column))
+
+
+(defmethod mref ((this mat4) row column)
+  (m4:melm (value-of this) row column))
+
+
+(defgeneric (setf mref) (value mat row column))
+
+
+(defmethod (setf mref) (value (this mat2) row column)
+  (setf (aref (value-of this) (+ row (* column 2))) (f value)))
+
+
+(defmethod (setf mref) (value (this mat3) row column)
+  (setf (m3:melm (value-of this) row column) (f value)))
+
+
+(defmethod (setf mref) (value (this mat4) row column)
+  (setf (m4:melm (value-of this) row column) (f value)))
 
 
 (definline identity-mat4 ()
@@ -41,6 +61,21 @@
 
 (definline euler-angles->mat4 (vec3)
   (make-instance 'mat4 :value (m4:rotation-from-euler (value-of vec3))))
+
+
+(definline euler-angles->mat3 (vec3)
+  (make-instance 'mat3 :value (m3:rotation-from-euler (value-of vec3))))
+
+
+(defun angle->mat2 (angle)
+  (let ((val (make-array 4 :element-type 'single-float))
+        (sin (sin angle))
+        (cos (cos angle)))
+    (setf (aref val 0) cos
+          (aref val 1) sin
+          (aref val 2) (- sin)
+          (aref val 3) cos)
+    (make-instance 'mat2 :value val)))
 
 
 (definline sequence->rotation-mat4 (sequence)
@@ -107,6 +142,16 @@
                                        (f m31) (f m32) (f m33))))
 
 
+(defun mat4 (m11 m12 m13 m14
+             m21 m22 m23 m24
+             m31 m32 m33 m34
+             m41 m42 m43 m44)
+  (make-instance 'mat4 :value (m4:make (f m11) (f m12) (f m13) (f m14)
+                                       (f m21) (f m22) (f m23) (f m24)
+                                       (f m31) (f m32) (f m33) (f m34)
+                                       (f m41) (f m42) (f m43) (f m44))))
+
+
 (defun mat4->mat3 (mat4)
   (macrolet ((%mat4->mat3 (m4 m3)
                (once-only (m4 m3)
@@ -117,6 +162,26 @@
     (let ((m3 (m3:0!)))
       (%mat4->mat3 (value-of mat4) m3)
       (make-instance 'mat3 :value m3))))
+
+
+(defun mat3->mat4 (mat3)
+  (macrolet ((%mat3->mat4 (m3 m4)
+               (once-only (m3 m4)
+                 `(progn
+                    ,@(loop for i from 0 below 3 append
+                           (loop for j from 0 below 3 collect
+                                `(setf (aref ,m4 ,(+ (* i 4) j)) (aref ,m3 ,(+ (* i 3) j)))))))))
+    (let ((m4 (m4:identity)))
+      (%mat3->mat4 (value-of mat3) m4)
+      (make-instance 'mat4 :value m4))))
+
+
+(defun rotation-translation->mat4 (mat3 vec3)
+  (let ((result (mat3->mat4 mat3)))
+    (setf (mref result 0 3) (x vec3)
+          (mref result 1 3) (y vec3)
+          (mref result 2 3) (z vec3))
+    result))
 
 
 (declaim (ftype (function (single-float single-float single-float single-float) *)
@@ -136,3 +201,9 @@
 (definline orthographic-projection-mat (width height near far)
   (make-instance 'mat4 :value (rtg-math.projection:orthographic (f width) (f height)
                                                                 (f near) (f far))))
+
+(defmethod multiply ((this mat2) (that vec2))
+  (let ((x (x that))
+        (y (y that)))
+    (vec2 (+ (* x (mref this 0 0)) (* y (mref this 0 1)))
+          (+ (* x (mref this 1 0)) (* y (mref this 1 1))))))

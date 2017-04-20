@@ -14,6 +14,7 @@
 (defgeneric dot-product (this that))
 (defgeneric cross-product (this that))
 
+(defgeneric transform-of (this))
 
 (macrolet ((defreduced (name generic)
              `(definline ,name (arg0 &rest args)

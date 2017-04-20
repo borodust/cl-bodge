@@ -62,7 +62,7 @@
     (macrolet ((init ()
                  `(mat3 ,@(loop for i from 0 below 3 append
                                (loop for j from 0 below 3 collect
-                                    `(f (c-ref m3 %ode:real ,(+ (* j 4) i))))))))
+                                    `(c-ref m3 %ode:real ,(+ (* j 4) i)))))))
       (init))))
 
 
@@ -80,6 +80,15 @@
 
 (defun apply-force (rigid-body vec3)
   (%ode:body-add-force (handle-value-of rigid-body)
-                       (ode-real (vref vec3 0))
-                       (ode-real (vref vec3 1))
-                       (ode-real (vref vec3 2))))
+                       (ode-real (x vec3))
+                       (ode-real (y vec3))
+                       (ode-real (z vec3))))
+
+
+(defmethod transform-of ((this rigid-body))
+  (c-let ((pos %ode:real :ptr (%ode:body-get-position (handle-value-of this)))
+          (rot %ode:real :ptr (%ode:body-get-rotation (handle-value-of this))))
+    (mat4 (rot 0) (rot 1) (rot 2)  (pos 0)
+          (rot 4) (rot 5) (rot 6)  (pos 1)
+          (rot 8) (rot 9) (rot 10) (pos 2)
+          0.0     0.0     0.0      1.0)))
