@@ -37,7 +37,6 @@
                                      (:file "scalar")
                                      (:file "vector")
                                      (:file "matrix")
-                                     (:file "matvec")
                                      (:file "quaternion")))
                (:module memory
                         :serial t

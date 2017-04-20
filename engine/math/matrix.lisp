@@ -207,3 +207,20 @@
         (y (y that)))
     (vec2 (+ (* x (mref this 0 0)) (* y (mref this 0 1)))
           (+ (* x (mref this 1 0)) (* y (mref this 1 1))))))
+
+
+(defmethod multiply ((this mat3) (that mat3))
+  (make-instance 'mat3 :value (m3:* (value-of this) (value-of that))))
+
+
+(defmethod multiply ((this mat3) (that vec3))
+  (make-instance 'vec3 :value (m3:*v (value-of this) (value-of that))))
+
+
+(defun basis->mat4 (x-axis y-axis z-axis &optional (position (vec3 0.0 0.0 0.0)))
+  (let ((result (m4:from-columns-v3 (value-of x-axis)
+                                    (value-of y-axis)
+                                    (value-of z-axis))))
+    (setf (m4:melm result 0 0) (x position)
+          (m4:melm result 1 0) (y position)
+          (m4:melm result 2 0) (z position))))
