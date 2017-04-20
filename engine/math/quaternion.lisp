@@ -58,3 +58,7 @@
 
 (defmethod lerp ((this quat) (that quat) (f number))
   (make-instance 'quat :value (q:lerp (value-of this) (value-of that) (f f))))
+
+
+(defun rotate (vec3 quat)
+  (make-instance 'vec3 :value (q:rotate (value-of vec3 ) (value-of quat))))

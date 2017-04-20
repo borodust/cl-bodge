@@ -113,7 +113,8 @@
            euler-axis->quat
            euler-angles->quat
            quat->rotation-mat3
-           quat->rotation-mat4))
+           quat->rotation-mat4
+           rotate))
 
 
 (defpackage :cl-bodge.engine.resources
