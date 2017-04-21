@@ -1,14 +1,6 @@
 (in-package :cl-bodge.math)
 
 
-(defmethod multiply ((this mat4) (that mat4))
-  (make-instance 'mat4 :value (m4:* (value-of this) (value-of that))))
-
-
-(defmethod multiply ((this mat4) (that vec4))
-  (make-instance 'vec4 :value (m4:*v (value-of this) (value-of that))))
-
-
 (definline mat->array (mat)
   (value-of mat))
 
@@ -207,6 +199,14 @@
         (y (y that)))
     (vec2 (+ (* x (mref this 0 0)) (* y (mref this 0 1)))
           (+ (* x (mref this 1 0)) (* y (mref this 1 1))))))
+
+
+(defmethod multiply ((this mat4) (that mat4))
+  (make-instance 'mat4 :value (m4:* (value-of this) (value-of that))))
+
+
+(defmethod multiply ((this mat4) (that vec4))
+  (make-instance 'vec4 :value (m4:*v (value-of this) (value-of that))))
 
 
 (defmethod multiply ((this mat3) (that mat3))

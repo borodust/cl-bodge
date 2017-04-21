@@ -58,7 +58,7 @@
 
 
 (defmethod (setf rotation-of) ((value mat3) (this rigid-body))
-  (with-ode-mat3 (m3 value)
+  (with-mat3-ptr (m3 value)
     (%ode:body-set-rotation (handle-value-of this) m3)))
 
 
@@ -70,9 +70,5 @@
 
 
 (defmethod transform-of ((this rigid-body))
-  (c-let ((pos %ode:real :ptr (%ode:body-get-position (handle-value-of this)))
-          (rot %ode:real :ptr (%ode:body-get-rotation (handle-value-of this))))
-    (mat4 (rot 0) (rot 1) (rot 2)  (pos 0)
-          (rot 4) (rot 5) (rot 6)  (pos 1)
-          (rot 8) (rot 9) (rot 10) (pos 2)
-          0.0     0.0     0.0      1.0)))
+  (ode-transform (%ode:body-get-rotation (handle-value-of this))
+                 (%ode:body-get-position (handle-value-of this))))

@@ -63,8 +63,8 @@
       (init))))
 
 
-(defun copy-mat3 (pointer mat3)
-  (c-let ((m3 %ode:real :ptr pointer))
+(defun copy-mat3 (ptr mat3)
+  (c-let ((m3 %ode:real :ptr ptr))
     (macrolet ((init ()
                  `(progn
                     ,@(loop for i from 0 below 3 append
@@ -72,10 +72,19 @@
                                 `(setf (m3 ,(+ (* j 4) i))
                                        (ode-real (mref mat3 ,i ,j))))))))
       (init)
-      pointer)))
+      ptr)))
 
 
-(defmacro with-ode-mat3 ((ode-mat bodge-mat3) &body body)
-  `(c-with ((,ode-mat %ode:real :calloc t :count (* 4 3)))
-     (copy-mat3 ,ode-mat ,bodge-mat3)
+(defmacro with-mat3-ptr ((mat-ptr bodge-mat3) &body body)
+  `(with-calloc (,mat-ptr '%ode:real (* 4 3))
+     (copy-mat3 ,mat-ptr ,bodge-mat3)
      ,@body))
+
+
+(defun ode-transform (rotation-ptr position-ptr)
+  (c-let ((pos %ode:real :ptr position-ptr)
+          (rot %ode:real :ptr rotation-ptr))
+    (mat4 (rot 0) (rot 1) (rot 2)  (pos 0)
+          (rot 4) (rot 5) (rot 6)  (pos 1)
+          (rot 8) (rot 9) (rot 10) (pos 2)
+          0.0     0.0     0.0      1.0)))

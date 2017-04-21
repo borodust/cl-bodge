@@ -40,7 +40,9 @@
 
 (defmethod (setf position-of) ((value vec3) (this volume-geom))
   (%ode:geom-set-position (handle-value-of this)
-                          (x value) (y value) (z value)))
+                          (ode-real (x value))
+                          (ode-real (y value))
+                          (ode-real (z value))))
 
 
 (defmethod rotation-of ((this volume-geom))
@@ -48,9 +50,13 @@
 
 
 (defmethod (setf rotation-of) ((value mat3) (this volume-geom))
-  (with-ode-mat3 (m3 value)
+  (with-mat3-ptr (m3 value)
     (%ode:geom-set-rotation (handle-value-of this) m3)))
 
+
+(defmethod transform-of ((this volume-geom))
+  (ode-transform (%ode:geom-get-rotation (handle-value-of this))
+                 (%ode:geom-get-position (handle-value-of this))))
 ;;;
 ;;;
 ;;;
