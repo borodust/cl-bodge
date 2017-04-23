@@ -158,6 +158,9 @@
   (%raw-> vec3 (v3:dot (value-of this) (value-of that))))
 
 
+;;;
+;;; VEC4
+;;;
 (defmethod multiply ((this vec4) (scalar number))
   (%raw-> vec4 (v4:*s (value-of this) (f scalar))))
 
@@ -168,6 +171,14 @@
 
 (defmethod divide ((this vec4) (scalar number))
   (%raw-> vec4 (v4:/s (value-of this) (f scalar))))
+
+
+(defmethod addere ((this vec4) (that vec4))
+  (%raw-> vec4 (v4:+ (value-of this) (value-of that))))
+
+
+(defmethod subtract ((this vec4) (that vec4))
+  (%raw-> vec4 (v4:- (value-of this) (value-of that))))
 
 ;;;
 ;;; VEC2
