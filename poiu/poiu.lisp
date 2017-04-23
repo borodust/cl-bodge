@@ -176,7 +176,6 @@
 (defmethod pop-style ((context nuklear-context) (class (eql 'vec2)))
   (%nk:style-pop-vec2 (handle-value-of context)))
 
-
 (defmethod push-style ((context nuklear-context) destination (value single-float))
   (%nk:style-push-float (handle-value-of context) destination value))
 

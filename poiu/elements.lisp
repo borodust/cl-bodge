@@ -142,7 +142,9 @@
 
 (defun compose-window (win next-method)
   (with-slots (x y width height title option-mask id) win
-    (let ((val (%nk:bge-begin-titled *handle* id title x y width height option-mask)))
+    (let ((val (%nk:bge-begin-titled *handle* id title
+                                     x (f  (- (height-of *context*) y height))
+                                     width height option-mask)))
       (unless (= 0 val)
         (funcall next-method win))
       (%nk:end *handle*))))
