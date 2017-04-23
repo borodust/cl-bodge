@@ -41,12 +41,8 @@
   (node-detached parent child))
 
 
-(labels ((%find-nodes (root name)
-           (loop for child in (children-of root)
-              when (eq (name-of child) name) append (list child)
-              append (%find-nodes child name))))
-  (defun find-node (root name)
-    (let ((result (%find-nodes root name)))
-      (if (eq (name-of root) name)
-          (values root result)
-          (values (first result) (rest result))))))
+(defun find-node (root name)
+  (if (eq (name-of root) name)
+      root
+      (loop for child in (children-of root)
+         thereis (find-node child name))))

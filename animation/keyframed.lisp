@@ -40,41 +40,40 @@
   ((frames :initform #() :initarg :frames :reader keyframes-of)))
 
 
-(labels ((%timestamp (v) (timestamp-of v)))
-  (defmethod initialize-instance ((this keyframe-sequence) &key sequence)
+(defgeneric duration-of (sequence)
+  (:method ((this keyframe-sequence))
     (with-slots (frames) this
-      (setf frames
-            (make-array (length sequence)
-                        :element-type 'keyframe
-                        :initial-contents (sort sequence #'< :key #'%timestamp)))))
+      (timestamp-of (aref frames (1- (length frames)))))))
 
 
-  (defun keyframe-at (animation-sequence timestamp &optional looped)
-    (let* ((kframes (keyframes-of animation-sequence))
-           (len (length kframes))
-           (timestamp (if looped
-                          (let ((last-timestamp (timestamp-of (aref kframes (1- len)))))
-                            (if (/= last-timestamp 0.0)
-                                (mod timestamp last-timestamp)
-                                0.0))
-                          timestamp)))
-      (flet ((%interpolate (this-idx that-idx)
-               (let* ((this (aref kframes this-idx))
-                      (that (aref kframes that-idx))
-                      (this-timestamp (timestamp-of this))
-                      (f (f (/ (- timestamp this-timestamp)
-                               (- (timestamp-of that) this-timestamp)))))
-                 (lerp this that f))))
-        (multiple-value-bind (frame idx) (search-sorted timestamp kframes :key #'%timestamp)
-          (if (null frame)
-              (cond
-                ((= idx 0) (aref kframes 0))
-                ((= idx len) (aref kframes (1- len)))
-                (t (%interpolate (1- idx) idx)))
-              frame)))))
+(defmethod initialize-instance ((this keyframe-sequence) &key sequence)
+  (with-slots (frames) this
+    (setf frames
+          (make-array (length sequence)
+                      :element-type 'keyframe
+                      :initial-contents (sort sequence #'< :key #'timestamp-of)))))
 
-  (defun transform-at (animation-sequence timestamp &optional looped)
-    (transform-of (keyframe-at animation-sequence timestamp looped))))
+
+(defun keyframe-at (animation-sequence timestamp)
+  (let* ((kframes (keyframes-of animation-sequence))
+         (len (length kframes)))
+    (flet ((%interpolate (this-idx that-idx)
+             (let* ((this (aref kframes this-idx))
+                    (that (aref kframes that-idx))
+                    (this-timestamp (timestamp-of this))
+                    (f (f (/ (- timestamp this-timestamp)
+                             (- (timestamp-of that) this-timestamp)))))
+               (lerp this that f))))
+      (multiple-value-bind (frame idx) (search-sorted timestamp kframes :key #'timestamp-of)
+        (if (null frame)
+            (cond
+              ((= idx 0) (aref kframes 0))
+              ((= idx len) (aref kframes (1- len)))
+              (t (%interpolate (1- idx) idx)))
+            frame)))))
+
+(defun transform-at (animation-sequence timestamp)
+  (transform-of (keyframe-at animation-sequence timestamp)))
 
 
 (defun make-keyframe-sequence (frames)
@@ -111,22 +110,94 @@
 
 
 ;;
+(defgeneric frame-at (animation time))
 (defclass keyframe-animation ()
-  ((sequences :initarg :sequence-alist :initform (error "Keyframe sequences must be supplied"))))
+  ((sequences :initarg :sequence-alist :initform (error "Keyframe sequences must be supplied"))
+   (duration :reader duration-of)))
+
+
+(defmethod initialize-instance :after ((this keyframe-animation) &key)
+  (with-slots (sequences duration) this
+    (flet ((%duration-of (pair)
+             (duration-of (cdr pair))))
+      (setf duration (reduce #'max sequences :key #'%duration-of)))))
 
 
 (defun make-keyframe-animation (sequence-alist)
   (make-instance 'keyframe-animation :sequence-alist sequence-alist))
 
 
-(defun frame-at (animation time &optional looped)
-  (with-slots (sequences) animation
+(defmethod frame-at ((animation keyframe-animation) time)
+  (with-slots (sequences duration) animation
     (let ((keyframe-by-id (make-hash-table :test #'equal)))
       (loop for (id . seq) in sequences
-         do (setf (gethash id keyframe-by-id) (keyframe-at seq time looped)))
+         do (setf (gethash id keyframe-by-id) (keyframe-at seq time)))
       (make-instance 'animation-frame
                      :keyframe-by-id keyframe-by-id))))
 
+
+;;
+(defclass decorator ()
+  ((delegate :initarg :delegate :initform (error ":delegate missing") :reader delegate-of)))
+
+
+(defmethod duration-of ((this decorator))
+  (duration-of (delegate-of this)))
+
+
+(defmethod frame-at ((this decorator) time)
+  (frame-at (delegate-of this) time))
+
+
+;;
+(defclass looped-animation (decorator) ())
+
+
+(defun make-looped-animation (source)
+  (make-instance 'looped-animation
+                 :delegate (or source (error "Source animation missing"))))
+
+
+(defmethod frame-at ((this looped-animation) time)
+  (let* ((source (delegate-of this))
+         (duration (duration-of source))
+         (looped-time (if (= duration 0.0) 0.0 (mod time duration))))
+    (frame-at source looped-time)))
+
+
+;;
+(defclass inverted-animation (decorator) ())
+
+
+(defun make-inverted-animation (source)
+  (make-instance 'inverted-animation :delegate source))
+
+
+(defmethod frame-at ((this inverted-animation) time)
+  (let* ((source (delegate-of this))
+         (duration (duration-of source))
+         (inverted-time (- duration time)))
+    (frame-at source inverted-time)))
+
+
+;;
+(defclass blended-animation (decorator)
+  ((other :initarg :other :initform (error ":other missing"))
+   (factor :initform 0.5 :initarg :factor)))
+
+
+(defun make-blended-animation (this that &optional (factor 0.5))
+  (make-instance 'blended-animation
+                 :delegate this
+                 :other that
+                 :factor factor))
+
+
+(defmethod frame-at ((this blended-animation) time)
+  (with-slots (other factor) this
+    (lerp (frame-at (delegate-of this) time)
+          (frame-at other time)
+          factor)))
 
 ;;
 (defmacro keyframed (&body sequences)

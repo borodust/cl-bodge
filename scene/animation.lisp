@@ -20,9 +20,9 @@
       (call-next-method))))
 
 
-(defun play-node-animation (animated-bone-node animation &optional (overlap-interval 0.0))
+(defun play-node-animation (animated-bone-node animation &rest keys &key &allow-other-keys)
   (with-slots (channel) animated-bone-node
-    (play-animation channel animation overlap-interval)))
+    (apply #'play-animation channel animation keys)))
 
 ;;;
 ;;;
