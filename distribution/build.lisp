@@ -38,11 +38,7 @@
 (defun generate-manifest ()
   (let ((manifest-file (fad:merge-pathnames-as-file (build-directory-of *distribution*)
                                                     "manifest-file")))
-    (alexandria:write-string-into-file (format nil "~{~a~^~%~}"
-                                               (list-system-pathnames
-                                                (target-system-of *distribution*)))
-                                       manifest-file
-                                       :if-exists :supersede)
+    (ql:write-asdf-manifest-file manifest-file :if-exists :supersede)    
     manifest-file))
 
 
@@ -84,8 +80,8 @@
 
 
 (defun copy-foreign-dependencies (lib-name target-dir dirs)
-  (unless (system-library-p lib-name)
-    (if-let (lib-path (cffi::find-file lib-name dirs))
+  (if-let (lib-path (cffi::find-file lib-name dirs))
+    (unless (system-library-p lib-path)
       (let ((dst (fad:merge-pathnames-as-file target-dir lib-name)))
         (unless (fad:file-exists-p dst)
           (fad:copy-file lib-path dst)
@@ -93,7 +89,7 @@
              do (copy-foreign-dependencies
                  dep-lib-name target-dir
                  (append dirs (list (uiop:pathname-directory-pathname  dep-lib-path)))))))
-      (error "Cannot find foreign library ~A" lib-name))))
+      (warn "Cannot find foreign library ~A. Skipping." lib-name))))
 
 
 (defun pack-foreign-libraries ()

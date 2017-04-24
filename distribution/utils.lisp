@@ -104,4 +104,5 @@
          for lib = (if div-idx
                        (trim-whitespaces (subseq dep 0 div-idx))
                        (file-namestring path))
+	 unless (equal lib "???") ; Windows crap 
          collect (cons lib path)))))
