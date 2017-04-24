@@ -32,6 +32,8 @@
            make-spacing
            make-list-select
            add-item
+           clear
+           item-name-of
            make-health-monitor
            show-health-monitor
            hide-health-monitor
@@ -45,4 +47,7 @@
 
            button-click-event
            poiu-button-from
+           item-selected
+           source-from
+           item-from
            register-poiu-events))

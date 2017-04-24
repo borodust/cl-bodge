@@ -370,15 +370,14 @@
 
 
 ;;
-(defgeneric add-item (object item))
 (defgeneric item-status (item))
-(defgeneric item-label-of (item))
+(defgeneric item-name-of (item))
 (defgeneric item-selected-p (item))
 (defgeneric select-item (item status))
 
 
 (defclass list-select-text-item (disposable)
-  ((text :initarg :text :reader item-label-of)
+  ((text :initarg :text :reader item-name-of)
    (status-buf :initform (calloc-ptr :int) :reader item-status)))
 
 
@@ -394,6 +393,8 @@
   (setf (c-ref (item-status this) :int) (if status 1 0)))
 
 
+(defgeneric add-item (object item))
+(defgeneric clear (ovject))
 (defclass list-select (widget)
   ((items :initform nil)
    (item-height :initarg :item-height)))
@@ -408,14 +409,20 @@
     (nconcf items (list (make-instance 'list-select-text-item :text text)))))
 
 
+(defmethod clear ((this list-select))
+  (with-slots (items) this
+    (setf items nil)))
+
+
 (defmethod compose ((this list-select))
   (with-slots (items item-height status-buf) this
     (%nk:layout-row-dynamic *handle* (float item-height) 1)
     (dolist (item items)
       (unless (= 0 (%nk:selectable-label *handle*
-                                         (item-label-of item)
+                                         (item-name-of item)
                                          %nk:+text-left+
                                          (item-status item)))
+        (post (make-item-selected this item) (events))
         (dolist (other-item items)
           (unless (eq item other-item)
             (select-item other-item nil)))))))
