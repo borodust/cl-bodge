@@ -16,6 +16,7 @@
            mouse-button-state
            fullscreen-viewport-p
            lock-cursor
+           unlock-cursor
 
            state-from
            keyboard-event

@@ -83,7 +83,7 @@
    (height :initform nil)
    (background-style-item :initform nil)
    (title :initarg :title :initform "")
-   (hidden-p :initform nil)
+   (hidden-p :initform nil :reader hiddenp)
    (option-mask :initarg :option-mask :initform '())))
 
 

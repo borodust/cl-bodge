@@ -174,6 +174,11 @@
     (glfw:set-input-mode :cursor :disabled)))
 
 
+(define-system-function unlock-cursor host-system (&key (host *system*))
+  (with-slots (window) host
+    (glfw:set-input-mode :cursor :normal)))
+
+
 (define-system-function (setf fullscreen-viewport-p) host-system (value)
   (with-slots (window) *system*
     (if value
