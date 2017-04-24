@@ -30,6 +30,8 @@
            make-text-edit
            text-of
            make-spacing
+           make-list-select
+           add-item
            make-health-monitor
            show-health-monitor
            hide-health-monitor

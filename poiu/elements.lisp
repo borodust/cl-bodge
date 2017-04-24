@@ -223,16 +223,18 @@
 ;;;
 ;;;
 (defclass dynamic-row (layout)
-  ((height :initarg :height :initform (error ":height missing"))))
+  ((height :initarg :height :initform (error ":height missing"))
+   (columns :initform nil :initarg :columns)))
 
 
-(defun make-dynamic-row-layout (height)
-  (make-instance 'dynamic-row :height height))
+(defun make-dynamic-row-layout (height &optional columns)
+  (make-instance 'dynamic-row :height height :columns columns))
 
 
 (defmethod compose ((this dynamic-row))
-  (with-slots (height) this
-    (%nk:layout-row-dynamic *handle* (f height) (length (children-of this)))
+  (with-slots (height columns) this
+    (%nk:layout-row-dynamic *handle* (f height) (or (and columns (floor columns))
+                                                    (length (children-of this))))
     (call-next-method)))
 
 
@@ -366,6 +368,57 @@
     (%nk:edit-buffer *handle* %nk:+edit-simple+ buffer
                      (ge.util:foreign-function-pointer '%nk:filter-default))))
 
+
+;;
+(defgeneric add-item (object item))
+(defgeneric item-status (item))
+(defgeneric item-label-of (item))
+(defgeneric item-selected-p (item))
+(defgeneric select-item (item status))
+
+
+(defclass list-select-text-item (disposable)
+  ((text :initarg :text :reader item-label-of)
+   (status-buf :initform (calloc-ptr :int) :reader item-status)))
+
+
+(define-destructor list-select-text-item (status-buf)
+  (free status-buf))
+
+
+(defmethod item-selected-p ((this list-select-text-item))
+  (/= 0 (c-ref (item-status this) :int )))
+
+
+(defmethod select-item ((this list-select-text-item) status)
+  (setf (c-ref (item-status this) :int) (if status 1 0)))
+
+
+(defclass list-select (widget)
+  ((items :initform nil)
+   (item-height :initarg :item-height)))
+
+
+(defun make-list-select (item-height &key name)
+  (make-instance 'list-select :item-height item-height :name name))
+
+
+(defmethod add-item ((this list-select) (text string))
+  (with-slots (items) this
+    (nconcf items (list (make-instance 'list-select-text-item :text text)))))
+
+
+(defmethod compose ((this list-select))
+  (with-slots (items item-height status-buf) this
+    (%nk:layout-row-dynamic *handle* (float item-height) 1)
+    (dolist (item items)
+      (unless (= 0 (%nk:selectable-label *handle*
+                                         (item-label-of item)
+                                         %nk:+text-left+
+                                         (item-status item)))
+        (dolist (other-item items)
+          (unless (eq item other-item)
+            (select-item other-item nil)))))))
 
 ;;;
 ;;;
