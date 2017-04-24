@@ -12,6 +12,8 @@
            compose-poiu
            when-composing
            name-of
+           find-element
+
            adopt-layout-by
            make-container-layout
            make-window
@@ -23,6 +25,7 @@
            make-label-button
            make-text-label
            make-text-edit
+           text-of
            make-spacing
            make-health-monitor
            show-health-monitor

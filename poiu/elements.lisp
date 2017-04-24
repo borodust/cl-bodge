@@ -13,6 +13,10 @@
 (defclass layout (parent) ())
 
 
+(defmethod name-of ((this layout))
+  nil)
+
+
 (defmethod compose ((this layout))
   (dochildren (element this)
     (compose element)))
@@ -136,6 +140,15 @@
                                               (opt movable :movable))))))
 
 
+(defun find-element (window name)
+  (labels ((%find-element (root name)
+             (if (equal (name-of root) name)
+                 root
+                 (loop for child in (children-of root)
+                    thereis (%find-element child name)))))
+    (%find-element window name)))
+
+
 (defun style-item-color (style-item color)
   (%nk:bge-init-color-style-item style-item (x color) (y color) (z color) (w color)))
 
@@ -230,6 +243,10 @@
   ((name :initarg :name :initform nil :reader name-of)))
 
 
+(defmethod children-of ((this widget))
+  nil)
+
+
 ;;;
 ;;;
 ;;;
@@ -309,6 +326,15 @@
 
 (defun make-text-edit (&key name)
   (make-instance 'text-edit :name name))
+
+
+(defgeneric text-of (object)
+  (:method ((this text-edit))
+    (with-slots (buffer) this
+      (let ((len (%nk:str-len buffer)))
+        (cffi:foreign-string-to-lisp (%nk:str-get-const buffer)
+                                     :count len
+                                     :encoding :utf-8)))))
 
 
 (defmethod compose ((this text-edit))
