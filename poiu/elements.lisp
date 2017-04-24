@@ -331,10 +331,15 @@
 (defgeneric text-of (object)
   (:method ((this text-edit))
     (with-slots (buffer) this
-      (let ((len (%nk:str-len buffer)))
-        (cffi:foreign-string-to-lisp (%nk:str-get-const buffer)
-                                     :count len
-                                     :encoding :utf-8)))))
+      (c-let ((buf (:struct (%nk:text-edit)) :from buffer))
+        (let* ((str-info (buf :string))
+               (len (%nk:str-len-char str-info)))
+          (inhibit-string-conversion
+            (multiple-value-bind (text ptr) (%nk:str-get-const str-info)
+              (declare (ignore text))
+              (cffi:foreign-string-to-lisp ptr
+                                           :count len
+                                           :encoding :utf-8))))))))
 
 
 (defmethod compose ((this text-edit))

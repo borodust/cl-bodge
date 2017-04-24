@@ -238,8 +238,8 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/graphics bodge-nuklear cl-bodge/text
-                               cl-bodge/canvas cl-autowrap cl-plus-c)
+  :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/graphics bodge-nuklear
+                               cl-bodge/text cl-bodge/canvas cl-autowrap cl-plus-c)
   :pathname "poiu/"
   :serial t
   :components ((:file "packages")
