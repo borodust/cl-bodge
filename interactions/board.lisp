@@ -16,11 +16,44 @@
    (cursor-listener :initform nil)
    (mouse-listener :initform nil)
    (character-listener :initform nil)
+   (keyboard-listener :initform nil)
    (input-state :initform (make-input-state))))
+
+
+(defun disable-cursor-input (interactive-node)
+  (with-slots (cursor-listener input-state) interactive-node
+    (when cursor-listener
+      (unsubscribe-from 'cursor-event cursor-listener (events))
+      (setf cursor-listener nil))))
+
+
+(defun disable-mouse-input (interactive-node)
+  (with-slots (mouse-listener input-state) interactive-node
+    (when mouse-listener
+      (unsubscribe-from 'mouse-event mouse-listener (events))
+      (setf mouse-listener nil))))
+
+
+(defun disable-character-input (interactive-node)
+  (with-slots (character-listener input-state) interactive-node
+    (when character-listener
+      (unsubscribe-from 'character-input-event character-listener (events))
+      (setf character-listener nil))))
+
+
+(defun disable-keyboard-input (interactive-node)
+  (with-slots (keyboard-listener input-state) interactive-node
+    (when keyboard-listener
+      (unsubscribe-from 'keyboard-event keyboard-listener (events))
+      (setf keyboard-listener nil))))
 
 
 (defmethod discard-node :before ((this interactive-board-node))
   (with-slots (poiu windows) this
+    (disable-cursor-input this)
+    (disable-mouse-input this)
+    (disable-character-input this)
+    (disable-keyboard-input this)
     (dolist (win windows)
       (dispose win))
     (dispose poiu)))
@@ -47,7 +80,6 @@
       (register-cursor-position x y)
       (loop for character in (read-characters state)
          do (register-character-input character))
-      #++
       (if (read-backspace-click state)
           (register-keyboard-input :backspace :pressed)
           (register-keyboard-input :backspace :released))
@@ -96,3 +128,11 @@
       (setf character-listener
             (subscribe-body-to (character-input-event (character)) (events)
               (register-character input-state character))))))
+
+
+(defun enable-keyboard-input (interactive-node)
+  (with-slots (keyboard-listener input-state) interactive-node
+    (unless keyboard-listener
+      (setf keyboard-listener
+            (subscribe-body-to (keyboard-event (key state)) (events)
+              (register-key-action input-state key state))))))

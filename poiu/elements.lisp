@@ -202,7 +202,7 @@
 
 (defmethod compose ((this static-row))
   (with-slots (height item-width) this
-    (%nk:layout-row-static *handle* height (floor item-width) (length (children-of this)))
+    (%nk:layout-row-static *handle* (f height) (floor item-width) (length (children-of this)))
     (call-next-method)))
 
 
@@ -219,7 +219,7 @@
 
 (defmethod compose ((this dynamic-row))
   (with-slots (height) this
-    (%nk:layout-row-dynamic *handle* (float height 0f0) (length (children-of this)))
+    (%nk:layout-row-dynamic *handle* (f height) (length (children-of this)))
     (call-next-method)))
 
 
@@ -275,6 +275,20 @@
                     (stringify (funcall text))
                     text)))
       (%nk:label *handle* text align))))
+
+
+;;
+(defclass spacing (widget)
+  ((columns :initform 1 :initarg :columns)))
+
+
+(defun make-spacing (&optional (columns 1))
+  (make-instance 'spacing :columns columns))
+
+
+(defmethod compose ((this spacing))
+  (with-slots (columns) this
+    (%nk:spacing *handle* (floor columns))))
 
 
 ;;;
@@ -343,17 +357,3 @@
 (defmethod compose ((this health-monitor))
   (with-slots (window) this
     (compose window)))
-
-
-;;;
-;;;
-;;;
-(defclass spacing (layout) ())
-
-
-(defun make-spacing ()
-  (make-instance 'spacing))
-
-
-(defmethod compose ((this spacing))
-  (%nk:spacing *handle* 1))

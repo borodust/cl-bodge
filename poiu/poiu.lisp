@@ -127,7 +127,9 @@
 
 (defun key->nk (key)
   (ecase key
-    (:backspace %nk:+key-backspace+)))
+    (:backspace %nk:+key-backspace+)
+    (:left %nk:+key-left+)
+    (:right %nk:+key-right+)))
 
 
 (defun register-keyboard-input (key state)

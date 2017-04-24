@@ -12,4 +12,5 @@
            make-board-window
            enable-mouse-input
            enable-cursor-input
+           enable-keyboard-input
            enable-character-input))
