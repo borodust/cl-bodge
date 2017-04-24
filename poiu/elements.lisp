@@ -10,11 +10,11 @@
     (compose element)))
 
 
-(defclass layout (parent) ())
+(defclass named ()
+  ((name :initarg :name :initform nil :reader name-of)))
 
 
-(defmethod name-of ((this layout))
-  nil)
+(defclass layout (named parent) ())
 
 
 (defmethod compose ((this layout))
@@ -227,8 +227,8 @@
    (columns :initform nil :initarg :columns)))
 
 
-(defun make-dynamic-row-layout (height &optional columns)
-  (make-instance 'dynamic-row :height height :columns columns))
+(defun make-dynamic-row-layout (height &key columns name)
+  (make-instance 'dynamic-row :height height :columns columns :name name))
 
 
 (defmethod compose ((this dynamic-row))
@@ -245,9 +245,8 @@
 (defgeneric show-widget (widget))
 
 
-(defclass widget ()
-  ((hidden :initform nil :reader hiddenp)
-   (name :initarg :name :initform nil :reader name-of)))
+(defclass widget (named)
+  ((hidden :initform nil :reader hiddenp)))
 
 
 (defmethod children-of ((this widget))
