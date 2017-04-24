@@ -22,6 +22,9 @@
            make-menu-bar
            make-static-row-layout
            make-dynamic-row-layout
+           hiddenp
+           show-widget
+           hide-widget
            make-label-button
            make-text-label
            make-text-edit

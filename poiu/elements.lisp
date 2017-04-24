@@ -239,13 +239,32 @@
 ;;;
 ;;;
 ;;;
+(defgeneric hide-widget (widget))
+(defgeneric show-widget (widget))
+
+
 (defclass widget ()
-  ((name :initarg :name :initform nil :reader name-of)))
+  ((hidden :initform nil :reader hiddenp)
+   (name :initarg :name :initform nil :reader name-of)))
 
 
 (defmethod children-of ((this widget))
   nil)
 
+
+(defmethod hide-widget ((this widget))
+  (with-slots (hidden) this
+    (setf hidden t)))
+
+
+(defmethod show-widget ((this widget))
+  (with-slots (hidden) this
+    (setf hidden nil)))
+
+
+(defmethod compose :around ((this widget))
+  (unless (hiddenp this)
+    (call-next-method)))
 
 ;;;
 ;;;
