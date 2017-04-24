@@ -72,3 +72,11 @@
 (defmethod transform-of ((this rigid-body))
   (ode-transform (%ode:body-get-rotation (handle-value-of this))
                  (%ode:body-get-position (handle-value-of this))))
+
+
+(defmethod linear-velocity-of ((this rigid-body))
+  (ode->vec3 (%ode:body-get-linear-vel (handle-value-of this))))
+
+
+(defmethod angular-velocity-of ((this rigid-body))
+  (ode->vec3 (%ode:body-get-angular-vel (handle-value-of this))))
