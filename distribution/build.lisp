@@ -38,7 +38,7 @@
 (defun generate-manifest ()
   (let ((manifest-file (fad:merge-pathnames-as-file (build-directory-of *distribution*)
                                                     "manifest-file")))
-    (ql:write-asdf-manifest-file manifest-file :if-exists :supersede)    
+    (ql:write-asdf-manifest-file manifest-file :if-exists :supersede)
     manifest-file))
 
 
@@ -55,6 +55,7 @@
 		       "--output" output-file
 		       "--entry" (entry-function-of *distribution*)
 		       "--manifest-file" manifest-file
+                       "--load-system" "bodge-blobs"
 		       "--load" (file (distribution-system-path) "prologue.lisp")
 		       "--load-system" (format nil "~(~a~)" (target-system-of *distribution*))
 		       "--eval" (format nil "(defvar *engine-assets-path* \"~A\")"
