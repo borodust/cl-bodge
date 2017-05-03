@@ -15,7 +15,7 @@
 (defgeneric make-system-context (system)
   (:documentation "Make context bound to system's thread.")
   (:method (system)
-    (declare (ignore system) nil)))
+    (declare (ignore system)) nil))
 
 
 (defgeneric destroy-system-context (context system)
