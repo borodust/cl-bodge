@@ -4,8 +4,7 @@
 (declaim (special *active-dispatcher*))
 
 
-(defmethod dispatch (dispatcher fn invariant &key)
-  nil)
+(defgeneric dispatch (dispatcher task invariant &key &allow-other-keys))
 
 
 (defmethod dispatch :around (dispatcher fn invariant &rest keys &key &allow-other-keys)

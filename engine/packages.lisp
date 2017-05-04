@@ -38,7 +38,6 @@
            ~>
            ->>
            dispatch
-           define-flow
 
            lockable
            with-instance-lock-held))

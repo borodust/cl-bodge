@@ -26,14 +26,12 @@
 (defmethod dispatch ((this thread-bound-system) fn invariant &key (priority :medium)
                                                                (important-p t))
   "Dispatch task to be executed in the system's thread."
-  (unless (call-next-method)
-    (flet ((invoker ()
-             (log-errors
-               (let ((*system-context* (system-context-of this))
-                     (*system* this))
-                 (funcall fn)))))
-      (execute (%executor-of this) #'invoker :priority priority :important-p important-p))
-    t))
+  (flet ((invoker ()
+           (log-errors
+             (let ((*system-context* (system-context-of this))
+                   (*system* this))
+               (funcall fn)))))
+    (execute (%executor-of this) #'invoker :priority priority :important-p important-p)))
 
 
 (defgeneric acquire-system-executor (system)

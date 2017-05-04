@@ -297,9 +297,11 @@ Flow variant of #'make-instance."
         (value-flow instance))))
 
 
-(defun run (fn)
-  "Dispatch flow using engine as a dispatcher."
-  (cl-flow:run (engine) fn))
+(flet ((dispatch-dynamically (task invariant &rest opts &key &allow-other-keys)
+         (apply #'dispatch (engine) task invariant opts)))
+  (defun run (flow)
+    "Dispatch flow using engine as a dispatcher."
+    (cl-flow:run #'dispatch-dynamically flow)))
 
 ;;
 (defgeneric system-of (obj)
