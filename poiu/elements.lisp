@@ -114,17 +114,17 @@
     (%nk:window-close (handle-value-of poiu) id)))
 
 
-(defun make-window (poiu x y w h &key (title "") (background-color nil)
-                                   (headerless t) (scrollable nil) (background-p nil)
-                                   (borderless nil) (panel-p nil) (resizable nil)
-                                   (minimizable nil) (movable nil) (closable nil)
-                                   (hidden nil))
+(defun make-window (poiu origin w h &key (title "") (background-color nil)
+                                      (headerless t) (scrollable nil) (background-p nil)
+                                      (borderless nil) (panel-p nil) (resizable nil)
+                                      (minimizable nil) (movable nil) (closable nil)
+                                      (hidden nil))
   (macrolet ((opt (key option)
                `(when ,key
                   (list ,option))))
     (make-instance 'window
                    :poiu poiu
-                   :x (f x) :y (f y) :width w :height h
+                   :x (x origin) :y (y origin) :width w :height h
                    :panel-p panel-p
                    :title title
                    :background-color background-color
@@ -183,6 +183,16 @@
       (unless (= 0 (%nk:window-is-closed *handle* id))
         (setf hidden-p t)))))
 
+
+(defmacro defwindow (name-and-opts &body layout)
+  (destructuring-bind (name &rest opts) (ensure-list name-and-opts)
+    (with-gensyms (poiu origin width height)
+      `(defun ,(symbolicate 'make- name '-window) (,poiu ,origin ,width ,height)
+         (adopt-layout-by ((apply #'make-window ,poiu
+                                  (x ,origin) (y ,origin)
+                                  ,width ,height
+                                  ,@opts))
+           ,@layout)))))
 ;;;
 ;;;
 ;;;
@@ -433,9 +443,9 @@
   ((window :initform nil)))
 
 
-(defmethod initialize-instance :after ((this health-monitor) &key poiu x y width height hidden)
+(defmethod initialize-instance :after ((this health-monitor) &key poiu origin width height hidden)
   (with-slots (window) this
-    (setf window (make-window poiu x y width height :title "Health monitor"
+    (setf window (make-window poiu origin width height :title "Health monitor"
                               :headerless nil :scrollable t :resizable t
                               :movable t :closable t :hidden hidden))))
 

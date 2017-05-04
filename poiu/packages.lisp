@@ -17,6 +17,7 @@
            adopt-layout-by
            make-container-layout
            make-window
+           defwindow
            show-window
            hide-window
            make-menu-bar
