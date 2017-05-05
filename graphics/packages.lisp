@@ -9,8 +9,7 @@
 
 (ge.util:define-package :cl-bodge.graphics
   (:nicknames :ge.gx)
-  (:use :cl :cl-bodge.engine :cl-bodge.host :cl-bodge.utils
-        :cl-bodge.event)
+  (:use :cl :cl-bodge.engine :cl-bodge.host :cl-bodge.utils)
   (:export graphics-system
            graphics
            in-wireframe-mode

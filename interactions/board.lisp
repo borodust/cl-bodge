@@ -23,28 +23,28 @@
 (defun disable-cursor-input (interactive-node)
   (with-slots (cursor-listener input-state) interactive-node
     (when cursor-listener
-      (unsubscribe-from 'cursor-event cursor-listener (events))
+      (unsubscribe-from 'cursor-event cursor-listener (host))
       (setf cursor-listener nil))))
 
 
 (defun disable-mouse-input (interactive-node)
   (with-slots (mouse-listener input-state) interactive-node
     (when mouse-listener
-      (unsubscribe-from 'mouse-event mouse-listener (events))
+      (unsubscribe-from 'mouse-event mouse-listener (host))
       (setf mouse-listener nil))))
 
 
 (defun disable-character-input (interactive-node)
   (with-slots (character-listener input-state) interactive-node
     (when character-listener
-      (unsubscribe-from 'character-input-event character-listener (events))
+      (unsubscribe-from 'character-input-event character-listener (host))
       (setf character-listener nil))))
 
 
 (defun disable-keyboard-input (interactive-node)
   (with-slots (keyboard-listener input-state) interactive-node
     (when keyboard-listener
-      (unsubscribe-from 'keyboard-event keyboard-listener (events))
+      (unsubscribe-from 'keyboard-event keyboard-listener (host))
       (setf keyboard-listener nil))))
 
 
@@ -111,14 +111,14 @@
 (defun enable-cursor-input (interactive-node)
   (with-slots (cursor-listener input-state) interactive-node
     (unless cursor-listener
-      (setf cursor-listener (subscribe-body-to (cursor-event (x y)) (events)
+      (setf cursor-listener (subscribe-body-to (cursor-event (host) (x y))
                               (register-cursor-state input-state x y))))))
 
 
 (defun enable-mouse-input (interactive-node)
   (with-slots (mouse-listener input-state) interactive-node
     (unless mouse-listener
-      (setf mouse-listener (subscribe-body-to (mouse-event (button state)) (events)
+      (setf mouse-listener (subscribe-body-to (mouse-event (host) (button state))
                              (register-mouse-state input-state button state))))))
 
 
@@ -126,7 +126,7 @@
   (with-slots (character-listener input-state) interactive-node
     (unless character-listener
       (setf character-listener
-            (subscribe-body-to (character-input-event (character)) (events)
+            (subscribe-body-to (character-input-event (host) (character))
               (register-character input-state character))))))
 
 
@@ -134,5 +134,5 @@
   (with-slots (keyboard-listener input-state) interactive-node
     (unless keyboard-listener
       (setf keyboard-listener
-            (subscribe-body-to (keyboard-event (key state)) (events)
+            (subscribe-body-to (keyboard-event (host) (key state))
               (register-key-action input-state key state))))))

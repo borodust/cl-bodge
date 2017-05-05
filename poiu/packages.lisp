@@ -4,7 +4,7 @@
 (defpackage :cl-bodge.poiu
   (:nicknames :ge.poiu)
   (:use :cl :cl-bodge.engine :cl-bodge.utils :cl-bodge.graphics :plus-c
-        :cl-bodge.canvas :autowrap :cl-bodge.text :cl-bodge.resources :cl-bodge.event)
+        :cl-bodge.canvas :autowrap :cl-bodge.text :cl-bodge.resources)
   (:export make-poiu-context
            clear-poiu-context
 

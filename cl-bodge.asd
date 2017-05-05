@@ -51,24 +51,14 @@
                (:module resources
                         :components ((:file "audio")
                                      (:file "graphics")))
+               (:module events
+                        :components ((:file "event")
+                                     (:file "emitter")
+                                     (:file "listener")))
                (:file "properties")
                (:file "engine")
                (:file "generic-system")
                (:file "thread-bound-system")))
-
-
-(defsystem cl-bodge/events
-  :description "Bodacious Game Engine event system"
-  :version "0.3.0"
-  :author "Pavel Korolev"
-  :mailto "dev@borodust.org"
-  :license "MIT"
-  :depends-on (cl-bodge/engine cl-bodge/utils log4cl)
-  :pathname "events/"
-  :serial t
-  :components ((:file "packages")
-               (:file "event")
-               (:file "system")))
 
 
 (defsystem cl-bodge/host
@@ -77,7 +67,7 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/events cl-glfw3 log4cl bordeaux-threads
+  :depends-on (cl-bodge/engine cl-bodge/utils cl-glfw3 log4cl bordeaux-threads
                                cl-muth trivial-main-thread)
   :pathname "host/"
   :serial t
@@ -284,7 +274,7 @@
   :mailto "dev@borodust.org"
   :license "MIT"
   :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/poiu cl-bodge/physics
-                               cl-bodge/host cl-bodge/events cl-bodge/scenegraph)
+                               cl-bodge/host cl-bodge/scenegraph)
   :pathname "interactions/"
   :serial t
   :components ((:file "packages")
@@ -364,7 +354,7 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/events cl-bodge/host
+  :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/host
                                cl-bodge/graphics cl-bodge/audio cl-bodge/physics
                                cl-bodge/resources cl-bodge/scenegraph
                                cl-bodge/poiu cl-bodge/text cl-bodge/canvas

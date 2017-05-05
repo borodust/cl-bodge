@@ -7,7 +7,6 @@
                  :cl-bodge.assets
                  :cl-bodge.audio
                  :cl-bodge.engine
-                 :cl-bodge.event
                  :cl-bodge.graphics
                  :cl-bodge.host
                  :cl-bodge.physics

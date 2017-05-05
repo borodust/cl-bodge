@@ -255,7 +255,7 @@
 (defgeneric show-widget (widget))
 
 
-(defclass widget (named)
+(defclass widget (named event-emitter)
   ((hidden :initform nil :reader hiddenp)))
 
 
@@ -292,7 +292,7 @@
   (with-slots (label) this
     (unless (= (%nk:button-label *handle* label) 0)
       ;; fixme: propagate event system here somehow
-      (post (make-button-click-event this) (events)))))
+      (fire-event (make-button-click-event this) this))))
 
 
 ;;;
@@ -431,7 +431,7 @@
                                          (item-name-of item)
                                          %nk:+text-left+
                                          (item-status item)))
-        (post (make-item-selected this item) (events))
+        (fire-event (make-item-selected this item) this)
         (dolist (other-item items)
           (unless (eq item other-item)
             (select-item other-item nil)))))))

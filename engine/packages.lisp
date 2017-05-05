@@ -15,7 +15,7 @@
            foreign-pointer-of))
 
 
-(defpackage :cl-bodge.concurrency
+(ge.util:define-package :cl-bodge.concurrency
   (:nicknames :ge.mt)
   (:use :cl-bodge.utils :cl-bodge.memory
         :cl :bordeaux-threads :cl-muth :cl-flow)
@@ -43,7 +43,7 @@
            with-instance-lock-held))
 
 
-(defpackage :cl-bodge.math
+(ge.util:define-package :cl-bodge.math
   (:nicknames :ge.math)
   (:use :cl :cl-bodge.utils)
   (:export lerp
@@ -116,7 +116,7 @@
            rotate))
 
 
-(defpackage :cl-bodge.engine.resources
+(ge.util:define-package :cl-bodge.engine.resources
   (:nicknames :ge.ng.rsc)
   (:use :cl :cl-bodge.utils)
   (:export pixel-format
@@ -137,16 +137,28 @@
            audio-sampling-rate-of))
 
 
+(ge.util:define-package :cl-bodge.events
+  (:nicknames :ge.eve)
+  (:use :cl :cl-bodge.utils :cl-bodge.concurrency)
+  (:export event
+           defevent
+           fire-event
+           subscribe-to
+           unsubscribe-from
+           subscribe-body-to
+           event-emitter
+           event-listener))
+
+
 (ge.util:define-package :cl-bodge.engine
   (:nicknames :ge.ng)
   (:use :cl-bodge.utils :cl :bordeaux-threads :cl-muth)
   (:use-reexport :cl-bodge.concurrency :cl-bodge.memory :cl-bodge.math
-                 :cl-bodge.engine.resources)
+                 :cl-bodge.engine.resources :cl-bodge.events)
   (:export system
            enable
            disable
            enabledp
-           notify-system
            acquire-executor
            release-executor
            working-directory

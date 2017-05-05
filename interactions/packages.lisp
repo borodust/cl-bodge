@@ -4,7 +4,7 @@
 (defpackage :cl-bodge.interactions
   (:nicknames :ge.act)
   (:use :cl :cl-bodge.engine :cl-bodge.utils
-        :cl-bodge.physics :cl-bodge.poiu :cl-bodge.graphics :cl-bodge.event
+        :cl-bodge.physics :cl-bodge.poiu :cl-bodge.graphics
         :cl-bodge.host :cl-bodge.scene)
   (:export interactions-system
 

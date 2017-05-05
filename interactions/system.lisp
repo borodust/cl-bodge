@@ -1,7 +1,6 @@
 (in-package :cl-bodge.interactions)
 
 
-
 (defclass interactions-system (enableable generic-system)
   ((input-state :initform (make-input-state))
    (control-ray :initform nil))
@@ -15,12 +14,11 @@
 
 
 (defun subscribe-to-events (input)
-  (let ((eve (events)))
-    (subscribe-body-to (character-input-event (ev character)) eve
-      (register-character input character))
+  (subscribe-body-to (character-input-event (host) (ev character))
+    (register-character input character))
 
-    (subscribe-body-to (keyboard-event (ev key state)) eve
-      (register-key-action input key state))))
+    (subscribe-body-to (keyboard-event (host) (ev key state))
+      (register-key-action input key state)))
 
 
 (defmethod initialize-system :after ((this interactions-system))

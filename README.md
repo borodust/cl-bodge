@@ -11,12 +11,8 @@ Experimental **bod**acious **g**ame **e**ngine written in **C**ommon **L**isp.
 
 * ***Foundations***
 
-  Basic engine blocks for memory management, concurrency, math and systems. Everything else is
-  built on top. See `cl-bodge/engine`.
-
-* ***Events***
-
-  Base for event-driven systems. See `cl-bodge/events`.
+  Basic engine blocks for memory management, concurrency, math, events and systems. Everything
+  else is built on top. See `cl-bodge/engine`.
 
 * ***Host***
 

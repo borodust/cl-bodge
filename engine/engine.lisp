@@ -73,13 +73,6 @@ file is stored."
   (:documentation "Base class for all engine systems"))
 
 
-(defgeneric notify-system (system notification &key &allow-other-keys)
-  (:method (system notification &key))
-  (:documentation "System's callback which is called by engine during various
-  events. `notification` can be one of those:
-:engine-started"))
-
-
 (defgeneric enable (system)
   (:method (system) nil)
   (:documentation "Enable engine's system synchronousy."))
@@ -188,9 +181,7 @@ directories used by the engine are relative to 'working-directory parameter."
         (when (null system-class-names)
           (error "(:engine :systems) property should be defined and cannot be nil"))
         (setf systems (alist-hash-table (instantiate-systems system-class-names))
-              disabling-order (enable-requested-systems systems)))
-      (loop for system being the hash-value of systems
-         do (notify-system system :engine-started)))))
+              disabling-order (enable-requested-systems systems))))))
 
 
 (defun shutdown ()
