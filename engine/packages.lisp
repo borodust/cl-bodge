@@ -142,12 +142,15 @@
   (:use :cl :cl-bodge.utils :cl-bodge.concurrency)
   (:export event
            defevent
+           event-emitter
            fire-event
            subscribe-to
            unsubscribe-from
            subscribe-body-to
-           event-emitter
-           event-listener))
+           event-listener
+           register-event-handler
+           subscribe-listener
+           unsubscribe-listener))
 
 
 (ge.util:define-package :cl-bodge.engine

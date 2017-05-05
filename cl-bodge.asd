@@ -73,7 +73,8 @@
   :serial t
   :components ((:file "packages")
                (:file "events")
-               (:file "system")))
+               (:file "system")
+               (:file "keymap")))
 
 
 (defsystem cl-bodge/graphics

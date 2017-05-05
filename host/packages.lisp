@@ -1,7 +1,7 @@
 (in-package :cl-bodge.asdf)
 
 
-(defpackage :cl-bodge.host
+(ge.util:define-package :cl-bodge.host
   (:nicknames :ge.host)
   (:use :cl-bodge.engine :cl-bodge.utils :cl :bordeaux-threads :cl-muth :trivial-main-thread)
   (:export host-system
@@ -33,4 +33,11 @@
            viewport-size-change-event
            width-from
            height-from
-           viewport-hiding-event))
+           viewport-hiding-event
+
+           make-keymap
+           enable-keymap
+           disable-keymap
+           bind-button
+           bind-key
+           bind-cursor))
