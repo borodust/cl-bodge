@@ -452,12 +452,12 @@ special variable corresponds to the instance of the `system-class`."
     (pushnew fn-name (assoc-value *predefined-event-callbacks* event-class-name))))
 
 
-(defmethod register-emitter ((this bodge-engine) emitter &rest event-class-names)
+(defmethod register-event-emitter ((this bodge-engine) emitter &rest event-class-names)
   (with-slots (event-hub) this
     (apply #'register-emitter event-hub emitter event-class-names)))
 
 
-(defmethod remove-emitter ((this bodge-engine) emitter)
+(defmethod remove-event-emitter ((this bodge-engine) emitter)
   (with-slots (event-hub) this
     (remove-emitter event-hub emitter)))
 

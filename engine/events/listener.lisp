@@ -4,53 +4,57 @@
 (defclass event-listening ()
   ((lock :initform (bt:make-recursive-lock "event-listener-lock"))
    (enabled-p :initform nil)
-   (callbacks :initform (list))))
+   (handler-table :initform (tg:make-weak-hash-table :weakness :key))))
 
 
 (defun register-event-handler (event-listener event-class-name emitter handler)
-  (with-slots (callbacks lock enabled-p) event-listener
+  (with-slots (handler-table lock enabled-p) event-listener
     (bt:with-recursive-lock-held (lock)
       (when enabled-p
         (subscribe-to event-class-name emitter handler))
-      (pushnew (list event-class-name emitter handler) callbacks :test #'equal))))
+      (pushnew (cons event-class-name handler)
+               (gethash emitter handler-table)
+               :test #'equal))))
 
 
 (defun remove-event-handler (event-listener event-class-name handler emitter)
-  (with-slots (callbacks lock enabled-p) event-listener
+  (with-slots (handler-table lock enabled-p) event-listener
     (bt:with-recursive-lock-held (lock)
       (when enabled-p
         (unsubscribe-from event-class-name emitter handler))
-      (deletef callbacks (list event-class-name emitter handler) :test #'equal))))
+      (deletef (gethash emitter handler-table)
+               (cons event-class-name handler)
+               :test #'equal))))
 
 
 (defun remove-by-event-emitter (event-listener emitter)
-  (with-slots (callbacks lock enabled-p) event-listener
-    (flet ((remove-emitter (result handler-info)
-             (if (eq emitter (second handler-info))
-                 (progn
-                   (when enabled-p
-                     (apply #'unsubscribe-from handler-info))
-                   result)
-                 (cons result handler-info))))
-      (bt:with-recursive-lock-held (lock)
-        (setf callbacks (reduce #'remove-emitter callbacks))))))
+  (with-slots (handler-table lock enabled-p) event-listener
+    (when-let ((handlers (gethash emitter handler-table)))
+      (loop for (event-class-name . handler) in handlers
+         do (unsubscribe-from event-class-name emitter handler))
+      (remhash emitter handler-table))))
+
+
+(defun %for-each-handler (listener action)
+  (with-slots (handler-table) listener
+    (loop for emitter being the hash-key of handler-table using (hash-value handlers)
+       do (loop for (event-class-name . handler) in handlers
+             do (funcall action event-class-name emitter handler)))))
 
 
 (defun subscribe-listener (event-listener)
-  (with-slots (callbacks lock enabled-p) event-listener
+  (with-slots (lock enabled-p) event-listener
     (bt:with-recursive-lock-held (lock)
       (when enabled-p
         (error "Listener already subscribed"))
-      (dolist (args callbacks)
-        (apply #'subscribe-to args))
+      (%for-each-handler event-listener #'subscribe-to)
       (setf enabled-p t))))
 
 
 (defun unsubscribe-listener (event-listener)
-  (with-slots (callbacks lock enabled-p) event-listener
+  (with-slots (lock enabled-p) event-listener
     (bt:with-recursive-lock-held (lock)
-      (unless callbacks
+      (unless enabled-p
         (error "Listener already unsubscribed"))
-      (dolist (args callbacks)
-        (apply #'unsubscribe-from args))
+      (%for-each-handler event-listener #'unsubscribe-from)
       (setf enabled-p nil))))

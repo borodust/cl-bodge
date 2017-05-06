@@ -36,7 +36,6 @@
         (deletef (cdr handler-list) handler)))))
 
 
-
 ;;
 (defclass event-emitting ()
   ((handler-registry :initform (make-instance 'handler-registry))))
