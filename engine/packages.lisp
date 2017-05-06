@@ -25,6 +25,10 @@
            drain
            clearup
 
+           make-guarded-reference
+           guarded-value-of
+           with-guarded-reference
+
            execute
            make-single-threaded-executor
            make-pooled-executor
