@@ -1,7 +1,7 @@
 (in-package :cl-bodge.asdf)
 
 
-(defpackage :cl-bodge.poiu
+(ge.util:define-package :cl-bodge.poiu
   (:nicknames :ge.poiu)
   (:use :cl :cl-bodge.engine :cl-bodge.utils :cl-bodge.graphics :plus-c
         :cl-bodge.canvas :autowrap :cl-bodge.text :cl-bodge.resources)
@@ -50,5 +50,4 @@
            poiu-button-from
            item-selected
            source-from
-           item-from
-           register-poiu-events))
+           item-from))

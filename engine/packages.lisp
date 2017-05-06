@@ -150,7 +150,10 @@
            event-listener
            register-event-handler
            subscribe-listener
-           unsubscribe-listener))
+           unsubscribe-listener
+           make-event-hub
+           register-emitter
+           remove-emitter))
 
 
 (ge.util:define-package :cl-bodge.engine

@@ -54,7 +54,8 @@
                (:module events
                         :components ((:file "event")
                                      (:file "emitter")
-                                     (:file "listener")))
+                                     (:file "listener")
+                                     (:file "hub")))
                (:file "properties")
                (:file "engine")
                (:file "generic-system")
