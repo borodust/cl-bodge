@@ -255,7 +255,7 @@
 (defgeneric show-widget (widget))
 
 
-(defclass widget (named event-emitter)
+(defclass widget (named event-emitting)
   ((hidden :initform nil :reader hiddenp)))
 
 

@@ -38,7 +38,7 @@
 
 
 ;;
-(defclass event-emitter ()
+(defclass event-emitting ()
   ((handler-registry :initform (make-instance 'handler-registry))))
 
 
@@ -48,7 +48,7 @@
 
 
 (defgeneric subscribe-to (event-class-name emitter handler)
-  (:method (event-class-name (emitter event-emitter) handler)
+  (:method (event-class-name (emitter event-emitting) handler)
     (with-slots (handler-registry) emitter
       (let ((event-class (find-class event-class-name)))
         (register-handler handler-registry event-class handler)))
@@ -56,7 +56,7 @@
 
 
 (defgeneric unsubscribe-from (event-class-name emitter handler)
-  (:method (event-class-name (emitter event-emitter) handler)
+  (:method (event-class-name (emitter event-emitting) handler)
     (with-slots (handler-registry) emitter
       (let ((event-class (find-class event-class-name)))
         (remove-handler handler-registry event-class handler)))

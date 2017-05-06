@@ -3,12 +3,14 @@
 (defvar *engine-startup-hooks* nil)
 (defvar *system-startup-hooks* (mt:make-guarded-reference (make-hash-table)))
 (defvar *system-shutdown-hooks* (mt:make-guarded-reference (make-hash-table)))
+(defvar *predefined-event-callbacks* nil)
 
 (declaim (special *system*))
 
 ;;
 (defclass bodge-engine (lockable)
   ((systems :initform nil)
+   (event-hub :initform nil)
    (properties :initform '())
    (working-directory :initform nil :reader working-directory-of)
    (shared-executors :initform nil)
@@ -152,6 +154,51 @@ specified."
   (pushnew #'unload-foreign-libraries sb-ext:*save-hooks*))
 
 
+(defmethod initialize-instance :after ((this bodge-engine)
+                                       &key properties working-directory)
+  (in-new-thread-waiting "startup-worker"
+    (with-slots (systems (this-properties properties)
+                         (this-working-directory working-directory)
+                         disabling-order shared-pool shared-executors
+                         event-hub)
+        *engine*
+      (setf this-properties (%load-properties properties)
+            shared-pool (make-pooled-executor
+                         (property :engine-shared-pool-size 2))
+            this-working-directory working-directory
+            shared-executors (list (make-single-threaded-executor))
+            event-hub (make-event-hub))
+      (log:config (property '(:engine :log-level) :info))
+      (reload-foreign-libraries)
+      (log-errors
+        (dolist (hook *engine-startup-hooks*)
+          (funcall hook)))
+
+      (loop for (event-class-name . handlers) in *predefined-event-callbacks*
+         do (dolist (handler handlers)
+              (subscribe-to event-class-name this handler)))
+      (enable-hub event-hub)
+
+      (let ((system-class-names (property '(:engine :systems))))
+        (when (null system-class-names)
+          (error "(:engine :systems) property should be defined and cannot be nil"))
+        (setf systems (alist-hash-table (instantiate-systems system-class-names))
+              disabling-order (enable-requested-systems systems))))))
+
+
+(define-destructor bodge-engine (systems disabling-order shared-pool shared-executors event-hub)
+  (in-new-thread-waiting "shutdown-worker"
+    (disable-hub event-hub)
+    (loop for system-class in disabling-order
+       do
+         (log:debug "Disabling ~a" system-class)
+         (invoke-system-shutdown-hooks system-class)
+         (disable (gethash system-class systems)))
+    (dispose shared-pool)
+    (dolist (ex shared-executors)
+      (dispose ex))))
+
+
 (defun startup (properties &optional (working-directory (truename (uiop:getcwd))))
   "Start engine synchronously loading configuration from `properties` (file, hash-table, plist
 or alist). `(:engine :systems)` property must be present in the config and should contain list
@@ -160,28 +207,10 @@ dependencies will be initialized in the correct order according to a dependency 
 directories used by the engine are relative to 'working-directory parameter."
   (when *engine*
     (error "Engine already running"))
-  (setf *engine* (make-instance 'bodge-engine))
-  (log:config :sane2)
-  (in-new-thread-waiting "startup-worker"
-    (with-slots (systems (this-properties properties)
-                         (this-working-directory working-directory)
-                         disabling-order shared-pool shared-executors)
-        *engine*
-      (setf this-properties (%load-properties properties)
-            shared-pool (make-pooled-executor
-                         (property :engine-shared-pool-size 2))
-            this-working-directory working-directory
-            shared-executors (list (make-single-threaded-executor)))
-      (log:config (property '(:engine :log-level) :info))
-      (reload-foreign-libraries)
-      (log-errors
-        (dolist (hook *engine-startup-hooks*)
-          (funcall hook)))
-      (let ((system-class-names (property '(:engine :systems))))
-        (when (null system-class-names)
-          (error "(:engine :systems) property should be defined and cannot be nil"))
-        (setf systems (alist-hash-table (instantiate-systems system-class-names))
-              disabling-order (enable-requested-systems systems))))))
+  (setf *engine* (make-instance 'bodge-engine
+                                :properties properties
+                                :working-directory working-directory))
+  (log:config :sane2))
 
 
 (defun shutdown ()
@@ -189,16 +218,7 @@ directories used by the engine are relative to 'working-directory parameter."
 initialized."
   (unless *engine*
     (error "Engine already stopped"))
-  (in-new-thread-waiting "shutdown-worker"
-    (with-slots (systems disabling-order shared-pool shared-executors) *engine*
-      (loop for system-class in disabling-order
-         do
-           (log:debug "Disabling ~a" system-class)
-           (invoke-system-shutdown-hooks system-class)
-           (disable (gethash system-class systems)))
-      (dispose shared-pool)
-      (dolist (ex shared-executors)
-        (dispose ex))))
+  (dispose *engine*)
   (setf *engine* nil))
 
 
@@ -232,8 +252,8 @@ initialized."
       (dispose executor))))
 
 
-(defclass dispatcher () ()
-  (:documentation "Base class for all engine dispatchers"))
+(defclass dispatching () ()
+  (:documentation "Mixin class for all engine dispatchers"))
 
 
 (defmethod dispatch ((this bodge-engine) (task function) invariant &rest keys
@@ -247,7 +267,7 @@ task is dispatched to the object provided under this key."
       (null (if concurrently
                 (execute shared-pool task :priority priority)
                 (funcall task)))
-      (dispatcher (apply #'dispatch invariant task nil keys)))
+      (dispatching (apply #'dispatch invariant task nil keys)))
     t))
 
 
@@ -422,3 +442,41 @@ special variable corresponds to the instance of the `system-class`."
             (error "~a executed in the wrong system thread: required ~a, but got ~a"
                    ',name ',system-class (and (class-name (class-of *system*)))))))
        ,@forms)))
+
+
+;;;
+;;; Events
+;;;
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defun register-predefined-callback (event-class-name fn-name)
+    (pushnew fn-name (assoc-value *predefined-event-callbacks* event-class-name))))
+
+
+(defmethod register-emitter ((this bodge-engine) emitter &rest event-class-names)
+  (with-slots (event-hub) this
+    (apply #'register-emitter event-hub emitter event-class-names)))
+
+
+(defmethod remove-emitter ((this bodge-engine) emitter)
+  (with-slots (event-hub) this
+    (remove-emitter event-hub emitter)))
+
+
+(defmethod subscribe-to (event-class-name (this bodge-engine) handler)
+  (with-slots (event-hub) this
+    (subscribe-to event-class-name event-hub handler)))
+
+
+(defmethod unsubscribe-from (event-class-name (this bodge-engine) handler)
+  (with-slots (event-hub) this
+    (unsubscribe-from event-class-name event-hub handler)))
+
+
+(defmacro define-event-handler (name ((event event-class-name) &rest accessor-bindings)
+                                &body body)
+  `(progn
+     (defun ,name (,event)
+       (declare (ignorable ,event))
+       (cl-bodge.events::%with-accessor-bindings (,accessor-bindings ,event)
+         ,@body))
+     (register-predefined-callback ',event-class-name ',name)))

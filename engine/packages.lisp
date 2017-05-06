@@ -142,18 +142,21 @@
   (:use :cl :cl-bodge.utils :cl-bodge.concurrency)
   (:export event
            defevent
-           event-emitter
+           event-emitting
            fire-event
            subscribe-to
            unsubscribe-from
            subscribe-body-to
-           event-listener
+           event-listening
            register-event-handler
+           remove-by-event-emitter
            subscribe-listener
            unsubscribe-listener
            make-event-hub
-           register-emitter
-           remove-emitter))
+           register-event-emitter
+           remove-event-emitter
+           enable-hub
+           disable-hub))
 
 
 (ge.util:define-package :cl-bodge.engine
@@ -170,7 +173,7 @@
            working-directory
            merge-working-pathname
 
-           dispatcher
+           dispatching
            instantly
            concurrently
            value-flow
@@ -211,4 +214,6 @@
            engine
            property
            startup
-           shutdown))
+           shutdown
+
+           define-event-handler))

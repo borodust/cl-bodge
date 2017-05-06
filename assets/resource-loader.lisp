@@ -176,7 +176,7 @@
   value)
 
 
-(defclass resource-loader (lockable dispatcher)
+(defclass resource-loader (lockable dispatching)
   ((chunk-table :initform (make-hash-table :test 'equal))))
 
 

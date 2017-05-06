@@ -4,7 +4,7 @@
 (declaim (special *system-context*))
 
 
-(defclass thread-bound-system (enableable dispatcher generic-system)
+(defclass thread-bound-system (enableable dispatching generic-system)
   ((executor :initform nil :accessor %executor-of)
    (context :initform nil :reader system-context-of))
   (:documentation "Base class for systems that bound to single thread: either by underlying

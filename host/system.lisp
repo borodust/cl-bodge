@@ -1,7 +1,7 @@
 (in-package :cl-bodge.host)
 
 
-(defclass host-system (dispatcher event-emitter generic-system)
+(defclass host-system (event-emitting dispatching generic-system)
   ((enabled-p :initform nil)
    (window :initform nil :reader window-of)
    (task-queue :initform (make-task-queue))))
@@ -67,6 +67,17 @@
                 *system*)))
 
 
+(defun %register-event-classes (this)
+  (register-event-emitter (engine) this
+                          'keyboard-event
+                          'character-input-event
+                          'mouse-event
+                          'cursor-event
+                          'scroll-event
+                          'viewport-size-change-event
+                          'viewport-hiding-event))
+
+
 ;; if current thread is the main one, this function will block
 (defmethod initialize-system :after ((this host-system))
   (with-slots (enabled-p task-queue window eve-sys) this
@@ -77,6 +88,7 @@
         (log:debug "Initializing GLFW context")
         (unwind-protect
              (log-errors
+               (%register-event-classes this)
                (glfw:with-init-window (:title "Scene" :width 640 :height 480
                                               :context-version-major 4
                                               :context-version-minor 1
@@ -112,6 +124,7 @@
     (wait-with-latch (latch)
       (run
        (-> this ()
+         (remove-event-emitter (engine) this)
          (setf enabled-p nil)
          (clearup task-queue)
          (open-latch latch))))

@@ -58,7 +58,7 @@
   t)
 
 
-(defclass system-scene-pass (dispatcher scene-pass)
+(defclass system-scene-pass (dispatching scene-pass)
   ((system :initarg :system :reader system-of)))
 
 
