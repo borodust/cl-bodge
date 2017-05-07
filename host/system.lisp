@@ -1,7 +1,7 @@
 (in-package :cl-bodge.host)
 
 
-(defclass host-system (event-emitting dispatching generic-system)
+(defclass host-system (dispatching generic-system)
   ((enabled-p :initform nil)
    (window :initform nil :reader window-of)
    (task-queue :initform (make-task-queue))))
@@ -25,57 +25,42 @@
 
 (glfw:def-window-close-callback on-close (window)
   (glfw:hide-window window)
-  (fire-event (make-viewport-hiding-event) *system*))
+  (post 'viewport-hiding-event))
 
 
 (glfw:def-key-callback on-key-action (window key scancode action mod-keys)
   (declare (ignore window scancode mod-keys))
-  (fire-event (make-keyboard-event (glfw-enumval->keyboard-key key)
-                                   (glfw-enumval->button-state action))
-              *system*))
+  (post 'keyboard-event
+              :key (glfw-enumval->keyboard-key key)
+              :state (glfw-enumval->button-state action)))
 
 
 (glfw:def-mouse-button-callback on-mouse-action (window button action mod-keys)
   (declare (ignore window mod-keys))
-  (fire-event (make-mouse-event (glfw-enumval->mouse-button button)
-                                (glfw-enumval->button-state action))
-              *system*))
+  (post 'mouse-event
+              :button (glfw-enumval->mouse-button button)
+              :state (glfw-enumval->button-state action)))
 
 
 (glfw:def-cursor-pos-callback on-cursor-movement (window x y)
   (let ((height (second (glfw:get-window-size window))))
-    (fire-event (make-cursor-event x (- height y))
-                *system*)))
+    (post 'cursor-event :x x :y (- height y))))
 
 
 (glfw:def-scroll-callback on-scroll (window x y)
   (declare (ignore window))
-  (fire-event (make-scroll-event x (- y))
-              *system*))
+  (post 'scroll-event :x x :y (- y)))
 
 
 (glfw:def-framebuffer-size-callback on-framebuffer-size-change (window w h)
   (declare (ignore window))
-  (fire-event (make-viewport-size-change-event w h)
-              *system*))
+  (post 'viewport-size-change-event :width w :height h))
 
 
 (%glfw:define-glfw-callback on-character-input ((window :pointer) (char-code :unsigned-int))
   (declare (ignore window))
   (let ((character (code-char char-code)))
-    (fire-event (make-character-input-event character)
-                *system*)))
-
-
-(defun %register-event-classes (this)
-  (register-event-emitter (engine) this
-                          'keyboard-event
-                          'character-input-event
-                          'mouse-event
-                          'cursor-event
-                          'scroll-event
-                          'viewport-size-change-event
-                          'viewport-hiding-event))
+    (post 'character-input-event :character character)))
 
 
 ;; if current thread is the main one, this function will block
@@ -88,7 +73,6 @@
         (log:debug "Initializing GLFW context")
         (unwind-protect
              (log-errors
-               (%register-event-classes this)
                (glfw:with-init-window (:title "Scene" :width 640 :height 480
                                               :context-version-major 4
                                               :context-version-minor 1
@@ -124,7 +108,6 @@
     (wait-with-latch (latch)
       (run
        (-> this ()
-         (remove-event-emitter (engine) this)
          (setf enabled-p nil)
          (clearup task-queue)
          (open-latch latch))))

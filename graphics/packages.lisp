@@ -1,7 +1,7 @@
 (in-package :cl-bodge.asdf)
 
 
-(defpackage :cl-bodge.graphics.state
+(ge.util:define-package :cl-bodge.graphics.state
   (:nicknames :gx.state)
   (:export enable
            disable))

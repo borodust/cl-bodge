@@ -58,6 +58,8 @@
                                      (:file "hub")))
                (:file "properties")
                (:file "engine")
+               (:file "handle")
+               (:file "event")
                (:file "generic-system")
                (:file "thread-bound-system")))
 

@@ -18,10 +18,10 @@
           (register-event-handler listener class-name emitter #'chain-fire))))))
 
 
-(defgeneric remove-event-emitter (hub emitter)
+(defgeneric deregister-event-emitter (hub emitter)
   (:method ((hub event-hub) emitter)
     (with-slots (listener) hub
-      (remove-by-emitter listener emitter))))
+      (deregister-by-event-emitter listener emitter))))
 
 
 (defun enable-hub (hub)

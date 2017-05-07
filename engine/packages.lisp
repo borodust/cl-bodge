@@ -153,21 +153,22 @@
            subscribe-body-to
            event-listening
            register-event-handler
-           remove-by-event-emitter
+           deregister-event-handler
+           deregister-by-event-emitter
            subscribe-listener
            unsubscribe-listener
            make-event-hub
            register-event-emitter
-           remove-event-emitter
+           deregister-event-emitter
            enable-hub
            disable-hub))
 
 
 (ge.util:define-package :cl-bodge.engine
   (:nicknames :ge.ng)
-  (:use :cl-bodge.utils :cl :bordeaux-threads :cl-muth)
+  (:use :cl-bodge.utils :cl :bordeaux-threads :cl-muth :cl-bodge.events)
   (:use-reexport :cl-bodge.concurrency :cl-bodge.memory :cl-bodge.math
-                 :cl-bodge.engine.resources :cl-bodge.events)
+                 :cl-bodge.engine.resources)
   (:export system
            enable
            disable
@@ -220,4 +221,14 @@
            startup
            shutdown
 
-           define-event-handler))
+           defevent
+           post
+           subscribe
+           subscribe-body
+           unsubscribe
+           define-event-handler
+           subscribing
+           add-event-handler
+           remove-event-handler
+           employ-subscriber
+           dismiss-subscriber))

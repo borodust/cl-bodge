@@ -14,10 +14,10 @@
 
 
 (defun subscribe-to-events (input)
-  (subscribe-body-to (character-input-event (host) (ev character))
+  (subscribe-body (character-input-event (ev character))
     (register-character input character))
 
-    (subscribe-body-to (keyboard-event (host) (ev key state))
+    (subscribe-body (keyboard-event (ev key state))
       (register-key-action input key state)))
 
 

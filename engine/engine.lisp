@@ -10,7 +10,7 @@
 ;;
 (defclass bodge-engine (lockable)
   ((systems :initform nil)
-   (event-hub :initform nil)
+   (event-emitter :initform nil :reader event-emitter-of)
    (properties :initform '())
    (working-directory :initform nil :reader working-directory-of)
    (shared-executors :initform nil)
@@ -160,14 +160,14 @@ specified."
     (with-slots (systems (this-properties properties)
                          (this-working-directory working-directory)
                          disabling-order shared-pool shared-executors
-                         event-hub)
+                         event-emitter)
         *engine*
       (setf this-properties (%load-properties properties)
             shared-pool (make-pooled-executor
                          (property :engine-shared-pool-size 2))
             this-working-directory working-directory
             shared-executors (list (make-single-threaded-executor))
-            event-hub (make-event-hub))
+            event-emitter (make-instance 'event-emitting))
       (log:config (property '(:engine :log-level) :info))
       (reload-foreign-libraries)
       (log-errors
@@ -177,7 +177,6 @@ specified."
       (loop for (event-class-name . handlers) in *predefined-event-callbacks*
          do (dolist (handler handlers)
               (subscribe-to event-class-name this handler)))
-      (enable-hub event-hub)
 
       (let ((system-class-names (property '(:engine :systems))))
         (when (null system-class-names)
@@ -186,9 +185,8 @@ specified."
               disabling-order (enable-requested-systems systems))))))
 
 
-(define-destructor bodge-engine (systems disabling-order shared-pool shared-executors event-hub)
+(define-destructor bodge-engine (systems disabling-order shared-pool shared-executors)
   (in-new-thread-waiting "shutdown-worker"
-    (disable-hub event-hub)
     (loop for system-class in disabling-order
        do
          (log:debug "Disabling ~a" system-class)
@@ -361,66 +359,6 @@ Flow variant of #'make-instance."
     (setf enabled-p nil)))
 
 
-;;;
-;;;
-;;;
-(declaim (special *handle-value*))
-
-
-(defclass handle ()
-  ((value :initarg :value :initform (error ":value initarg missing") :reader value-of)))
-
-
-(defgeneric destroy-handle (handle))
-(defgeneric handle-of (object))
-
-
-(definline handle-value-of (object)
-  "Return value stored in the handle of the provided foreign object"
-  (value-of (handle-of object)))
-
-
-(defmacro defhandle (name &key (initform nil)
-                            (closeform (error ":closeform must be supplied")))
-  "Define foreign object handle that keeps track of foreign instance. :closeform has access to
-*handle-value* which contains foreign instance that must be disposed. Foreign instance can be
-initialized and returned by :initform or provided to the generated handle constructor ('make- +
-`name`)."
-  (with-gensyms (handle value)
-    `(progn
-       (defclass ,name (handle) ())
-
-       (defmethod destroy-handle ((,handle ,name))
-         (let ((*handle-value* (value-of ,handle)))
-           ,closeform))
-
-       (definline ,(symbolicate 'make- name) (&optional ,value)
-         (make-instance ',name :value (or ,value ,initform
-                                          (error "value or :initform must be provided")))))))
-
-
-(defclass foreign-object (disposable)
-  ((handle :initarg :handle :initform (error "foreign object :handle must be supplied")
-           :reader handle-of))
-  (:documentation "Base class for disposable foreign objects. Simplifies
-handling of init/dispose lifecycle for such ojects."))
-
-
-(define-destructor foreign-object ((handle handle-of))
-  (destroy-handle handle))
-
-
-(defclass system-foreign-object (disposable system-object)
-  ((handle :initarg :handle :initform (error "foreign object :handle must be supplied")
-           :reader handle-of))
-  (:documentation "Base class for disposable system-dependent foreign objects. Simplifies
-handling of init/dispose lifecycle for such ojects."))
-
-
-(define-destructor system-foreign-object ((handle handle-of) (sys system-of))
-  (run (-> (sys :priority :low :important-p t) ()
-         (destroy-handle handle))))
-
 
 ;;;
 ;;;
@@ -444,39 +382,5 @@ special variable corresponds to the instance of the `system-class`."
        ,@forms)))
 
 
-;;;
-;;; Events
-;;;
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (defun register-predefined-callback (event-class-name fn-name)
-    (pushnew fn-name (assoc-value *predefined-event-callbacks* event-class-name))))
-
-
-(defmethod register-event-emitter ((this bodge-engine) emitter &rest event-class-names)
-  (with-slots (event-hub) this
-    (apply #'register-emitter event-hub emitter event-class-names)))
-
-
-(defmethod remove-event-emitter ((this bodge-engine) emitter)
-  (with-slots (event-hub) this
-    (remove-emitter event-hub emitter)))
-
-
-(defmethod subscribe-to (event-class-name (this bodge-engine) handler)
-  (with-slots (event-hub) this
-    (subscribe-to event-class-name event-hub handler)))
-
-
-(defmethod unsubscribe-from (event-class-name (this bodge-engine) handler)
-  (with-slots (event-hub) this
-    (unsubscribe-from event-class-name event-hub handler)))
-
-
-(defmacro define-event-handler (name ((event event-class-name) &rest accessor-bindings)
-                                &body body)
-  `(progn
-     (defun ,name (,event)
-       (declare (ignorable ,event))
-       (cl-bodge.events::%with-accessor-bindings (,accessor-bindings ,event)
-         ,@body))
-     (register-predefined-callback ',event-class-name ',name)))
+(defun register-predefined-callback (event-class-name fn-name)
+    (pushnew fn-name (assoc-value *predefined-event-callbacks* event-class-name)))

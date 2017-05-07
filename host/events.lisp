@@ -72,7 +72,8 @@
 (defun mouse-button->glfw-enumval (value)
   value)
 
-(defclass input-event (event) ())
+
+(defevent input-event () ())
 
 
 (defevent keyboard-event (input-event)

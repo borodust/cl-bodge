@@ -17,7 +17,7 @@
                :test #'equal))))
 
 
-(defun remove-event-handler (event-listener event-class-name handler emitter)
+(defun deregister-event-handler (event-listener event-class-name emitter handler)
   (with-slots (handler-table lock enabled-p) event-listener
     (bt:with-recursive-lock-held (lock)
       (when enabled-p
@@ -27,7 +27,7 @@
                :test #'equal))))
 
 
-(defun remove-by-event-emitter (event-listener emitter)
+(defun deregister-by-event-emitter (event-listener emitter)
   (with-slots (handler-table lock enabled-p) event-listener
     (when-let ((handlers (gethash emitter handler-table)))
       (loop for (event-class-name . handler) in handlers
