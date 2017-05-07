@@ -143,8 +143,8 @@ specified."
            (cffi:close-foreign-library lib))))
 
 
-  (defun reload-foreign-libraries ()
-    (pushnew (merge-working-pathname (property :library-directory "lib/"))
+  (defun reload-foreign-libraries (library-directory)
+    (pushnew (merge-working-pathname library-directory)
              cffi:*foreign-library-directories*)
     (loop for lib-name in *unloaded-foreign-libraries* do
          (cffi:load-foreign-library lib-name)))
@@ -154,35 +154,31 @@ specified."
   (pushnew #'unload-foreign-libraries sb-ext:*save-hooks*))
 
 
+(defun enable-systems (engine)
+  (with-slots (systems disabling-order) engine
+    (let ((system-class-names (property '(:engine :systems))))
+      (when (null system-class-names)
+        (error "(:engine :systems) property should be defined and cannot be nil"))
+      (setf systems (alist-hash-table (instantiate-systems system-class-names))
+            disabling-order (enable-requested-systems systems)))))
+
+
 (defmethod initialize-instance :after ((this bodge-engine)
                                        &key properties working-directory)
   (in-new-thread-waiting "startup-worker"
     (with-slots (systems (this-properties properties)
                          (this-working-directory working-directory)
-                         disabling-order shared-pool shared-executors
-                         event-emitter)
-        *engine*
+                         shared-pool shared-executors event-emitter)
+        this
       (setf this-properties (%load-properties properties)
             shared-pool (make-pooled-executor
-                         (property :engine-shared-pool-size 2))
+                         (%get-property :engine-shared-pool-size this-properties 2))
             this-working-directory working-directory
             shared-executors (list (make-single-threaded-executor))
             event-emitter (make-instance 'event-emitting))
-      (log:config (property '(:engine :log-level) :info))
-      (reload-foreign-libraries)
-      (log-errors
-        (dolist (hook *engine-startup-hooks*)
-          (funcall hook)))
-
       (loop for (event-class-name . handlers) in *predefined-event-callbacks*
          do (dolist (handler handlers)
-              (subscribe-to event-class-name this handler)))
-
-      (let ((system-class-names (property '(:engine :systems))))
-        (when (null system-class-names)
-          (error "(:engine :systems) property should be defined and cannot be nil"))
-        (setf systems (alist-hash-table (instantiate-systems system-class-names))
-              disabling-order (enable-requested-systems systems))))))
+              (subscribe-to event-class-name event-emitter handler))))))
 
 
 (define-destructor bodge-engine (systems disabling-order shared-pool shared-executors)
@@ -208,7 +204,15 @@ directories used by the engine are relative to 'working-directory parameter."
   (setf *engine* (make-instance 'bodge-engine
                                 :properties properties
                                 :working-directory working-directory))
-  (log:config :sane2))
+  (log:config :sane2)
+  (log:config (property '(:engine :log-level) :info))
+  (reload-foreign-libraries (property '(:engine :log-level) "lib/"))
+  (log-errors
+    (dolist (hook *engine-startup-hooks*)
+      (funcall hook)))
+
+  (enable-systems *engine*)
+  (values))
 
 
 (defun shutdown ()
@@ -217,7 +221,8 @@ initialized."
   (unless *engine*
     (error "Engine already stopped"))
   (dispose *engine*)
-  (setf *engine* nil))
+  (setf *engine* nil)
+  (values))
 
 
 (defun acquire-executor (&rest args &key (single-threaded-p nil) (exclusive-p nil)
@@ -306,11 +311,11 @@ Flow variant of #'make-instance."
         (value-flow instance))))
 
 
-(flet ((dispatch-dynamically (task invariant &rest opts &key &allow-other-keys)
+(flet ((%dispatch (task invariant &rest opts &key &allow-other-keys)
          (apply #'dispatch (engine) task invariant opts)))
   (defun run (flow)
     "Dispatch flow using engine as a dispatcher."
-    (cl-flow:run #'dispatch-dynamically flow)))
+    (cl-flow:run #'%dispatch flow)))
 
 ;;
 (defgeneric system-of (obj)

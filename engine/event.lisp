@@ -8,9 +8,8 @@
   (let ((event (etypecase event-or-class
                  ((or symbol standard-class) (apply #'make-instance event-or-class initargs))
                  (event event-or-class))))
-    (flet ((task ()
-             (fire-event event (event-emitter-of (engine)))))
-      (dispatch (engine) #'task nil :concurrently t))))
+    (run (concurrently ()
+           (fire-event event (event-emitter-of (engine)))))))
 
 
 (defun subscribe (event-class handler)
@@ -59,5 +58,5 @@
 (defmacro subscribe-body ((event-class (&rest accessor-bindings)
                                        &optional (event-var (gensym)))
                           &body body)
-  `(subscribe-body-to (,event-class (engine) ,accessor-bindings ,event-var)
+  `(subscribe-body-to (,event-class (event-emitter-of (engine)) ,accessor-bindings ,event-var)
      ,@body))

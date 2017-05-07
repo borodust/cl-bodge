@@ -92,7 +92,7 @@
   (x y))
 
 
-(defevent viewport-size-change-event (event)
+(defevent viewport-size-change-event ()
   (width height))
 
 
@@ -100,4 +100,4 @@
   (x-offset y-offset))
 
 
-(defevent viewport-hiding-event (event) ())
+(defevent viewport-hiding-event () ())

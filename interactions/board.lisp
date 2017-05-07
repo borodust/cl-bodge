@@ -96,9 +96,9 @@
     (render poiu)))
 
 
-(defun make-board-window (board-node x y w h &rest opts &key &allow-other-keys)
+(defun make-board-window (board-node origin w h &rest opts &key &allow-other-keys)
   (with-slots (poiu windows) board-node
-    (let ((win (apply #'make-window poiu x y w h opts)))
+    (let ((win (apply #'make-window poiu origin w h opts)))
       (push win windows)
       win)))
 

@@ -24,9 +24,11 @@
 (defun register-handler (reg event-class handler)
   (with-slots (handler-table) reg
     (with-instance-lock-held (reg)
-      (push handler (cdr (gethash event-class
-                                  handler-table
-                                  (list (bt:make-recursive-lock "handler-list-lock"))))))))
+      (with-hash-entries ((locked-handlers event-class)) handler-table
+        (let ((handlers (or locked-handlers
+                            (setf locked-handlers
+                                  (list (bt:make-recursive-lock "handler-list-lock"))))))
+          (push handler (cdr handlers)))))))
 
 
 (defun remove-handler (reg event-class handler)
