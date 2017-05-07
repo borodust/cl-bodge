@@ -143,7 +143,7 @@
 
 (ge.util:define-package :cl-bodge.events
   (:nicknames :ge.eve)
-  (:use :cl :cl-bodge.utils :cl-bodge.concurrency)
+  (:use :cl :cl-bodge.utils :cl-bodge.concurrency :cl-bodge.memory)
   (:export event
            defevent
            event-emitting
