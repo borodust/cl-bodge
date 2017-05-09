@@ -1,9 +1,6 @@
-(in-package :cl-user)
-
-(defpackage :cl-bodge.asdf
+(cl:defpackage :cl-bodge.asdf
   (:use :cl :asdf))
-
-(in-package :cl-bodge.asdf)
+(cl:in-package :cl-bodge.asdf)
 
 (defsystem cl-bodge/utils
   :description "Bodacious Game Engine random utilities"
@@ -78,6 +75,26 @@
                (:file "events")
                (:file "system")
                (:file "keymap")))
+
+
+(defsystem cl-bodge/network
+  :description "Bodacious Game Engine networking utilities"
+  :version "0.3.0"
+  :author "Pavel Korolev"
+  :mailto "dev@borodust.org"
+  :license "MIT"
+  :depends-on (cl-bodge/engine cl-bodge/utils cl-async cl-conspack log4cl closer-mop
+                               flexi-streams trivial-gray-streams cl-async)
+  :pathname "network/"
+  :serial t
+  :components ((:file "packages")
+               (:file "utils")
+               (:file "message")
+               (:file "protocol")
+               (:file "conduit")
+               (:file "system")
+               (:file "server")
+               (:file "client")))
 
 
 (defsystem cl-bodge/graphics
@@ -344,12 +361,15 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (cl-bodge cl-bodge/utils fiveam)
+  :depends-on (cl-bodge/text cl-bodge/network cl-bodge/utils flexi-streams fiveam)
   :pathname "t/"
   :serial t
   :components ((:file "packages")
                (:file "suites")
-               (:file "rated-queue")))
+               (:file "rated-queue")
+               (:file "network")
+               (:file "circular-buffer")
+               (:file "buffered-output-stream")))
 
 
 (defsystem cl-bodge
@@ -358,7 +378,7 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/host
+  :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/host cl-bodge/network
                                cl-bodge/graphics cl-bodge/audio cl-bodge/physics
                                cl-bodge/resources cl-bodge/scenegraph
                                cl-bodge/poiu cl-bodge/text cl-bodge/canvas

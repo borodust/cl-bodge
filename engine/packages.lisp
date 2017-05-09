@@ -4,7 +4,10 @@
 (ge.util:define-package :cl-bodge.memory
   (:nicknames :ge.mem)
   (:use :cl :cl-bodge.utils :trivial-garbage :static-vectors)
-  (:export define-destructor
+  (:export *auto-initialize-destructor*
+
+           define-destructor
+           initialize-destructor
            dispose
            disposable
            disposable-container

@@ -1,6 +1,9 @@
 (in-package :cl-bodge.memory)
 
 
+(defvar *auto-initialize-destructor* t)
+
+
 (defgeneric destructor-of (obj)
   (:method (obj) '()))
 
@@ -13,15 +16,20 @@
   ((finalized-p :initform (make-holder))))
 
 
-(defun finalizedp (disposable)
+(definline finalizedp (disposable)
   (holder-value (slot-value disposable 'finalized-p)))
+
+
+(defun initialize-destructor (instance)
+  (when-let ((destructor (destructor-of instance)))
+    (loop for finalizer in (destructor-of instance)
+       do (finalize instance finalizer))))
 
 
 (defmethod initialize-instance :around ((this disposable) &key)
   (call-next-method)
-  (when-let ((destructor (destructor-of this)))
-    (loop for finalizer in (destructor-of this)
-       do (finalize this finalizer))))
+  (when *auto-initialize-destructor*
+    (initialize-destructor this)))
 
 
 (defun dispose (obj)
@@ -47,7 +55,7 @@ Check define-destructor documentation.")
  'disposable.
 
 Destructor can be invoked manually by calling `#'dispose` or automatically during garbage
-collection.  `slots` (slot names of the object instance) should be set during instance
+collection. `slots` (slot names of the object instance) should be set during instance
 initialization and cannot be null."
   (with-gensyms (this finalized-p-holder)
     `(defmethod ge.mem::destructor-of ((,this ,class-name))

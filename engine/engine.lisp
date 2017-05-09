@@ -206,11 +206,10 @@ directories used by the engine are relative to 'working-directory parameter."
                                 :working-directory working-directory))
   (log:config :sane2)
   (log:config (property '(:engine :log-level) :info))
-  (reload-foreign-libraries (property '(:engine :log-level) "lib/"))
+  (reload-foreign-libraries (property '(:engine :library-directory) "lib/"))
   (log-errors
     (dolist (hook *engine-startup-hooks*)
       (funcall hook)))
-
   (enable-systems *engine*)
   (values))
 
@@ -303,10 +302,17 @@ about object returned from the flow are provided.")
   (:method (object &key &allow-other-keys)))
 
 
+(defmethod initialization-flow :around (object &key &allow-other-keys)
+  (>> (call-next-method)
+      (instantly ()
+        (initialize-destructor object))))
+
+
 (defun assembly-flow (class &rest initargs &key &allow-other-keys)
   "Return flow that constructs an object and returns it.
 Flow variant of #'make-instance."
-  (let ((instance (apply #'make-instance class :allow-other-keys t initargs)))
+  (let* ((*auto-initialize-destructor* nil)
+         (instance (apply #'make-instance class :allow-other-keys t initargs)))
     (>> (apply #'initialization-flow instance initargs)
         (value-flow instance))))
 
