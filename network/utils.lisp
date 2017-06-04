@@ -1,17 +1,14 @@
 (in-package :cl-bodge.network)
 
 
-(define-constant +max-data-chunk-size+ (* 64 1024))
+(declaim (special *loop-handle*
+                  *allocator*))
 
-(define-constant +protocol-magic+
-    (make-array 4
-                :element-type '(unsigned-byte 8)
-                :initial-contents #(#xFE #xED #xD0 #x0D))
-  :test #'equalp)
+(define-constant +max-frame-size+ (* 64 1024))
 
-(define-constant +protocol-version+ 1)
-
-;;
+;;;
+;;;
+;;;
 (defclass circular-buffer ()
   ((buffer :initform nil)
    (start :initform 0)
@@ -60,6 +57,7 @@
                       (%update-end bytes-read)
                       (values (+ read-before bytes-read)
                               (- start end))))
+
                    (t
                     (let ((bytes-read (- (read-sequence buffer stream :start end) end)))
                       (%update-end bytes-read)
@@ -103,30 +101,22 @@
       (%read-buffer circular-buffer seq seq-start seq-end))))
 
 
-;;
-(defclass chunk-sink ()
-  ((stream-buffer :initform (make-circular-buffer (* 2 +max-data-chunk-size+)))
-   (chunk-buffer :initform (make-array +max-data-chunk-size+
-                                       :element-type '(unsigned-byte 8)))
-   (on-chunk-read :initform (error ":on-chunk-read missing") :initarg :on-chunk-read)
-   (chunk :initform (error ":chunk missing") :initarg :chunk)))
-
-
-(defun process-chunks (sink stream)
-  (with-slots (stream-buffer chunk-buffer chunk on-chunk-read) sink
-    (fill-buffer stream-buffer stream)
-    (when (>= (buffer-filled-size stream-buffer) (size-of chunk))
-      (read-buffer stream-buffer chunk-buffer :end (size-of chunk))
-      (flex:with-input-from-sequence (stream chunk-buffer :end (size-of chunk))
-        (funcall on-chunk-read chunk (decode-value chunk stream)))
-      (setf chunk (next-chunk chunk)))))
-
-
-;;
-(defclass buffered-output-stream (trivial-gray-streams:fundamental-output-stream)
+;;;
+;;;
+;;;
+(defclass circular-input-stream (trivial-gray-streams:fundamental-binary-input-stream)
   ((buffer :initform (error ":buffer missing")
            :initarg :buffer :reader buffer-of
-           :type (array (unsigned-byte 8) (*)))
+           :type circular-buffer)))
+
+
+;;;
+;;;
+;;;
+(defclass buffered-output-stream (trivial-gray-streams:fundamental-binary-output-stream)
+  ((buffer :initform (error ":buffer missing")
+           :initarg :buffer :reader buffer-of
+           :type (simple-array (unsigned-byte 8) (*)))
    (position :initform 0 :initarg :position :type fixnum)))
 
 
@@ -167,3 +157,44 @@
     (setf (aref buffer position) byte)
     (incf position))
   byte)
+
+
+;;;
+;;; Object pool
+;;;
+
+(defclass object-pool ()
+  ((ctor :initarg :constructor)
+   (dtor :initarg :destructor)
+   (available-objects :initform (list))
+   (acquired-objects :initform (make-hash-table))))
+
+
+(defun clear-object-pool (object-pool)
+  (with-slots (available-objects acquired-objects dtor) object-pool
+    (when dtor
+      (loop for obj in available-objects
+         do (funcall dtor obj)
+         finally (setf available-objects (list)))
+      (loop for obj being the hash-key of acquired-objects
+         do (funcall dtor obj)
+         finally (clrhash acquired-objects)))))
+
+
+(definline make-object-pool (object-constructor &optional object-destructor)
+  (make-instance 'object-pool :constructor object-constructor :destructor object-destructor))
+
+
+(defun acquire-object (object-pool)
+  (with-slots (available-objects acquired-objects ctor) object-pool
+    (unless available-objects
+      (push (funcall ctor) available-objects))
+    (let ((obj (pop available-objects)))
+      (setf (gethash obj acquired-objects) obj))))
+
+
+(defun release-object (object-pool object)
+  (with-slots (available-objects acquired-objects dtor) object-pool
+    (when (gethash object acquired-objects)
+      (push object available-objects)
+      (remhash object acquired-objects))))

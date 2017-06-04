@@ -267,6 +267,9 @@
       ,@body)))
 
 
+;;;
+;;; Mutable string
+;;;
 (defun make-mutable-string (&optional (length 0))
   (make-array length :element-type 'character :fill-pointer t))
 
@@ -290,3 +293,7 @@
   (setf (fill-pointer string) 0)
   (with-output-to-string (out string)
     (apply #'format out control-string arguments)))
+
+
+(defmacro inhibiting-string-conversion ((object &rest path))
+  `(,object ,@path plus-c:* plus-c:&))

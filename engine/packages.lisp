@@ -20,8 +20,8 @@
 
 (ge.util:define-package :cl-bodge.concurrency
   (:nicknames :ge.mt)
-  (:use :cl-bodge.utils :cl-bodge.memory
-        :cl :bordeaux-threads :cl-muth :cl-flow)
+  (:use :cl-bodge.utils :cl-bodge.memory :cl :bordeaux-threads
+        :cl-muth :cl-flow)
   (:export make-task-queue
            push-task
            push-body-into
@@ -41,9 +41,11 @@
 
            ->
            >>
-           *>
+           %>
            ~>
            ->>
+           continue-flow
+           interrupt-flow
            dispatch
 
            lockable

@@ -3,30 +3,34 @@
 
 ;;
 (defclass client (disposable)
-  ((conduit :reader conduit-of)))
+  ((channel :reader channel-of)
+   (connection)))
 
 
-(defmethod initialization-flow ((this client) &key host port conduit-constructor)
-  (with-slots (conduit) this
-    (flet ((read-incoming (socket stream)
-             (declare (ignore socket stream))
-             (drain-stream conduit))
-           (process-event (ev)
-             (log:warn ev)))
-      (>> (call-next-method)
-          (-> ((network)) ()
-              (let ((stream (as:tcp-connect host port #'read-incoming
-                                            :stream t
-                                            :event-cb #'process-event)))
-                (setf conduit (funcall conduit-constructor stream))))))))
+(defmethod initialization-flow ((this client) &key host port channel-constructor)
+  (with-slots (channel connection) this
+    (>> (call-next-method)
+        (%> ()
+          (labels ((%drain-stream (stream)
+                     (declare (ignore stream))
+                     (drain-channel channel))
+                   (%register-channel (socket)
+                     (setf channel
+                           (funcall channel-constructor
+                                    (make-socket-stream socket :on-read #'%drain-stream)))
+                     (continue-flow)))
+            (run (-> ((network)) ()
+                   (setf connection (make-connection :on-connect #'%register-channel))
+                   (connect connection host port))))))))
 
 
-(defun connect-flow (host port conduit-constructor)
+(defun connect-flow (host port channel-constructor)
   (assembly-flow 'client
                  :host host
                  :port port
-                 :conduit-constructor conduit-constructor))
+                 :channel-constructor channel-constructor))
 
 
-(define-destructor client (conduit)
-  (close (stream-of conduit)))
+(define-destructor client (connection)
+  (run (-> ((network)) ()
+         (dispose connection))))

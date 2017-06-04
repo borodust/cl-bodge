@@ -14,11 +14,6 @@
 (defgeneric handle-of (object))
 
 
-(definline handle-value-of (object)
-  "Return value stored in the handle of the provided foreign object"
-  (value-of (handle-of object)))
-
-
 (defmacro defhandle (name &key (initform nil)
                             (closeform (error ":closeform must be supplied")))
   "Define foreign object handle that keeps track of foreign instance. :closeform has access to
@@ -49,6 +44,7 @@ handling of init/dispose lifecycle for such ojects."))
   (destroy-handle handle))
 
 
+;;
 (defclass system-foreign-object (disposable system-object)
   ((handle :initarg :handle :initform (error "foreign object :handle must be supplied")
            :reader handle-of))
@@ -59,3 +55,8 @@ handling of init/dispose lifecycle for such ojects."))
 (define-destructor system-foreign-object ((handle handle-of) (sys system-of))
   (run (-> (sys :priority :low :important-p t) ()
          (destroy-handle handle))))
+
+
+(definline handle-value-of (object)
+  "Return value stored in the handle of the provided foreign object"
+  (value-of (handle-of object)))

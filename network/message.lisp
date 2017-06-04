@@ -5,6 +5,10 @@
   (:method (message) (declare (ignore message) nil)))
 
 
+(defgeneric reply-id (message)
+  (:method (message) (declare (ignore message) nil)))
+
+
 (defclass message () ())
 
 
@@ -65,8 +69,11 @@
   id)
 
 
-(defmessage (reply-message (:reader-prefix reply-)) ()
-  for-id)
+(defmessage reply-message (identified-message))
+
+
+(defmethod reply-id ((this reply-message))
+  (message-id this))
 
 
 (defmessage (error-message (:reader-prefix error-)) (reply-message)
@@ -77,4 +84,4 @@
 
 
 (defun make-reply-for (message reply-class &rest initargs &key &allow-other-keys)
-  (apply #'make-message reply-class :for-id (message-id message) initargs))
+  (apply #'make-message reply-class :id (message-id message) initargs))

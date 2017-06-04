@@ -74,4 +74,5 @@
            make-mutable-string
            string->mutable
            string->immutable
-           mutate-string))
+           mutate-string
+           inhibiting-string-conversion))

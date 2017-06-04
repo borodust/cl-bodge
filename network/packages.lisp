@@ -3,7 +3,7 @@
 
 (ge.util:define-package :cl-bodge.network
   (:nicknames :ge.net)
-  (:use :cl :cl-bodge.utils :cl-bodge.engine)
+  (:use :cl :cl-bodge.utils :cl-bodge.engine :autowrap :plus-c :trivial-gray-streams)
   (:export network-system
            network
 
@@ -17,16 +17,19 @@
            ack-message
 
            message-id
-           reply-for-id
+           reply-id
            error-text
 
-           conduit
+           channel
            send-message
            receive-message
            stream-of
            acknowledge
            make-reply-for
 
-           conduit-of
+           dispatching-channel
+           message-flow
+
+           channel-of
            accept-flow
            connect-flow))

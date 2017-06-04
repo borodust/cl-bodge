@@ -9,7 +9,7 @@
   :mailto "dev@borodust.org"
   :license "MIT"
   :depends-on (alexandria uiop log4cl local-time dissect split-sequence cl-autowrap
-                          static-vectors)
+                          cl-plus-c static-vectors)
   :pathname "utils/"
   :serial t
   :components ((:file "packages")
@@ -83,16 +83,20 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (cl-bodge/engine cl-bodge/utils cl-async cl-conspack log4cl closer-mop
-                               flexi-streams trivial-gray-streams cl-async)
+  :depends-on (cl-bodge/engine cl-bodge/utils cl-conspack log4cl closer-mop
+                               flexi-streams trivial-gray-streams bodge-async
+                               cl-autowrap cl-plus-c)
   :pathname "network/"
   :serial t
   :components ((:file "packages")
                (:file "utils")
+               (:file "pool-allocator")
                (:file "message")
-               (:file "protocol")
-               (:file "conduit")
+               (:file "transport")
+               (:file "channel")
+               (:file "foreign-object-registry")
                (:file "system")
+               (:file "socket")
                (:file "server")
                (:file "client")))
 
@@ -104,7 +108,8 @@
   :mailto "dev@borodust.org"
   :license "MIT"
   :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/host cl-opengl
-                               bodge-glad log4cl local-time cffi)
+                               bodge-glad log4cl local-time cffi
+                               static-vectors)
   :pathname "graphics/"
   :serial t
   :components ((:file "packages")
