@@ -45,8 +45,7 @@
 
 (definline %ensure-not-null (value)
   (if (null value)
-      (error "Value of slot used in destructor can't be null.
-Check define-destructor documentation.")
+      (error "Value of slot used in destructor can't be null.")
       value))
 
 

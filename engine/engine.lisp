@@ -8,7 +8,7 @@
 (declaim (special *system*))
 
 ;;
-(defclass bodge-engine (lockable)
+(defclass bodge-engine (disposable lockable)
   ((systems :initform nil)
    (event-emitter :initform nil :reader event-emitter-of)
    (properties :initform '())
@@ -163,6 +163,14 @@ specified."
             disabling-order (enable-requested-systems systems)))))
 
 
+(defun disable-systems (engine)
+  (with-slots (systems disabling-order) engine
+    (loop for system-class in disabling-order do
+         (log:debug "Disabling ~a" system-class)
+         (invoke-system-shutdown-hooks system-class)
+         (disable (gethash system-class systems)))))
+
+
 (defmethod initialize-instance :after ((this bodge-engine)
                                        &key properties working-directory)
   (in-new-thread-waiting "startup-worker"
@@ -181,13 +189,8 @@ specified."
               (subscribe-to event-class-name event-emitter handler))))))
 
 
-(define-destructor bodge-engine (systems disabling-order shared-pool shared-executors)
+(define-destructor bodge-engine (shared-pool shared-executors)
   (in-new-thread-waiting "shutdown-worker"
-    (loop for system-class in disabling-order
-       do
-         (log:debug "Disabling ~a" system-class)
-         (invoke-system-shutdown-hooks system-class)
-         (disable (gethash system-class systems)))
     (dispose shared-pool)
     (dolist (ex shared-executors)
       (dispose ex))))
@@ -195,7 +198,7 @@ specified."
 
 (defun startup (properties &optional (working-directory (truename (uiop:getcwd))))
   "Start engine synchronously loading configuration from `properties` (file, hash-table, plist
-or alist). `(:engine :systems)` property must be present in the config and should contain list
+or alist). `(:engine :systems)` property must exist in the config and should contain list
 of existing system class names loaded into current lisp image. Specified systems and their
 dependencies will be initialized in the correct order according to a dependency graph. All
 directories used by the engine are relative to 'working-directory parameter."
@@ -219,6 +222,7 @@ directories used by the engine are relative to 'working-directory parameter."
 initialized."
   (unless *engine*
     (error "Engine already stopped"))
+  (disable-systems *engine*)
   (dispose *engine*)
   (setf *engine* nil)
   (values))
