@@ -4,7 +4,7 @@
 
 (defsystem cl-bodge/utils
   :description "Bodacious Game Engine random utilities"
-  :version "0.3.0"
+  :version "0.4.0"
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
@@ -19,7 +19,7 @@
 
 (defsystem cl-bodge/engine
   :description "Bodacious Game Engine foundation library"
-  :version "0.3.0"
+  :version "0.4.0"
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
@@ -63,7 +63,7 @@
 
 (defsystem cl-bodge/host
   :description "Bodacious Game Engine host system"
-  :version "0.3.0"
+  :version "0.4.0"
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
@@ -79,7 +79,7 @@
 
 (defsystem cl-bodge/network
   :description "Bodacious Game Engine networking utilities"
-  :version "0.3.0"
+  :version "0.4.0"
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
@@ -103,7 +103,7 @@
 
 (defsystem cl-bodge/graphics
   :description "Bodacious Game Engine graphics system"
-  :version "0.3.0"
+  :version "0.4.0"
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
@@ -126,7 +126,7 @@
 
 (defsystem cl-bodge/canvas
   :description "Bodacious Game Engine vector graphics system"
-  :version "0.3.0"
+  :version "0.4.0"
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
@@ -143,7 +143,7 @@
 
 (defsystem cl-bodge/animation
   :description "Bodacious Game Engine animation library"
-  :version "0.3.0"
+  :version "0.4.0"
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
@@ -157,7 +157,7 @@
 
 (defsystem cl-bodge/audio
   :description "Bodacious Game Engine audio system"
-  :version "0.3.0"
+  :version "0.4.0"
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
@@ -174,7 +174,7 @@
 
 (defsystem cl-bodge/physics
   :description "Bodacious Game Engine physics system"
-  :version "0.3.0"
+  :version "0.4.0"
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
@@ -194,7 +194,7 @@
 
 (defsystem cl-bodge/resources
   :description "Bodacious Game Engine resource management"
-  :version "0.3.0"
+  :version "0.4.0"
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
@@ -208,7 +208,7 @@
 
 (defsystem cl-bodge/shading-library
   :description "Bodacious Game Engine shading library"
-  :version "0.3.0"
+  :version "0.4.0"
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
@@ -230,7 +230,7 @@
 
 (defsystem cl-bodge/text
   :description "Bodacious Game Engine text rendering"
-  :version "0.3.0"
+  :version "0.4.0"
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
@@ -250,7 +250,7 @@
 
 (defsystem cl-bodge/poiu
   :description "Bodacious Game Engine Plain Old Interface for Users"
-  :version "0.3.0"
+  :version "0.4.0"
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
@@ -267,7 +267,7 @@
 
 (defsystem cl-bodge/scenegraph
   :description "Bodacious Game Engine scenegraph implementation"
-  :version "0.3.0"
+  :version "0.4.0"
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
@@ -295,7 +295,7 @@
 
 (defsystem cl-bodge/interactions
   :description "Interactive components of Bodacious Game Engine"
-  :version "0.3.0"
+  :version "0.4.0"
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
@@ -312,7 +312,7 @@
 
 (defsystem cl-bodge/assets
   :description "Bodacious Game Engine .BRF"
-  :version "0.3.0"
+  :version "0.4.0"
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
@@ -334,7 +334,7 @@
 
 (defsystem cl-bodge/distribution
   :description "Bodacious Game Engine distribution helpers"
-  :version "0.3.0"
+  :version "0.4.0"
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
@@ -362,7 +362,7 @@
 
 (defsystem cl-bodge/tests
   :description "Test suite for cl-bodge engine"
-  :version "0.3.0"
+  :version "0.4.0"
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
@@ -379,7 +379,7 @@
 
 (defsystem cl-bodge
   :description "Bodacious Game Engine framework"
-  :version "0.3.0"
+  :version "0.4.0"
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
