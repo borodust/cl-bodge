@@ -81,3 +81,15 @@
 
 (definline %invert (y canvas &optional (h 0.0))
   (- (height-of canvas) y h))
+
+
+(defun push-canvas (&key (canvas *canvas*))
+  (%nvg:save (handle-value-of canvas)))
+
+
+(defun pop-canvas (&key (canvas *canvas*))
+  (%nvg:restore (handle-value-of canvas)))
+
+
+(defun reset-canvas (&key (canvas *canvas*))
+  (%nvg:reset (handle-value-of canvas)))

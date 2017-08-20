@@ -31,6 +31,9 @@
   (:method (loader name) (declare (ignore loader name))))
 
 
+;;;
+;;; Global resource registry
+;;;
 (defclass resource-registry (lockable)
   ((resource-table :initform (make-hash-table :test 'equal))))
 

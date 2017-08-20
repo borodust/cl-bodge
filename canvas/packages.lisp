@@ -9,6 +9,9 @@
            begin-canvas
            end-canvas
            with-canvas
+           push-canvas
+           pop-canvas
+
            path
            fill-path
            stroke-path
@@ -24,4 +27,10 @@
            draw-ellipse
            draw-arc
            draw-polygon
-           draw-polyline))
+           draw-polyline
+
+           translate-canvas
+           rotate-canvas
+           skew-canvas
+           scale-canvas
+           reset-canvas-transform))

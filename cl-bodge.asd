@@ -136,6 +136,7 @@
   :serial t
   :components ((:file "packages")
                (:file "canvas")
+               (:file "transform")
                (:file "image")
                (:file "paint")
                (:file "primitives")))

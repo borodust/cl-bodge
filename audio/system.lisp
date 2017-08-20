@@ -18,10 +18,11 @@
 
 
 (defmethod make-system-context ((this audio-system))
-  (let* ((dev (alc:open-device))
-         (ctx (alc:create-context dev)))
-    (alc:make-context-current ctx)
-    (make-audio-context ctx dev)))
+  (with-float-traps-masked
+    (let* ((dev (alc:open-device))
+           (ctx (alc:create-context dev)))
+      (alc:make-context-current ctx)
+      (make-audio-context ctx dev))))
 
 
 (defmethod destroy-system-context (ctx (this audio-system))
