@@ -19,7 +19,9 @@
 
 
 (defclass image-paint (foreign-object)
-  ((image :initform nil))
+  ((image :initform nil)
+   (width :initarg :width :reader width-of)
+   (height :initarg :height :reader height-of))
   (:default-initargs :handle (make-paint-handle)))
 
 
@@ -29,8 +31,10 @@
 
 (defmethod initialize-instance :after ((this image-paint) &key image (canvas *canvas*)
                                                             origin flip-vertically)
-  (with-slots ((img image)) this
-    (setf img (image->nvg canvas image :flip-vertically flip-vertically))
+  (with-slots ((img image) width height) this
+    (setf img (image->nvg canvas image :flip-vertically flip-vertically)
+          width (width-of image)
+          height (height-of image))
     (%nvg:bge-init-image-pattern (handle-value-of this)
                                  (handle-value-of canvas)
                                  (if origin (x origin) 0.0)
