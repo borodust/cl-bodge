@@ -1,4 +1,4 @@
-#version 410 core
+#version 330 core
 
 #include <text>
 

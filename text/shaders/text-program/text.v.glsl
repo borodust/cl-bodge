@@ -1,4 +1,4 @@
-#version 410 core
+#version 330 core
 
 layout(location = 0) in vec4 vBox;
 layout(location = 1) in vec4 vSdfCoord;
