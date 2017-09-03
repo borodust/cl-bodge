@@ -173,27 +173,25 @@ specified."
 
 (defmethod initialize-instance :after ((this bodge-engine)
                                        &key properties working-directory)
-  (in-new-thread-waiting "startup-worker"
-    (with-slots (systems (this-properties properties)
-                         (this-working-directory working-directory)
-                         shared-pool shared-executors event-emitter)
-        this
-      (setf this-properties (%load-properties properties)
-            shared-pool (make-pooled-executor
-                         (%get-property :engine-shared-pool-size this-properties 2))
-            this-working-directory working-directory
-            shared-executors (list (make-single-threaded-executor))
-            event-emitter (make-instance 'event-emitting))
-      (loop for (event-class-name . handlers) in *predefined-event-callbacks*
-         do (dolist (handler handlers)
-              (subscribe-to event-class-name event-emitter handler))))))
+  (with-slots (systems (this-properties properties)
+                       (this-working-directory working-directory)
+                       shared-pool shared-executors event-emitter)
+      this
+    (setf this-properties (%load-properties properties)
+          shared-pool (make-pooled-executor
+                       (%get-property :engine-shared-pool-size this-properties 2))
+          this-working-directory working-directory
+          shared-executors (list (make-single-threaded-executor))
+          event-emitter (make-instance 'event-emitting))
+    (loop for (event-class-name . handlers) in *predefined-event-callbacks*
+       do (dolist (handler handlers)
+            (subscribe-to event-class-name event-emitter handler)))))
 
 
 (define-destructor bodge-engine (shared-pool shared-executors)
-  (in-new-thread-waiting "shutdown-worker"
-    (dispose shared-pool)
-    (dolist (ex shared-executors)
-      (dispose ex))))
+  (dispose shared-pool)
+  (dolist (ex shared-executors)
+    (dispose ex)))
 
 
 (defun startup (properties &optional (working-directory (truename (uiop:getcwd))))
@@ -213,7 +211,8 @@ directories used by the engine are relative to 'working-directory parameter."
   (log-errors
     (dolist (hook *engine-startup-hooks*)
       (funcall hook)))
-  (enable-systems *engine*)
+  (in-new-thread-waiting "startup-worker"
+    (enable-systems *engine*))
   (values))
 
 
@@ -222,7 +221,8 @@ directories used by the engine are relative to 'working-directory parameter."
 initialized."
   (unless *engine*
     (error "Engine already stopped"))
-  (disable-systems *engine*)
+  (in-new-thread-waiting "shutdown-worker"
+    (disable-systems *engine*))
   (dispose *engine*)
   (setf *engine* nil)
   (values))

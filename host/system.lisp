@@ -69,10 +69,11 @@
     (when enabled-p
       (error "Host system already enabled"))
     (wait-with-latch (latch)
+      (log:debug "Injecting loop into main thread")
       (with-body-in-main-thread ()
-        (log:debug "Initializing GLFW context")
         (unwind-protect
              (log-errors
+               (log:debug "Initializing GLFW context")
                (glfw:with-init-window (:title "Scene" :width 640 :height 480
                                               :context-version-major 4
                                               :context-version-minor 1
@@ -89,16 +90,18 @@
                  (glfw:set-char-callback 'on-character-input)
                  (setf window glfw:*window*
                        enabled-p t)
-                 (open-latch latch)
                  (log:debug "Host main loop running")
 		 (glfw:make-context-current (cffi:null-pointer))
+                 (log:debug "GL context detached from main loop thread")
                  (let ((*system* this))
+                   (open-latch latch)
                    (loop while enabled-p
                       do (log-errors
                            (glfw:wait-events)
                            (drain task-queue)))))
                (log:debug "Main loop stopped. Host system offline"))
-          (open-latch latch))))))
+          (open-latch latch))))
+    (log:debug "Host system initialized")))
 
 
 (defmethod discard-system :before ((this host-system))
