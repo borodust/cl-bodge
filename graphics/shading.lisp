@@ -125,30 +125,11 @@
 
 
 (define-system-function make-shading-program graphics-system
-    (shader-sources &key (system *system*))
-  (make-instance 'shading-program :system system :shader-sources shader-sources))
-
-
-(define-system-function make-separable-shading-program graphics-system
-    (shader-sources &key (system *system*))
-  (let ((program (make-instance 'shading-program :system system :shader-sources shader-sources)))
-    (setf (program-separable program) t)
-    program))
-
-
-(define-system-function link-separable-shading-program graphics-system
-    (shaders &key (system *system*))
-  (let ((program (make-instance 'shading-program :system system :shaders shaders)))
-    (setf (program-separable program) t)
-    program))
-
-
-(define-system-function build-separable-shading-program graphics-system
-    (shader-sources shaders &key (system *system*))
-  (let ((program (make-instance 'shading-program :system system :shaders shaders
-                                :shader-sources shader-sources)))
-    (setf (program-separable program) t)
-    program))
+    (shader-sources &key precompiled-shaders (system *system*))
+  (make-instance 'shading-program
+                 :system system
+                 :shader-sources shader-sources
+                 :shaders precompiled-shaders))
 
 
 (defun use-shading-program (program)

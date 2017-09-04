@@ -84,7 +84,7 @@
               (push (make-shader-source (shader-name-of source) type text)
                     processed-sources))
          finally
-           (return (build-separable-shading-program processed-sources libs)))
+           (return (make-shading-program processed-sources :precompiled-shaders libs)))
     (reload-sources-and-build ()
       (build-shading-program (loop for source in shader-sources collecting
                                   (reload-shader-text source))))))
