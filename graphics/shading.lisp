@@ -114,9 +114,12 @@
            (dispose shader)))))
 
 
+(defun (setf program-separable) (value program)
+  (gl:program-parameteri (handle-value-of program) :program-separable value))
+
+
 (defmethod initialize-instance :after ((this shading-program)
-                                       &key shader-sources shaders separable-p)
-  (gl:program-parameteri (handle-value-of this) :program-separable separable-p)
+                                       &key shader-sources shaders)
   (%make-program this shader-sources shaders)
   (introspect-program this))
 
@@ -128,20 +131,24 @@
 
 (define-system-function make-separable-shading-program graphics-system
     (shader-sources &key (system *system*))
-  (make-instance 'shading-program :system system :shader-sources shader-sources
-                 :separable-p t))
+  (let ((program (make-instance 'shading-program :system system :shader-sources shader-sources)))
+    (setf (program-separable program) t)
+    program))
 
 
 (define-system-function link-separable-shading-program graphics-system
     (shaders &key (system *system*))
-  (make-instance 'shading-program :system system :shaders shaders
-                 :separable-p t))
+  (let ((program (make-instance 'shading-program :system system :shaders shaders)))
+    (setf (program-separable program) t)
+    program))
 
 
 (define-system-function build-separable-shading-program graphics-system
     (shader-sources shaders &key (system *system*))
-  (make-instance 'shading-program :system system :shaders shaders
-                 :shader-sources shader-sources :separable-p t))
+  (let ((program (make-instance 'shading-program :system system :shaders shaders
+                                :shader-sources shader-sources)))
+    (setf (program-separable program) t)
+    program))
 
 
 (defun use-shading-program (program)
@@ -174,13 +181,14 @@
 
 (defun (setf program-uniform-variable) (value program variable-name)
   (when-let ((variable-idx (gl:get-uniform-location (handle-value-of program) variable-name)))
-    (etypecase value
-      (integer (gl:program-uniformi (handle-value-of program) variable-idx value))
-      (single-float (gl:program-uniformf (handle-value-of program) variable-idx value))
-      (vec (gl:program-uniformfv (handle-value-of program) variable-idx (vec->array value)))
-      (square-mat (gl:program-uniform-matrix (handle-value-of program) variable-idx
-                                             (square-matrix-size value)
-                                             (vector (mat->array value)) nil)))))
+    (with-active-shading-program (program)
+      (etypecase value
+        (integer (gl:uniformi variable-idx value))
+        (single-float (gl:uniformf variable-idx value))
+        (vec (gl:uniformfv variable-idx (vec->array value)))
+        (square-mat (gl:uniform-matrix variable-idx
+                                       (square-matrix-size value)
+                                       (vector (mat->array value)) nil))))))
 
 
 ;;;
