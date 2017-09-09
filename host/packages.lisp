@@ -9,6 +9,7 @@
 
            bind-rendering-context
            swap-buffers
+           swap-interval
            viewport-title
            viewport-size
            cursor-position

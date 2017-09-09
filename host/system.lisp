@@ -3,6 +3,7 @@
 
 (defclass host-system (dispatching generic-system)
   ((enabled-p :initform nil)
+   (swap-interval :initform 0)
    (window :initform nil :reader window-of)
    (task-queue :initform (make-task-queue))))
 
@@ -91,6 +92,7 @@
                    (glfw:set-scroll-callback 'on-scroll)
                    (glfw:set-framebuffer-size-callback 'on-framebuffer-size-change)
                    (glfw:set-char-callback 'on-character-input)
+                   (glfw:swap-interval 0)
                    (setf window glfw:*window*
                          enabled-p t)
                    (log:debug "Host main loop running")
@@ -131,6 +133,18 @@
   (with-slots (window) host-sys
     (with-system-lock-held (host-sys)
       (glfw:swap-buffers window))))
+
+
+(defun swap-interval (host-sys)
+  (with-slots (swap-interval) host-sys
+    swap-interval))
+
+
+(defun (setf swap-interval) (value host-sys)
+  (with-slots (swap-interval) host-sys
+    (with-system-lock-held (host-sys)
+      (setf swap-interval value)
+      (glfw:swap-interval value))))
 
 
 (define-system-function (setf viewport-title) host-system (value &key (host-sys *system*))
