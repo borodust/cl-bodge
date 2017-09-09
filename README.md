@@ -85,63 +85,24 @@ Experimental **bod**acious **g**ame **e**ngine written in **C**ommon **L**isp.
 ;; add cl-bodge distribution into quicklisp
 (ql-dist:install-dist "http://bodge.borodust.org/dist/org.borodust.bodge.txt")
 
-;; load precompiled native libraries and the engine
-(ql:quickload '(:bodge-blobs :cl-bodge))
-```
-
-### Manually
-
-Required foreign libraries:
-
-| Library      | Version | Dependent system
-|--------------|:-------:|-------------------------
-| `libffi`     | 3.0     | `cl-bodge/host`
-| `glfw3`      | 3.1     | `cl-bodge/host`
-| `OpenAL`     | 1.1     | `cl-bodge/audio`
-| `ODE`        | 0.14    | `cl-bodge/physics`
-| `libsndfile` | 1.0     | `cl-bodge/resources`
-| `OpenGL`     | 4.1     | `cl-bodge/graphics`
-| `NanoVG`     | ?.?     | `bodge-nanovg`
-| `Nuklear`    | 1.20    | `bodge-nuklear`
-
-
-You need few CL dependencies installed manually:
-* [`cl-muth`](https://github.com/borodust/cl-muth)
-* [`cl-flow`](https://github.com/borodust/cl-flow)
-* [`bodge-ode`](https://github.com/borodust/bodge-ode)
-* [`bodge-sndfile`](https://github.com/borodust/bodge-sndfile)
-* [`bodge-nuklear`](https://github.com/borodust/bodge-nuklear)
-* [`bodge-nanovg`](https://github.com/borodust/bodge-nanovg)
-* [`bodge-glad`](https://github.com/borodust/bodge-glad)
-
-Finally, you need to clone this repository to your local machine and setup
-[Quicklisp](https://www.quicklisp.org/), so it could find engine's source code.
-
-For instructions on how to setup local projects, please, refer to [Quicklisp
-FAQ](https://www.quicklisp.org/beta/faq.html#local-project)
-
-
-After all foreign libraries are installed to respective system default paths, engine and lisp
-dependencies are made available to Quicklisp you should be able to load engine with
-
-```lisp
+;; load the engine
 (ql:quickload :cl-bodge)
 ```
 
-## Demonstrations
 
-Examples and demos [repository](https://github.com/borodust/bodge-showcase).
+## Demonstrations
 
 * Chicken mesh loading, rendering and animation:
   [Chicken](https://www.youtube.com/watch?v=ypZP4SNQOv8)
-
+* SDF-based text rendering: [Hello text](https://www.youtube.com/watch?v=8q_ssF4eEQQ)
+* GUI and [Text editing](https://www.youtube.com/watch?v=T5nCKKGj1J0)
 * Ball-Z game written for
   [Autumn 2016 Lisp Game Jam](https://itch.io/jam/autumn-2016-lisp-game-jam/rate/99353):
   [Ball-Z](https://www.youtube.com/watch?v=noVtO2H9hSY)
+* [Mortar Combat](https://vimeo.com/214584286) game for [Spring 2017 Lisp Game Jam](https://itch.io/jam/lisp-game-jam-2017-easy-mode)
 
-* SDF-based text rendering: [Hello text](https://www.youtube.com/watch?v=8q_ssF4eEQQ)
-* GUI: [Multi-window GUI](https://www.youtube.com/watch?v=eLFMUCvjEXg),
-  [Text editing](https://www.youtube.com/watch?v=T5nCKKGj1J0)
+Also, check out [trivial-gamekit](https://github.com/borodust/trivial-gamekit) to get started
+with `cl-bodge` bit by bit.
 
 ## Help and Support
-You can receive those in `#cl-bodge` or `#lispgames` IRC channels at `freenode.net`.
+You can receive those in `#lispgames` IRC channels at `freenode.net`.
