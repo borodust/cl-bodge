@@ -3,7 +3,7 @@
 
 (defpackage :cl-bodge.physics
   (:use :cl-bodge.engine :cl-bodge.utils
-        :cl :local-time :bodge-ode :autowrap :plus-c)
+        :cl :local-time :bodge-ode :bodge-autowrap :bodge-plus-c)
   (:nicknames :ge.phx)
   (:export physics-system
            physics

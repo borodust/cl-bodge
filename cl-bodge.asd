@@ -8,8 +8,8 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (alexandria uiop log4cl local-time dissect split-sequence cl-autowrap
-                          cl-plus-c static-vectors)
+  :depends-on (alexandria uiop log4cl local-time dissect split-sequence bodge-autowrap
+                          bodge-plus-c static-vectors)
   :pathname "utils/"
   :serial t
   :components ((:file "packages")
@@ -86,7 +86,7 @@
   :license "MIT"
   :depends-on (cl-bodge/engine cl-bodge/utils cl-conspack log4cl closer-mop
                                flexi-streams trivial-gray-streams bodge-async
-                               cl-autowrap cl-plus-c)
+                               bodge-autowrap bodge-plus-c)
   :pathname "network/"
   :serial t
   :components ((:file "packages")
@@ -180,7 +180,7 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (cl-bodge/engine bodge-ode log4cl cl-autowrap cl-plus-c local-time)
+  :depends-on (cl-bodge/engine bodge-ode log4cl bodge-autowrap bodge-plus-c local-time)
   :pathname "physics/"
   :serial t
   :components ((:file "packages")
@@ -257,7 +257,7 @@
   :mailto "dev@borodust.org"
   :license "MIT"
   :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/graphics bodge-nuklear
-                               cl-bodge/text cl-bodge/canvas cl-autowrap cl-plus-c)
+                               cl-bodge/text cl-bodge/canvas bodge-autowrap bodge-plus-c)
   :pathname "poiu/"
   :serial t
   :components ((:file "packages")

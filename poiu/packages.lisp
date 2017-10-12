@@ -3,8 +3,8 @@
 
 (ge.util:define-package :cl-bodge.poiu
   (:nicknames :ge.poiu)
-  (:use :cl :cl-bodge.engine :cl-bodge.utils :cl-bodge.graphics :plus-c
-        :cl-bodge.canvas :autowrap :cl-bodge.text :cl-bodge.resources)
+  (:use :cl :cl-bodge.engine :cl-bodge.utils :cl-bodge.graphics :bodge-plus-c
+        :cl-bodge.canvas :bodge-autowrap :cl-bodge.text :cl-bodge.resources)
   (:export make-poiu-context
            clear-poiu-context
 

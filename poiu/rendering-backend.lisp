@@ -233,8 +233,8 @@
 
 
 (defun command-type (cmd)
-  (autowrap:enum-key '(:enum (%nk:command-type))
-                     (c-ref cmd (:struct (%nk:command)) :type)))
+  (bodge-autowrap:enum-key '(:enum (%nk:command-type))
+                           (c-ref cmd (:struct (%nk:command)) :type)))
 
 
 (defmethod render ((poiu nuklear-context))
