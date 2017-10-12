@@ -1,8 +1,7 @@
 (in-package :cl-bodge.resources)
 
 
-(define-constant +engine-external-resource-prefix+ "/engine/external/"
-  :test #'equal)
+(defvar *resource-storage* (make-instance 'resource-storage))
 
 
 (defun engine-resource-name (name-control-string &rest args)
@@ -17,18 +16,6 @@
     (apply #'format name-stream name-control-string args)))
 
 
-
-
-;;;
-;;;  Resource loader
-;;;
-(defgeneric list-resource-names (loader)
-  (:method (loader) (declare (ignore loader)) nil))
-
-(defgeneric load-resource (loader name))
-
-(defgeneric release-resource (loader name)
-  (:method (loader name) (declare (ignore loader name))))
 
 
 ;;;
@@ -47,7 +34,7 @@
          do (with-hash-entries ((resource-entry name)) resource-table
               (let* ((entry resource-entry))
                 (when (and entry (not (eq entry loader)))
-                  (warn "Resource redefinition: name ~A from ~A already registered with ~A loader"
+                  (warn "Resource redefinition: name ~A from ~A was registered with ~A loader"
                         name loader entry)))
               (setf resource-entry loader))))))
 
@@ -82,3 +69,9 @@
     (with-slots (resource-table) *resource-registry*
       (loop for key being the hash-key of resource-table
          collect key))))
+
+
+(defun mount-resource-provider (path provider)
+  (let ((node-name (enough-namestring path (fad:pathname-parent-directory path))))
+    (mount-storage-resource-node *resource-storage* path
+                                 (funcall provider node-name))))

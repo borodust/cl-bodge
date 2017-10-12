@@ -7,6 +7,9 @@
 
 (declaim (special *system*))
 
+(define-constant +engine-resource-path+ "/bodge/"
+  :test #'equal)
+
 ;;
 (defclass bodge-engine (disposable lockable)
   ((systems :initform nil)

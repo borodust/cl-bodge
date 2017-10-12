@@ -3,7 +3,7 @@
 (cl:in-package :cl-bodge.asdf)
 
 (defsystem cl-bodge/utils
-  :description "Bodacious Game Engine random utilities"
+  :description "Bodacious Game Engine various utilities"
   :version "0.4.0"
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
@@ -205,6 +205,8 @@
   :serial t
   :components ((:file "packages")
                (:file "serialization")
+               (:file "storage")
+               (:file "loader")
                (:file "registry")))
 
 

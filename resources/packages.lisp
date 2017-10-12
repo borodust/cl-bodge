@@ -6,7 +6,6 @@
   (:use :cl :cl-bodge.utils :cl-bodge.engine)
   (:export register-resource-loader
 
-           +engine-external-resource-prefix+
            engine-resource-name
            engine-external-resource-name
 
