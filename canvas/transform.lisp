@@ -2,7 +2,7 @@
 
 
 (defun translate-canvas (x y &key (canvas *canvas*))
-  (%nvg:translate (handle-value-of canvas) (f x) (- (f y))))
+  (%nvg:translate (handle-value-of canvas) (f x) (f y)))
 
 
 (defun rotate-canvas (angle &key (canvas *canvas*))
@@ -15,7 +15,7 @@
 
 
 (defun scale-canvas (x y &key (canvas *canvas*))
-  (%nvg:scale (handle-value-of canvas) x y))
+  (%nvg:scale (handle-value-of canvas) (f x) (f y)))
 
 
 (defun reset-canvas-transform (&key (canvas *canvas*))

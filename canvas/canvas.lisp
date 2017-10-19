@@ -30,7 +30,9 @@
 
 
 (definline begin-canvas (canvas &optional (pixel-ratio 1.0))
-  (%nvg:begin-frame (handle-value-of canvas) (width-of canvas) (height-of canvas) pixel-ratio))
+  (%nvg:begin-frame (handle-value-of canvas) (width-of canvas) (height-of canvas) pixel-ratio)
+  (%nvg:translate (handle-value-of canvas) 0f0 (f (height-of canvas)))
+  (%nvg:scale (handle-value-of canvas) 1f0 -1f0))
 
 
 (definline end-canvas (canvas)
@@ -48,7 +50,6 @@
          (end-canvas ,canvas)))))
 
 
-
 (definline fill-path (&optional (canvas *canvas*))
   (%nvg:fill (handle-value-of canvas)))
 
@@ -58,7 +59,7 @@
 
 
 (definline move-to (coords &optional (canvas *canvas*))
-  (%nvg:move-to (handle-value-of canvas) (x coords) (%invert (y coords) canvas)))
+  (%nvg:move-to (handle-value-of canvas) (x coords) (y coords)))
 
 
 (definline (setf stroke-width) (width &optional (canvas *canvas*))
@@ -79,17 +80,23 @@
   (%nvg:bge-fill-color (handle-value-of canvas) (x color) (y color) (z color) (w color)))
 
 
-(definline %invert (y canvas &optional (h 0.0))
-  (- (height-of canvas) y h))
-
-
-(defun push-canvas (&key (canvas *canvas*))
+(defun push-canvas (&optional (canvas *canvas*))
   (%nvg:save (handle-value-of canvas)))
 
 
-(defun pop-canvas (&key (canvas *canvas*))
+(defun pop-canvas (&optional (canvas *canvas*))
   (%nvg:restore (handle-value-of canvas)))
 
 
-(defun reset-canvas (&key (canvas *canvas*))
+(defun reset-canvas (&optional (canvas *canvas*))
   (%nvg:reset (handle-value-of canvas)))
+
+
+(defmacro with-pushed-canvas ((&optional canvas) &body body)
+  (with-gensyms (cvs)
+    `(let ((,cvs ,(or canvas '*canvas*)))
+       (unwind-protect
+            (progn
+              (push-canvas ,cvs)
+              ,@body)
+         (pop-canvas ,cvs)))))

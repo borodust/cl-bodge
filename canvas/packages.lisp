@@ -11,6 +11,7 @@
            with-canvas
            push-canvas
            pop-canvas
+           with-pushed-canvas
 
            path
            fill-path

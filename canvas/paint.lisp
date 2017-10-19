@@ -38,7 +38,7 @@
     (%nvg:bge-init-image-pattern (handle-value-of this)
                                  (handle-value-of canvas)
                                  (if origin (x origin) 0.0)
-                                 (if origin (%invert (y origin) canvas) (%invert 0.0 canvas))
+                                 (if origin (y origin) 0.0)
                                  (f (width-of image)) (f (height-of image))
                                  0.0 (id-of img) 1.0)))
 
