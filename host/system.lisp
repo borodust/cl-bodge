@@ -84,6 +84,7 @@
                                                 :opengl-profile :opengl-core-profile
                                                 :opengl-forward-compat t
                                                 :depth-bits 24
+                                                :resizable nil
                                                 :stencil-bits 8)
                    (glfw:set-window-close-callback 'on-close)
                    (glfw:set-key-callback 'on-key-action)
