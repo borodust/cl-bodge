@@ -30,9 +30,12 @@
 
 
 (defmethod initialize-instance :after ((this image-paint) &key image (canvas *canvas*)
-                                                            origin flip-vertically)
+                                                            origin flip-vertically
+                                                            use-nearest-interpolation)
   (with-slots ((img image) width height) this
-    (setf img (image->nvg canvas image :flip-vertically flip-vertically)
+    (setf img (image->nvg canvas image
+                          :flip-vertically flip-vertically
+                          :use-nearest-interpolation use-nearest-interpolation)
           width (width-of image)
           height (height-of image))
     (%nvg:bge-init-image-pattern (handle-value-of this)
@@ -43,11 +46,13 @@
                                  0.0 (id-of img) 1.0)))
 
 
-(defun make-image-paint (image &key origin (canvas *canvas*) flip-vertically)
+(defun make-image-paint (image &key origin (canvas *canvas*) flip-vertically
+                                 use-linear-interpolation)
   (make-instance 'image-paint
                  :image image
                  :canvas canvas
                  :origin origin
+                 :use-nearest-interpolation (not use-linear-interpolation)
                  :flip-vertically flip-vertically))
 
 

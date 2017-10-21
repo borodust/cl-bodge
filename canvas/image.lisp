@@ -12,7 +12,9 @@
   (nvg:destroy-image context id))
 
 
-(defmethod initialize-instance :after ((this nvg-image) &key image canvas flip-vertically)
+(defmethod initialize-instance :after ((this nvg-image) &key image canvas
+                                                          flip-vertically
+                                                          use-nearest-interpolation)
   (assert (eq :rgba (pixel-format-of image)) (image)
           "Only :rgba images supported")
   (with-slots (context id data) this
@@ -20,7 +22,9 @@
           (array (simple-array-of (foreign-array-of image)))
           (opts (nconc (list :generate-mipmaps :repeatx :repeaty)
                        (when flip-vertically
-                         (list :flipy)))))
+                         (list :flipy))
+                       (when use-nearest-interpolation
+                         (list :nearest)))))
       (setf data (make-foreign-array (length array) :initial-contents array))
       (setf context ctx
             id (apply #'nvg:make-rgba-image ctx (width-of image) (height-of image)
@@ -28,8 +32,9 @@
                       opts)))))
 
 
-(defun image->nvg (canvas image &key flip-vertically)
+(defun image->nvg (canvas image &key flip-vertically use-nearest-interpolation)
   (make-instance 'nvg-image
                  :image image
                  :canvas canvas
+                 :use-nearest-interpolation use-nearest-interpolation
                  :flip-vertically flip-vertically))
