@@ -1,7 +1,8 @@
 (in-package :cl-bodge.canvas)
 
 
-(declaim (special *canvas*))
+(declaim (special *canvas*)
+         (special *pixel-ratio*))
 
 
 (defhandle canvas-handle
@@ -40,14 +41,20 @@
   (reset-state))
 
 
+(definline flush-canvas (&optional (canvas *canvas*) (pixel-ratio *pixel-ratio*))
+  (end-canvas canvas)
+  (begin-canvas canvas pixel-ratio))
+
+
 (defmacro with-canvas ((canvas &optional (pixel-ratio 1.0)) &body body)
   (once-only (canvas)
-    `(let ((*canvas* ,canvas))
+    `(let ((*canvas* ,canvas)
+           (*pixel-ratio* ,pixel-ratio))
        (unwind-protect
             (progn
-              (begin-canvas ,canvas ,pixel-ratio)
+              (begin-canvas *canvas* *pixel-ratio*)
               ,@body)
-         (end-canvas ,canvas)))))
+         (end-canvas *canvas*)))))
 
 
 (definline fill-path (&optional (canvas *canvas*))

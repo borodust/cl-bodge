@@ -8,6 +8,7 @@
            update-canvas-size
            begin-canvas
            end-canvas
+           flush-canvas
            with-canvas
            push-canvas
            pop-canvas
