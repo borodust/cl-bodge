@@ -155,7 +155,7 @@
 
 
 (defmethod dot-product ((this vec3) (that vec3))
-  (%raw-> vec3 (v3:dot (value-of this) (value-of that))))
+  (v3:dot (value-of this) (value-of that)))
 
 
 ;;;
@@ -216,4 +216,4 @@
 
 
 (defmethod dot-product ((this vec2) (that vec2))
-  (%raw-> vec2 (v2:dot (value-of this) (value-of that))))
+  (v2:dot (value-of this) (value-of that)))
