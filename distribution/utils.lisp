@@ -1,6 +1,11 @@
 (in-package :cl-bodge.distribution)
 
 
+(declaim (special *distribution*))
+
+(defvar *buildapp* "buildapp")
+(defvar *zip* "zip")
+
 (defun distribution-system-path ()
   (asdf:component-pathname (find-system :cl-bodge/distribution)))
 
@@ -24,11 +29,14 @@
        ,@body)))
 
 
+(defun generate-random-name ()
+  (format nil "~:@(~36,8,'0R~)" (random (expt 36 8))))
+
+
 (defun temporary-directory (name &optional postfix)
-  (loop for path = (fad:merge-pathnames-as-directory (uiop:temporary-directory)
-                                                     (format nil "~a.~a"
-                                                             name (or postfix
-                                                                      (random (expt 2 64)))))
+  (loop for path = (fad:merge-pathnames-as-directory
+                    (uiop:temporary-directory)
+                    (format nil "~A.~A" name (or postfix (generate-random-name))))
      while (fad:directory-exists-p path)
      finally
        (ensure-directories-exist path)
@@ -83,26 +91,29 @@
 
 
 (defun compress-directory (path &optional name)
-  (let* ((parent-path (fad:pathname-parent-directory path))
-         (last-path-el (enough-namestring path parent-path))
+  (let* ((parent-path (truename (fad:pathname-parent-directory path)))
+         (last-path-el (enough-namestring (truename path) parent-path))
          (name (or name (file last-path-el))))
-    (inferior-shell:run/nil `("sh" "-c" ,(inferior-shell:token-string
-					  `(,(format nil "cd \"~A\" && " parent-path)
-					     ("zip -r " ,(format nil "~A.zip" name) " "
-                                                        ,last-path-el)))))))
+    (inferior-shell:run/nil (list "sh" "-c" (inferior-shell:token-string
+                                             (list (format nil "cd \"~A\" && " parent-path) " "
+                                                   *zip* " -r " (format nil "~A.zip" name) " "
+                                                   last-path-el))))))
 
 
-(defun find-dependencies-with-ldd (parent-library-path)
-  (with-program-output (dep-string) ("ldd" (namestring parent-library-path))
-    (let ((deps (split-sequence:split-sequence #\Newline dep-string)))
-      (loop for dep in deps
-         for div-idx = (search "=>" dep)
-         for path-start-pos = (if div-idx (+ 2 div-idx) 0)
-         for path-end-pos = (search "(0x" dep :from-end t)
-         for path = (uiop:pathname-directory-pathname
-                     (trim-whitespaces (subseq dep path-start-pos path-end-pos)))
-         for lib = (if div-idx
-                       (trim-whitespaces (subseq dep 0 div-idx))
-                       (file-namestring path))
-	 unless (equal lib "???") ; Windows crap 
-         collect (cons lib path)))))
+(defun process-template (source destination &rest context &key &allow-other-keys)
+  (let* ((template (alexandria:read-file-into-string source))
+         (result (mustache:render* template (alexandria:plist-alist context))))
+    (alexandria:write-string-into-file result destination :if-exists :supersede))
+  (values))
+
+
+(defun %copy-runner (runner-template target-runner-name)
+  (let ((target-file (file (directory-of *distribution*) target-runner-name)))
+    (process-template (file (distribution-system-path) runner-template)
+                      target-file
+                      :executable-name (executable-name-of *distribution*)
+                      :configuration-filename (if-let ((config-file (configuration-file-of
+                                                                     *distribution*)))
+                                                (file-namestring config-file)
+                                                ""))
+    target-file))

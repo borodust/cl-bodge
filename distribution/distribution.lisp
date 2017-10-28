@@ -6,6 +6,7 @@
    (target-system :initarg :target-system :reader target-system-of)
    (entry-function :initarg :entry-function :reader entry-function-of)
    (executable-name :initarg :executable-name :reader executable-name-of)
+   (configuration-file :initarg :configuration-file :reader configuration-file-of)
    (compressed-p :initarg :compressed-p :reader compressedp)
    (build-directory :initform nil :reader build-directory-of)
    (dist-directory :initform nil :reader directory-of)
@@ -32,15 +33,16 @@
 (defmethod initialize-instance :after ((this distribution) &key build-directory
                                                              library-directory
                                                              assets
+                                                             configuration-file
                                                              engine-assets-directory
                                                              base-directory)
   (with-slots ((this-build-dir build-directory) (this-lib-dir library-directory)
                (this-assets assets) (this-engine-assets-dir engine-assets-directory)
-               target-system name dist-directory)
+               target-system name dist-directory (this-configuration-file configuration-file))
       this
     (let* ((sys (find-system target-system))
            (base-path (fad:merge-pathnames-as-directory (component-pathname sys)
-                                                       base-directory))
+                                                        base-directory))
            (dist-name (format nil "~(~a~)" name)))
       (setf this-build-dir (if (fad:pathname-relative-p build-directory)
                                (fad:merge-pathnames-as-directory base-path
@@ -51,6 +53,7 @@
             this-lib-dir (fad:merge-pathnames-as-directory
                           dist-directory
                           (path library-directory))
+            this-configuration-file (when configuration-file (file base-path configuration-file))
             this-engine-assets-dir (path engine-assets-directory)
             this-assets (expand-assets-path base-path dist-directory assets)))))
 
@@ -58,7 +61,7 @@
 (defun parse-entry-function (entry-function)
   (etypecase entry-function
     (list
-     (format nil "~(~a:~a~)" (first entry-function) (second entry-function)))
+     (format nil "~(~A::~A~)" (first entry-function) (second entry-function)))
     (string
      entry-function)))
 
@@ -72,6 +75,7 @@
                           (compressed-p t)
                           (build-directory #p"build/")
                           (library-directory #p"lib/")
+                          configuration-file
                           (engine-assets-directory #p"assets/engine/")
                           assets
                           bundle)
@@ -95,6 +99,7 @@
                        :build-directory ,build-directory
                        :library-directory ,library-directory
                        :engine-assets-directory ,engine-assets-directory
+                       :configuration-file ,configuration-file
                        :assets ',assets
                        :bundle-name ,bundle-name
                        :bundle-compressed-p ,bundle-compressed-p

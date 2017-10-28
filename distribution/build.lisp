@@ -1,38 +1,8 @@
 (in-package :cl-bodge.distribution)
 
 
-(declaim (special *distribution*))
-
-
 (define-constant +engine-resource-filename+ "bodge.brf"
   :test #'equal)
-
-
-(defun list-system-pathnames (system-designator)
-  (labels ((%extract-name (sys-def)
-             (if (listp sys-def)
-                 (ecase (first sys-def)
-                   (:feature (when (uiop:featurep (second sys-def))
-                               (%extract-name (third sys-def))))
-                   (:version (second sys-def)))
-                 sys-def))
-
-           (%list-dependencies (system)
-             (remove-if #'null (mapcar #'%extract-name
-                                       (append (asdf:system-depends-on system)
-                                               (asdf:system-defsystem-depends-on system)))))
-
-           (%proper-path-p (sys-path)
-             (and sys-path
-                  (> (length (trim-whitespaces (namestring sys-path))) 0)))
-
-           (%list-system-pathnames (system-designator)
-             (let* ((system (asdf:find-system system-designator))
-                    (sys-path (asdf:system-definition-pathname system)))
-               (append (when (%proper-path-p sys-path) (list sys-path))
-                       (loop for sys-name in (%list-dependencies system) append
-                            (%list-system-pathnames sys-name))))))
-    (remove-duplicates (%list-system-pathnames system-designator) :test #'equal)))
 
 
 (defun generate-manifest ()
@@ -51,7 +21,7 @@
             (asset-file (fad:merge-pathnames-as-file (engine-assets-directory-of *distribution*)
                                                      +engine-resource-filename+)))
         (unless (fad:file-exists-p output-file)
-	  (run-program "buildapp"
+	  (run-program *buildapp*
 		       "--output" output-file
 		       "--entry" (entry-function-of *distribution*)
 		       "--manifest-file" manifest-file
@@ -71,8 +41,8 @@
 
 (defun copy-assets ()
   (loop for (src dst) in (assets-of *distribution*)
-     do (unless (fad:file-exists-p dst)
-          (copy-path src dst))))
+     unless (fad:file-exists-p dst)
+     do (copy-path src dst)))
 
 
 (defun compress ()
@@ -80,28 +50,13 @@
                       (format nil "~(~A~)" (name-of *distribution*))))
 
 
-(defun copy-foreign-dependencies (lib-name target-dir dirs)
-  (if-let (lib-path (cffi::find-file lib-name dirs))
-    (unless (system-library-p lib-path)
-      (let ((dst (fad:merge-pathnames-as-file target-dir lib-name)))
-        (unless (fad:file-exists-p dst)
-          (fad:copy-file lib-path dst)
-          (loop for (dep-lib-name . dep-lib-path) in (list-foreign-dependencies lib-path)
-             do (copy-foreign-dependencies
-                 dep-lib-name target-dir
-                 (append dirs (list (uiop:pathname-directory-pathname  dep-lib-path)))))))
-      (warn "Cannot find foreign library ~A. Skipping." lib-name))))
-
-
 (defun pack-foreign-libraries ()
-  (let ((lib-dir (library-directory-of *distribution*))
-        (dirs (append (cffi::parse-directories cffi:*foreign-library-directories*)
-                      (list-platform-search-paths))))
+  (let ((lib-dir (library-directory-of *distribution*)))
     (ensure-directories-exist lib-dir)
-    (loop for lib in (cffi:list-foreign-libraries)
-       do (let* ((path (cffi:foreign-library-pathname lib))
-                 (name (file-namestring path)))
-            (copy-foreign-dependencies name lib-dir dirs)))))
+    (loop for lib-path in (bodge-blobs-support:list-registered-libraries)
+       do (let* ((name (file-namestring lib-path))
+                 (target-file (fad:merge-pathnames-as-file lib-dir name)))
+            (fad:copy-file lib-path target-file)))))
 
 
 (defun serialize-engine-assets ()
@@ -145,6 +100,7 @@
     (prepare)
     (shout "Building executable")
     (build-executable)
+    (copy-runner)
     (shout "Packing foreign libraries")
     (pack-foreign-libraries)
     (shout "Copying system assets")

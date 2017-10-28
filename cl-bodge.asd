@@ -340,8 +340,8 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (cl-bodge/utils cl-bodge/assets asdf uiop cl-fad cffi cl-ppcre
-                              inferior-shell split-sequence flexi-streams)
+  :depends-on (cl-bodge/utils cl-bodge/assets asdf uiop cl-fad cffi cl-ppcre bodge-blobs-support
+                              inferior-shell split-sequence flexi-streams cl-mustache)
   :pathname "distribution/"
   :serial t
   :components ((:file "packages")
