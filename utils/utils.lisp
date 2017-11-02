@@ -297,3 +297,15 @@
 
 (defmacro inhibiting-string-conversion ((object &rest path))
   `(,object ,@path bodge-plus-c:* bodge-plus-c:&))
+
+
+(defun current-file-truename ()
+  (or *compile-file-truename* *load-truename* ""))
+
+
+(defun translate-name-to-foreign (symbol)
+  (cffi:translate-name-to-foreign symbol *package*))
+
+
+(defun translate-name-from-foreign (name)
+  (cffi:translate-name-from-foreign name *package*))

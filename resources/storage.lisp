@@ -79,8 +79,16 @@
     (open-resource-stream child (rest path))))
 
 
+;;;
+;;; Filesystem node
+;;;
 (defclass filesystem-node (path-node)
   ((root-path :initarg :root-path :initform (error ":root-path missing"))))
+
+
+(defmethod open-resource-stream ((this filesystem-node) (path null))
+  (with-slots (root-path) this
+    (open root-path :element-type '(unsigned-byte 8))))
 
 
 (defmethod open-resource-stream ((this filesystem-node) (path cons))

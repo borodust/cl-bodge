@@ -1,7 +1,6 @@
 (in-package :cl-bodge.text)
 
 
-(define-shader-library text-library
-    :name "text"
+(define-shader-library text
     :header "text.h"
     :source "text.glsl")

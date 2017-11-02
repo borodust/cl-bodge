@@ -4,19 +4,16 @@
 (defpackage :cl-bodge.resources
   (:nicknames :ge.rsc)
   (:use :cl :cl-bodge.utils :cl-bodge.engine)
-  (:export register-resource-loader
-
-           engine-resource-name
-           engine-external-resource-name
-
-           list-registered-resource-names
-           release-resources
-           get-resource
-           resource-flow
-
-           list-resource-names
-           load-resource
-           release-resource
+  (:export engine-resource-name
 
            encode-resource
-           decode-resource))
+           decode-resource
+
+           register-resource
+           load-resource
+           resource-flow
+           list-registered-resource-names
+
+           mount-resource-provider
+           mount-filesystem
+           make-text-resource-handler))

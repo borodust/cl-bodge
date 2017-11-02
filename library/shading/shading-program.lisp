@@ -1,18 +1,12 @@
 (in-package :cl-bodge.library.shading)
 
 
-(defun shading-program-descriptor-asset-name (program-name)
-  (engine-external-resource-name "shading-program/descriptor/~(~A~)"  program-name))
-
-(defun shading-program-resource-name (program-name)
-  (engine-resource-name "shading-program/~(~A~)"  program-name))
+(defun shading-program-source-name (program-name source-name)
+  (engine-resource-name "shading-program/~(~A~)/~A"  program-name source-name))
 
 
 (defclass shading-program-descriptor ()
-  ((descriptor-path :initarg :descriptor-path :initform nil)
-   (descriptor-resource-name :initarg :descriptor-resource-name)
-   (program-resource-name :initarg :program-resource-name)
-   (shader-sources :initarg :shader-sources :initform nil)
+  ((shader-sources :initform nil)
    (cached-program :initform nil)))
 
 
@@ -23,98 +17,60 @@
     (setf cached-program nil)))
 
 
-(defmethod initialize-instance :after ((this shading-program-descriptor) &key)
+(defmethod initialize-instance :after ((this shading-program-descriptor) &key shader-sources)
+  (with-slots ((this-shader-sources shader-sources)) this
+    (flet ((load-shader-source (type-resource-pair)
+             (destructuring-bind (type . name) type-resource-pair
+               (make-shader-source name type (load-resource
+                                              (shading-program-source-name (class-name-of this)
+                                                                           name))))))
+      (setf this-shader-sources (mapcar #'load-shader-source shader-sources))))
   (before-system-shutdown 'graphics-system (lambda () (clear-cached-program this))))
 
 
-(defun encode-shader-sources (sources)
-  (loop for source in sources
-     collect (list (list :type (shader-type-of source)
-                         :name (shader-name-of source))
-                   (shader-text-of source))))
-
-
-(defmethod encode-resource ((this shading-program-descriptor) stream)
-  (with-slots (shader-sources) this
-    (let ((flexi (flexi-streams:make-flexi-stream stream :external-format :utf-8)))
-      (prin1 (encode-shader-sources shader-sources) flexi))))
-
-
-(defun decode-shader-sources (stream)
-  (let* ((flexi (flexi-streams:make-flexi-stream stream :external-format :utf-8))
-         (sources (read-preserving-whitespace flexi nil)))
-    (loop for source in sources
-       collecting (destructuring-bind ((&key name type) text) source
-                    (make-shader-source name type text)))))
+(defun shading-program-class-name (name)
+  (format-symbol :cl-bodge.library.shading.program-descriptor name))
 
 
 (defmacro define-shading-program (name-and-opts &body shader-sources)
   (let* ((opts (ensure-list name-and-opts))
          (name (first opts))
-         (class-name (symbolicate name))
-         (descriptor-path (%descriptor-path))
-         (descriptor-directory (when descriptor-path (directory-namestring descriptor-path))))
+         (class-name (shading-program-class-name name))
+         (descriptor-path (current-file-truename))
+         (descriptor-directory (when descriptor-path (directory-namestring descriptor-path)))
+         (shader-sources (loop for (type . (path . rest)) = shader-sources then rest
+                            until (null type)
+                            collecting (cons type path))))
     `(progn
        (defclass ,class-name (shading-program-descriptor) ()
-         (:default-initargs :descriptor-path ',descriptor-path
-           :descriptor-resource-name ,(shading-program-descriptor-asset-name class-name)
-           :program-resource-name ,(shading-program-resource-name name)
-           :shader-sources (list ,@(loop for (type . (path . rest)) = shader-sources
-                                      then rest until (null type)
-                                      for full-path = (fad:merge-pathnames-as-file
-                                                       descriptor-directory path)
-                                      collecting `(load-shader-source ,type ,full-path)))))
-       (defmethod decode-resource ((this (eql ',class-name)) stream)
-         (make-instance this
-                        :descriptor-path nil
-                        :shader-sources (decode-shader-sources stream)))
-       (in-development-mode
-         (register-resource-loader (make-instance ',class-name))))))
+         (:default-initargs
+          :shader-sources ',shader-sources))
+       ,@(loop for (type . path) in shader-sources
+            collect `(mount-text-file (shading-program-source-name ',name ,path)
+                                      ,(fad:merge-pathnames-as-file
+                                        descriptor-directory path))))))
 
 
-(define-system-function build-shading-program graphics-system (shader-sources)
-  (restart-case
-      (loop with libs and processed-sources
-         for source in shader-sources
-         for type = (shader-type-of source)
-         do (multiple-value-bind (text used-lib-names) (preprocess (shader-text-of source) type)
-              (loop for name in used-lib-names
-                 for shader = (load-shader (get-resource (shader-library-asset-name name)) type)
-                 unless (null shader) do (pushnew shader libs))
-              (push (make-shader-source (shader-name-of source) type text)
-                    processed-sources))
-         finally
-           (return (make-shading-program processed-sources :precompiled-shaders libs)))
-    (reload-sources-and-build ()
-      (build-shading-program (loop for source in shader-sources collecting
-                                  (reload-shader-text source))))))
+(defun load-shading-program (name)
+  (make-instance (shading-program-class-name name)))
 
 
-(define-system-function load-shading-program graphics-system (program-descriptor)
-  (with-slots (cached-program shader-sources) program-descriptor
-    (if (null cached-program)
-        (setf cached-program (build-shading-program shader-sources))
-        cached-program)))
-
-
-;;;
-;;;
-;;;
-(defmethod list-resource-names ((this shading-program-descriptor))
-  (with-slots (program-resource-name descriptor-resource-name) this
-    (list program-resource-name descriptor-resource-name)))
-
-
-(defmethod load-resource ((this shading-program-descriptor) name)
-  (with-slots (descriptor-resource-name program-resource-name) this
-    (eswitch (name :test #'equal)
-      (descriptor-resource-name (values this t))
-      (program-resource-name (-> ((graphics)) ()
-                               (load-shading-program this))))))
-
-
-(defmethod release-resource ((this shading-program-descriptor) name)
-  (with-slots (descriptor-resource-name program-resource-name) this
-    (when (equal name program-resource-name)
-      (-> ((graphics)) ()
-        (clear-cached-program this)))))
+(define-system-function build-shading-program graphics-system (shading-program-descriptor)
+  (with-slots (shader-sources) shading-program-descriptor
+    (flet ((%compile-library (name-type)
+             (destructuring-bind (name . type) name-type
+               (let ((library-name (translate-name-from-foreign name)))
+                 (compile-shader-library (load-shader-library library-name) type)))))
+      (restart-case
+          (loop with libs and processed-sources
+             for source in shader-sources
+             for type = (shader-type-of source)
+             do (multiple-value-bind (text used-lib-names) (preprocess (shader-text-of source) type)
+                  (nunionf libs (mapcar (lambda (name) (cons type name)) used-lib-names) :test #'equal)
+                  (push (make-shader-source (shader-name-of source) type text)
+                        processed-sources))
+             finally
+               (return (make-shading-program processed-sources
+                                             :precompiled-shaders (mapcar #'%compile-library libs))))
+        (reload-sources-and-build ()
+          (build-shading-program (load-shading-program (class-of shading-program-descriptor))))))))

@@ -1,6 +1,5 @@
 (in-package :cl-bodge.library.shading)
 
 
-(define-shader-library math-library
-    :name "math"
+(define-shader-library math
     :header "math.h")

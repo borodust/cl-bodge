@@ -1,5 +1,7 @@
 (in-package :cl-bodge.engine)
 
+(defvar *engine* nil)
+
 (defvar *engine-startup-hooks* nil)
 (defvar *system-startup-hooks* (mt:make-guarded-reference (make-hash-table)))
 (defvar *system-shutdown-hooks* (mt:make-guarded-reference (make-hash-table)))
@@ -19,8 +21,6 @@
    (shared-executors :initform nil)
    (shared-pool :initform nil)
    (disabling-order :initform '())))
-
-(defvar *engine* nil)
 
 
 (definline engine ()

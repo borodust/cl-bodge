@@ -21,7 +21,10 @@
            alist-hash-table
            plist-alist
            read-file-into-string
+           read-stream-content-into-string
+           write-stream-content-into-string
            nconcf
+           nunionf
            starts-with-subseq
            positive-integer
            copy-array
@@ -75,4 +78,7 @@
            string->mutable
            string->immutable
            mutate-string
-           inhibiting-string-conversion))
+           inhibiting-string-conversion
+           current-file-truename
+           translate-name-to-foreign
+           translate-name-from-foreign))

@@ -8,7 +8,7 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (alexandria uiop log4cl local-time dissect split-sequence bodge-autowrap
+  :depends-on (alexandria uiop log4cl local-time dissect split-sequence cffi bodge-autowrap
                           bodge-plus-c static-vectors)
   :pathname "utils/"
   :serial t
@@ -200,13 +200,12 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (cl-bodge/engine cl-bodge/utils)
+  :depends-on (cl-bodge/engine cl-bodge/utils flexi-streams)
   :pathname "resources/"
   :serial t
   :components ((:file "packages")
-               (:file "serialization")
                (:file "storage")
-               (:file "loader")
+               (:file "handler")
                (:file "registry")))
 
 
@@ -220,6 +219,7 @@
   :pathname "library/shading/"
   :serial t
   :components ((:file "packages")
+               (:file "utils")
                (:file "lighting")
                (:file "shader-source")
                (:file "shader-library")

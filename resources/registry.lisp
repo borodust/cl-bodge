@@ -4,18 +4,23 @@
 (defvar *resource-storage* (make-instance 'resource-storage))
 
 
+(defun mount-resource-provider (path provider)
+  (let ((node-name (if (fad:directory-pathname-p path)
+                       (enough-namestring path (fad:pathname-parent-directory path))
+                       (file-namestring path))))
+    (mount-storage-resource-node *resource-storage* path
+                                 (funcall provider node-name))))
+
+
+(defun mount-filesystem (resource-path filesystem-path)
+  (mount-resource-provider resource-path
+                           (make-filesystem-resource-provider filesystem-path)))
+
+
 (defun engine-resource-name (name-control-string &rest args)
   (with-output-to-string (name-stream)
     (format name-stream  "/engine/")
     (apply #'format name-stream name-control-string args)))
-
-
-(defun engine-external-resource-name (name-control-string &rest args)
-  (with-output-to-string (name-stream)
-    (format name-stream  +engine-external-resource-prefix+)
-    (apply #'format name-stream name-control-string args)))
-
-
 
 
 ;;;
@@ -27,41 +32,32 @@
 (defvar *resource-registry* (make-instance 'resource-registry))
 
 
-(defun register-resource-loader (loader)
+(defun register-resource (name handler)
   (with-instance-lock-held (*resource-registry*)
     (with-slots (resource-table) *resource-registry*
-      (loop for name in (list-resource-names loader)
-         do (with-hash-entries ((resource-entry name)) resource-table
-              (let* ((entry resource-entry))
-                (when (and entry (not (eq entry loader)))
-                  (warn "Resource redefinition: name ~A from ~A was registered with ~A loader"
-                        name loader entry)))
-              (setf resource-entry loader))))))
+      (with-hash-entries ((resource-entry name)) resource-table
+        (let ((entry resource-entry))
+          (when (and entry (not (eq entry handler)))
+            (warn "Resource redefinition: handler ~A for '~A' was registered earlier"
+                  handler name)))
+        (setf resource-entry handler)))))
 
 
-(defun release-resources (&rest names)
-  (with-instance-lock-held (*resource-registry*)
-    (with-slots (resource-table) *resource-registry*
-      (loop for name in names
-         do (release-resource (gethash name resource-table) name)))))
-
-
-(defun get-resource (name)
+(defun load-resource (name)
   (with-slots (resource-table) *resource-registry*
     (log:trace "Resource requested: '~A'" name)
-    (when-let ((loader (gethash name resource-table)))
-      (load-resource loader name))))
+    (when-let ((handler (gethash name resource-table)))
+      (with-resource-stream (stream name *resource-storage*)
+        (decode-resource handler stream)))))
 
 
 (defun resource-flow (&rest resource-names)
   (>> (~> (loop for name in resource-names
-             collecting (multiple-value-bind (rsc value-p)
-                            (get-resource name)
-                          (if value-p
-                              (value-flow rsc)
-                              rsc))))
-      (instantly (resources)
-        (values-list (mapcar #'first resources)))))
+             collecting (multiple-value-bind (rsc flow-p)
+                            (load-resource name)
+                          (if flow-p
+                              rsc
+                              (value-flow rsc)))))))
 
 
 (defun list-registered-resource-names ()
@@ -69,9 +65,3 @@
     (with-slots (resource-table) *resource-registry*
       (loop for key being the hash-key of resource-table
          collect key))))
-
-
-(defun mount-resource-provider (path provider)
-  (let ((node-name (enough-namestring path (fad:pathname-parent-directory path))))
-    (mount-storage-resource-node *resource-storage* path
-                                 (funcall provider node-name))))

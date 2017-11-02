@@ -36,9 +36,7 @@
 (define-system-function make-text-renderer graphics-system
     (width height font line-height &key (color (vec4 0.0 0.0 0.0 1.0)))
   (make-instance 'text-renderer
-                 :shading-program (load-shading-program
-                                   (get-resource (shading-program-descriptor-asset-name
-                                                  'text-shading)))
+                 :shading-program (build-shading-program (load-shading-program 'text))
                  :font font
                  :width width
                  :height height
