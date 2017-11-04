@@ -27,8 +27,8 @@
      finally (return result)))
 
 
-(defun load-png-image (path)
-  (let* ((data (opticl:read-png-file path))
+(defun read-image-from-stream (stream type)
+  (let* ((data (opticl:read-image-stream stream type))
          (format (etypecase data
                    (opticl:8-bit-gray-image :grey)
                    (opticl:8-bit-rgb-image :rgb)
@@ -41,33 +41,27 @@
                      :pixel-format format))))
 
 
+(defun load-png-image (path)
+  (with-open-file (stream path :element-type '(unsigned-byte 8))
+    (read-image-from-stream stream :png)))
+
+
 (defmethod foreign-array-of ((this image))
   (data-of this))
 
 
-(defstruct (image-chunk
-             (:constructor make-image-chunk (name width height pixel-format data)))
-  (name nil :read-only t)
-  (width nil :read-only t)
-  (height nil :read-only t)
-  (pixel-format nil :read-only t)
-  (data nil :read-only t))
+;;;
+;;; Image resource
+;;;
+(defclass image-resource-handler ()
+  ((type :initarg :type :initform (error ":type missing"))))
 
 
-(defmethod read-chunk ((type (eql :image)) parameters stream)
-  (destructuring-bind (&key size &allow-other-keys) parameters
-    (let* ((image-data (make-array size :element-type '(unsigned-byte 8)))
-           (bytes-read (read-sequence image-data stream)))
-      (unless (= size bytes-read)
-        (error "Incorrect :size provided for image chunk data: ~a supplied, but ~a read"
-               size bytes-read))
-      (parse-chunk type parameters image-data))))
+(defmethod decode-resource ((this image-resource-handler) stream)
+  (with-slots (type) this
+    (read-image-from-stream stream type)))
 
 
-(defmethod parse-chunk ((type (eql :image)) parameters data)
-  (destructuring-bind (&key name width height type pixel-format &allow-other-keys) parameters
-    (unless (eq type :raw)
-      (error "Image type ~a unsupported" type))
-    (unless (pixel-format-p pixel-format)
-      (error "Unsupported pixel format: ~a" pixel-format))
-    (make-image-chunk name width height pixel-format data)))
+(defmethod make-resource-handler ((type (eql :image)) &key ((:type image-type)
+                                                            (error ":type missing")))
+  (make-instance 'image-resource-handler :type image-type))

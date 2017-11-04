@@ -55,7 +55,7 @@
            (lib (load-resource (shader-header-resource-name lib-name))))
       (when (null lib)
         (error "Library '~a' not found" lib-name))
-      (values (header-of lib) lib-name))))
+      (values lib lib-name))))
 
 
 (defun process-shader-type-name (type)
@@ -122,11 +122,11 @@
          (:default-initargs :name ,stringified-name
            :shader-types ,types))
        ,@(when header
-           `((mount-text-file (shader-header-resource-name ,stringified-name)
-                              ,(fad:merge-pathnames-as-file path header))))
+           `((defresource :text (shader-header-resource-name ,stringified-name)
+               :path ,(fad:merge-pathnames-as-file path header))))
        ,@(when source
-           `((mount-text-file (shader-source-resource-name ,stringified-name)
-                              ,(fad:merge-pathnames-as-file path source)))))))
+           `((defresource :text (shader-source-resource-name ,stringified-name)
+               :path ,(fad:merge-pathnames-as-file path source)))))))
 
 
 (defun load-shader-library (name)
@@ -136,12 +136,13 @@
 ;;;
 ;;;
 ;; TODO unload shaders later
-(define-system-function compile-shader-library graphics-system (library &optional shader-type)
-  (with-slots (shader-alist source) library
-    (if-let ((shader (assoc-value shader-alist shader-type)))
-      shader
-      (let* ((types (ensure-list (supported-shader-types library)))
-             (type (%select-shader-type (class-name-of library) shader-type types))
-             (processed-source (preprocess source type))
-             (source (make-shader-source (name-of library) type processed-source)))
-        (setf (assoc-value shader-alist (shader-type-of source)) (compile-shader source))))))
+(define-system-function compile-shader-library graphics-system (name &optional shader-type)
+  (let ((library (load-shader-library name)))
+    (with-slots (shader-alist source) library
+      (if-let ((shader (assoc-value shader-alist shader-type)))
+        shader
+        (let* ((types (ensure-list (supported-shader-types library)))
+               (type (%select-shader-type (class-name-of library) shader-type types))
+               (processed-source (preprocess source type))
+               (source (make-shader-source (name-of library) type processed-source)))
+          (setf (assoc-value shader-alist (shader-type-of source)) (compile-shader source)))))))

@@ -25,7 +25,7 @@
   :license "MIT"
   :defsystem-depends-on (bodge-blobs)
   :depends-on (cl-bodge/utils cl-muth rtg-math log4cl bordeaux-threads local-time
-                              trivial-garbage uiop cffi cl-flow uiop)
+                              bodge-blobs-support trivial-garbage uiop cffi cl-flow uiop)
   :pathname "engine/"
   :serial t
   :components ((:file "packages")
@@ -219,7 +219,6 @@
   :pathname "library/shading/"
   :serial t
   :components ((:file "packages")
-               (:file "utils")
                (:file "lighting")
                (:file "shader-source")
                (:file "shader-library")
@@ -327,13 +326,23 @@
   :pathname "assets/"
   :serial t
   :components ((:file "packages")
-               (:file "resource-loader")
+               (:module chunked
+                        :serial t
+                        :components ((:file "resource")
+                                     (:file "chunk")
+                                     (:file "encoded")
+                                     (:file "font")
+                                     (:file "image")
+                                     (:file "mesh")
+                                     (:file "skeleton")
+                                     (:file "animation")
+                                     (:file "container")))
+               (:file "mesh")
+               (:file "skeleton")
+               (:file "animation")
                (:file "audio")
-               (:file "basic-chunks")
                (:file "image")
-               (:file "font")
-               (:file "encoded")
-               (:file "converters")))
+               (:file "font")))
 
 
 (defsystem cl-bodge/distribution

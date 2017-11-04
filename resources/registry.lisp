@@ -19,7 +19,7 @@
 
 (defun engine-resource-name (name-control-string &rest args)
   (with-output-to-string (name-stream)
-    (format name-stream  "/engine/")
+    (format name-stream  "/_engine/")
     (apply #'format name-stream name-control-string args)))
 
 
@@ -35,7 +35,7 @@
 (defun register-resource (name handler)
   (with-instance-lock-held (*resource-registry*)
     (with-slots (resource-table) *resource-registry*
-      (with-hash-entries ((resource-entry name)) resource-table
+      (with-hash-entries ((resource-entry (namestring name))) resource-table
         (let ((entry resource-entry))
           (when (and entry (not (eq entry handler)))
             (warn "Resource redefinition: handler ~A for '~A' was registered earlier"
@@ -46,7 +46,7 @@
 (defun load-resource (name)
   (with-slots (resource-table) *resource-registry*
     (log:trace "Resource requested: '~A'" name)
-    (when-let ((handler (gethash name resource-table)))
+    (when-let ((handler (gethash (namestring name) resource-table)))
       (with-resource-stream (stream name *resource-storage*)
         (decode-resource handler stream)))))
 
@@ -65,3 +65,15 @@
     (with-slots (resource-table) *resource-registry*
       (loop for key being the hash-key of resource-table
          collect key))))
+
+
+
+;;;
+;;; Define resource
+;;;
+(defmacro defresource (type resource-path &body opts &key path &allow-other-keys)
+  (once-only (resource-path)
+    `(progn
+       (register-resource ,resource-path (make-resource-handler ,type ,@opts))
+       ,@(when path
+           `((mount-filesystem ,resource-path ,path))))))

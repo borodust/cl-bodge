@@ -14,6 +14,11 @@
            resource-flow
            list-registered-resource-names
 
+           path-node
+           open-resource-stream
            mount-resource-provider
            mount-filesystem
+
+           defresource
+           make-resource-handler
            make-text-resource-handler))

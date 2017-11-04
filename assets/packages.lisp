@@ -1,10 +1,13 @@
 (in-package :cl-bodge.asdf)
 
 
-(defpackage :cl-bodge.assets
+(ge.util:define-package :cl-bodge.assets
   (:nicknames :ge.as)
   (:use :cl :cl-bodge.utils :cl-bodge.engine :bodge-sndfile :cl-bodge.resources)
-  (:export make-resource-loader
+  (:export mount-container
+
+           define-sdf-font
+           build-sdf-font
 
            mesh-asset-mesh
            mesh-asset-transform

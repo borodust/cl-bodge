@@ -140,17 +140,20 @@ specified."
   (defvar *unloaded-foreign-libraries* nil)
 
   (defun unload-foreign-libraries ()
+    (bodge-blobs-support:close-foreign-libraries)
     (handler-bind ((style-warning #'muffle-warning))
-      (loop for lib in (cffi:list-foreign-libraries) do
-           (pushnew (cffi:foreign-library-name lib) *unloaded-foreign-libraries*)
-           (cffi:close-foreign-library lib))))
+      (loop for lib in (cffi:list-foreign-libraries)
+         when (cffi:foreign-library-loaded-p lib)
+         do (progn
+              (pushnew (cffi:foreign-library-name lib) *unloaded-foreign-libraries*)
+              (cffi:close-foreign-library lib)))))
 
 
   (defun reload-foreign-libraries (library-directory)
-    (pushnew (merge-working-pathname library-directory)
-             cffi:*foreign-library-directories*)
-    (loop for lib-name in *unloaded-foreign-libraries* do
-         (cffi:load-foreign-library lib-name)))
+    (bodge-blobs-support:register-library-directory (merge-working-pathname library-directory))
+    (bodge-blobs-support:load-foreign-libraries)
+    (loop for lib-name in *unloaded-foreign-libraries*
+       do (cffi:load-foreign-library lib-name)))
 
 
   #+sbcl
@@ -197,7 +200,7 @@ specified."
     (dispose ex)))
 
 
-(defun startup (properties &optional (working-directory (truename (uiop:getcwd))))
+(defun startup (properties &optional (working-directory (truename (or (uiop:argv0) (uiop:getcwd)))))
   "Start engine synchronously loading configuration from `properties` (file, hash-table, plist
 or alist). `(:engine :systems)` property must exist in the config and should contain list
 of existing system class names loaded into current lisp image. Specified systems and their

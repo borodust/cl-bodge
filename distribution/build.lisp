@@ -73,7 +73,7 @@
           (prin1 '(:brf 1) flexi)
           (dolist (resource-name (ge.rsc:list-registered-resource-names))
             (when (starts-with-subseq ge.rsc:+engine-external-resource-prefix+ resource-name)
-              (let ((asset (ge.rsc:get-resource resource-name))
+              (let ((asset (ge.rsc:load-resource resource-name))
                     (*package* (find-package :cl)))
                   (prin1 (list :encoded
                                :asset-class (ge.util:class-name-of asset)

@@ -120,7 +120,7 @@
   (with-slots (sequences duration) this
     (flet ((%duration-of (pair)
              (duration-of (cdr pair))))
-      (setf duration (reduce #'max sequences :key #'%duration-of)))))
+      (setf duration (reduce #'max sequences :key #'%duration-of :initial-value 0)))))
 
 
 (defun make-keyframe-animation (sequence-alist)

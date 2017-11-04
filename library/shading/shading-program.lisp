@@ -6,7 +6,7 @@
 
 
 (defclass shading-program-descriptor ()
-  ((shader-sources :initform nil)
+  ((shader-sources :initform nil :reader %shader-sources-of)
    (cached-program :initform nil)))
 
 
@@ -46,31 +46,29 @@
          (:default-initargs
           :shader-sources ',shader-sources))
        ,@(loop for (type . path) in shader-sources
-            collect `(mount-text-file (shading-program-source-name ',name ,path)
-                                      ,(fad:merge-pathnames-as-file
-                                        descriptor-directory path))))))
+            collect `(defresource :text (shading-program-source-name ',name ,path)
+                       :path ,(fad:merge-pathnames-as-file descriptor-directory path))))))
 
 
 (defun load-shading-program (name)
   (make-instance (shading-program-class-name name)))
 
 
-(define-system-function build-shading-program graphics-system (shading-program-descriptor)
-  (with-slots (shader-sources) shading-program-descriptor
-    (flet ((%compile-library (name-type)
-             (destructuring-bind (name . type) name-type
-               (let ((library-name (translate-name-from-foreign name)))
-                 (compile-shader-library (load-shader-library library-name) type)))))
-      (restart-case
-          (loop with libs and processed-sources
-             for source in shader-sources
-             for type = (shader-type-of source)
-             do (multiple-value-bind (text used-lib-names) (preprocess (shader-text-of source) type)
-                  (nunionf libs (mapcar (lambda (name) (cons type name)) used-lib-names) :test #'equal)
-                  (push (make-shader-source (shader-name-of source) type text)
-                        processed-sources))
-             finally
-               (return (make-shading-program processed-sources
-                                             :precompiled-shaders (mapcar #'%compile-library libs))))
-        (reload-sources-and-build ()
-          (build-shading-program (load-shading-program (class-of shading-program-descriptor))))))))
+(define-system-function build-shading-program graphics-system (name)
+  (flet ((%compile-library (type-name)
+           (destructuring-bind (type . name) type-name
+             (let ((library-name (translate-name-from-foreign name)))
+               (compile-shader-library library-name type)))))
+    (restart-case
+        (loop with libs and processed-sources
+           for source in (%shader-sources-of (load-shading-program name))
+           for type = (shader-type-of source)
+           do (multiple-value-bind (text used-lib-names) (preprocess (shader-text-of source) type)
+                (nunionf libs (mapcar (lambda (name) (cons type name)) used-lib-names) :test #'equal)
+                (push (make-shader-source (shader-name-of source) type text)
+                      processed-sources))
+           finally
+             (return (make-shading-program processed-sources
+                                           :precompiled-shaders (mapcar #'%compile-library libs))))
+      (reload-sources-and-build ()
+        (build-shading-program name)))))
