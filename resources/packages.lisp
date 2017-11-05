@@ -12,6 +12,7 @@
            register-resource
            load-resource
            resource-flow
+           find-resource-handler
            list-registered-resource-names
 
            path-node

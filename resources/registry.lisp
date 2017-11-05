@@ -67,6 +67,10 @@
          collect key))))
 
 
+(defun find-resource-handler (resource-name)
+  (with-slots (resource-table) *resource-registry*
+    (with-instance-lock-held (*resource-registry*)
+      (gethash (namestring resource-name) resource-table))))
 
 ;;;
 ;;; Define resource
