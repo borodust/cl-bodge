@@ -11,7 +11,7 @@
    (build-directory :initform nil :reader build-directory-of)
    (dist-directory :initform nil :reader directory-of)
    (library-directory :initform nil :reader library-directory-of)
-   (engine-assets-directory :initform nil :reader engine-assets-directory-of)
+   (assets-directory :initform nil :reader assets-directory-of)
    (assets :initform nil :reader assets-of)
    (bundle-name :initarg :bundle-name :reader bundle-name-of)
    (bundle-run-file :initarg :bundle-run-file :reader bundle-run-file-of)
@@ -34,10 +34,10 @@
                                                              library-directory
                                                              assets
                                                              configuration-file
-                                                             engine-assets-directory
+                                                             assets-directory
                                                              base-directory)
   (with-slots ((this-build-dir build-directory) (this-lib-dir library-directory)
-               (this-assets assets) (this-engine-assets-dir engine-assets-directory)
+               (this-assets assets) (this-assets-dir assets-directory)
                target-system name dist-directory (this-configuration-file configuration-file))
       this
     (let* ((sys (find-system target-system))
@@ -54,7 +54,7 @@
                           dist-directory
                           (path library-directory))
             this-configuration-file (when configuration-file (file base-path configuration-file))
-            this-engine-assets-dir (path engine-assets-directory)
+            this-assets-dir (path assets-directory)
             this-assets (expand-assets-path base-path dist-directory assets)))))
 
 
@@ -76,7 +76,7 @@
                           (build-directory #p"build/")
                           (library-directory #p"lib/")
                           configuration-file
-                          (engine-assets-directory #p"assets/engine/")
+                          (assets-directory #p"assets/")
                           assets
                           bundle)
   (declare (ignore body))
@@ -98,7 +98,7 @@
                        :compressed-p ,compressed-p
                        :build-directory ,build-directory
                        :library-directory ,library-directory
-                       :engine-assets-directory ,engine-assets-directory
+                       :assets-directory ,assets-directory
                        :configuration-file ,configuration-file
                        :assets ',assets
                        :bundle-name ,bundle-name

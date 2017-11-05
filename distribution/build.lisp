@@ -18,7 +18,7 @@
                                                           (name-of *distribution*)))))
     (unless (fad:file-exists-p output-file)
       (let ((manifest-file (generate-manifest))
-            (asset-file (fad:merge-pathnames-as-file (engine-assets-directory-of *distribution*)
+            (asset-file (fad:merge-pathnames-as-file (assets-directory-of *distribution*)
                                                      +resource-filename+)))
         (unless (fad:file-exists-p output-file)
 	  (run-program *buildapp*
@@ -28,7 +28,7 @@
                        "--load-system" "bodge-blobs"
 		       "--load" (file (distribution-system-path) "prologue.lisp")
 		       "--load-system" (format nil "~(~a~)" (target-system-of *distribution*))
-		       "--eval" (format nil "(defvar *engine-assets-path* \"~A\")"
+		       "--eval" (format nil "(defvar *assets-path* \"~A\")"
 					asset-file)
 		       "--load" (file (distribution-system-path) "epilogue.lisp")
 		       #-windows ;; SBCL on windows does not support compression
@@ -61,7 +61,7 @@
 
 (defun serialize-assets ()
   (let* ((engine-asset-dir (path (directory-of *distribution*)
-                             (engine-assets-directory-of *distribution*)))
+                             (assets-directory-of *distribution*)))
          (engine-asset-file (file engine-asset-dir +resource-filename+)))
     (ensure-directories-exist engine-asset-dir)
     (unless (fad:file-exists-p engine-asset-file)

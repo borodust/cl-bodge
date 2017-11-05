@@ -119,4 +119,6 @@
 
 (defun mount-storage-resource-node (storage path node)
   (with-slots (root-node) storage
+    (when (fad:pathname-equal path "/")
+      (error "Mounting resource root forbidden"))
     (mount-resource-node root-node (decompose-path path) node)))
