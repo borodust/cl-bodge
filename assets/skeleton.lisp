@@ -18,7 +18,7 @@
   (:default-initargs :chunk-type :skeleton))
 
 
-(defmethod convert-chunk ((this skeleton-resource-handler) chunk)
+(defmethod convert-from-chunk ((this skeleton-resource-handler) chunk)
   (chunk->skeleton chunk))
 
 

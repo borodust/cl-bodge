@@ -1,7 +1,7 @@
 (in-package :cl-bodge.distribution)
 
 
-(define-constant +engine-resource-filename+ "bodge.brf"
+(define-constant +resource-filename+ "assets.brf"
   :test #'equal)
 
 
@@ -19,7 +19,7 @@
     (unless (fad:file-exists-p output-file)
       (let ((manifest-file (generate-manifest))
             (asset-file (fad:merge-pathnames-as-file (engine-assets-directory-of *distribution*)
-                                                     +engine-resource-filename+)))
+                                                     +resource-filename+)))
         (unless (fad:file-exists-p output-file)
 	  (run-program *buildapp*
 		       "--output" output-file
@@ -59,11 +59,10 @@
             (fad:copy-file lib-path target-file)))))
 
 
-(defun serialize-engine-assets ()
+(defun serialize-assets ()
   (let* ((engine-asset-dir (path (directory-of *distribution*)
                              (engine-assets-directory-of *distribution*)))
-         (engine-asset-file (file engine-asset-dir
-                                  +engine-resource-filename+)))
+         (engine-asset-file (file engine-asset-dir +resource-filename+)))
     (ensure-directories-exist engine-asset-dir)
     (unless (fad:file-exists-p engine-asset-file)
       (with-open-file (out engine-asset-file
@@ -72,13 +71,17 @@
         (let ((flexi (flexi-streams:make-flexi-stream out :external-format :utf-8)))
           (prin1 '(:brf 1) flexi)
           (dolist (resource-name (ge.rsc:list-registered-resource-names))
-            (let ((asset (ge.rsc:load-resource resource-name))
-                  (*package* (find-package :cl)))
+            (let* ((asset (ge.rsc:load-resource resource-name))
+                   (handler (ge.rsc:find-resource-handler resource-name))
+                   (*package* (find-package :cl))
+                   (*print-pretty* nil)
+                   (data (flex:with-output-to-sequence (stream)
+                           (ge.rsc:encode-resource handler asset stream))))
               (prin1 (list :encoded
-                           :asset-class (ge.util:class-name-of asset)
-                           :name resource-name)
+                           :name resource-name
+                           :size (length data))
                      flexi)
-              (ge.rsc:encode-resource (ge.rsc:find-resource-handler resource-name) asset out))))))))
+              (write-sequence data out))))))))
 
 
 (defun shout (string)
@@ -104,8 +107,8 @@
     (pack-foreign-libraries)
     (shout "Copying system assets")
     (copy-assets)
-    (shout "Copying engine assets")
-    (serialize-engine-assets)
+    (shout "Serializing registered assets")
+    (serialize-assets)
     (when (compressedp *distribution*)
       (shout "Compressing distribution")
       (compress))

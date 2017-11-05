@@ -4,7 +4,6 @@
 ;;;
 ;;;  Resource handler
 ;;;
-
 (defgeneric encode-resource (handler resource stream)
   (:method (handler resource stream)))
 

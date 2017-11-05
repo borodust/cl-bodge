@@ -23,7 +23,7 @@
   (:default-initargs :chunk-type :animation))
 
 
-(defmethod convert-chunk ((this animation-resource-handler) chunk)
+(defmethod convert-from-chunk ((this animation-resource-handler) chunk)
   (chunk->animation chunk))
 
 

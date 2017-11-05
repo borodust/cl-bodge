@@ -22,6 +22,9 @@
                   (flexi-streams:make-flexi-stream stream :external-format :utf-8)))))
 
 
+(defgeneric write-chunk (chunk stream))
+
+
 (defmethod read-chunk :around (chunk-type parameters stream)
   (flet ((resolve-references (resolvers)
            (dolist (fn resolvers)

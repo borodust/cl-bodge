@@ -81,4 +81,5 @@
            inhibiting-string-conversion
            current-file-truename
            translate-name-to-foreign
-           translate-name-from-foreign))
+           translate-name-from-foreign
+           current-executable-path))

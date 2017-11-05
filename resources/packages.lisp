@@ -1,7 +1,7 @@
 (in-package :cl-bodge.asdf)
 
 
-(defpackage :cl-bodge.resources
+(ge.util:define-package :cl-bodge.resources
   (:nicknames :ge.rsc)
   (:use :cl :cl-bodge.utils :cl-bodge.engine)
   (:export engine-resource-name
@@ -12,8 +12,8 @@
            register-resource
            load-resource
            resource-flow
-           find-resource-handler
            list-registered-resource-names
+           find-resource-handler
 
            path-node
            open-resource-stream

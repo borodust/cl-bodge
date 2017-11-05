@@ -7,8 +7,7 @@
 
 
 (defun load-engine-assets ()
-  (ge.rsc:register-resource-loader (ge.as:make-resource-loader
-                                    (ge.ng:merge-working-pathname *engine-assets-path*))))
+  (ge.as:mount-container "/" (ge.ng:merge-working-pathname *engine-assets-path*)))
 
 
 (pushnew #'load-engine-assets ge.ng:*engine-startup-hooks*)

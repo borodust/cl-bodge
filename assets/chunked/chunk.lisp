@@ -85,15 +85,26 @@
 ;;; Chunked resource
 ;;;
 (defclass chunk-resource-handler ()
-  ((type :initarg :chunk-type :initform (error ":chunk-type missing"))))
+  ((type :initarg :chunk-type :initform (error ":chunk-type missing") :reader chunk-type-of)))
 
 
-(defgeneric convert-chunk (handler chunk)
+(defgeneric convert-from-chunk (handler chunk)
   (:method (handler chunk)
     (declare (ignore handler))
     chunk))
 
 
+(defgeneric convert-to-chunk (handler resource)
+  (:method (handler resource)
+    (declare (ignore handler))
+    resource))
+
+
+(defmethod encode-resource ((this chunk-resource-handler) resource stream)
+  (with-slots (type) this
+    (write-chunk (convert-to-chunk this resource) stream)))
+
+
 (defmethod decode-resource ((this chunk-resource-handler) stream)
   (with-slots (type) this
-    (convert-chunk this (read-deflated stream type nil))))
+    (convert-from-chunk this (read-deflated stream type nil))))

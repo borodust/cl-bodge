@@ -309,3 +309,7 @@
 
 (defun translate-name-from-foreign (name)
   (cffi:translate-name-from-foreign name *package*))
+
+
+(defun current-executable-path ()
+  (merge-pathnames (first (uiop:raw-command-line-arguments)) (uiop:getcwd)))

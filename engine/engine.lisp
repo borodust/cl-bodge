@@ -200,7 +200,8 @@ specified."
     (dispose ex)))
 
 
-(defun startup (properties &optional (working-directory (truename (or (uiop:argv0) (uiop:getcwd)))))
+(defun startup (properties &optional (working-directory (directory-namestring
+                                                         (current-executable-path))))
   "Start engine synchronously loading configuration from `properties` (file, hash-table, plist
 or alist). `(:engine :systems)` property must exist in the config and should contain list
 of existing system class names loaded into current lisp image. Specified systems and their
