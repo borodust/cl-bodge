@@ -14,7 +14,13 @@
   :serial t
   :components ((:file "packages")
                (:file "utils")
-               (:file "arrays")))
+               (:file "language")
+               (:file "collections")
+               (:file "foreign")
+               (:file "strings")
+               (:file "trees")
+               (:file "arrays")
+               (:file "streams")))
 
 
 (defsystem cl-bodge/engine
@@ -330,7 +336,6 @@
                         :serial t
                         :components ((:file "resource")
                                      (:file "chunk")
-                                     (:file "encoded")
                                      (:file "font")
                                      (:file "image")
                                      (:file "mesh")

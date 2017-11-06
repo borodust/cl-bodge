@@ -19,6 +19,7 @@
   (when-let ((record (find-chunk container (namestring path))))
     (let ((stream (open (path-of container) :element-type '(unsigned-byte 8))))
       (file-position stream (chunk-record-position record))
+      (break "~A" record)
       (flex:make-flexi-stream stream
                               :element-type '(unsigned-byte 8)
                               :bound (chunk-record-size record)))))
