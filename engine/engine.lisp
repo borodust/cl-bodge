@@ -6,6 +6,7 @@
 (defvar *system-startup-hooks* (mt:make-guarded-reference (make-hash-table)))
 (defvar *system-shutdown-hooks* (mt:make-guarded-reference (make-hash-table)))
 (defvar *predefined-event-callbacks* nil)
+(defvar *executable-p* nil)
 
 (declaim (special *system*))
 
@@ -71,6 +72,9 @@ file is stored."
   "Merge `pathname` with engine's working directory."
   (merge-pathnames pathname (working-directory)))
 
+
+(defun executablep ()
+  *executable-p*)
 
 ;;
 (defclass system ()
@@ -156,8 +160,13 @@ specified."
        do (cffi:load-foreign-library lib-name)))
 
 
+  (defun mark-executable ()
+    (setf *executable-p* t))
+
+
   #+sbcl
-  (pushnew #'unload-foreign-libraries sb-ext:*save-hooks*))
+  (ge.util:unionf sb-ext:*save-hooks* (list #'unload-foreign-libraries
+                                            #'mark-executable)))
 
 
 (defun enable-systems (engine)

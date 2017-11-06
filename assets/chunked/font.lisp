@@ -37,4 +37,4 @@
                                  :kernings (glyph-metrics-kernings glyph))))
         (string-stream (flex:make-flexi-stream stream :external-format :utf-8))
         (*print-pretty* nil))
-    (prin1 (list header glyphs) string-stream)))
+    (prin1 (cons header glyphs) string-stream)))

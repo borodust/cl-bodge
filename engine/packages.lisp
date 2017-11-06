@@ -222,6 +222,7 @@
            before-system-shutdown
            engine-system
            engine
+           executablep
            property
            startup
            shutdown

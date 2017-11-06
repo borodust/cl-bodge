@@ -24,7 +24,9 @@
            read-stream-content-into-string
            write-stream-content-into-string
            nconcf
+           appendf
            nunionf
+           unionf
            starts-with-subseq
            positive-integer
            copy-array
