@@ -3,7 +3,7 @@
 
 (uiop:define-package :cl-bodge.utils
   (:nicknames :ge.util)
-  (:use :cl :local-time :alexandria :split-sequence :static-vectors)
+  (:use :cl :local-time :alexandria :split-sequence :static-vectors :trivial-gray-streams)
   (:export ; from :alexandria
            with-gensyms
            once-only
@@ -82,4 +82,5 @@
            current-file-truename
            translate-name-to-foreign
            translate-name-from-foreign
-           current-executable-path))
+           current-executable-path
+           make-bounded-input-stream))

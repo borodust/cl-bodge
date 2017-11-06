@@ -54,10 +54,7 @@
       (%read-byte-into 8)
       (%read-byte-into 16)
       (%read-byte-into 24))
-    (let ((bounded-stream (flex:make-flexi-stream stream
-                                                  :element-type '(unsigned-byte 8)
-                                                  :position 0
-                                                  :bound body-size)))
+    (let ((bounded-stream (ge.util:make-bounded-input-stream stream body-size)))
       (make-instance 'bounded-frame
                      :size body-size
                      :body bounded-stream))))

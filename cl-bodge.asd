@@ -9,7 +9,7 @@
   :mailto "dev@borodust.org"
   :license "MIT"
   :depends-on (alexandria uiop log4cl local-time dissect split-sequence cffi bodge-autowrap
-                          bodge-plus-c static-vectors)
+                          bodge-plus-c static-vectors trivial-gray-streams)
   :pathname "utils/"
   :serial t
   :components ((:file "packages")
