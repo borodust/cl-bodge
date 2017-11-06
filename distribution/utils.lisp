@@ -98,22 +98,3 @@
                                              (list (format nil "cd \"~A\" && " parent-path) " "
                                                    *zip* " -r " (format nil "~A.zip" name) " "
                                                    last-path-el))))))
-
-
-(defun process-template (source destination &rest context &key &allow-other-keys)
-  (let* ((template (alexandria:read-file-into-string source))
-         (result (mustache:render* template (alexandria:plist-alist context))))
-    (alexandria:write-string-into-file result destination :if-exists :supersede))
-  (values))
-
-
-(defun %copy-runner (runner-template target-runner-name)
-  (let ((target-file (file (directory-of *distribution*) target-runner-name)))
-    (process-template (file (distribution-system-path) runner-template)
-                      target-file
-                      :executable-name (executable-name-of *distribution*)
-                      :configuration-filename (if-let ((config-file (configuration-file-of
-                                                                     *distribution*)))
-                                                (file-namestring config-file)
-                                                ""))
-    target-file))

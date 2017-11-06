@@ -1,10 +1,6 @@
 (in-package :cl-bodge.distribution)
 
 
-(defun copy-runner ()
-  (add-execution-permission (%copy-runner "darwin/runner.template" "run.sh")))
-
-
 (defun make-bundle-runner (bundle-name run-file target-dir)
   (ensure-directories-exist target-dir)
   (let ((runner-template (read-file-into-string (file (distribution-system-path)

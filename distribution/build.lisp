@@ -102,7 +102,6 @@
     (prepare)
     (shout "Building executable")
     (build-executable)
-    (copy-runner)
     (shout "Packing foreign libraries")
     (pack-foreign-libraries)
     (shout "Copying system assets")
