@@ -28,7 +28,7 @@
                        "--load-system" "bodge-blobs"
 		       "--load" (file (distribution-system-path) "prologue.lisp")
 		       "--load-system" (format nil "~(~a~)" (target-system-of *distribution*))
-		       "--eval" (format nil "(defvar *assets-path* \"~A\")"
+		       "--eval" (format nil "(defvar cl-bodge.distribution.build::*assets-path* \"~A\")"
 					asset-file)
 		       "--load" (file (distribution-system-path) "epilogue.lisp")
 		       #-windows ;; SBCL on windows does not support compression
@@ -60,12 +60,12 @@
 
 
 (defun serialize-assets ()
-  (let* ((engine-asset-dir (path (directory-of *distribution*)
+  (let* ((asset-dir (path (directory-of *distribution*)
                              (assets-directory-of *distribution*)))
-         (engine-asset-file (file engine-asset-dir +resource-filename+)))
-    (ensure-directories-exist engine-asset-dir)
-    (unless (fad:file-exists-p engine-asset-file)
-      (with-open-file (out engine-asset-file
+         (asset-file (file asset-dir +resource-filename+)))
+    (ensure-directories-exist asset-dir)
+    (unless (fad:file-exists-p asset-file)
+      (with-open-file (out asset-file
                            :direction :output
                            :element-type '(unsigned-byte 8))
         (let ((flexi (flexi-streams:make-flexi-stream out :external-format :utf-8)))

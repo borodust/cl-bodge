@@ -3,7 +3,8 @@
 ;;;
 ;;; SBCL-only code allowed w/o feature testing
 ;;;
-(declaim (special *assets-path*))
+
+(in-package :cl-bodge.distribution.build)
 
 
 (defun load-engine-assets ()
