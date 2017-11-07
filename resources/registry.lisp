@@ -17,6 +17,10 @@
                            (make-filesystem-resource-provider filesystem-path)))
 
 
+(defun unmount-all ()
+  (remount-root-node *resource-storage*))
+
+
 (defun engine-resource-name (name-control-string &rest args)
   (with-output-to-string (name-stream)
     (format name-stream  "/_engine/")

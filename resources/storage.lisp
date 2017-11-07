@@ -123,3 +123,9 @@
       (when (fad:pathname-equal path "/")
         (error "Mounting resource root forbidden"))
       (mount-resource-node root-node (decompose-path path) node))))
+
+
+(defun remount-root-node (storage)
+  (with-instance-lock-held (storage)
+    (with-slots (root-node) storage
+      (setf root-node (make-instance 'path-node :name "/")))))

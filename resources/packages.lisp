@@ -19,6 +19,7 @@
            open-resource-stream
            mount-resource-provider
            mount-filesystem
+           unmount-all
 
            defresource
            make-resource-handler
