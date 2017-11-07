@@ -108,7 +108,7 @@
 ;;;
 ;;; Resource storage
 ;;;
-(defclass resource-storage ()
+(defclass resource-storage (lockable)
   ((root-node :initform (make-instance 'path-node :name "/"))))
 
 
@@ -118,7 +118,8 @@
 
 
 (defun mount-storage-resource-node (storage path node)
-  (with-slots (root-node) storage
-    (when (fad:pathname-equal path "/")
-      (error "Mounting resource root forbidden"))
-    (mount-resource-node root-node (decompose-path path) node)))
+  (with-instance-lock-held (storage)
+    (with-slots (root-node) storage
+      (when (fad:pathname-equal path "/")
+        (error "Mounting resource root forbidden"))
+      (mount-resource-node root-node (decompose-path path) node))))

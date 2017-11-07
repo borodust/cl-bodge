@@ -53,11 +53,8 @@
 
 (defun resource-flow (&rest resource-names)
   (>> (~> (loop for name in resource-names
-             collecting (multiple-value-bind (rsc flow-p)
-                            (load-resource name)
-                          (if flow-p
-                              rsc
-                              (value-flow rsc)))))))
+             collecting (instantly () (load-resource name))))
+      (instantly (result) (first result))))
 
 
 (defun list-registered-resource-names ()
