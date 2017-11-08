@@ -5,4 +5,5 @@
   (:nicknames :ge.dist)
   (:use :cl :alexandria :asdf)
   (:export descriptor
+           configure-system
            make-distribution))

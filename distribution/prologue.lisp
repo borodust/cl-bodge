@@ -6,12 +6,11 @@
   (:use :cl))
 (cl:in-package :cl-bodge.distribution.build)
 
-(declaim (special *assets-path*))
+(declaim (special cl-user::*bodge-asset-container-path*))
 
 (pushnew :bodge-production-mode *features*)
 
 (setf sb-ext:*muffled-warnings* 'style-warning)
 
-(import 'bodge-asset-path :cl-user)
 (defun bodge-asset-path ()
-  *assets-path*)
+  cl-user::*bodge-asset-container-path*)

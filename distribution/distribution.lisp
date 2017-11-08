@@ -12,7 +12,11 @@
    (dist-directory :initform nil :reader directory-of)
    (library-directory :initform nil :reader library-directory-of)
    (assets-directory :initform nil :reader assets-directory-of)
+   (prologue :initform nil :initarg :prologue :reader prologue-of)
+   (epilogue :initform nil :initarg :epilogue :reader epilogue-of)
    (assets :initform nil :reader assets-of)
+   (asset-containers :initform nil :initarg :asset-containers :reader asset-containers-of)
+   (bindings :initform nil :initarg :bindings :reader bindings-of)
    (bundle-name :initarg :bundle-name :reader bundle-name-of)
    (bundle-run-file :initarg :bundle-run-file :reader bundle-run-file-of)
    (bundle-compressed-p :initarg :bundle-compressed-p :reader bundle-compressed-p)))
@@ -30,15 +34,25 @@
     (loop for asset in assets collecting (translated asset))))
 
 
+(defun expand-container-paths (dst containers)
+  (flet ((translated (container)
+           (destructuring-bind (resource-path container-path) container
+             (cons resource-path (fad:merge-pathnames-as-file dst container-path)))))
+    (loop for container in containers collecting (translated container))))
+
+
 (defmethod initialize-instance :after ((this distribution) &key build-directory
                                                              library-directory
                                                              assets
                                                              configuration-file
                                                              assets-directory
                                                              base-directory)
-  (with-slots ((this-build-dir build-directory) (this-lib-dir library-directory)
-               (this-assets assets) (this-assets-dir assets-directory)
-               target-system name dist-directory (this-configuration-file configuration-file))
+  (with-slots ((this-build-dir build-directory)
+               (this-lib-dir library-directory)
+               (this-assets assets)
+               (this-assets-dir assets-directory)
+               (this-configuration-file configuration-file)
+               target-system name dist-directory)
       this
     (let* ((sys (find-system target-system))
            (base-path (fad:merge-pathnames-as-directory (component-pathname sys)
@@ -66,6 +80,10 @@
      entry-function)))
 
 
+(defun expand-bindings (list)
+  `(list ,@(loop for (symbol value) in list
+              collect `(cons ',symbol ,value))))
+
 (defmacro descriptor (name &body body
                         &key target-system
                           (entry-function
@@ -76,8 +94,12 @@
                           (build-directory #p"build/")
                           (library-directory #p"lib/")
                           configuration-file
+                          prologue
+                          epilogue
+                          bind
                           (assets-directory #p"assets/")
                           assets
+                          asset-containers
                           bundle)
   (declare (ignore body))
   (destructuring-bind (&key ((:name bundle-name) (format nil "~(~a~)" name))
@@ -100,7 +122,11 @@
                        :library-directory ,library-directory
                        :assets-directory ,assets-directory
                        :configuration-file ,configuration-file
+                       :epilogue ,epilogue
+                       :prologue ,prologue
+                       :bindings ,(expand-bindings bind)
                        :assets ',assets
+                       :asset-containers ',asset-containers
                        :bundle-name ,bundle-name
                        :bundle-compressed-p ,bundle-compressed-p
                        :bundle-run-file ,bundle-run-file)))))

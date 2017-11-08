@@ -374,8 +374,7 @@
                         :if-feature (:or :windows :win32)
                         :components ((:file "build")))
                (:file "build-unknown" :if-feature (:not (:or :darwin :unix :win32 :windows)))
-               (:file "build")
-               (:static-file "build.sh")))
+               (:file "build")))
 
 
 (defsystem cl-bodge/tests
