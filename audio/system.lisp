@@ -16,13 +16,50 @@
 (definline audio ()
   (engine-system 'audio-system))
 
+(defun device-enumerable-p (device)
+  (alc:extension-present-p device "ALC_ENUMERATE_ALL_EXT"))
+
+
+(defun device-name (device)
+  (alc:get-string device
+                  (if (device-enumerable-p device)
+                      :all-devices-specifier
+                      :device-specifier)))
+
+
+(defun print-openal-info ()
+  (log:debug "~%OpenAL version: ~A~%OpenAL vendor: ~A~%OpenAL renderer: ~A"
+             (al:get-string :version)
+             (al:get-string :vendor)
+             (al:get-string :renderer)))
+
+
+(defun print-available-devices-info ()
+  (log:debug "Available playback devices:~%~A" (device-name (cffi:null-pointer)))
+  (log:debug "Available capture devices:~%~A"
+             (alc:get-string (cffi:null-pointer) :capture-device-specifier)))
+
+
+(defun print-device-info (device)
+  (log:debug "Selected device: ~A~%ALC version: ~A.~A"
+             (device-name device)
+             (first (alc:get-integer device :major-version))
+             (first (alc:get-integer device :minor-version))))
+
 
 (defmethod make-system-context ((this audio-system))
   (with-float-traps-masked
-    (let* ((dev (alc:open-device))
-           (ctx (alc:create-context dev)))
-      (alc:make-context-current ctx)
-      (make-audio-context ctx dev))))
+    (print-available-devices-info)
+    (if-let ((dev (alc:open-device)))
+      (progn
+        (print-openal-info)
+        (print-device-info dev)
+        (let ((ctx (alc:create-context dev)))
+          (print-device-info dev)
+          (alc:make-context-current ctx)
+          (log:debug "Audio context assigned")
+          (make-audio-context ctx dev)))
+      (error "Couldn't open sound device"))))
 
 
 (defmethod destroy-system-context (ctx (this audio-system))
