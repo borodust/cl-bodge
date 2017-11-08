@@ -52,11 +52,10 @@
     (print-available-devices-info)
     (if-let ((dev (alc:open-device)))
       (progn
-        (print-openal-info)
         (print-device-info dev)
         (let ((ctx (alc:create-context dev)))
-          (print-device-info dev)
           (alc:make-context-current ctx)
+          (print-openal-info)
           (log:debug "Audio context assigned")
           (make-audio-context ctx dev)))
       (error "Couldn't open sound device"))))
