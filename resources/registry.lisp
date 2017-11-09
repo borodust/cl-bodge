@@ -50,9 +50,10 @@
 (defun load-resource (name)
   (with-slots (resource-table) *resource-registry*
     (log:trace "Resource requested: '~A'" name)
-    (when-let ((handler (gethash (namestring name) resource-table)))
+    (if-let ((handler (gethash (namestring name) resource-table)))
       (with-resource-stream (stream name *resource-storage*)
-        (decode-resource handler stream)))))
+        (decode-resource handler stream))
+      (error "Handler for '~A' is not registered" name))))
 
 
 (defun resource-flow (&rest resource-names)

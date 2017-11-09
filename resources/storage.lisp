@@ -19,11 +19,12 @@
 (defgeneric open-resource-stream (storage path))
 
 (defmacro with-resource-stream ((stream path storage) &body body)
-  (once-only (storage)
-    `(let ((,stream (open-resource-stream ,storage ,path)))
+  (once-only (path storage)
+    `(if-let ((,stream (open-resource-stream ,storage ,path)))
        (unwind-protect
             (progn ,@body)
-         (close ,stream)))))
+         (close ,stream))
+       (error "Couldn't open a stream for '~A'" ,path))))
 
 
 (defclass path-node ()
