@@ -50,7 +50,7 @@
        (fad:delete-directory-and-files ,dir))))
 
 
-(defun path (&rest names)
+(defun dir (&rest names)
   (apply #'fad:merge-pathnames-as-directory (mapcar #'fad:pathname-as-directory names)))
 
 

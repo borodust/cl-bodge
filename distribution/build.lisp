@@ -17,21 +17,17 @@
 
 
 (defun build-executable ()
-  (labels ((%system-relative-pathname (path)
-             (asdf:system-relative-pathname (target-system-of *distribution*) path))
-           (%make-defvar (symbol value)
+  (labels ((%make-defvar (symbol value)
              (with-output-to-string (stream)
                (let ((*package* (find-package :cl)))
                  (prin1 `(defvar ,(format-symbol :cl-user symbol) ,value) stream))))
            (%defvar-asset-path (val)
              (%make-defvar '*bodge-asset-container-path* val)))
-    (let ((output-file (fad:merge-pathnames-as-file (directory-of *distribution*)
-                                                    (format nil "~(~a~).bin"
-                                                            (name-of *distribution*)))))
+    (let ((output-file (file (directory-of *distribution*) (format nil "~(~a~).bin"
+                                                                   (name-of *distribution*)))))
       (unless (fad:file-exists-p output-file)
         (let ((manifest-file (generate-manifest))
-              (asset-file (fad:merge-pathnames-as-file (assets-directory-of *distribution*)
-                                                       +resource-filename+)))
+              (asset-file (file (asset-directory-of *distribution*) +resource-filename+)))
           (apply #'run-program *buildapp*
                  (append (list "--output" output-file
                                "--entry" (entry-function-of *distribution*)
@@ -42,11 +38,11 @@
                          (list "--load" (file (distribution-system-path) "prologue.lisp")
                                "--eval" (%defvar-asset-path asset-file))
                          (when-let ((distribution-prologue (prologue-of *distribution*)))
-                           (list "--load" (%system-relative-pathname distribution-prologue)))
+                           (list "--load" distribution-prologue))
                          (list "--load-system" (format nil "~(~a~)" (target-system-of *distribution*))
                                "--load" (file (distribution-system-path) "epilogue.lisp"))
                          (when-let ((distribution-epilogue (epilogue-of *distribution*)))
-                           (list "--load" (%system-relative-pathname distribution-epilogue)))
+                           (list "--load" distribution-epilogue))
                          (list #-windows ;; SBCL on windows does not support compression
                                "--compress-core"))))))))
 
@@ -56,7 +52,7 @@
 
 
 (defun copy-assets ()
-  (loop for (src dst) in (assets-of *distribution*)
+  (loop for (src dst) in (resources-of *distribution*)
      unless (fad:file-exists-p dst)
      do (copy-path src dst)))
 
@@ -98,8 +94,7 @@
 
 
 (defun serialize-assets ()
-  (let* ((asset-dir (path (directory-of *distribution*)
-                      (assets-directory-of *distribution*))))
+  (let* ((asset-dir (asset-directory-of *distribution*)))
     (ensure-directories-exist asset-dir)
     (loop for (resource-root container-path) in (cons (list "/_engine/" +resource-filename+)
                                                       (asset-containers-of *distribution*))
@@ -111,8 +106,9 @@
   (finish-output))
 
 
-(defun make-distribution (name)
-  (let* ((*distribution* (distribution-by-name name)))
+(defun make-distribution (name &key build-directory)
+  (let* ((*distribution* (distribution-by-name name))
+         (*build-directory* build-directory))
     (let ((*load-verbose* nil)
           (*compile-verbose* nil)
           (*load-print* nil)

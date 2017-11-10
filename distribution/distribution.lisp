@@ -1,37 +1,27 @@
 (in-package :cl-bodge.distribution)
 
+(defvar *build-directory* nil)
+
 
 (defclass distribution ()
   ((name :initarg :name :reader name-of)
+   (base-directory :initarg :base-directory :reader base-directory-of)
    (target-system :initarg :target-system :reader target-system-of)
    (entry-function :initarg :entry-function :reader entry-function-of)
    (executable-name :initarg :executable-name :reader executable-name-of)
-   (configuration-file :initarg :configuration-file :reader configuration-file-of)
+   (configuration-file :initarg :configuration-file)
    (compressed-p :initarg :compressed-p :reader compressedp)
-   (build-directory :initform nil :reader build-directory-of)
-   (dist-directory :initform nil :reader directory-of)
-   (library-directory :initform nil :reader library-directory-of)
-   (assets-directory :initform nil :reader assets-directory-of)
-   (prologue :initform nil :initarg :prologue :reader prologue-of)
-   (epilogue :initform nil :initarg :epilogue :reader epilogue-of)
-   (assets :initform nil :reader assets-of)
+   (build-directory :initarg :build-directory)
+   (library-directory :initarg :library-directory)
+   (asset-directory :initarg :asset-directory)
+   (prologue :initform nil :initarg :prologue)
+   (epilogue :initform nil :initarg :epilogue)
+   (resources :initform nil :initarg :resources)
    (asset-containers :initform nil :initarg :asset-containers :reader asset-containers-of)
    (bindings :initform nil :initarg :bindings :reader bindings-of)
    (bundle-name :initarg :bundle-name :reader bundle-name-of)
    (bundle-run-file :initarg :bundle-run-file :reader bundle-run-file-of)
    (bundle-compressed-p :initarg :bundle-compressed-p :reader bundle-compressed-p)))
-
-
-(defun expand-assets-path (src dst assets)
-  (flet ((translated (asset)
-           (destructuring-bind (asset-src asset-dst) (if (listp asset) asset (list asset asset))
-             (let ((asset-src-absolute (fad:merge-pathnames-as-file src (file asset-src))))
-               (if-let ((path (fad:file-exists-p asset-src-absolute)))
-                 (if (fad:directory-pathname-p path)
-                     (list path (fad:merge-pathnames-as-directory dst (path asset-dst)))
-                     (list path (fad:merge-pathnames-as-file dst (file asset-dst))))
-                 (error "File or directory '~a' not found" asset-src-absolute))))))
-    (loop for asset in assets collecting (translated asset))))
 
 
 (defun expand-container-paths (dst containers)
@@ -41,35 +31,75 @@
     (loop for container in containers collecting (translated container))))
 
 
-(defmethod initialize-instance :after ((this distribution) &key build-directory
-                                                             library-directory
-                                                             assets
-                                                             configuration-file
-                                                             assets-directory
-                                                             base-directory)
-  (with-slots ((this-build-dir build-directory)
-               (this-lib-dir library-directory)
-               (this-assets assets)
-               (this-assets-dir assets-directory)
-               (this-configuration-file configuration-file)
-               target-system name dist-directory)
+(defgeneric build-directory-of (distribution)
+  (:method ((this distribution))
+    (with-slots (build-directory) this
+      (dir (base-directory-of this) (or *build-directory* build-directory)))))
+
+
+(defgeneric directory-of (distribution)
+  (:method ((this distribution))
+    (let ((dist-name (format nil "~(~a~)" (name-of this))))
+      (dir (build-directory-of this) dist-name))))
+
+
+(defgeneric library-directory-of (distribution)
+  (:method ((this distribution))
+    (with-slots (library-directory) this
+      (dir (directory-of this) library-directory))))
+
+
+(defgeneric configuration-file-of (distribution)
+  (:method ((this distribution))
+    (with-slots (configuration-file) this
+      (when configuration-file
+        (file (base-directory-of this) configuration-file)))))
+
+
+(defgeneric asset-directory-of (distribution)
+  (:method ((this distribution))
+    (with-slots (asset-directory) this
+      (dir (directory-of this) asset-directory))))
+
+
+(defgeneric prologue-of (distribution)
+  (:method ((this distribution))
+    (with-slots (prologue) this
+      (when prologue
+        (file (base-directory-of this) prologue)))))
+
+
+(defgeneric epilogue-of (distribution)
+  (:method ((this distribution))
+    (with-slots (epilogue) this
+      (when epilogue
+        (file (base-directory-of this) epilogue)))))
+
+
+(defun expand-resource-paths (src dst assets)
+  (flet ((translated (asset)
+           (destructuring-bind (asset-src asset-dst) (if (listp asset) asset (list asset asset))
+             (let ((asset-src-absolute (file src asset-src)))
+               (if-let ((path (fad:file-exists-p asset-src-absolute)))
+                 (if (fad:directory-pathname-p path)
+                     (list path (dir dst asset-dst))
+                     (list path (file dst  asset-dst)))
+                 (error "File or directory '~a' not found" asset-src-absolute))))))
+    (loop for asset in assets collecting (translated asset))))
+
+
+(defgeneric resources-of (distribution)
+  (:method ((this distribution))
+    (with-slots (resources) this
+      (expand-resource-paths (base-directory-of this) (directory-of this) resources))))
+
+
+(defmethod initialize-instance :after ((this distribution) &key base-directory)
+  (with-slots ((this-base-dir base-directory)
+               target-system name)
       this
-    (let* ((sys (find-system target-system))
-           (base-path (fad:merge-pathnames-as-directory (component-pathname sys)
-                                                        base-directory))
-           (dist-name (format nil "~(~a~)" name)))
-      (setf this-build-dir (if (fad:pathname-relative-p build-directory)
-                               (fad:merge-pathnames-as-directory base-path
-                                                                 (path build-directory))
-                               (path build-directory))
-            dist-directory (fad:merge-pathnames-as-directory this-build-dir
-                                                             (path dist-name))
-            this-lib-dir (fad:merge-pathnames-as-directory
-                          dist-directory
-                          (path library-directory))
-            this-configuration-file (when configuration-file (file base-path configuration-file))
-            this-assets-dir (path assets-directory)
-            this-assets (expand-assets-path base-path dist-directory assets)))))
+    (let* ((sys (find-system target-system)))
+      (setf this-base-dir (dir (component-pathname sys) base-directory)))))
 
 
 (defun parse-entry-function (entry-function)
@@ -97,8 +127,8 @@
                           prologue
                           epilogue
                           bind
-                          (assets-directory #p"assets/")
-                          assets
+                          (asset-directory #p"assets/")
+                          resources
                           asset-containers
                           bundle)
   (declare (ignore body))
@@ -120,12 +150,12 @@
                        :compressed-p ,compressed-p
                        :build-directory ,build-directory
                        :library-directory ,library-directory
-                       :assets-directory ,assets-directory
+                       :asset-directory ,asset-directory
                        :configuration-file ,configuration-file
                        :epilogue ,epilogue
                        :prologue ,prologue
                        :bindings ,(expand-bindings bind)
-                       :assets ',assets
+                       :resources ',resources
                        :asset-containers ',asset-containers
                        :bundle-name ,bundle-name
                        :bundle-compressed-p ,bundle-compressed-p
