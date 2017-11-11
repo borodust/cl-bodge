@@ -16,6 +16,12 @@
     manifest-file))
 
 
+(defun find-sbcl ()
+  (or (when-let ((sbcl-home (uiop:getenv "SBCL_HOME")))
+        (probe-file (file (dir sbcl-home) #p"../../bin/sbcl")))
+      *sbcl*))
+
+
 (defun build-executable ()
   (labels ((%make-defvar (symbol value)
              (with-output-to-string (stream)
@@ -27,7 +33,7 @@
       (unless (fad:file-exists-p output-file)
         (let ((manifest-file (generate-manifest))
               (asset-file (file (asset-directory-of *distribution*) +resource-filename+)))
-          (apply #'run-program *sbcl*
+          (apply #'run-program (find-sbcl)
                  (append (list "--script" (file (distribution-system-path) "builder.lisp")
                                "--output" output-file
                                "--entry" (entry-function-of *distribution*)

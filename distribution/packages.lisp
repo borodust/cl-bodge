@@ -6,4 +6,6 @@
   (:use :cl :alexandria :asdf)
   (:export descriptor
            configure-system
+           *sbcl*
+           *zip*
            make-distribution))

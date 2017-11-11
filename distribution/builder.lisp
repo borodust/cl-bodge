@@ -8,7 +8,7 @@
 
 
 (defun shout (control &rest args)
-  (format t "~%~A" (apply #'format nil control args))
+  (format t "~A~%" (apply #'format nil control args))
   (finish-output))
 
 
@@ -67,10 +67,10 @@
     (setf uiop:*image-entry-point* (uiop:ensure-function entry-function))
     (shout "Using entry function '~A'" entry-function)
     (ensure-directories-exist output-file)
-    (shout "Dumping executable to '~A'~%" output-file)
-    (uiop:dump-image (merge-pathnames output-file working-dir)
-                     :executable t
-                     #+sbcl :compression #+sbcl 9
-                     #+(and sbcl windows) :application-type  #+(and sbcl windows) :gui)))
+    (shout "Dumping executable to '~A'" output-file)
+    (apply #'uiop:dump-image (merge-pathnames output-file working-dir)
+           :executable t
+           (append #+(and sbcl sb-core-compression) (list :compression 9)
+                   #+(and sbcl windows) (list :application-type :gui)))))
 
 (build-executable)
