@@ -146,7 +146,7 @@
                        :base-directory ,base-directory
                        :target-system ,(or target-system name)
                        :entry-function ,(parse-entry-function entry-function)
-                       :executable-name ,(or executable-name `(format nil "~(~a~).bin" ,name))
+                       :executable-name ,(or executable-name `(format nil "~(~a~)" ,name))
                        :compressed-p ,compressed-p
                        :build-directory ,build-directory
                        :library-directory ,library-directory

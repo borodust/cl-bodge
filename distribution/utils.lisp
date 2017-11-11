@@ -3,7 +3,7 @@
 
 (declaim (special *distribution*))
 
-(defvar *buildapp* "buildapp")
+(defvar *sbcl* "sbcl")
 (defvar *zip* "zip")
 
 (defun distribution-system-path ()

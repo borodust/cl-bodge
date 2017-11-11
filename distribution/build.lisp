@@ -23,13 +23,13 @@
                  (prin1 `(defvar ,(format-symbol :cl-user symbol) ,value) stream))))
            (%defvar-asset-path (val)
              (%make-defvar '*bodge-asset-container-path* val)))
-    (let ((output-file (file (directory-of *distribution*) (format nil "~(~a~).bin"
-                                                                   (name-of *distribution*)))))
+    (let ((output-file (file (directory-of *distribution*) (executable-name-of *distribution*))))
       (unless (fad:file-exists-p output-file)
         (let ((manifest-file (generate-manifest))
               (asset-file (file (asset-directory-of *distribution*) +resource-filename+)))
-          (apply #'run-program *buildapp*
-                 (append (list "--output" output-file
+          (apply #'run-program *sbcl*
+                 (append (list "--script" (file (distribution-system-path) "builder.lisp")
+                               "--output" output-file
                                "--entry" (entry-function-of *distribution*)
                                "--manifest-file" manifest-file
                                "--load-system" "bodge-blobs")
@@ -42,9 +42,7 @@
                          (list "--load-system" (format nil "~(~a~)" (target-system-of *distribution*))
                                "--load" (file (distribution-system-path) "epilogue.lisp"))
                          (when-let ((distribution-epilogue (epilogue-of *distribution*)))
-                           (list "--load" distribution-epilogue))
-                         (list #-windows ;; SBCL on windows does not support compression
-                               "--compress-core"))))))))
+                           (list "--load" distribution-epilogue)))))))))
 
 
 (defun prepare ()
