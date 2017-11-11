@@ -38,6 +38,8 @@
 
            in-new-thread
            in-new-thread-waiting
+           with-body-in-main-thread
+           stop-main-runner
 
            ->
            >>

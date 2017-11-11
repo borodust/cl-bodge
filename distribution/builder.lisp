@@ -16,7 +16,8 @@
   (let ((manifest (uiop:split-string (uiop:read-file-string pathname) :separator '(#\Newline)))
         (system-table (make-hash-table :test #'equal)))
     (dolist (path manifest)
-      (setf (gethash (pathname-name path) system-table) (probe-file path)))
+      (unless (gethash (pathname-name path) system-table)
+        (setf (gethash (pathname-name path) system-table) (probe-file path))))
     (flet ((%find-system (name)
              (gethash name system-table)))
       (pushnew #'%find-system asdf:*system-definition-search-functions*))))
@@ -71,6 +72,6 @@
     (apply #'uiop:dump-image (merge-pathnames output-file working-dir)
            :executable t
            (append #+(and sbcl sb-core-compression) (list :compression 9)
-                   #+(and sbcl windows) (list :application-type :gui)))))
+                   #+(and sbcl win32) (list :application-type :gui)))))
 
 (build-executable)

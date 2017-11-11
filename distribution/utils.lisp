@@ -3,8 +3,8 @@
 
 (declaim (special *distribution*))
 
-(defvar *sbcl* "sbcl")
-(defvar *zip* "zip")
+(defvar *sbcl* #+windows "sbcl.exe" #-windows "sbcl")
+(defvar *zip* #+windows "zip.exe" #-windows "zip")
 
 (defun distribution-system-path ()
   (asdf:component-pathname (find-system :cl-bodge/distribution)))

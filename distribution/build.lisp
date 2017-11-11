@@ -18,7 +18,7 @@
 
 (defun find-sbcl ()
   (or (when-let ((sbcl-home (uiop:getenv "SBCL_HOME")))
-        (probe-file (file (dir sbcl-home) #p"../../bin/sbcl")))
+        (probe-file (file (dir sbcl-home) #p"../../bin/" *sbcl*)))
       *sbcl*))
 
 
@@ -29,7 +29,9 @@
                  (prin1 `(defvar ,(format-symbol :cl-user symbol) ,value) stream))))
            (%defvar-asset-path (val)
              (%make-defvar '*bodge-asset-container-path* val)))
-    (let ((output-file (file (directory-of *distribution*) (executable-name-of *distribution*))))
+    (let ((output-file (file (directory-of *distribution*) (format nil "~A~A" (executable-name-of *distribution*)
+                                                                   #+windows ".exe"
+                                                                   #-windows ""))))
       (unless (fad:file-exists-p output-file)
         (let ((manifest-file (generate-manifest))
               (asset-file (enough-namestring

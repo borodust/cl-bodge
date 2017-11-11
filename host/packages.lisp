@@ -3,7 +3,7 @@
 
 (ge.util:define-package :cl-bodge.host
   (:nicknames :ge.host)
-  (:use :cl-bodge.engine :cl-bodge.utils :cl :bordeaux-threads :cl-muth :trivial-main-thread)
+  (:use :cl-bodge.engine :cl-bodge.utils :cl :bordeaux-threads :cl-muth)
   (:export host-system
            host
 

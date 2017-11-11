@@ -31,7 +31,8 @@
   :license "MIT"
   :defsystem-depends-on (bodge-blobs)
   :depends-on (cl-bodge/utils cl-muth rtg-math log4cl bordeaux-threads local-time
-                              bodge-blobs-support trivial-garbage uiop cffi cl-flow uiop)
+                              bodge-blobs-support trivial-garbage uiop cffi cl-flow uiop
+                              trivial-main-thread)
   :pathname "engine/"
   :serial t
   :components ((:file "packages")
@@ -51,7 +52,8 @@
                         :components ((:file "dispatch")
                                      (:file "execution")
                                      (:file "task-queue")
-                                     (:file "instance-lock")))
+                                     (:file "instance-lock")
+                                     (:file "main-thread")))
                (:module resources
                         :components ((:file "audio")
                                      (:file "graphics")))
@@ -75,7 +77,7 @@
   :mailto "dev@borodust.org"
   :license "MIT"
   :depends-on (cl-bodge/engine cl-bodge/utils cl-glfw3 log4cl bordeaux-threads
-                               cl-muth trivial-main-thread)
+                               cl-muth)
   :pathname "host/"
   :serial t
   :components ((:file "packages")
