@@ -74,7 +74,7 @@ file is stored."
 
 
 (defun executablep ()
-  *executable-p*)
+  (or *executable-p* uiop:*image-dumped-p*))
 
 ;;
 (defclass system ()
