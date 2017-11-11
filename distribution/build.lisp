@@ -32,7 +32,9 @@
     (let ((output-file (file (directory-of *distribution*) (executable-name-of *distribution*))))
       (unless (fad:file-exists-p output-file)
         (let ((manifest-file (generate-manifest))
-              (asset-file (file (asset-directory-of *distribution*) +resource-filename+)))
+              (asset-file (enough-namestring
+                           (file (asset-directory-of *distribution*) +resource-filename+)
+                           (directory-of *distribution*))))
           (apply #'run-program (find-sbcl)
                  (append (list "--script" (file (distribution-system-path) "builder.lisp")
                                "--output" output-file
