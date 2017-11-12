@@ -29,9 +29,9 @@
                  (prin1 `(defvar ,(format-symbol :cl-user symbol) ,value) stream))))
            (%defvar-asset-path (val)
              (%make-defvar '*bodge-asset-container-path* val)))
-    (let ((output-file (file (directory-of *distribution*) (format nil "~A~A" (executable-name-of *distribution*)
-                                                                   #+windows ".exe"
-                                                                   #-windows ""))))
+    (let ((output-file (file (directory-of *distribution*)
+                             (wrap-executable-name
+                              (executable-name-of *distribution*)))))
       (unless (fad:file-exists-p output-file)
         (let ((manifest-file (generate-manifest))
               (asset-file (enough-namestring

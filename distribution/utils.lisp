@@ -3,8 +3,12 @@
 
 (declaim (special *distribution*))
 
-(defvar *sbcl* #+windows "sbcl.exe" #-windows "sbcl")
-(defvar *zip* #+windows "zip.exe" #-windows "zip")
+(defun wrap-executable-name (name)
+  (format nil "~A~A" name #+windows ".exe" #-windows ""))
+
+(defvar *sbcl* (wrap-executable-name "sbcl"))
+(defvar *zip* (wrap-executable-name "zip"))
+
 
 (defun distribution-system-path ()
   (asdf:component-pathname (find-system :cl-bodge/distribution)))
@@ -94,7 +98,7 @@
   (let* ((parent-path (truename (fad:pathname-parent-directory path)))
          (last-path-el (enough-namestring (truename path) parent-path))
          (name (or name (file last-path-el))))
-    (inferior-shell:run/nil (list "sh" "-c" (inferior-shell:token-string
+    (inferior-shell:run/nil (list (wrap-executable-name "sh") "-c" (inferior-shell:token-string
                                              (list (format nil "cd \"~A\" && " parent-path) " "
                                                    *zip* " -r " (format nil "~A.zip" name) " "
                                                    last-path-el))))))
