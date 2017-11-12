@@ -95,8 +95,8 @@
 
 
 (defun compress-directory (path &optional name)
-  (let* ((parent-path (truename (fad:pathname-parent-directory path)))
-         (last-path-el (enough-namestring (truename path) parent-path))
+  (let* ((parent-path (fad:canonical-pathname (fad:pathname-parent-directory path)))
+         (last-path-el (enough-namestring (fad:canonical-pathname path) parent-path))
          (name (or name (file last-path-el))))
     (inferior-shell:run/nil (list (wrap-executable-name "sh") "-c" (inferior-shell:token-string
                                              (list (format nil "cd \"~A\" && " parent-path) " "
