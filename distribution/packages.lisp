@@ -8,4 +8,5 @@
            configure-system
            *sbcl*
            *zip*
+           register-distribution
            make-distribution))

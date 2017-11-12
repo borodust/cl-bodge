@@ -114,49 +114,90 @@
   `(list ,@(loop for (symbol value) in list
               collect `(cons ',symbol ,value))))
 
+
+(defun register-distribution (name entry-function
+                              &key target-system
+                                base-directory
+                                executable-name
+                                (compressed-p t)
+                                build-directory
+                                library-directory
+                                configuration-file
+                                prologue
+                                epilogue
+                                bindings
+                                asset-directory
+                                resources
+                                asset-containers
+                                bundle-name
+                                bundle-compressed-p
+                                bundle-run-file)
+  (unless (and name entry-function)
+    (error "name and entry-function must be specified"))
+  (when (and bundle-name (null bundle-run-file))
+    (error "bundle-run-file must be specified for the bundle if name is provided"))
+  (let* ((base-directory (or base-directory "./"))
+         (build-directory (or build-directory  #p"build/"))
+         (library-directory (or library-directory #p"lib/"))
+         (asset-directory (or asset-directory #p"assets/"))
+         (dist (make-instance 'distribution
+                              :name name
+                              :base-directory base-directory
+                              :target-system (or target-system name)
+                              :entry-function (parse-entry-function entry-function)
+                              :executable-name (or executable-name (format nil "~(~a~)" name))
+                              :compressed-p compressed-p
+                              :build-directory build-directory
+                              :library-directory library-directory
+                              :asset-directory asset-directory
+                              :configuration-file configuration-file
+                              :epilogue epilogue
+                              :prologue prologue
+                              :bindings bindings
+                              :resources resources
+                              :asset-containers asset-containers
+                              :bundle-name bundle-name
+                              :bundle-compressed-p bundle-compressed-p
+                              :bundle-run-file bundle-run-file)))
+    (%register-distribution name dist)))
+
+
 (defmacro descriptor (name &body body
                         &key target-system
-                          (entry-function
-                           (error ":entry-function must be specified"))
-                          (base-directory "./")
+                          entry-function
+                          base-directory
                           executable-name
                           (compressed-p t)
-                          (build-directory #p"build/")
-                          (library-directory #p"lib/")
+                          build-directory
+                          library-directory
                           configuration-file
                           prologue
                           epilogue
                           bind
-                          (asset-directory #p"assets/")
+                          asset-directory
                           resources
                           asset-containers
                           bundle)
   (declare (ignore body))
-  (destructuring-bind (&key ((:name bundle-name) (format nil "~(~a~)" name))
+  (destructuring-bind (&key ((:name bundle-name))
                             ((:run-file bundle-run-file))
                             ((:compressed-p bundle-compressed-p) t))
       bundle
-    (when (and bundle (null bundle-run-file))
-      (error ":run-file must be specified for the bundle"))
     (once-only (name)
-      `(register-distribution
-        ,name
-        (make-instance 'distribution
-                       :name ,name
-                       :base-directory ,base-directory
-                       :target-system ,(or target-system name)
-                       :entry-function ,(parse-entry-function entry-function)
-                       :executable-name ,(or executable-name `(format nil "~(~a~)" ,name))
-                       :compressed-p ,compressed-p
-                       :build-directory ,build-directory
-                       :library-directory ,library-directory
-                       :asset-directory ,asset-directory
-                       :configuration-file ,configuration-file
-                       :epilogue ,epilogue
-                       :prologue ,prologue
-                       :bindings ,(expand-bindings bind)
-                       :resources ',resources
-                       :asset-containers ',asset-containers
-                       :bundle-name ,bundle-name
-                       :bundle-compressed-p ,bundle-compressed-p
-                       :bundle-run-file ,bundle-run-file)))))
+      `(register-distribution ,name ',entry-function
+                              :base-directory ,base-directory
+                              :target-system ,target-system
+                              :executable-name ,executable-name
+                              :compressed-p ,compressed-p
+                              :build-directory ,build-directory
+                              :library-directory ,library-directory
+                              :asset-directory ,asset-directory
+                              :configuration-file ,configuration-file
+                              :epilogue ,epilogue
+                              :prologue ,prologue
+                              :bindings ,(expand-bindings bind)
+                              :resources ',resources
+                              :asset-containers ',asset-containers
+                              :bundle-name ,bundle-name
+                              :bundle-compressed-p ,bundle-compressed-p
+                              :bundle-run-file ,bundle-run-file))))

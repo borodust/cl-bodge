@@ -4,7 +4,7 @@
 (defvar *distribution-registry* nil)
 
 
-(defun register-distribution (name distrib)
+(defun %register-distribution (name distrib)
   (setf (assoc-value *distribution-registry* name :test #'equalp) distrib))
 
 
