@@ -50,7 +50,7 @@
 
 (glfw:def-scroll-callback on-scroll (window x y)
   (declare (ignore window))
-  (post 'scroll-event :x x :y (- y)))
+  (post 'scroll-event :x-offset x :y-offset (- y)))
 
 
 (glfw:def-framebuffer-size-callback on-framebuffer-size-change (window w h)
