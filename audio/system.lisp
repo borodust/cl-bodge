@@ -61,7 +61,7 @@
       (error "Couldn't open sound device"))))
 
 
-(defmethod destroy-system-context (ctx (this audio-system))
+(defmethod destroy-system-context ((this audio-system) ctx)
   (alc:make-context-current (cffi:null-pointer))
   (alc:destroy-context (ac-ctx ctx))
   (alc:close-device (ac-dev ctx)))

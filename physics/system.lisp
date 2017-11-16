@@ -23,7 +23,7 @@
   (make-physics-context))
 
 
-(defmethod destroy-system-context (ctx (this physics-system))
+(defmethod destroy-system-context ((this physics-system) ctx)
   (destroy-universe (ctx-universe *system-context*))
   (%ode:close-ode))
 
