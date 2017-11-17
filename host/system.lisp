@@ -5,11 +5,22 @@
   ((enabled-p :initform nil)
    (swap-interval :initform 0)
    (window :initform nil :reader window-of)
+   (gl-major-version)
+   (gl-minor-version)
    (task-queue :initform (make-task-queue))))
 
 
 (definline host ()
   (engine-system 'host-system))
+
+
+(defclass rendering-context ()
+  ((surface :initarg :surface :reader surface-of)))
+
+
+(define-destructor rendering-context (surface)
+  (run (-> ((host)) ()
+         (glfw:destroy-window surface))))
 
 
 (defmethod enabledp ((this host-system))
@@ -66,7 +77,7 @@
 
 ;; if current thread is the main one, this function will block
 (defmethod initialize-system :after ((this host-system))
-  (with-slots (enabled-p task-queue window eve-sys) this
+  (with-slots (enabled-p task-queue window eve-sys gl-major-version gl-minor-version) this
     (when enabled-p
       (error "Host system already enabled"))
     (wait-with-latch (latch)
@@ -78,14 +89,18 @@
                    (property '(:host :opengl-version) '(4 1))
                  (log:debug "Initializing GLFW context for OpenGL version ~A.~A"
                             major-version minor-version)
-                 (glfw:with-init-window (:title "Scene" :width 640 :height 480
+                 (setf gl-major-version major-version
+                       gl-minor-version minor-version)
+                 (glfw:with-init-window (:title "Scene"
+                                                :width 640 :height 480
                                                 :context-version-major major-version
                                                 :context-version-minor minor-version
                                                 :opengl-profile :opengl-core-profile
                                                 :opengl-forward-compat t
                                                 :depth-bits 24
                                                 :resizable nil
-                                                :stencil-bits 8)
+                                                :stencil-bits 8
+                                                :visible t)
                    (glfw:set-window-close-callback 'on-close)
                    (glfw:set-key-callback 'on-key-action)
                    (glfw:set-mouse-button-callback 'on-mouse-action)
@@ -104,8 +119,8 @@
                      (loop while enabled-p
                         do (log-errors
                              (glfw:wait-events)
-                             (drain task-queue)))))
-                 (log:debug "Main loop stopped. Host system offline")))
+                             (drain task-queue))))))
+               (log:debug "Main loop stopped. Host system offline"))
           (open-latch latch))))
     (log:debug "Host system initialized")))
 
@@ -124,10 +139,27 @@
     (stop-main-runner)))
 
 
-(defun bind-rendering-context (host-sys)
+(define-system-function make-rendering-context host-system (&key (width 1) (height 1))
+  (with-slots (gl-major-version gl-minor-version) *system*
+    (glfw:create-window :title ""
+                        :width width :height height
+                        :context-version-major gl-major-version
+                        :context-version-minor gl-minor-version
+                        :opengl-profile :opengl-core-profile
+                        :opengl-forward-compat t
+                        :depth-bits 24
+                        :resizable nil
+                        :stencil-bits 8
+                        :visible nil
+                        :shared (window-of *system*))
+    (make-instance 'rendering-context :surface glfw:*window*)))
+
+
+(defun bind-rendering-context (host-sys &optional rendering-context)
   (with-slots (window) host-sys
-    (with-system-lock-held (host-sys)
-      (glfw:make-context-current window))))
+    (if rendering-context
+        (glfw:make-context-current (surface-of rendering-context))
+        (glfw:make-context-current window))))
 
 
 (defun swap-buffers (host-sys)

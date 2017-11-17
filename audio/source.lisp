@@ -10,7 +10,7 @@
   (:default-initargs :handle (make-audio-source-handle)))
 
 
-(define-system-function make-audio-source audio-system (&key (system *system*))
+(defun make-audio-source (&key (system *system*))
   (make-instance 'audio-source :system system))
 
 

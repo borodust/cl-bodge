@@ -31,24 +31,13 @@
   (class-name (class-of this)))
 
 
-(defmethod enable ((this generic-system))
-  (call-next-method)
-  (initialize-system this))
+(defmethod enabling-flow ((this generic-system))
+  (>> (call-next-method)
+      (instantly ()
+        (initialize-system this))))
 
 
-(defmethod enable :around ((this generic-system))
-  (with-system-lock-held (this)
-    (when (enabledp this)
-      (error "~a already enabled" (system-class-name-of this)))
-    (call-next-method)))
-
-
-(defmethod disable ((this generic-system))
-  (discard-system this))
-
-
-(defmethod disable :around ((this generic-system))
-  (with-system-lock-held (this)
-    (unless (enabledp this)
-      (error "~a already disabled" (system-class-name-of this)))
-    (call-next-method)))
+(defmethod disabling-flow ((this generic-system))
+  (>> (instantly ()
+        (discard-system this))
+      (call-next-method)))

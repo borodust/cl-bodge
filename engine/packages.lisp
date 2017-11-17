@@ -177,8 +177,8 @@
   (:use-reexport :cl-bodge.concurrency :cl-bodge.memory :cl-bodge.math
                  :cl-bodge.engine.resources)
   (:export system
-           enable
-           disable
+           enabling-flow
+           disabling-flow
            enabledp
            acquire-executor
            release-executor
@@ -211,6 +211,7 @@
            discard-system
 
            thread-bound-system
+           system-context-of
            make-system-context
            destroy-system-context
            *system-context*

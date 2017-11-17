@@ -76,20 +76,42 @@ file is stored."
 (defun executablep ()
   (or *executable-p* uiop:*image-dumped-p*))
 
+
+(defmacro instantly ((&rest lambda-list) &body body)
+  "Execute task in the current thread without dispatching."
+  `(-> nil ,lambda-list
+     ,@body))
+
+
+(defmacro concurrently ((&rest lambda-list) &body body)
+  "Push task to engine's pooled executor."
+  `(-> (nil :concurrently t) ,lambda-list
+     ,@body))
+
+
+(defun value-flow (value)
+  "Return flow that returns single value."
+  (instantly () value))
+
+
+(defun null-flow ()
+  "Return flow that returns nil as single value."
+  (value-flow nil))
+
 ;;
 (defclass system ()
   ((dependencies :initarg :depends-on :initform '() :reader dependencies-of))
   (:documentation "Base class for all engine systems"))
 
 
-(defgeneric enable (system)
+(defgeneric enabling-flow (system)
   (:method (system) nil)
-  (:documentation "Enable engine's system synchronousy."))
+  (:documentation "Enable engine's system asynchronously."))
 
 
-(defgeneric disable (system)
+(defgeneric disabling-flow (system)
   (:method (system) nil)
-  (:documentation "Disable engine's system synchronously."))
+  (:documentation "Disable engine's system asynchronously."))
 
 
 (defgeneric enabledp (system)
@@ -110,27 +132,29 @@ file is stored."
 
 (defun enable-system (system-class sys-table &optional order)
   (flet ((system-enabled-p (system-class)
-           (member system-class order)))
+           (assoc-value order system-class)))
     (let ((system (gethash system-class sys-table))
           (result order))
-      (cond
-        ((not (system-enabled-p system-class))
-         (dolist (dependency (dependencies-of system))
-           (setf result (enable-system dependency sys-table result)))
-         (when (system-enabled-p system)
-           (error (format nil "Circular dependency found for '~a'" system-class)))
-         (log:debug "Enabling ~a" system-class)
-         (enable system)
-         (invoke-system-startup-hooks system-class)
-         (cons system-class result))
-        (t result)))))
+      (if (not (system-enabled-p system-class))
+          (progn
+            (dolist (dependency (dependencies-of system))
+              (setf result (enable-system dependency sys-table result)))
+            (when (system-enabled-p system)
+              (error (format nil "Circular dependency found for '~a'" system-class)))
+            (cons (cons system-class (>> (instantly ()
+                                           (log:debug "Enabling ~a" system-class))
+                                         (enabling-flow system)
+                                         (instantly ()
+                                           (invoke-system-startup-hooks system-class))))
+                  result))
+          result))))
 
 
-(defun enable-requested-systems (sys-table)
+(defun requested-systems-enabling-flow (sys-table)
   (loop for system-class being the hash-key in sys-table
      with order = '() do
        (setf order (enable-system system-class sys-table order))
-     finally (return order)))
+     finally (return (nreverse order))))
 
 
 (defun property (key &optional (default-value nil))
@@ -174,16 +198,27 @@ specified."
     (let ((system-class-names (property '(:engine :systems))))
       (when (null system-class-names)
         (error "(:engine :systems) property should be defined and cannot be nil"))
-      (setf systems (alist-hash-table (instantiate-systems system-class-names))
-            disabling-order (enable-requested-systems systems)))))
+      (let* ((sys-table (alist-hash-table (instantiate-systems system-class-names)))
+             (enabling-flows (requested-systems-enabling-flow sys-table)))
+        (setf systems sys-table)
+        (mt:wait-with-latch (latch)
+          (run (>> (mapcar #'cdr enabling-flows)
+                   (instantly ()
+                     (mt:open-latch latch)))))
+        (setf disabling-order (reverse (mapcar #'car enabling-flows)))))))
 
 
 (defun disable-systems (engine)
   (with-slots (systems disabling-order) engine
-    (loop for system-class in disabling-order do
-         (log:debug "Disabling ~a" system-class)
-         (invoke-system-shutdown-hooks system-class)
-         (disable (gethash system-class systems)))))
+    (mt:wait-with-latch (latch)
+      (run (>> (loop for system-class in disabling-order
+                  collect (let ((system-class system-class))
+                            (>> (instantly ()
+                                  (log:debug "Disabling ~a" system-class)
+                                  (invoke-system-shutdown-hooks system-class))
+                                (disabling-flow (gethash system-class systems)))))
+               (instantly ()
+                 (mt:open-latch latch)))))))
 
 
 (defmethod initialize-instance :after ((this bodge-engine)
@@ -293,28 +328,6 @@ task is dispatched to the object provided under this key."
     t))
 
 
-(defmacro instantly ((&rest lambda-list) &body body)
-  "Execute task in the current thread without dispatching."
-  `(-> nil ,lambda-list
-     ,@body))
-
-
-(defmacro concurrently ((&rest lambda-list) &body body)
-  "Push task to engine's pooled executor."
-  `(-> (nil :concurrently t) ,lambda-list
-     ,@body))
-
-
-(defun value-flow (value)
-  "Return flow that returns single value."
-  (instantly () value))
-
-
-(defun null-flow ()
-  "Return flow that returns nil as single value."
-  (value-flow nil))
-
-
 (defgeneric initialization-flow (object &key &allow-other-keys)
   (:documentation "Return flow that initializes an object.
 Flow variant of #'initialize-instance, although no guarantees
@@ -378,16 +391,18 @@ Flow variant of #'make-instance."
     enabled-p))
 
 
-(defmethod enable ((this enableable))
-  (call-next-method)
+(defmethod enabling-flow ((this enableable))
   (with-slots (enabled-p) this
-    (setf enabled-p t)))
+    (>> (call-next-method)
+        (instantly ()
+          (setf enabled-p t)))))
 
 
-(defmethod disable ((this enableable))
-  (call-next-method)
+(defmethod disabling-flow ((this enableable))
   (with-slots (enabled-p) this
-    (setf enabled-p nil)))
+    (>> (call-next-method)
+        (instantly ()
+          (setf enabled-p nil)))))
 
 
 

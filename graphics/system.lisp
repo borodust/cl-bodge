@@ -8,13 +8,38 @@
 
 (defclass graphics-system (thread-bound-system)
   ((host-sys :initform nil)
+   (resource-context)
+   (resource-executor)
    (state :initform nil))
   (:default-initargs :depends-on '(host-system)))
 
 
 (defmethod initialize-system :after ((this graphics-system))
-  (with-slots (host-sys shader-loader) this
-    (setf host-sys (host))))
+  (with-slots (host-sys resource-executor) this
+    (setf host-sys (host)
+          resource-executor (acquire-executor :single-threaded-p t :exclusive-p t))))
+
+
+(defmethod enabling-flow ((this graphics-system))
+  (with-slots (host-sys resource-context resource-executor) this
+    (>> (call-next-method)
+        (-> host-sys ()
+          (setf resource-context (make-rendering-context))
+          (execute resource-executor
+                   (lambda ()
+                     (bind-rendering-context host-sys resource-context))
+                   :priority :highest :important-p t)))))
+
+
+(defmethod dispatch ((this graphics-system) (task function) invariant &key (main-p t))
+  (with-slots (resource-executor) this
+    (flet ((run-task ()
+             (let ((*system* this)
+                   (*system-context* (system-context-of this)))
+               (funcall task))))
+      (if main-p
+          (call-next-method)
+          (execute resource-executor #'run-task)))))
 
 
 (defmethod make-system-context ((this graphics-system))

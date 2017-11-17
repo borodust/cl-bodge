@@ -23,7 +23,7 @@
 
 
 
-(define-system-function make-audio-buffer audio-system (resource &key (system *system*))
+(defun make-audio-buffer (resource &key (system *system*))
   (make-instance 'audio-buffer
                  :system system
                  :channel-format (audio-channel-format-of resource)
