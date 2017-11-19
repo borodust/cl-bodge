@@ -10,8 +10,8 @@
   (:default-initargs :handle (make-audio-source-handle)))
 
 
-(defun make-audio-source (&key (system *system*))
-  (make-instance 'audio-source :system system))
+(defun make-audio-source ()
+  (make-instance 'audio-source))
 
 
 (declaim (ftype (function (audio-buffer audio-source) *) attach-buffer)

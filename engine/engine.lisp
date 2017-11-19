@@ -313,6 +313,10 @@ initialized."
   (:documentation "Mixin class for all engine dispatchers"))
 
 
+(defmethod dispatch ((this null) (task function) invariant &rest keys &key)
+  (log:warn "~A with invariant ~A and keys ~A ignored" task invariant keys))
+
+
 (defmethod dispatch ((this bodge-engine) (task function) invariant &rest keys
                      &key (priority :medium) concurrently)
   "Use engine instance as a dispatcher. If :invariant and :concurrently-p are both nil task is

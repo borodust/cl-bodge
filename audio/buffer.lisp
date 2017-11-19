@@ -23,9 +23,8 @@
 
 
 
-(defun make-audio-buffer (resource &key (system *system*))
+(defun make-audio-buffer (resource)
   (make-instance 'audio-buffer
-                 :system system
                  :channel-format (audio-channel-format-of resource)
                  :sample-depth (audio-sample-depth-of resource)
                  :sampling-rate (audio-sampling-rate-of resource)
