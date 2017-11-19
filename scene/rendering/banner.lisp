@@ -8,7 +8,7 @@
    (mesh :initform nil)))
 
 
-(defmethod discard-node banner :before ((this banner-node))
+(defmethod discard-node :before ((this banner-node))
   (with-slots (mesh) this
     (dispose mesh)))
 
