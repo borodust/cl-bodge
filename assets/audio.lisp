@@ -43,5 +43,14 @@
     (make-cached-pcm-16-audio file)))
 
 
+(defmethod encode-resource ((this audio-resource-handler) (audio cached-pcm-16-audio) stream)
+  (write-short-samples-into-stream stream (pcm-audio-data-of audio)
+                                   :format :flac
+                                   :channels (ecase (audio-channel-format-of audio)
+                                               (:mono 1)
+                                               (:stereo 2))
+                                   :sample-rate (audio-sampling-rate-of audio)))
+
+
 (defmethod make-resource-handler ((type (eql :audio)) &key)
   (make-instance 'audio-resource-handler))
