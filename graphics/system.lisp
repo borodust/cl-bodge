@@ -27,7 +27,8 @@
           (setf resource-context (make-rendering-context))
           (execute resource-executor
                    (lambda ()
-                     (bind-rendering-context host-sys resource-context))
+                     (bind-rendering-context host-sys resource-context)
+                     (glad:init))
                    :priority :highest :important-p t)))))
 
 

@@ -141,18 +141,23 @@
 
 (define-system-function make-rendering-context host-system (&key (width 1) (height 1))
   (with-slots (gl-major-version gl-minor-version) *system*
-    (glfw:create-window :title ""
-                        :width width :height height
-                        :context-version-major gl-major-version
-                        :context-version-minor gl-minor-version
-                        :opengl-profile :opengl-core-profile
-                        :opengl-forward-compat t
-                        :depth-bits 24
-                        :resizable nil
-                        :stencil-bits 8
-                        :visible nil
-                        :shared (window-of *system*))
-    (make-instance 'rendering-context :surface glfw:*window*)))
+    (let ((current-window glfw:*window*))
+      (unwind-protect
+           (progn
+             (glfw:create-window :title ""
+                                 :width width :height height
+                                 :context-version-major gl-major-version
+                                 :context-version-minor gl-minor-version
+                                 :opengl-profile :opengl-core-profile
+                                 :opengl-forward-compat t
+                                 :depth-bits 24
+                                 :resizable nil
+                                 :stencil-bits 8
+                                 :visible nil
+                                 :shared (window-of *system*))
+             (%glfw:make-context-current (cffi:null-pointer))
+             (make-instance 'rendering-context :surface glfw:*window*))
+        (setf glfw:*window* current-window)))))
 
 
 (defun bind-rendering-context (host-sys &optional rendering-context)
