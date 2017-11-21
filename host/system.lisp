@@ -4,23 +4,13 @@
 (defclass host-system (dispatching generic-system)
   ((enabled-p :initform nil)
    (swap-interval :initform 0)
+   (shared :initform nil)
    (window :initform nil :reader window-of)
-   (gl-major-version)
-   (gl-minor-version)
    (task-queue :initform (make-task-queue))))
 
 
 (definline host ()
   (engine-system 'host-system))
-
-
-(defclass rendering-context ()
-  ((surface :initarg :surface :reader surface-of)))
-
-
-(define-destructor rendering-context (surface)
-  (run (-> ((host)) ()
-         (glfw:destroy-window surface))))
 
 
 (defmethod enabledp ((this host-system))
@@ -75,9 +65,29 @@
     (post 'character-input-event :character character)))
 
 
+(defun make-shared-context (gl-major-version gl-minor-version)
+  (let ((current-window glfw:*window*))
+    (unwind-protect
+         (progn
+           (glfw:create-window :title ""
+                               :width 1 :height 1
+                               :context-version-major gl-major-version
+                               :context-version-minor gl-minor-version
+                               :opengl-profile :opengl-core-profile
+                               :opengl-forward-compat t
+                               :depth-bits 24
+                               :stencil-bits 8
+                               :resizable nil
+                               :visible nil
+                               :shared current-window)
+           (%glfw:make-context-current (cffi:null-pointer))
+           glfw:*window*)
+      (setf glfw:*window* current-window))))
+
+
 ;; if current thread is the main one, this function will block
 (defmethod initialize-system :after ((this host-system))
-  (with-slots (enabled-p task-queue window eve-sys gl-major-version gl-minor-version) this
+  (with-slots (enabled-p task-queue window eve-sys gl-major-version gl-minor-version shared) this
     (when enabled-p
       (error "Host system already enabled"))
     (wait-with-latch (latch)
@@ -89,8 +99,6 @@
                    (property '(:host :opengl-version) '(4 1))
                  (log:debug "Initializing GLFW context for OpenGL version ~A.~A"
                             major-version minor-version)
-                 (setf gl-major-version major-version
-                       gl-minor-version minor-version)
                  (glfw:with-init-window (:title "Scene"
                                                 :width 640 :height 480
                                                 :context-version-major major-version
@@ -109,10 +117,11 @@
                    (glfw:set-framebuffer-size-callback 'on-framebuffer-size-change)
                    (glfw:set-char-callback 'on-character-input)
                    (glfw:swap-interval 0)
+                   (%glfw:make-context-current (cffi:null-pointer))
                    (setf window glfw:*window*
+                         shared (make-shared-context major-version minor-version)
                          enabled-p t)
                    (log:debug "Host main loop running")
-                   (glfw:make-context-current (cffi:null-pointer))
                    (log:debug "GL context detached from main loop thread")
                    (let ((*system* this))
                      (open-latch latch)
@@ -139,32 +148,11 @@
     (stop-main-runner)))
 
 
-(define-system-function make-rendering-context host-system (&key (width 1) (height 1))
-  (with-slots (gl-major-version gl-minor-version) *system*
-    (let ((current-window glfw:*window*))
-      (unwind-protect
-           (progn
-             (glfw:create-window :title ""
-                                 :width width :height height
-                                 :context-version-major gl-major-version
-                                 :context-version-minor gl-minor-version
-                                 :opengl-profile :opengl-core-profile
-                                 :opengl-forward-compat t
-                                 :depth-bits 24
-                                 :resizable nil
-                                 :stencil-bits 8
-                                 :visible nil
-                                 :shared (window-of *system*))
-             (%glfw:make-context-current (cffi:null-pointer))
-             (make-instance 'rendering-context :surface glfw:*window*))
-        (setf glfw:*window* current-window)))))
-
-
-(defun bind-rendering-context (host-sys &optional rendering-context)
-  (with-slots (window) host-sys
-    (if rendering-context
-        (glfw:make-context-current (surface-of rendering-context))
-        (glfw:make-context-current window))))
+(defun bind-rendering-context (host-sys &key (main t))
+  (with-slots (window shared) host-sys
+    (if main
+        (%glfw:make-context-current window)
+        (%glfw:make-context-current shared))))
 
 
 (defun swap-buffers (host-sys)

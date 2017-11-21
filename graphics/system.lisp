@@ -8,7 +8,6 @@
 
 (defclass graphics-system (thread-bound-system)
   ((host-sys :initform nil)
-   (resource-context)
    (resource-executor)
    (state :initform nil))
   (:default-initargs :depends-on '(host-system)))
@@ -21,13 +20,12 @@
 
 
 (defmethod enabling-flow ((this graphics-system))
-  (with-slots (host-sys resource-context resource-executor) this
+  (with-slots (host-sys resource-executor) this
     (>> (call-next-method)
         (-> host-sys ()
-          (setf resource-context (make-rendering-context))
           (execute resource-executor
                    (lambda ()
-                     (bind-rendering-context host-sys resource-context)
+                     (bind-rendering-context host-sys :main nil)
                      (glad:init))
                    :priority :highest :important-p t)))))
 

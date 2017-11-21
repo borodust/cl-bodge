@@ -8,7 +8,6 @@
            host
 
            bind-rendering-context
-           make-rendering-context
            swap-buffers
            swap-interval
            viewport-title
