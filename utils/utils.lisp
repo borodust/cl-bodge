@@ -25,9 +25,6 @@
          (dissect:with-truncated-stack () ,@body)))))
 
 
-
-
-
 (defun epoch-seconds (&optional (timestamp (now)))
   (+ (timestamp-to-unix timestamp) (/ (nsec-of timestamp) 1000000000)))
 

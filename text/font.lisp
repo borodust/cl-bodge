@@ -67,7 +67,7 @@
                  :kernings kernings))
 
 
-(define-system-function make-font graphics-system (atlas-image glyphs ascender-height
+(define-system-function bake-font graphics-system (atlas-image glyphs ascender-height
                                                                descender-height
                                                                line-gap)
   (make-instance 'font

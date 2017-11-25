@@ -148,7 +148,8 @@
                (:file "transform")
                (:file "image")
                (:file "paint")
-               (:file "primitives")))
+               (:file "primitives")
+               (:file "text")))
 
 
 (defsystem cl-bodge/animation
@@ -329,8 +330,9 @@
   :license "MIT"
   :depends-on (cl-bodge/engine cl-bodge/utils  cl-bodge/graphics
                                cl-bodge/animation cl-bodge/text
-                               cl-bodge/scenegraph bodge-sndfile
-                               opticl cl-fad chipz flexi-streams log4cl)
+                               cl-bodge/canvas cl-bodge/scenegraph
+                               bodge-sndfile opticl cl-fad chipz
+                               flexi-streams log4cl)
   :pathname "assets/"
   :serial t
   :components ((:file "packages")

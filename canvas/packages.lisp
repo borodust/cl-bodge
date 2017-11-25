@@ -35,4 +35,10 @@
            rotate-canvas
            skew-canvas
            scale-canvas
-           reset-canvas-transform))
+           reset-canvas-transform
+
+           register-font-face
+           font-container-data
+           make-font
+           with-font
+           draw-text))

@@ -55,7 +55,7 @@
       (mapcar #'scale (measure-string string (text-cache-font text-cache))))))
 
 
-(defun draw-text (renderer string &key position color)
+(defun print-text (renderer string &key position color)
   (with-slots (text-cache shading-program proj default-color height scale) renderer
     (let* ((text (get-text text-cache string))
            (model-view-mat (if position

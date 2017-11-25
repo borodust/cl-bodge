@@ -11,7 +11,13 @@
 
 (defclass canvas (foreign-object)
   ((width :initarg :width :initform (error ":width missing") :reader width-of)
-   (height :initarg :height :initform (error ":height missing") :reader height-of)))
+   (height :initarg :height :initform (error ":height missing") :reader height-of)
+   (font-map :initform (make-hash-table :test #'equal))))
+
+
+(defun %register-font (canvas name font-data)
+  (with-slots (font-map) canvas
+    (setf (gethash name font-map) font-data)))
 
 
 (defun update-canvas-size (canvas width height)
@@ -30,18 +36,27 @@
                    :height height)))
 
 
-(definline begin-canvas (canvas &optional (pixel-ratio 1.0))
-  (%nvg:begin-frame (handle-value-of canvas) (width-of canvas) (height-of canvas) pixel-ratio)
+(defun %invert-coordinate-system (canvas)
   (%nvg:translate (handle-value-of canvas) 0f0 (f (height-of canvas)))
   (%nvg:scale (handle-value-of canvas) 1f0 -1f0))
 
 
-(definline end-canvas (canvas)
+(defun %restore-coordinate-system (canvas)
+  (%nvg:scale (handle-value-of canvas) 1f0 -1f0)
+  (%nvg:translate (handle-value-of canvas) 0f0 (f (- (height-of canvas)))))
+
+
+(defun begin-canvas (canvas &optional (pixel-ratio 1.0))
+  (%nvg:begin-frame (handle-value-of canvas) (width-of canvas) (height-of canvas) pixel-ratio)
+  (%invert-coordinate-system canvas))
+
+
+(defun end-canvas (canvas)
   (%nvg:end-frame (handle-value-of canvas))
   (reset-state))
 
 
-(definline flush-canvas (&optional (canvas *canvas*) (pixel-ratio *pixel-ratio*))
+(defun flush-canvas (&optional (canvas *canvas*) (pixel-ratio *pixel-ratio*))
   (end-canvas canvas)
   (begin-canvas canvas pixel-ratio))
 

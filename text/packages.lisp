@@ -6,7 +6,7 @@
   (:use :cl :cl-bodge.utils :cl-bodge.engine :cl-bodge.graphics
         :cl-bodge.resources :cl-bodge.library.shading)
   (:export make-glyph
-           make-font
+           bake-font
            font-ascender-height
            font-descender-height
            font-line-gap
@@ -24,6 +24,6 @@
            text-line-height
            text-ascender-height
            update-text-renderer-canvas-size
-           draw-text
+           print-text
            scale-of
            font-of))
