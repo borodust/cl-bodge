@@ -122,12 +122,94 @@
   (setf (v:w (value-of vec)) (f value)))
 
 
+;;;
+;;; VEC2
+;;;
+(defmethod addere ((this vec2) (that vec2))
+  (%raw-> vec2 (v2:+ (value-of this) (value-of that))))
+
+
+(defmethod addere ((this vec2) (scalar number))
+  (%raw-> vec2 (v2:+s (value-of this) (f scalar))))
+
+
+(defmethod addere ((scalar number) (this vec2))
+  (addere this scalar))
+
+
+(defmethod subtract ((this vec2) (that vec2))
+  (%raw-> vec2 (v2:- (value-of this) (value-of that))))
+
+
+(defmethod subtract ((this vec2) (scalar number))
+  (%raw-> vec2 (v2:-s (value-of this) (f scalar))))
+
+
+(defmethod subtract ((scalar number) (this vec2))
+  (multiply (subtract this scalar) -1))
+
+
+(defmethod lerp ((this vec2) (that vec2) (f number))
+  (%raw-> vec2 (v2:lerp (value-of this) (value-of that) (f f))))
+
+
+(defmethod normalize ((this vec2))
+  (%raw-> vec2 (v2:normalize (value-of this))))
+
+
+(defmethod multiply ((this vec2) (scalar number))
+  (%raw-> vec2 (v2:*s (value-of this) (f scalar))))
+
+
+(defmethod multiply ((scalar number) (this vec2))
+  (multiply this scalar))
+
+
+(defmethod multiply ((this vec2) (that vec2))
+  (%raw-> vec2 (v2:* (value-of this) (value-of that))))
+
+
+(defmethod divide ((this vec2) (scalar number))
+  (%raw-> vec2 (v2:/s (value-of this) (f scalar))))
+
+
+(defmethod divide ((this vec2) (that vec2))
+  (%raw-> vec2 (v2:/ (value-of this) (value-of that))))
+
+
+(defmethod cross-product ((this vec2) (that vec2))
+  (%raw-> vec2 (v2:cross (value-of this) (value-of that))))
+
+
+(defmethod dot-product ((this vec2) (that vec2))
+  (v2:dot (value-of this) (value-of that)))
+
+
+;;;
+;;; VEC3
+;;;
 (defmethod addere ((this vec3) (that vec3))
   (%raw-> vec3 (v3:+ (value-of this) (value-of that))))
 
 
+(defmethod addere ((this vec3) (scalar number))
+  (%raw-> vec3 (v3:+s (value-of this) (f scalar))))
+
+
+(defmethod addere ((scalar number) (this vec3))
+  (addere this scalar))
+
+
 (defmethod subtract ((this vec3) (that vec3))
   (%raw-> vec3 (v3:- (value-of this) (value-of that))))
+
+
+(defmethod subtract ((this vec3) (scalar number))
+  (%raw-> vec3 (v3:-s (value-of this) (f scalar))))
+
+
+(defmethod subtract ((scalar number) (this vec2))
+  (multiply (subtract this scalar) -1))
 
 
 (defmethod lerp ((this vec3) (that vec3) (f number))
@@ -146,8 +228,16 @@
   (multiply this scalar))
 
 
+(defmethod multiply ((this vec3) (that vec3))
+  (%raw-> vec3 (v3:* (value-of this) (value-of that))))
+
+
 (defmethod divide ((this vec3) (scalar number))
   (%raw-> vec3 (v3:/s (value-of this) (f scalar))))
+
+
+(defmethod divide ((this vec3) (that vec3))
+  (%raw-> vec3 (v3:/s (value-of this) (value-of that))))
 
 
 (defmethod cross-product ((this vec3) (that vec3))
