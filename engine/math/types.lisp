@@ -37,6 +37,12 @@
 ;;;
 (defclass vec () ())
 
+(defgeneric value-of (vec))
+
+(defmethod print-object ((object vec) stream)
+  (format stream "#<~A ~{~A~^ ~}>"
+          (class-name-of object) (map 'list #'identity (value-of object))))
+
 
 (defclass vec2 (vec)
   ((value :initarg :value :initform (v2:make 0.0 0.0) :type rtg-math.types:vec2
