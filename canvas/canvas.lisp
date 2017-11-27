@@ -17,7 +17,7 @@
 
 (defun %register-font (canvas name font-data)
   (with-slots (font-map) canvas
-    (setf (gethash name font-map) font-data)))
+    (setf (gethash (namestring name) font-map) font-data)))
 
 
 (defun update-canvas-size (canvas width height)

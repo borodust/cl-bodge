@@ -28,10 +28,10 @@
 
 (defun register-font-face (name font-container &optional (canvas *canvas*))
   (let ((data (font-container-data font-container)))
-      (let ((font-face-id (%nvg:find-font (handle-value-of canvas) name)))
+      (let ((font-face-id (%nvg:find-font (handle-value-of canvas) (namestring name))))
         (if (< font-face-id 0)
             (let* ((f-data (static-vectors:make-static-vector (length data) :initial-contents data))
-                   (id (%nvg:create-font-mem (handle-value-of canvas) name
+                   (id (%nvg:create-font-mem (handle-value-of canvas) (namestring name)
                                              (static-vectors:static-vector-pointer f-data)
                                              (length f-data) 0)))
               (when (< id 0)
