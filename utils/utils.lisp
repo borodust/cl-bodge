@@ -7,22 +7,28 @@
   `(progn ,@body))
 
 
+(defun invoke-bodgy (fu)
+  (block skippable
+    (handler-bind ((warning (lambda (w)
+                              (log:warn w)
+                              (return-from skippable)))
+                   (t (lambda (e)
+                        (dissect:with-capped-stack ()
+                          (let ((error-text (with-output-to-string (stream)
+                                              (format stream "Unhandled error:~%")
+                                              (dissect:present e stream))))
+                            (log:error "~a" error-text)
+                            (in-development-mode
+                              (break "~A: ~A" (type-of e) e)
+                              (when-let ((continue-restart (find-restart 'continue)))
+                                (invoke-restart continue-restart)))
+                            (return-from skippable))))))
+      (dissect:with-truncated-stack ()
+        (funcall fu)))))
+
+
 (defmacro log-errors (&body body)
-  (with-gensyms (name)
-    `(block ,name
-       (handler-bind ((warning (lambda (w)
-                                 (log:warn w)
-                                 (return-from ,name)))
-                      (t (lambda (e)
-			   (dissect:with-capped-stack ()
-			     (let ((error-text (with-output-to-string (stream)
-						 (format stream "Unhandled error:~%")
-						 (dissect:present e stream))))
-			       (log:error "~a" error-text)
-			       (in-development-mode
-				 (break "~A: ~A" (type-of e) e))
-			       (return-from ,name))))))
-         (dissect:with-truncated-stack () ,@body)))))
+  `(invoke-bodgy (lambda () ,@body)))
 
 
 (defun epoch-seconds (&optional (timestamp (now)))

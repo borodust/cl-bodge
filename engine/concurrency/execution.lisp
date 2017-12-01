@@ -28,15 +28,11 @@ executor. Executor must operate in thread-safe manner."))
 (defun ignite (executor)
   (block interruptible
     (loop
-       (block continued
+       (log-errors
          (handler-bind ((interrupted (lambda (e)
                                        (declare (ignore e))
-                                       (return-from interruptible))) ; leave loop
-                        (t (lambda (e)
-                             (log:error "Uncaught error during task execution: ~a" e)
-                             (in-development-mode
-                               (break "~A: ~A" (type-of e) e))
-                             (return-from continued)))) ; continue looping
+                                       ;; leave loop
+                                       (return-from interruptible))))
            (funcall (pop-from (task-queue-of executor))))))))
 
 
