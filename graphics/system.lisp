@@ -26,7 +26,8 @@
           (execute resource-executor
                    (lambda ()
                      (bind-rendering-context host-sys :main nil)
-                     (glad:init))
+                     (glad:init)
+                     (log:debug "Shared context bound"))
                    :priority :highest :important-p t)))))
 
 
@@ -50,7 +51,7 @@
                (gl:get* :vendor)
                (gl:get* :renderer))
     (glad:init)
-
+    (log:debug "GLAD initialized")
     (let ((ctx (make-graphics-context)))
       (with-current-state-slice ((ctx-state ctx))
         (gx.state:enable :blend

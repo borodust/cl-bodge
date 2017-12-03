@@ -387,7 +387,7 @@ Flow variant of #'make-instance."
 (defclass enableable ()
   ((enabled-p :initform nil))
   (:documentation "Mixin for systems for making them enableable: conform to
- enabledp/enable/disable interface."))
+ enabledp/enabling-flow/disabling-flow interface."))
 
 
 (defmethod enabledp ((this enableable))
@@ -407,8 +407,6 @@ Flow variant of #'make-instance."
     (>> (call-next-method)
         (instantly ()
           (setf enabled-p nil)))))
-
-
 
 ;;;
 ;;;
@@ -433,4 +431,4 @@ special variable corresponds to the instance of the `system-class`."
 
 
 (defun register-predefined-callback (event-class-name fn-name)
-    (pushnew fn-name (assoc-value *predefined-event-callbacks* event-class-name)))
+  (pushnew fn-name (assoc-value *predefined-event-callbacks* event-class-name)))

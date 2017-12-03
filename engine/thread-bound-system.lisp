@@ -27,10 +27,9 @@
                                                                (important-p t))
   "Dispatch task to be executed in the system's thread."
   (flet ((invoker ()
-           (log-errors
-             (let ((*system-context* (system-context-of this))
-                   (*system* this))
-               (funcall fn)))))
+           (let ((*system-context* (system-context-of this))
+                 (*system* this))
+             (funcall fn))))
     (execute (%executor-of this) #'invoker :priority priority :important-p important-p)))
 
 

@@ -1,17 +1,7 @@
 (in-package :cl-bodge.concurrency)
 
 
-(declaim (special *active-dispatcher*))
-
-
 (defgeneric dispatch (dispatcher task invariant &key &allow-other-keys))
-
-
-(defmethod dispatch :around (dispatcher fn invariant &rest keys &key &allow-other-keys)
-  (flet ((wrapped ()
-           (let ((*active-dispatcher* dispatcher))
-             (funcall fn))))
-    (apply #'call-next-method dispatcher #'wrapped invariant keys)))
 
 
 (defmacro in-new-thread (thread-name &body body)

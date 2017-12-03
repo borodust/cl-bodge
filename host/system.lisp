@@ -118,13 +118,13 @@
                    (glfw:set-char-callback 'on-character-input)
                    (glfw:swap-interval 0)
                    (%glfw:make-context-current (cffi:null-pointer))
+                   (log:debug "GL context detached from main loop thread")
                    (setf window glfw:*window*
                          shared (make-shared-context major-version minor-version)
                          enabled-p t)
-                   (log:debug "Host main loop running")
-                   (log:debug "GL context detached from main loop thread")
                    (let ((*system* this))
                      (open-latch latch)
+                     (log:debug "Host main loop running")
                      (loop while enabled-p
                         do (log-errors
                              (glfw:wait-events)
