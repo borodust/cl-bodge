@@ -21,6 +21,7 @@
    (working-directory :initform nil :reader working-directory-of)
    (shared-executors :initform nil)
    (shared-pool :initform nil)
+   (comatose-p :initform nil)
    (disabling-order :initform '())))
 
 
@@ -209,7 +210,8 @@ specified."
 
 
 (defun disable-systems (engine)
-  (with-slots (systems disabling-order) engine
+  (with-slots (systems disabling-order comatose-p) engine
+    (setf comatose-p t)
     (mt:wait-with-latch (latch)
       (run (>> (loop for system-class in disabling-order
                   collect (let ((system-class system-class))
@@ -323,13 +325,19 @@ initialized."
 not dispatched and just executed in the current thread. If :invariant is nil but :concurrently-p
 is t, task is dispatched to the engine's default pooled executor. If :invariant is specified,
 task is dispatched to the object provided under this key."
-  (with-slots (shared-pool) this
-    (etypecase invariant
-      (null (if concurrently
-                (execute shared-pool task :priority priority)
-                (funcall task)))
-      (dispatching (apply #'dispatch invariant task nil keys)))
-    t))
+  (with-slots (shared-pool comatose-p) this
+    (handler-bind ((t (lambda (e)
+                        (when comatose-p
+                          (when-let ((continue-handler (find-restart 'continue)))
+                            (log:error "Error encountered while engine is in coma, ignoring: ~A" e)
+                            (invoke-restart continue-handler))))))
+
+      (etypecase invariant
+        (null (if concurrently
+                  (execute shared-pool task :priority priority)
+                  (funcall task)))
+        (dispatching (apply #'dispatch invariant task nil keys)))
+      t)))
 
 
 (defgeneric initialization-flow (object &key &allow-other-keys)
