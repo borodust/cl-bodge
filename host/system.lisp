@@ -175,7 +175,9 @@
 
 (define-system-function (setf viewport-title) host-system (value &key (host-sys *system*))
   (with-slots (window) host-sys
-    (glfw:set-window-title (format nil "~a" value) window)))
+    ;; some darwin systems go crazy throwing FPE around while setting a title
+    (ge.util:with-float-traps-masked
+      (glfw:set-window-title (format nil "~a" value) window))))
 
 
 (define-system-function viewport-size host-system ()
