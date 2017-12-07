@@ -1,8 +1,7 @@
 (in-package :cl-bodge.canvas)
 
 
-(declaim (special *canvas*)
-         (special *pixel-ratio*))
+(declaim (special *canvas*))
 
 
 (defhandle canvas-handle
@@ -48,9 +47,9 @@
   (%nvg:translate (handle-value-of canvas) 0f0 (f (- (height-of canvas)))))
 
 
-(defun begin-canvas (canvas &optional pixel-ratio)
+(defun begin-canvas (canvas)
   (%nvg:begin-frame (handle-value-of canvas) (width-of canvas) (height-of canvas)
-                    (or pixel-ratio (pixel-ratio-of canvas)))
+                    (pixel-ratio-of canvas))
   (%invert-coordinate-system canvas))
 
 
@@ -59,18 +58,17 @@
   (reset-state))
 
 
-(defun flush-canvas (&optional (canvas *canvas*) (pixel-ratio *pixel-ratio*))
+(defun flush-canvas (&optional (canvas *canvas*))
   (end-canvas canvas)
-  (begin-canvas canvas pixel-ratio))
+  (begin-canvas canvas))
 
 
-(defmacro with-canvas ((canvas &optional (pixel-ratio 1.0)) &body body)
+(defmacro with-canvas ((canvas) &body body)
   (once-only (canvas)
-    `(let ((*canvas* ,canvas)
-           (*pixel-ratio* ,pixel-ratio))
+    `(let ((*canvas* ,canvas))
        (unwind-protect
             (progn
-              (begin-canvas *canvas* *pixel-ratio*)
+              (begin-canvas *canvas*)
               ,@body)
          (end-canvas *canvas*)))))
 
