@@ -186,7 +186,10 @@
 
 
 (define-system-function (setf viewport-size) host-system (value)
-  (glfw:set-window-size (floor (x value)) (floor (y value)) (window-of *system*)))
+  ;; same as with #'(setf viewport-title)
+  ;; some darwin systems go nuts throwing FPE around while setting a size
+  (ge.util:with-float-traps-masked
+    (glfw:set-window-size (floor (x value)) (floor (y value)) (window-of *system*))))
 
 
 (define-system-function cursor-position host-system ()
