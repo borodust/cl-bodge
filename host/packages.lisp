@@ -12,6 +12,7 @@
            swap-interval
            viewport-title
            viewport-size
+           framebuffer-size
            cursor-position
            mouse-button-state
            fullscreen-viewport-p
@@ -32,6 +33,7 @@
            x-offset-from
            y-offset-from
            viewport-size-change-event
+           framebuffer-size-change-event
            width-from
            height-from
            viewport-hiding-event

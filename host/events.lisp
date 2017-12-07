@@ -96,6 +96,10 @@
   (width height))
 
 
+(defevent framebuffer-size-change-event ()
+  (width height))
+
+
 (defevent scroll-event (input-event)
   (x-offset y-offset))
 

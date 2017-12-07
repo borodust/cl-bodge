@@ -12,6 +12,7 @@
 (defclass canvas (foreign-object)
   ((width :initarg :width :initform (error ":width missing") :reader width-of)
    (height :initarg :height :initform (error ":height missing") :reader height-of)
+   (pixel-ratio :initarg :pixel-ratio :initform 1.0 :reader pixel-ratio-of)
    (font-map :initform (make-hash-table :test #'equal))))
 
 
@@ -26,12 +27,13 @@
           h height)))
 
 
-(define-system-function make-canvas graphics-system (width height &key antialiased)
+(define-system-function make-canvas graphics-system (width height &key (pixel-ratio 1.0) antialiased)
   (let ((opts (append (list :stencil-strokes)
                       (when antialiased (list :antialias))
                       (in-development-mode (list :debug)))))
     (make-instance 'canvas
                    :handle (make-canvas-handle (apply #'bodge-nanovg:make-context opts))
+                   :pixel-ratio pixel-ratio
                    :width width
                    :height height)))
 
@@ -46,8 +48,9 @@
   (%nvg:translate (handle-value-of canvas) 0f0 (f (- (height-of canvas)))))
 
 
-(defun begin-canvas (canvas &optional (pixel-ratio 1.0))
-  (%nvg:begin-frame (handle-value-of canvas) (width-of canvas) (height-of canvas) pixel-ratio)
+(defun begin-canvas (canvas &optional pixel-ratio)
+  (%nvg:begin-frame (handle-value-of canvas) (width-of canvas) (height-of canvas)
+                    (or pixel-ratio (pixel-ratio-of canvas)))
   (%invert-coordinate-system canvas))
 
 

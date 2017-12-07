@@ -56,6 +56,11 @@
 
 (glfw:def-framebuffer-size-callback on-framebuffer-size-change (window w h)
   (declare (ignore window))
+  (post 'framebuffer-size-change-event :width w :height h))
+
+
+(glfw:def-framebuffer-size-callback on-viewport-size-change (window w h)
+  (declare (ignore window))
   (post 'viewport-size-change-event :width w :height h))
 
 
@@ -115,6 +120,7 @@
                    (glfw:set-cursor-position-callback 'on-cursor-movement)
                    (glfw:set-scroll-callback 'on-scroll)
                    (glfw:set-framebuffer-size-callback 'on-framebuffer-size-change)
+                   (glfw:set-window-size-callback 'on-viewport-size-change)
                    (glfw:set-char-callback 'on-character-input)
                    (glfw:swap-interval 0)
                    (%glfw:make-context-current (cffi:null-pointer))
@@ -182,6 +188,11 @@
 
 (define-system-function viewport-size host-system ()
   (let ((val (glfw:get-window-size (window-of *system*))))
+    (vec2 (first val) (second val))))
+
+
+(define-system-function framebuffer-size host-system ()
+  (let ((val (glfw:get-framebuffer-size (window-of *system*))))
     (vec2 (first val) (second val))))
 
 
