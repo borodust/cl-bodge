@@ -186,13 +186,15 @@
       (glfw:set-window-title (format nil "~a" value) window))))
 
 
-(define-system-function viewport-size host-system ()
-  (let ((val (glfw:get-window-size (window-of *system*))))
+(defun viewport-size (&optional (host *system*))
+  (check-type host host-system)
+  (let ((val (glfw:get-window-size (window-of host))))
     (vec2 (first val) (second val))))
 
 
-(define-system-function framebuffer-size host-system ()
-  (let ((val (glfw:get-framebuffer-size (window-of *system*))))
+(defun framebuffer-size (&optional (host *system*))
+  (check-type host host-system)
+  (let ((val (glfw:get-framebuffer-size (window-of host))))
     (vec2 (first val) (second val))))
 
 
