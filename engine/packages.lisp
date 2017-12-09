@@ -201,8 +201,10 @@
            handle-value-of
            defhandle
            *handle-value*
+           value-of
 
            foreign-object
+           handle-of
            system-foreign-object
 
            generic-system
