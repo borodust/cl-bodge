@@ -161,6 +161,10 @@
         (%glfw:make-context-current shared))))
 
 
+(defun release-rendering-context ()
+  (%glfw:make-context-current (cffi:null-pointer)))
+
+
 (defun swap-buffers (host-sys)
   (with-slots (window) host-sys
     (with-system-lock-held (host-sys)

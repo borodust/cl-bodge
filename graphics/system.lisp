@@ -19,6 +19,16 @@
           resource-executor (acquire-executor :single-threaded-p t :exclusive-p t))))
 
 
+(defmethod discard-system :before ((this graphics-system))
+  (with-slots (resource-executor) this
+    (execute resource-executor
+             (lambda ()
+               (release-rendering-context)
+               (log:debug "Shared context released"))
+             :priority :highest :important-p t)
+    (release-executor resource-executor)))
+
+
 (defmethod enabling-flow ((this graphics-system))
   (with-slots (host-sys resource-executor) this
     (>> (call-next-method)
@@ -75,6 +85,10 @@
         (gx.state:stencil-op :keep :keep :keep)
 
         ctx))))
+
+
+(defmethod destroy-system-context (ctx (this graphics-system))
+  (release-rendering-context))
 
 
 (definline graphics ()

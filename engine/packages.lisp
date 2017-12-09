@@ -33,6 +33,7 @@
            with-guarded-reference
 
            execute
+           alivep
            make-single-threaded-executor
            make-pooled-executor
 

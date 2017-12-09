@@ -63,13 +63,14 @@
 
 
 (defmethod discard-system :around ((this thread-bound-system))
-  (wait-with-latch (latch)
-    (execute (%executor-of this)
-             (lambda ()
-               (unwind-protect
-                    (destroy-system-context this (system-context-of this))
-                 (open-latch latch)))
-             :priority :highest :important-p t))
+  (when (alivep (%executor-of this))
+    (wait-with-latch (latch)
+      (execute (%executor-of this)
+               (lambda ()
+                 (unwind-protect
+                      (destroy-system-context this (system-context-of this))
+                   (open-latch latch)))
+               :priority :highest :important-p t)))
   (call-next-method))
 
 

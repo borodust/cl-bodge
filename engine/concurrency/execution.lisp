@@ -12,6 +12,11 @@
 executor. Executor must operate in thread-safe manner."))
 
 
+(defgeneric alivep (executor)
+  (:method (executor) t)
+  (:documentation "Checks if executor is alive"))
+
+
 (defclass generic-executor (disposable)
   ((queue :initform nil :reader task-queue-of)))
 
@@ -98,6 +103,11 @@ below maximum allowed."
                  :special-variables special-variables))
 
 
+(defmethod alivep ((this single-threaded-executor))
+  (with-slots (processing-thread) this
+    (thread-alive-p processing-thread)))
+
+
 (defmethod execute ((this single-threaded-executor) (task function) &key
                                                                       (priority :medium)
                                                                       (important-p t))
@@ -129,6 +139,11 @@ thread are the same."
 (definline make-pooled-executor (&optional (size +default-pool-size+))
   "Make executor that run tasks concurrently in the dedicated thread-pool."
   (make-instance 'pooled-executor :size size))
+
+
+(defmethod alivep ((this pooled-executor))
+  (with-slots (pool) this
+    (mt:pool-alive-p pool)))
 
 
 (defmethod execute ((this pooled-executor) (task function) &key (priority :medium))
