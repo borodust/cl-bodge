@@ -1,7 +1,4 @@
-(in-package :cl-bodge.asdf)
-
-
-(defpackage :cl-bodge.text
+(cl:defpackage :cl-bodge.text
   (:nicknames :ge.text)
   (:use :cl :cl-bodge.utils :cl-bodge.engine :cl-bodge.graphics
         :cl-bodge.resources :cl-bodge.library.shading)

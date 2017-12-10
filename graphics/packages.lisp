@@ -1,6 +1,3 @@
-(in-package :cl-bodge.asdf)
-
-
 (ge.util:define-package :cl-bodge.graphics.state
   (:nicknames :gx.state)
   (:export enable

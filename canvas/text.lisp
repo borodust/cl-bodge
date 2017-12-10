@@ -1,9 +1,6 @@
 (in-package :cl-bodge.canvas)
 
 
-(defgeneric font-container-data (container))
-
-
 (defvar *active-font* nil)
 
 
@@ -27,7 +24,7 @@
 
 
 (defun register-font-face (name font-container &optional (canvas *canvas*))
-  (let ((data (font-container-data font-container)))
+  (let ((data (ge.rsc:font-container-data font-container)))
       (let ((font-face-id (%nvg:find-font (handle-value-of canvas) (namestring name))))
         (if (< font-face-id 0)
             (let* ((f-data (static-vectors:make-static-vector (length data) :initial-contents data))

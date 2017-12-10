@@ -72,3 +72,18 @@
     (unwind-protect
          (call-next-method)
       (pop *skeletons*))))
+
+
+;;; skeleton resource
+
+(defun parse-skeleton-resource (chunk)
+  (labels ((%traverse (bone)
+             (let ((node (make-instance 'ge.sg:bone-node
+                                        :name (ge.rsc:id-of bone)
+                                        :transform (sequence->mat4
+                                                    (ge.rsc:skeleton-bone-transform bone)))))
+               (dolist (child (ge.rsc:children-of bone))
+                 (adopt node (%traverse child)))
+               node)))
+    (unless (null chunk)
+      (%traverse chunk))))

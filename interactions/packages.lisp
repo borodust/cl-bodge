@@ -1,7 +1,4 @@
-(in-package :cl-bodge.asdf)
-
-
-(defpackage :cl-bodge.interactions
+(cl:defpackage :cl-bodge.interactions
   (:nicknames :ge.act)
   (:use :cl :cl-bodge.engine :cl-bodge.utils
         :cl-bodge.physics :cl-bodge.poiu :cl-bodge.graphics

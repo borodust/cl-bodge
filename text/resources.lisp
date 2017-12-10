@@ -1,0 +1,15 @@
+(in-package :cl-bodge.text)
+
+(define-system-function build-sdf-font ge.gx:graphics-system (name)
+  (let* ((font-chunk (load-resource (ge.rsc:sdf-font-metrics-resource-name name)))
+         (atlas-image (load-resource (ge.rsc:sdf-font-atlas-resource-name name)))
+         (glyphs (loop for g in (ge.rsc:children-of font-chunk)
+                    collect (make-glyph (code-char (ge.rsc:glyph-metrics-character g))
+                                        (ge.rsc:glyph-metrics-origin g)
+                                        (ge.rsc:glyph-metrics-bounding-box g)
+                                        (ge.rsc:glyph-metrics-advance-width g)
+                                        (ge.rsc:glyph-metrics-kernings g)))))
+    (bake-font atlas-image glyphs
+               (ge.rsc:font-atlas-chunk-ascender font-chunk)
+               (- (ge.rsc:font-atlas-chunk-descender font-chunk))
+               (ge.rsc:font-atlas-chunk-line-gap font-chunk))))

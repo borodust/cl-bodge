@@ -1,10 +1,6 @@
-(in-package :cl-bodge.asdf)
-
-
 (ge.util:define-package :cl-bodge
   (:nicknames :ge)
   (:use-reexport :cl-bodge.animation
-                 :cl-bodge.assets
                  :cl-bodge.audio
                  :cl-bodge.engine
                  :cl-bodge.network

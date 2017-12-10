@@ -1,6 +1,3 @@
-(in-package :cl-bodge.asdf)
-
-
 (ge.util:define-package :cl-bodge.memory
   (:nicknames :ge.mem)
   (:use :cl :cl-bodge.utils :trivial-garbage :static-vectors)

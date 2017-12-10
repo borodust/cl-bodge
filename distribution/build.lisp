@@ -41,8 +41,7 @@
                  (append (list "--script" (file (distribution-system-path) "builder.lisp")
                                "--output" output-file
                                "--entry" (entry-function-of *distribution*)
-                               "--manifest-file" manifest-file
-                               "--load-system" "bodge-blobs")
+                               "--manifest-file" manifest-file)
                          (loop for (binding . value) in (bindings-of *distribution*)
                             appending (list "--eval" (%make-defvar binding value)))
                          (list "--load" (file (distribution-system-path) "prologue.lisp")

@@ -1,6 +1,3 @@
-(in-package :cl-bodge.asdf)
-
-
 (ge.util:define-package :cl-bodge.host
   (:nicknames :ge.host)
   (:use :cl-bodge.engine :cl-bodge.utils :cl :bordeaux-threads :cl-muth)

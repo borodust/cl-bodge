@@ -1,7 +1,4 @@
-(in-package :cl-bodge.asdf)
-
-
-(defpackage :cl-bodge.canvas
+(cl:defpackage :cl-bodge.canvas
   (:nicknames :ge.vg)
   (:use :cl :cl-bodge.engine :cl-bodge.utils :cl-bodge.graphics :bodge-autowrap :bodge-plus-c)
   (:export make-canvas
@@ -38,7 +35,6 @@
            reset-canvas-transform
 
            register-font-face
-           font-container-data
            make-font
            with-font
            draw-text))

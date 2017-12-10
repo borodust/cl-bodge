@@ -66,11 +66,6 @@ Experimental **bod**acious **g**ame **e**ngine written in **C**ommon **L**isp.
   passes (rendering, simulation, etc); graphics-oriented, physics-oriented, transformation,
   animation, generic model and other types of nodes. See `cl-bodge/scenegraph`.
 
-* ***Assets***
-
-  Engine's universal Bodge Resource File and various external formats parsing and loading: images,
-  audio, fonts, meshes, skeletons, animations, etc. See `cl-bodge/assets`
-
 * ***Distribution***
 
   Utilites for packaging application for shipping across different OSes: lisp image dumping,
@@ -96,10 +91,6 @@ Experimental **bod**acious **g**ame **e**ngine written in **C**ommon **L**isp.
   [Chicken](https://www.youtube.com/watch?v=ypZP4SNQOv8)
 * SDF-based text rendering: [Hello text](https://www.youtube.com/watch?v=8q_ssF4eEQQ)
 * GUI and [Text editing](https://www.youtube.com/watch?v=T5nCKKGj1J0)
-* Ball-Z game written for
-  [Autumn 2016 Lisp Game Jam](https://itch.io/jam/autumn-2016-lisp-game-jam/rate/99353):
-  [Ball-Z](https://www.youtube.com/watch?v=noVtO2H9hSY)
-* [Mortar Combat](https://vimeo.com/214584286) game for [Spring 2017 Lisp Game Jam](https://itch.io/jam/lisp-game-jam-2017-easy-mode)
 
 Also, check out [trivial-gamekit](https://github.com/borodust/trivial-gamekit) to get started
 with `cl-bodge` bit by bit.

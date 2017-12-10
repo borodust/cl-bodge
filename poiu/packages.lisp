@@ -1,6 +1,3 @@
-(in-package :cl-bodge.asdf)
-
-
 (ge.util:define-package :cl-bodge.poiu
   (:nicknames :ge.poiu)
   (:use :cl :cl-bodge.engine :cl-bodge.utils :cl-bodge.graphics :bodge-plus-c

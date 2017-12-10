@@ -1,6 +1,3 @@
-(in-package :cl-bodge.asdf)
-
-
 (defpackage :cl-bodge.animation
   (:nicknames :ge.ani)
   (:use :cl :cl-bodge.utils :cl-bodge.engine :cl-bodge.graphics)
@@ -18,4 +15,6 @@
            make-animation-channel
            current-frame-of
            play-animation
-           keyframed))
+           keyframed
+
+           parse-keyframe-animation))

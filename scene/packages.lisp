@@ -1,6 +1,3 @@
-(in-package :cl-bodge.asdf)
-
-
 (defpackage :cl-bodge.scene
   (:nicknames :ge.sg)
   (:use :cl :cl-bodge.utils :cl-bodge.engine :cl-bodge.graphics :cl-bodge.physics

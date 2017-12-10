@@ -1,4 +1,4 @@
-(in-package :cl-bodge.assets)
+(in-package :cl-bodge.resources)
 
 
 (defclass audio ()
@@ -20,14 +20,14 @@
 
 (defun make-cached-pcm-16-audio (file)
   (make-instance 'cached-pcm-16-audio
-                 :samples (read-short-samples-into-array file)
-                 :sampling-rate (sound-sample-rate file)
-                 :channel-format (ecase (sound-channels file)
+                 :samples (bodge-sndfile:read-short-samples-into-array file)
+                 :sampling-rate (bodge-sndfile:sound-sample-rate file)
+                 :channel-format (ecase (bodge-sndfile:sound-channels file)
                                    (1 :mono)
                                    (2 :stereo))))
 
 (defun load-ogg-vorbis-audio (path)
-  (with-open-sound-file (file path)
+  (bodge-sndfile:with-open-sound-file (file path)
     (make-cached-pcm-16-audio file)))
 
 
@@ -39,17 +39,17 @@
 
 
 (defmethod decode-resource ((this audio-resource-handler) stream)
-  (with-sound-file-from-stream (file stream)
+  (bodge-sndfile:with-sound-file-from-stream (file stream)
     (make-cached-pcm-16-audio file)))
 
 
 (defmethod encode-resource ((this audio-resource-handler) (audio cached-pcm-16-audio) stream)
-  (write-short-samples-into-stream stream (pcm-audio-data-of audio)
-                                   :format :flac
-                                   :channels (ecase (audio-channel-format-of audio)
-                                               (:mono 1)
-                                               (:stereo 2))
-                                   :sample-rate (audio-sampling-rate-of audio)))
+  (bodge-sndfile:write-short-samples-into-stream stream (pcm-audio-data-of audio)
+                                                 :format :flac
+                                                 :channels (ecase (audio-channel-format-of audio)
+                                                             (:mono 1)
+                                                             (:stereo 2))
+                                                 :sample-rate (audio-sampling-rate-of audio)))
 
 
 (defmethod make-resource-handler ((type (eql :audio)) &key)

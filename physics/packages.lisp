@@ -1,7 +1,4 @@
-(in-package :cl-bodge.asdf)
-
-
-(defpackage :cl-bodge.physics
+(cl:defpackage :cl-bodge.physics
   (:use :cl-bodge.engine :cl-bodge.utils
         :cl :local-time :bodge-ode :bodge-autowrap :bodge-plus-c)
   (:nicknames :ge.phx)

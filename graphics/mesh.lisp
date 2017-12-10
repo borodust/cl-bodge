@@ -126,3 +126,28 @@
 (defmethod render ((this submesh))
   (with-slots (mesh start end) this
     (render-mesh mesh start end)))
+
+;;;
+;;; Build from resource
+;;;
+
+(define-system-function build-mesh graphics-system (mesh-chunk)
+  (let* ((arrays (ge.rsc:mesh-chunk-arrays mesh-chunk))
+         (v-count (length (cadar arrays)))
+         (chunk-bones (ge.rsc:mesh-chunk-bones mesh-chunk))
+         (bone-count (reduce #'max chunk-bones :key #'ge.rsc:mesh-bone-index :initial-value 0))
+         (bones
+          (loop with r = (make-array bone-count :initial-element nil)
+             for bone in chunk-bones do
+               (setf (aref r (1- (ge.rsc:mesh-bone-index bone)))
+                     (when-let ((skeleton-bone (ge.rsc:mesh-bone-bone bone)))
+                       (cons (ge.rsc:id-of skeleton-bone)
+                             (sequence->mat4 (ge.rsc:mesh-bone-offset bone)))))
+             finally (return r)))
+         (index-array (list->array (ge.rsc:mesh-chunk-indexes mesh-chunk)))
+         (mesh (ge.gx:make-mesh v-count :triangles index-array)))
+    (loop for (array-id array) in arrays do
+         (with-disposable ((vbuf (ge.gx:make-array-buffer
+                                  (list->array array v-count (length (car array))))))
+           (ge.gx:attach-array-buffer vbuf mesh array-id)))
+    (values mesh (sequence->mat4 (ge.rsc:mesh-chunk-transform mesh-chunk)) bones)))
