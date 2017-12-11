@@ -21,11 +21,16 @@
 
 (defmethod discard-system :before ((this graphics-system))
   (with-slots (resource-executor) this
-    (execute resource-executor
-             (lambda ()
-               (release-rendering-context)
-               (log:debug "Shared context released"))
-             :priority :highest :important-p t)
+    (when (alivep resource-executor)
+      (mt:wait-with-latch (latch)
+        (execute resource-executor
+                 (lambda ()
+                   (unwind-protect
+                        (progn
+                          (release-rendering-context)
+                          (log:debug "Shared context released"))
+                     (mt:open-latch latch)))
+                 :priority :highest :important-p t)))
     (release-executor resource-executor)))
 
 
