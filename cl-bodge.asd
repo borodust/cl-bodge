@@ -1,31 +1,3 @@
-(cl:defclass bodge-system (asdf:system)
-  ((requires :initarg :requires :initform nil)))
-
-;;;
-;;; When lurking for dependencies, but before their loading, load bodge system :requires
-;;;
-(cl:defmethod #-asdf3.2 asdf/plan:plan-record-dependency
-              #+asdf3.2 asdf/plan:record-dependency
-    :before (plan (o asdf:load-op) (c bodge-system))
-  (cl:with-slots (requires) c
-    (cl:loop for system in requires
-             if (asdf:find-system system nil)
-             do (asdf:load-system system)
-             else
-             do (cl:error 'asdf:missing-dependency
-                          :required-by c
-                          :requires system))))
-
-
-(cl:defmethod asdf:system-depends-on ((c bodge-system))
-  (cl:with-slots (requires) c
-    (cl:flet ((to-downcased-name (name)
-                (cl:etypecase name
-                  (cl:symbol (cl:string-downcase (cl:symbol-name name)))
-                  (cl:string (cl:string-downcase name)))))
-      (cl:append (cl:mapcar #'to-downcased-name requires) (cl:call-next-method)))))
-
-
 (asdf:defsystem cl-bodge/utils
   :description "Bodacious Game Engine various utilities"
   :version "0.4.0"
@@ -99,6 +71,7 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
+  :defsystem-depends-on (cl-bodge-support)
   :class bodge-system
   :requires (bodge-blobs/resources)
   :depends-on (cl-bodge/engine cl-bodge/utils flexi-streams
@@ -134,6 +107,7 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
+  :defsystem-depends-on (cl-bodge-support)
   :class bodge-system
   :requires (bodge-blobs/host)
   :depends-on (cl-bodge/engine cl-bodge/utils cl-glfw3 log4cl bordeaux-threads
@@ -152,6 +126,7 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
+  :defsystem-depends-on (cl-bodge-support)
   :class bodge-system
   :requires (bodge-blobs/network)
   :depends-on (cl-bodge/engine cl-bodge/utils cl-conspack log4cl closer-mop
@@ -178,6 +153,7 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
+  :defsystem-depends-on (cl-bodge-support)
   :class bodge-system
   :requires (bodge-blobs/graphics)
   :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/host cl-bodge/resources
@@ -203,6 +179,7 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
+  :defsystem-depends-on (cl-bodge-support)
   :class bodge-system
   :requires (bodge-blobs/canvas)
   :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/graphics
@@ -239,6 +216,7 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
+  :defsystem-depends-on (cl-bodge-support)
   :class bodge-system
   :requires (bodge-blobs/audio)
   :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/host log4cl
@@ -258,6 +236,7 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
+  :defsystem-depends-on (cl-bodge-support)
   :class bodge-system
   :requires (bodge-blobs/physics)
   :depends-on (cl-bodge/engine bodge-ode log4cl bodge-autowrap bodge-plus-c local-time)
@@ -325,6 +304,7 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
+  :defsystem-depends-on (cl-bodge-support)
   :class bodge-system
   :requires (bodge-blobs/poiu)
   :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/graphics bodge-nuklear
