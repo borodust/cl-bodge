@@ -91,13 +91,25 @@ file is stored."
 
 
 (defun value-flow (value)
-  "Return flow that returns single value."
+  "Return flow that returns a single value."
   (instantly () value))
 
 
 (defun null-flow ()
-  "Return flow that returns nil as single value."
+  "Return flow that returns nil as a single value."
   (value-flow nil))
+
+
+(defun always-true () t)
+
+(defun loop-flow (flow &optional (test #'always-true))
+  (let (looped)
+    (setf looped
+          (>> flow
+              (->> (value)
+                (if (funcall test)
+                    looped
+                    (value-flow value)))))))
 
 ;;
 (defclass system ()

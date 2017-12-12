@@ -1,4 +1,4 @@
-(uiop:define-package :cl-bodge.utils
+(uiop/package:define-package :cl-bodge.utils
   (:nicknames :ge.util)
   (:use :cl :local-time :alexandria :split-sequence :static-vectors :trivial-gray-streams)
   (:export ; from :alexandria
@@ -34,7 +34,7 @@
            ensure-list
            assoc-value
            doplist)
-  (:import-from :uiop
+  (:import-from :uiop/package
                 define-package)
   (:export define-package)
   (:export log-errors

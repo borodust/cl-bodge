@@ -188,6 +188,7 @@
            concurrently
            value-flow
            null-flow
+           loop-flow
            assembly-flow
            initialization-flow
            run
