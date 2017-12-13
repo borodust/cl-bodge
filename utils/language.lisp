@@ -18,7 +18,7 @@
          (deftype ,name ()
            '(member ,@values))
          (define-constant ,enum-values-constant ',values :test #'equal)
-         (declaim (ftype (function (,name) boolean) ,predicate)
+         (declaim (ftype (function (*) (values boolean)) ,predicate)
                   (inline ,predicate))
          (defun ,predicate (,value)
            (not (null (member ,value ,enum-values-constant :test #'eql))))))))
