@@ -103,13 +103,16 @@ file is stored."
 (defun always-true () t)
 
 (defun loop-flow (flow &optional (test #'always-true))
+  "Makes passed flow into a loop. Flow will be repeated while test function returns `t`.
+Test happens before each flow execution. Result of the last flow iteration is passed to the next
+flow block after the looped flow."
   (let (looped)
     (setf looped
-          (>> flow
-              (->> (value)
-                (if (funcall test)
-                    looped
-                    (value-flow value)))))))
+          (->> (value)
+            (if (funcall test)
+                (>> flow
+                    looped)
+                (value-flow value))))))
 
 ;;
 (defclass system ()
