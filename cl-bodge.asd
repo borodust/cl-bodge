@@ -340,7 +340,7 @@
   :class bodge-system
   :requires (bodge-blobs/poiu)
   :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/graphics bodge-nuklear
-                               cl-bodge/text cl-bodge/canvas bodge-autowrap bodge-plus-c)
+                               cl-bodge/canvas bodge-autowrap bodge-plus-c)
   :pathname "poiu/"
   :serial t
   :components ((:file "packages")

@@ -1,4 +1,4 @@
-(cl:defpackage :cl-bodge.canvas
+(ge.util:define-package :cl-bodge.canvas
   (:nicknames :ge.vg)
   (:use :cl :cl-bodge.engine :cl-bodge.utils :cl-bodge.graphics :bodge-autowrap :bodge-plus-c)
   (:export make-canvas
@@ -37,4 +37,9 @@
            register-font-face
            make-font
            with-font
-           draw-text))
+           draw-text
+           canvas-text-bounds
+           canvas-font-metrics
+           canvas-font-line-height
+           canvas-font-ascender
+           canvas-font-descender))

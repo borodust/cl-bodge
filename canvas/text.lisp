@@ -39,9 +39,9 @@
             font-face-id))))
 
 
-(defun make-font (face size &rest args &key letter-spacing line-height alignment)
+(defun make-font (face-id size &rest args &key letter-spacing line-height alignment)
   (declare (ignore letter-spacing line-height alignment))
-  (apply #'make-instance 'font :face face :size size args))
+  (apply #'make-instance 'font :face face-id :size size args))
 
 
 (defun %apply-font (font canvas)
@@ -64,3 +64,30 @@
             ,@body)
        (when *active-font*
          (%apply-font *active-font* ,canvas)))))
+
+
+(defun canvas-text-bounds (string &optional (canvas *canvas*))
+  (static-vectors:with-static-vector (bounds 4 :element-type 'single-float)
+    (%nvg:text-bounds (handle-value-of canvas) 0f0 0f0 string (cffi:null-pointer)
+                      (static-vectors:static-vector-pointer bounds))
+    (vec4 (aref bounds 0) (- (aref bounds 1)) (aref bounds 2) (- (aref bounds 3)))))
+
+
+
+;;;
+;;; Metrics
+;;;
+(defstruct (font-metrics
+            (:conc-name canvas-font-))
+  (line-height (f 0) :type single-float :read-only t)
+  (ascender (f 0) :type single-float :read-only t)
+  (descender (f 0) :type single-float :read-only t))
+
+
+(defun canvas-font-metrics (font &optional (canvas *canvas*))
+  (with-font (font canvas)
+    (c-with ((ascender :float) (descender :float) (line-height :float))
+      (%nvg:text-metrics (handle-value-of canvas) (ascender &) (descender &) (line-height &))
+      (make-font-metrics :line-height line-height
+                         :ascender ascender
+                         :descender descender))))
