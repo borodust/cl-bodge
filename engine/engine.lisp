@@ -22,6 +22,7 @@
    (shared-executors :initform nil)
    (shared-pool :initform nil)
    (comatose-p :initform nil)
+   (stop-latch :initform (mt:make-latch) :reader %stop-latch-of)
    (disabling-order :initform '())))
 
 
@@ -261,8 +262,9 @@ specified."
     (dispose ex)))
 
 
-(defun startup (properties &optional (working-directory (directory-namestring
-                                                         (current-executable-path))))
+(defun startup (properties &key (working-directory (directory-namestring
+                                                    (current-executable-path)))
+                             blocking)
   "Start engine synchronously loading configuration from `properties` (file, hash-table, plist
 or alist). `(:engine :systems)` property must exist in the config and should contain list
 of existing system class names loaded into current lisp image. Specified systems and their
@@ -281,6 +283,8 @@ directories used by the engine are relative to 'working-directory parameter."
       (funcall hook)))
   (in-new-thread-waiting "startup-worker"
     (enable-systems *engine*))
+  (when blocking
+    (mt:wait-for-latch (%stop-latch-of *engine*)))
   (values))
 
 
@@ -291,8 +295,10 @@ initialized."
     (error "Engine already stopped"))
   (in-new-thread-waiting "shutdown-worker"
     (disable-systems *engine*))
-  (dispose *engine*)
-  (setf *engine* nil)
+  (let ((latch (%stop-latch-of *engine*)))
+    (dispose *engine*)
+    (setf *engine* nil)
+    (mt:open-latch latch))
   (values))
 
 
