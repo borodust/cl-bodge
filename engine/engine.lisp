@@ -214,7 +214,7 @@ specified."
   (with-slots (systems disabling-order) engine
     (let ((system-class-names (property '(:engine :systems))))
       (when (null system-class-names)
-        (error "(:engine :systems) property should be defined and cannot be nil"))
+        (warn "(:engine :systems) property is empty. No systems are going to be enabled."))
       (let* ((sys-table (alist-hash-table (instantiate-systems system-class-names)))
              (enabling-flows (requested-systems-enabling-flow sys-table)))
         (setf systems sys-table)
