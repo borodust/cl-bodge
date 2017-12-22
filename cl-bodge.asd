@@ -67,7 +67,7 @@
   :license "MIT"
   :depends-on (cl-bodge/utils cl-muth rtg-math log4cl bordeaux-threads local-time
                               bodge-blobs-support trivial-garbage uiop cffi cl-flow uiop
-                              trivial-main-thread)
+                              trivial-main-thread simple-flow-dispatcher)
   :pathname "engine/"
   :serial t
   :components ((:file "packages")
@@ -331,7 +331,7 @@
                (:file "resources")))
 
 
-(asdf:defsystem cl-bodge/poiu
+(asdf:defsystem cl-bodge/ui
   :description "Bodacious Game Engine Plain Old Interface for Users"
   :version "0.4.0"
   :author "Pavel Korolev"
@@ -341,11 +341,10 @@
   :requires (bodge-blobs/poiu)
   :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/graphics bodge-nuklear
                                cl-bodge/canvas bodge-autowrap bodge-plus-c)
-  :pathname "poiu/"
+  :pathname "ui/"
   :serial t
   :components ((:file "packages")
-               (:file "poiu")
-               (:file "events")
+               (:file "ui")
                (:file "elements")
                (:file "rendering-backend")))
 

@@ -100,6 +100,11 @@
   (engine-system 'graphics-system))
 
 
+(defmacro rendering ((&optional arg) &body body)
+  `(-> ((graphics)) (,@(ensure-list arg))
+     ,@body))
+
+
 (define-system-function reset-state graphics-system ()
   (reset-context-state (ctx-state *system-context*)))
 

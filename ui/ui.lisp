@@ -1,4 +1,4 @@
-(in-package :cl-bodge.poiu)
+(in-package :cl-bodge.ui)
 
 
 (declaim (special *context*
@@ -31,12 +31,8 @@
    (height :initarg :height :reader height-of)
    (canvas :initarg :canvas :reader canvas-of)
    (compose-tasks :initform (make-task-queue))
-   (text-renderer :initarg :text-renderer :reader text-renderer-of)))
-
-
-(defmethod font-of ((ctx nuklear-context))
-  (with-slots (text-renderer) ctx
-    (font-of text-renderer)))
+   (windows :initform nil :reader %windows-of)
+   (font :initarg :font :reader font-of)))
 
 
 (define-destructor nuklear-context (nuklear-font canvas)
@@ -45,30 +41,54 @@
 
 
 (bodge-nuklear:define-font-width-callback calc-string-width (handle height string)
-  (let ((w (first (measure-string string (font-of *context*)))))
-    (* w (scale-of (text-renderer-of *context*)))))
+  (with-font ((font-of *context*) (canvas-of *context*))
+    (let ((bounds (canvas-text-bounds string (canvas-of *context*))))
+      (- (z bounds) (x bounds)))))
+
+
+(defun ui-font (name size canvas-font-container
+                &key letter-spacing line-height alignment)
+  (list name canvas-font-container size letter-spacing line-height alignment))
 
 
 (defmethod initialize-instance ((this nuklear-context) &rest keys &key width height
-                                                                    font line-height
+                                                                    font-descriptor
                                                                     antialiased)
-  (let ((nk-font (make-nuklear-font line-height 'calc-string-width)))
-    (apply #'call-next-method this
-           :handle (make-nuklear-context-handle
-                    (bodge-nuklear:make-context (handle-value-of nk-font)))
-           :canvas (make-canvas width height :antialiased antialiased)
-           :nuklear-font nk-font
-           :text-renderer (make-text-renderer width height font line-height)
-           keys)))
+  (let ((canvas (make-canvas width height :antialiased antialiased)))
+    (destructuring-bind (name canvas-font-container size letter-spacing line-height alignment)
+        font-descriptor
+      (let* ((font-face-id (register-font-face name canvas-font-container canvas))
+             (font (make-font font-face-id size
+                              :letter-spacing letter-spacing
+                              :line-height line-height
+                              :alignment alignment))
+             (nk-font (make-nuklear-font (canvas-font-line-height (canvas-font-metrics font canvas))
+                                         'calc-string-width)))
+        (apply #'call-next-method this
+               :handle (make-nuklear-context-handle
+                        (bodge-nuklear:make-context (handle-value-of nk-font)))
+               :canvas canvas
+               :nuklear-font nk-font
+               :font font
+               keys)))))
 
 
-(definline make-poiu-context (width height font line-height &key antialiased)
+(definline make-ui-context (width height font-descriptor &key antialiased)
   (make-instance 'nuklear-context
                  :width width
                  :height height
-                 :font font
-                 :line-height line-height
+                 :font-descriptor font-descriptor
                  :antialiased antialiased))
+
+
+(defun add-window (context window)
+  (with-slots (windows) context
+    (push window windows)))
+
+
+(defun remove-window (context window)
+  (with-slots (windows) context
+    (deletef windows window)))
 
 
 (defun push-compose-task (ctx fn)
@@ -76,7 +96,7 @@
     (push-task fn compose-tasks)))
 
 
-(defmacro when-composing ((ctx) &body body)
+(defmacro with-ui-access ((ctx) &body body)
   `(push-compose-task ,ctx (lambda () ,@body)))
 
 
@@ -85,22 +105,22 @@
     (drain compose-tasks)))
 
 
-(defmacro with-poiu ((ctx) &body body)
+(defmacro with-ui ((ctx) &body body)
   `(let ((*context* ,ctx)
          (*handle* (handle-value-of ,ctx)))
      ,@body))
 
 
-(defmacro with-poiu-input ((poiu) &body body)
-  `(with-poiu (,poiu)
+(defmacro with-ui-input ((ui) &body body)
+  `(with-ui (,ui)
      (prog2
          (%nk:input-begin *handle*)
          (progn ,@body)
        (%nk:input-end *handle*))))
 
 
-(definline clear-poiu-context (&optional (poiu *context*))
-  (%nk:clear (handle-value-of poiu)))
+(definline clear-ui-context (&optional (ui *context*))
+  (%nk:clear (handle-value-of ui)))
 
 
 (defun register-cursor-position (x y)
@@ -111,9 +131,8 @@
   (%nk:input-unicode *handle* (char-code character)))
 
 
-(defun update-poiu-canvas-size (poiu width height)
-  (with-slots ((w width) (h height) text-renderer canvas) poiu
-    (update-text-renderer-canvas-size text-renderer width height)
+(defun update-ui-size (ui width height)
+  (with-slots ((w width) (h height) text-renderer canvas) ui
     (update-canvas-size canvas width height)
     (setf w width
           h height)))

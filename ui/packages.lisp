@@ -1,28 +1,34 @@
-(ge.util:define-package :cl-bodge.poiu
-  (:nicknames :ge.poiu)
+(ge.util:define-package :cl-bodge.ui
+  (:nicknames :ge.ui)
   (:use :cl :cl-bodge.engine :cl-bodge.utils :cl-bodge.graphics :bodge-plus-c
-        :cl-bodge.canvas :bodge-autowrap :cl-bodge.text :cl-bodge.resources)
-  (:export make-poiu-context
-           clear-poiu-context
+        :cl-bodge.canvas :bodge-autowrap :cl-bodge.resources)
+  (:export make-ui-context
+           with-ui-access
+           ui-font
+           add-window
+           remove-window
 
-           make-poiu
-           compose-poiu
-           when-composing
+           compose-ui
+
            name-of
+           hiddenp
            find-element
 
-           adopt-layout-by
            make-container-layout
-           make-window
+
            defwindow
+           make-window
            show-window
            hide-window
+
            make-menu-bar
+
            make-static-row-layout
            make-dynamic-row-layout
-           hiddenp
+
            show-widget
            hide-widget
+
            make-label-button
            make-text-label
            make-text-edit
@@ -30,21 +36,15 @@
            make-spacing
            make-list-select
            add-item
-           clear
            item-name-of
-           make-health-monitor
-           show-health-monitor
-           hide-health-monitor
+
+           make-debug-console
+           show-debug-console
+           hide-debug-console
            add-simple-reporter
 
-           with-poiu-input
+           with-ui-input
            register-cursor-position
            register-mouse-input
            register-character-input
-           register-keyboard-input
-
-           button-click-event
-           poiu-button-from
-           item-selected
-           source-from
-           item-from))
+           register-keyboard-input))

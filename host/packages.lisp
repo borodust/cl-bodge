@@ -36,9 +36,11 @@
            height-from
            viewport-hiding-event
 
-           make-keymap
-           enable-keymap
-           disable-keymap
-           bind-button
-           bind-key
+           make-input-map
+           enable-input-map
+           disable-input-map
+           bind-mouse-button
+           bind-keyboard-button
+           bind-mouse
+           bind-keyboard
            bind-cursor))

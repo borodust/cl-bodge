@@ -1,13 +1,7 @@
-(in-package :cl-bodge.poiu)
+(in-package :cl-bodge.ui)
 
 
 (defgeneric compose (element))
-
-
-(defun compose-poiu (element context)
-  (with-poiu (context)
-    (drain-compose-task-queue context)
-    (compose element)))
 
 
 (defclass named ()
@@ -43,7 +37,7 @@
     (once-only (parent-layout)
       `(prog1 ,parent-layout
          ,@(loop for element in (mapcar #'expand-element-hierarchy elements)
-              collect `(adopt ,parent-layout ,element))))))
+                 collect `(adopt ,parent-layout ,element))))))
 
 
 ;; todo: wrap each push/pop into proper unwind-protect?
@@ -74,8 +68,8 @@
 ;;;
 ;;;
 (defclass window (layout disposable)
-  ((id :initform (symbol-name (gensym "poiu-window")))
-   (poiu :initarg :poiu :initform (error ":poiu missing"))
+  ((id :initform (symbol-name (gensym "ui-window")))
+   (ui :initarg :ui :initform (error ":ui missing"))
    (x :initarg :x :initform 0.0)
    (y :initarg :y :initform 0.0)
    (panel-p :initarg :panel-p)
@@ -100,7 +94,7 @@
 
 
 (defmethod initialize-instance :after ((this window) &key width height hidden-p background-color)
-  (with-slots ((w width) (h height) title poiu background-style-item) this
+  (with-slots ((w width) (h height) title ui background-style-item) this
     (setf w (float width 0f0)
           h (float height 0f0))
     (when background-color
@@ -109,12 +103,12 @@
       (hide-window this))))
 
 
-(define-destructor window (poiu id)
-  (when-composing (poiu)
-    (%nk:window-close (handle-value-of poiu) id)))
+(define-destructor window (ui id)
+  (with-ui-access (ui)
+    (%nk:window-close (handle-value-of ui) id)))
 
 
-(defun make-window (poiu origin w h &key (title "") (background-color nil)
+(defun make-window (ui origin w h &key (title "") (background-color nil)
                                       (headerless t) (scrollable nil) (background-p nil)
                                       (borderless nil) (panel-p nil) (resizable nil)
                                       (minimizable nil) (movable nil) (closable nil)
@@ -123,7 +117,7 @@
                `(when ,key
                   (list ,option))))
     (make-instance 'window
-                   :poiu poiu
+                   :ui ui
                    :x (x origin) :y (y origin) :width w :height h
                    :panel-p panel-p
                    :title title
@@ -186,12 +180,9 @@
 
 (defmacro defwindow (name-and-opts &body layout)
   (destructuring-bind (name &rest opts) (ensure-list name-and-opts)
-    (with-gensyms (poiu origin width height)
-      `(defun ,(symbolicate 'make- name '-window) (,poiu ,origin ,width ,height)
-         (adopt-layout-by ((apply #'make-window ,poiu
-                                  (x ,origin) (y ,origin)
-                                  ,width ,height
-                                  ,@opts))
+    (with-gensyms (ui origin width height)
+      `(defun ,(symbolicate 'make- name '-window) (,ui ,origin ,width ,height)
+         (adopt-layout-by ((make-window ,ui ,origin ,width ,height ,@opts))
            ,@layout)))))
 ;;;
 ;;;
@@ -290,9 +281,8 @@
 
 (defmethod compose ((this label-button))
   (with-slots (label) this
-    (unless (= (%nk:button-label *handle* label) 0)
-      ;; fixme: propagate event system here somehow
-      (post 'button-click-event :poiu-button this))))
+    ;; todo: invoke listeners
+    #+()(unless (= (%nk:button-label *handle* label) 0))))
 
 
 ;;;
@@ -403,7 +393,8 @@
 
 
 (defgeneric add-item (object item))
-(defgeneric clear (ovject))
+(defgeneric clear (object))
+
 (defclass list-select (widget)
   ((items :initform nil)
    (item-height :initarg :item-height)))
@@ -431,7 +422,7 @@
                                          (item-name-of item)
                                          %nk:+text-left+
                                          (item-status item)))
-        (post 'item-selected :source this :item item)
+        ;; todo: invoke listeners
         (dolist (other-item items)
           (unless (eq item other-item)
             (select-item other-item nil)))))))
@@ -439,40 +430,40 @@
 ;;;
 ;;;
 ;;;
-(defclass health-monitor ()
+(defclass debug-console ()
   ((window :initform nil)))
 
 
-(defmethod initialize-instance :after ((this health-monitor) &key poiu origin width height hidden)
+(defmethod initialize-instance :after ((this debug-console) &key ui origin width height hidden)
   (with-slots (window) this
-    (setf window (make-window poiu origin width height :title "Health monitor"
+    (setf window (make-window ui origin width height :title "Debug Console"
                               :headerless nil :scrollable t :resizable t
                               :movable t :closable t :hidden hidden))))
 
 
-(defun make-health-monitor (poiu x y &key (width 640.0) (height 480.0) (hidden-p t))
-  (make-instance 'health-monitor :poiu poiu
+(defun make-debug-console (ui x y &key (width 640.0) (height 480.0) (hidden-p t))
+  (make-instance 'debug-console :ui ui
                  :x x :y y :width width :height height :hidden-p hidden-p))
 
 
-(defun show-health-monitor (mon)
+(defun show-debug-console (mon)
   (with-slots (window) mon
     (show-window window)))
 
 
-(defun hide-health-monitor (mon)
+(defun hide-debug-console (mon)
   (with-slots (window) mon
     (hide-window window)))
 
 
-(defun add-simple-reporter (win label supplier)
+(defun add-simple-reporter (win label value-supplier)
   (with-slots (window) win
     (let ((row (make-dynamic-row-layout 24)))
       (adopt row (make-text-label label))
-      (adopt row (make-text-label supplier :align :right))
+      (adopt row (make-text-label value-supplier :align :right))
       (adopt window row))))
 
 
-(defmethod compose ((this health-monitor))
+(defmethod compose ((this debug-console))
   (with-slots (window) this
     (compose window)))
