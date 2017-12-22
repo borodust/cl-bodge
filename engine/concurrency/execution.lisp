@@ -8,8 +8,8 @@
 
 
 (defgeneric execute (executor task &key &allow-other-keys)
-  (:documentation "Abstract execution facility: run `task` bin a way defined by
-executor. Executor must operate in thread-safe manner."))
+  (:documentation "Abstract execution facility: runs `task` in a way defined by
+`executor`. Executors must operate in a thread-safe manner."))
 
 
 (defgeneric alivep (executor)
@@ -123,17 +123,19 @@ thread are the same."
 ;;;
 ;;;
 (defclass pooled-executor (disposable)
-  ((pool :initform nil)))
+  (dispatching-fu dispatching-instance))
 
 
 (defmethod initialize-instance :after ((this pooled-executor) &key (size +default-pool-size+))
-  (with-slots (pool) this
-    (setf pool (make-thread-pool size))
-    (open-pool pool "pooled-executor-worker")))
+  (with-slots (dispatching-fu dispatching-instance) this
+    (multiple-value-bind (function instance)
+        (simple-flow-dispatcher:make-simple-dispatcher :threads size)
+      (setf dispatching-fu function
+            dispatching-instance instance))))
 
 
-(define-destructor pooled-executor (pool)
-  (close-pool pool))
+(define-destructor pooled-executor (dispatching-fu)
+  (simple-flow-dispatcher:free-simple-dispatcher dispatching-fu))
 
 
 (definline make-pooled-executor (&optional (size +default-pool-size+))
@@ -142,11 +144,11 @@ thread are the same."
 
 
 (defmethod alivep ((this pooled-executor))
-  (with-slots (pool) this
-    (mt:pool-alive-p pool)))
+  (with-slots (dispatching-instance) this
+    (simple-flow-dispatcher::simple-dispatcher-instance-alive-p dispatching-instance)))
 
 
-(defmethod execute ((this pooled-executor) (task function) &key (priority :medium))
+(defmethod execute ((this pooled-executor) (task function) &key invariant (priority :medium))
   "Run task concurrently in the thread pool."
-  (with-slots (pool) this
-    (push-to-pool pool task priority)))
+  (with-slots (dispatching-fu) this
+    (funcall dispatching-fu task invariant :priority priority :ignore-invariant (null invariant))))

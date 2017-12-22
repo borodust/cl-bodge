@@ -247,7 +247,7 @@ specified."
       this
     (setf this-properties (%load-properties properties)
           shared-pool (make-pooled-executor
-                       (%get-property :engine-shared-pool-size this-properties 2))
+                       (%get-property '(:engine :shared-pool-size) this-properties 2))
           this-working-directory working-directory
           shared-executors (list (make-single-threaded-executor))
           event-emitter (make-instance 'event-emitting))
@@ -357,6 +357,7 @@ task is dispatched to the object provided under this key."
         (null (if concurrently
                   (execute shared-pool task :priority priority)
                   (funcall task)))
+        (symbol (execute shared-pool task :invariant invariant :priority priority))
         (dispatching (apply #'dispatch invariant task nil keys)))
       t)))
 

@@ -11,7 +11,7 @@
    (size :initarg :size :reader %size-of)
    (letter-spacing :initarg :letter-spacing :initform nil :reader %letter-spacing-of)
    (line-height :initarg :line-height :initform nil :reader %line-height-of)
-   (alignment :initarg :align :initform nil :reader %alignment-of)))
+   (alignment :initarg :alignment :initform nil :reader %alignment-of)))
 
 
 (defun draw-text (position text &key (fill-color *black*) (canvas *canvas*))
