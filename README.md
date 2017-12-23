@@ -57,8 +57,7 @@ Experimental **bod**acious **g**ame **e**ngine written in **C**ommon **L**isp.
 * ***2D GUI***
 
   System for creating in-game hardware-accelerated multi-window user interfaces: windows,
-  widgets, layouts, UI events.  See `cl-bodge/poiu` (**P**lain **O**ld **I**nterface for
-  **U**sers).
+  widgets, layouts, UI events.  See `cl-bodge/ui`.
 
 * ***Scenegraph***
 
@@ -90,7 +89,7 @@ Experimental **bod**acious **g**ame **e**ngine written in **C**ommon **L**isp.
 * Chicken mesh loading, rendering and animation:
   [Chicken](https://www.youtube.com/watch?v=ypZP4SNQOv8)
 * SDF-based text rendering: [Hello text](https://www.youtube.com/watch?v=8q_ssF4eEQQ)
-* GUI and [Text editing](https://www.youtube.com/watch?v=T5nCKKGj1J0)
+* GUI and [Text editing](https://vimeo.com/248563459)
 
 Also, check out [trivial-gamekit](https://github.com/borodust/trivial-gamekit) to get started
 with `cl-bodge` bit by bit.
