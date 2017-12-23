@@ -40,10 +40,15 @@
   (dispose canvas))
 
 
-(bodge-nuklear:define-font-width-callback calc-string-width (handle height string)
+(defun calc-text-width (text)
   (with-font ((font-of *context*) (canvas-of *context*))
-    (let ((bounds (canvas-text-bounds string (canvas-of *context*))))
-      (- (z bounds) (x bounds)))))
+    (multiple-value-bind (bounds advance) (canvas-text-bounds text (canvas-of *context*))
+      (declare (ignore bounds))
+      advance)))
+
+
+(bodge-nuklear:define-text-width-callback calc-string-width (handle height string)
+  (calc-text-width string))
 
 
 (defun ui-font (name size canvas-font-container
@@ -141,6 +146,7 @@
 (defun button-state->nk (state)
   (ecase state
     (:pressed 1)
+    (:repeating 1)
     (:released 0)))
 
 

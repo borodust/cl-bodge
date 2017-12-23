@@ -5,34 +5,39 @@
   ((cursor-action :initform (make-guarded-reference nil))
    (key-table :initform (make-guarded-reference (make-hash-table :test 'eq)))
    (button-table :initform (make-guarded-reference (make-hash-table :test 'eq)))
-   (key-interceptor :initform nil)
-   (button-interceptor :initform nil)))
+   (key-action :initform nil)
+   (character-action :initform nil)
+   (button-action :initform nil)))
 
 
 (defmethod initialize-instance :after ((input-map input-map) &key)
   (with-slots (cursor-action key-table button-table
-               key-interceptor button-interceptor)
+               key-action button-action character-action)
       input-map
     (flet ((register-callback (class action)
              (add-event-handler input-map class action))
            (process-key-event (ev)
-             (when key-interceptor
-               (funcall key-interceptor (key-from ev) (state-from ev)))
+             (when key-action
+               (funcall key-action (key-from ev) (state-from ev)))
              (when-let ((action (with-guarded-reference (key-table)
                                   (gethash (key-from ev) key-table))))
                (funcall action (state-from ev))))
            (process-button-event (ev)
-             (when button-interceptor
-               (funcall button-interceptor (button-from ev) (state-from ev)))
+             (when button-action
+               (funcall button-action (button-from ev) (state-from ev)))
              (when-let ((action (with-guarded-reference (button-table)
                                   (gethash (button-from ev) button-table))))
                (funcall action (state-from ev))))
            (process-cursor-event (ev)
              (when-let ((action (guarded-value-of cursor-action)))
-               (funcall action (x-from ev) (y-from ev)))))
+               (funcall action (x-from ev) (y-from ev))))
+           (process-character-event (ev)
+             (when character-action
+               (funcall character-action (character-from ev)))))
       (register-callback 'keyboard-event #'process-key-event)
       (register-callback 'mouse-event #'process-button-event)
-      (register-callback 'cursor-event #'process-cursor-event))))
+      (register-callback 'cursor-event #'process-cursor-event)
+      (register-callback 'character-input-event #'process-character-event))))
 
 
 (defun make-input-map ()
@@ -60,13 +65,18 @@
 
 
 (defun bind-mouse (input-map action)
-  (with-slots (button-interceptor) input-map
-    (setf button-interceptor action)))
+  (with-slots (button-action) input-map
+    (setf button-action action)))
 
 
 (defun bind-keyboard (input-map action)
-  (with-slots (key-interceptor) input-map
-    (setf key-interceptor action)))
+  (with-slots (key-action) input-map
+    (setf key-action action)))
+
+
+(defun bind-characters (input-map action)
+  (with-slots (character-action) input-map
+    (setf character-action action)))
 
 
 (defun bind-cursor (input-map action)

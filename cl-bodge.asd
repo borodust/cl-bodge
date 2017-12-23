@@ -345,6 +345,7 @@
   :serial t
   :components ((:file "packages")
                (:file "ui")
+               (:file "events")
                (:file "elements")
                (:file "rendering-backend")))
 

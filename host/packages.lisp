@@ -43,4 +43,5 @@
            bind-keyboard-button
            bind-mouse
            bind-keyboard
+           bind-characters
            bind-cursor))

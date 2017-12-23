@@ -1,6 +1,9 @@
 (in-package :cl-bodge.ui)
 
 
+(declaim (special *window*))
+
+
 (defgeneric compose (element))
 
 
@@ -134,7 +137,7 @@
                                               (opt movable :movable))))))
 
 
-(defun find-element (window name)
+(defun find-element (name &optional (window *window*))
   (labels ((%find-element (root name)
              (if (equal (name-of root) name)
                  root
@@ -171,9 +174,10 @@
   (with-slots (background-style-item panel-p hidden-p id) this
     (unless hidden-p
       (with-styles ((background-style-item :window :fixed-background))
-        (if panel-p
-            (compose-panel this #'call-next-method)
-            (compose-window this #'call-next-method)))
+        (let ((*window* this))
+          (if panel-p
+              (compose-panel this #'call-next-method)
+              (compose-window this #'call-next-method))))
       (unless (= 0 (%nk:window-is-closed *handle* id))
         (setf hidden-p t)))))
 
@@ -181,7 +185,7 @@
 (defmacro defwindow (name-and-opts &body layout)
   (destructuring-bind (name &rest opts) (ensure-list name-and-opts)
     (with-gensyms (ui origin width height)
-      `(defun ,(symbolicate 'make- name '-window) (,ui ,origin ,width ,height)
+      `(defun ,(symbolicate 'make- name) (,ui ,origin ,width ,height)
          (adopt-layout-by ((make-window ,ui ,origin ,width ,height ,@opts))
            ,@layout)))))
 ;;;
@@ -272,17 +276,18 @@
 ;;;
 ;;;
 (defclass label-button (widget)
-  ((label :initarg :label :initform (error ":label missing"))))
+  ((label :initarg :label :initform (error ":label missing"))
+   (click-listener :initarg :click-listener :initform nil)))
 
 
-(defun make-label-button (text &key name)
-  (make-instance 'label-button :label text :name name))
+(defun make-label-button (text &key name on-click)
+  (make-instance 'label-button :label text :name name :click-listener on-click))
 
 
 (defmethod compose ((this label-button))
-  (with-slots (label) this
-    ;; todo: invoke listeners
-    #+()(unless (= (%nk:button-label *handle* label) 0))))
+  (with-slots (label click-listener) this
+    (unless (or (= (%nk:button-label *handle* label) 0) (null click-listener))
+      (funcall click-listener (make-button-click-event this)))))
 
 
 ;;;
@@ -357,9 +362,10 @@
           (inhibit-string-conversion
             (multiple-value-bind (text ptr) (%nk:str-get-const str-info)
               (declare (ignore text))
-              (cffi:foreign-string-to-lisp ptr
-                                           :count len
-                                           :encoding :utf-8))))))))
+              (or (cffi:foreign-string-to-lisp ptr
+                                               :count len
+                                               :encoding :utf-8)
+                  ""))))))))
 
 
 (defmethod compose ((this text-edit))
