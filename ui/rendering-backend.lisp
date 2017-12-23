@@ -229,7 +229,7 @@
                            (c-ref cmd (:struct (%nk:command)) :type)))
 
 
-(defun render-ui (ui)
+(defun render-ui (&optional (ui *context*))
   (with-canvas ((canvas-of ui))
     (bodge-nuklear:docommands (cmd (handle-value-of ui))
       (case (command-type cmd)
@@ -255,7 +255,7 @@
 
 (define-system-function compose-ui graphics-system (context)
   (with-ui (context)
-    (clear-ui-context context)
+    (clear-ui-context)
     (loop for win in (%windows-of context)
-          do (compose win)))
-  (render-ui context))
+          do (compose win))
+    (render-ui)))

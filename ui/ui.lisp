@@ -146,7 +146,6 @@
 (defun button-state->nk (state)
   (ecase state
     (:pressed 1)
-    (:repeating 1)
     (:released 0)))
 
 
@@ -158,7 +157,11 @@
 
 
 (defun register-keyboard-input (key state)
-  (%nk:input-key *handle* (key->nk key) (button-state->nk state)))
+  (if (eq state :repeating)
+      (progn
+        (register-keyboard-input key :released)
+        (register-keyboard-input key :pressed))
+      (%nk:input-key *handle* (key->nk key) (button-state->nk state))))
 
 
 (defun register-mouse-input (x y button state)
