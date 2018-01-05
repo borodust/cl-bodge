@@ -13,6 +13,7 @@
            framebuffer-size
            cursor-position
            mouse-button-state
+           hotkey-state
            fullscreen-viewport-p
            lock-cursor
            unlock-cursor
@@ -39,9 +40,10 @@
            make-input-map
            enable-input-map
            disable-input-map
-           bind-mouse-button
-           bind-keyboard-button
            bind-mouse
+           bind-mouse-button
            bind-keyboard
+           bind-keyboard-button
+           bind-keyboard-hotkey
            bind-characters
            bind-cursor))

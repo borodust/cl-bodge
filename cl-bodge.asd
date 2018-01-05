@@ -155,6 +155,7 @@
   :components ((:file "packages")
                (:file "events")
                (:file "system")
+               (:file "hotkey")
                (:file "keymap")))
 
 

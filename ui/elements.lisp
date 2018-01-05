@@ -29,14 +29,14 @@
                `(,(symbolicate 'make- name) ,@params)))
            (expand-element-hierarchy (root)
              (with-gensyms (parent)
-               (let ((children (cdr root))
-                     (element (expand-element (car root))))
-                 (if children
-                     `(let ((,parent ,element))
-                        ,@(loop for child in children
-                             collect `(adopt ,parent ,(expand-element-hierarchy child)))
+               (let ((root (ensure-list root)))
+                 (if (listp (car root))
+                     `(let ((,parent ,(expand-element (car root))))
+                        ,@(loop for child in (cdr root)
+                                collect `(adopt ,parent
+                                                ,(expand-element-hierarchy child)))
                         ,parent)
-                     element)))))
+                     (expand-element root))))))
     (once-only (parent-layout)
       `(prog1 ,parent-layout
          ,@(loop for element in (mapcar #'expand-element-hierarchy elements)

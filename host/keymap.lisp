@@ -7,16 +7,20 @@
    (button-table :initform (make-guarded-reference (make-hash-table :test 'eq)))
    (key-action :initform nil)
    (character-action :initform nil)
-   (button-action :initform nil)))
+   (button-action :initform nil)
+   (hotkey-listener :initform nil)))
 
 
 (defmethod initialize-instance :after ((input-map input-map) &key)
-  (with-slots (cursor-action key-table button-table
+  (with-slots (cursor-action key-table button-table hotkey-listener
                key-action button-action character-action)
       input-map
     (flet ((register-callback (class action)
              (add-event-handler input-map class action))
            (process-key-event (ev)
+             (when hotkey-listener
+               (hotkey-update-key-state hotkey-listener
+                                        (key-from ev) (state-from ev)))
              (when key-action
                (funcall key-action (key-from ev) (state-from ev)))
              (when-let ((action (with-guarded-reference (key-table)
@@ -38,6 +42,13 @@
       (register-callback 'mouse-event #'process-button-event)
       (register-callback 'cursor-event #'process-cursor-event)
       (register-callback 'character-input-event #'process-character-event))))
+
+
+(defun %ensure-hotkey-listener (input-map)
+  (with-slots (hotkey-listener) input-map
+    (if (null hotkey-listener)
+        (setf hotkey-listener (make-hotkey-listener))
+        hotkey-listener)))
 
 
 (defun make-input-map ()
@@ -62,6 +73,11 @@
   (with-slots (key-table) input-map
     (with-guarded-reference (key-table)
       (setf (gethash key key-table) action))))
+
+
+(defun bind-keyboard-hotkey (input-map key-bag action)
+  (let ((listener (%ensure-hotkey-listener input-map)))
+    (register-keyboard-hotkey listener key-bag action)))
 
 
 (defun bind-mouse (input-map action)
