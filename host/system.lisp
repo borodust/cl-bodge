@@ -104,37 +104,38 @@
                    (property '(:host :opengl-version) '(4 1))
                  (log:debug "Initializing GLFW context for OpenGL version ~A.~A"
                             major-version minor-version)
-                 (glfw:with-init-window (:title "Scene"
-                                                :width 640 :height 480
-                                                :context-version-major major-version
-                                                :context-version-minor minor-version
-                                                :opengl-profile :opengl-core-profile
-                                                :opengl-forward-compat t
-                                                :depth-bits 24
-                                                :resizable nil
-                                                :stencil-bits 8
-                                                :visible t)
-                   (glfw:set-window-close-callback 'on-close)
-                   (glfw:set-key-callback 'on-key-action)
-                   (glfw:set-mouse-button-callback 'on-mouse-action)
-                   (glfw:set-cursor-position-callback 'on-cursor-movement)
-                   (glfw:set-scroll-callback 'on-scroll)
-                   (glfw:set-framebuffer-size-callback 'on-framebuffer-size-change)
-                   (glfw:set-window-size-callback 'on-viewport-size-change)
-                   (glfw:set-char-callback 'on-character-input)
-                   (glfw:swap-interval 0)
-                   (%glfw:make-context-current (cffi:null-pointer))
-                   (log:debug "GL context detached from main loop thread")
-                   (setf window glfw:*window*
-                         shared (make-shared-context major-version minor-version)
-                         enabled-p t)
-                   (let ((*system* this))
-                     (open-latch latch)
-                     (log:debug "Host main loop running")
-                     (loop while enabled-p
-                        do (log-errors
-                             (glfw:wait-events)
-                             (drain task-queue))))))
+                 (with-float-traps-masked ()
+                   (glfw:with-init-window (:title "Scene"
+                                           :width 640 :height 480
+                                           :context-version-major major-version
+                                           :context-version-minor minor-version
+                                           :opengl-profile :opengl-core-profile
+                                           :opengl-forward-compat t
+                                           :depth-bits 24
+                                           :resizable nil
+                                           :stencil-bits 8
+                                           :visible t)
+                     (glfw:set-window-close-callback 'on-close)
+                     (glfw:set-key-callback 'on-key-action)
+                     (glfw:set-mouse-button-callback 'on-mouse-action)
+                     (glfw:set-cursor-position-callback 'on-cursor-movement)
+                     (glfw:set-scroll-callback 'on-scroll)
+                     (glfw:set-framebuffer-size-callback 'on-framebuffer-size-change)
+                     (glfw:set-window-size-callback 'on-viewport-size-change)
+                     (glfw:set-char-callback 'on-character-input)
+                     (glfw:swap-interval 0)
+                     (%glfw:make-context-current (cffi:null-pointer))
+                     (log:debug "GL context detached from main loop thread")
+                     (setf window glfw:*window*
+                           shared (make-shared-context major-version minor-version)
+                           enabled-p t)
+                     (let ((*system* this))
+                       (open-latch latch)
+                       (log:debug "Host main loop running")
+                       (loop while enabled-p
+                             do (log-errors
+                                  (glfw:wait-events)
+                                  (drain task-queue)))))))
                (log:debug "Main loop stopped. Host system offline"))
           (open-latch latch))))
     (log:debug "Host system initialized")))

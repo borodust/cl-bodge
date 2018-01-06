@@ -58,8 +58,10 @@
 
 (defmethod initialize-instance ((this nuklear-context) &rest keys &key width height
                                                                     font-descriptor
-                                                                    antialiased)
-  (let ((canvas (make-canvas width height :antialiased antialiased)))
+                                                                    antialiased
+                                                                    pixel-ratio)
+  (let ((canvas (make-canvas width height :antialiased antialiased
+                                          :pixel-ratio pixel-ratio)))
     (destructuring-bind (name canvas-font-container size letter-spacing line-height alignment)
         font-descriptor
       (let* ((font-face-id (register-font-face name canvas-font-container canvas))
@@ -78,10 +80,12 @@
                keys)))))
 
 
-(definline make-ui-context (width height font-descriptor &key antialiased)
+(definline make-ui-context (width height font-descriptor
+                                  &key antialiased (pixel-ratio 1.0))
   (make-instance 'nuklear-context
                  :width width
                  :height height
+                 :pixel-ratio pixel-ratio
                  :font-descriptor font-descriptor
                  :antialiased antialiased))
 
