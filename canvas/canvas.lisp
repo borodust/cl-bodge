@@ -96,11 +96,21 @@
 
 
 (defun stroke-color (color &optional (canvas *canvas*))
-  (%nvg:bge-stroke-color (handle-value-of canvas) (x color) (y color) (z color) (w color)))
+  (c-let ((color-v %nvg:color))
+    (setf (color-v :r) (x color)
+          (color-v :g) (y color)
+          (color-v :b) (z color)
+          (color-v :a) (w color))
+    (%nvg:stroke-color (handle-value-of canvas) color-v)))
 
 
 (defun fill-color (color &optional (canvas *canvas*))
-  (%nvg:bge-fill-color (handle-value-of canvas) (x color) (y color) (z color) (w color)))
+  (c-let ((color-v %nvg:color))
+    (setf (color-v :r) (x color)
+          (color-v :g) (y color)
+          (color-v :b) (z color)
+          (color-v :a) (w color))
+    (%nvg:fill-color (handle-value-of canvas) color-v)))
 
 
 (defun push-canvas (&optional (canvas *canvas*))

@@ -1,6 +1,6 @@
 (ge.util:define-package :cl-bodge.canvas
   (:nicknames :ge.vg)
-  (:use :cl :cl-bodge.engine :cl-bodge.utils :cl-bodge.graphics :bodge-autowrap :bodge-plus-c)
+  (:use :cl :cl-bodge.engine :cl-bodge.utils :cl-bodge.graphics :claw)
   (:export make-canvas
            update-canvas-size
            begin-canvas

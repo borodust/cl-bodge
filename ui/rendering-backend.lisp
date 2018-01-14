@@ -225,8 +225,7 @@
 
 
 (defun command-type (cmd)
-  (bodge-autowrap:enum-key '(:enum (%nk:command-type))
-                           (c-ref cmd (:struct (%nk:command)) :type)))
+  (claw:enum-key '(:enum (%nk:command-type)) (c-ref cmd (:struct (%nk:command)) :type)))
 
 
 (defun render-ui (&optional (ui *context*))

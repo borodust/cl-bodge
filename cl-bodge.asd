@@ -44,8 +44,9 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (alexandria uiop log4cl local-time dissect split-sequence cffi bodge-autowrap
-                          bodge-plus-c static-vectors trivial-gray-streams)
+  :depends-on (alexandria uiop log4cl local-time dissect split-sequence cffi
+                          bodge-autowrap bodge-plus-c
+                          static-vectors trivial-gray-streams)
   :pathname "utils/"
   :serial t
   :components ((:file "packages")
@@ -219,7 +220,7 @@
   :class bodge-system
   :requires (bodge-blobs/canvas)
   :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/graphics
-                               cl-bodge/resources log4cl bodge-nanovg)
+                               cl-bodge/resources claw log4cl bodge-nanovg)
   :pathname "canvas/"
   :serial t
   :components ((:file "packages")
@@ -341,7 +342,7 @@
   :class bodge-system
   :requires (bodge-blobs/poiu)
   :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/graphics bodge-nuklear
-                               cl-bodge/canvas bodge-autowrap bodge-plus-c)
+                               cl-bodge/canvas claw)
   :pathname "ui/"
   :serial t
   :components ((:file "packages")

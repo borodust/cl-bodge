@@ -38,12 +38,11 @@
                           :use-nearest-interpolation use-nearest-interpolation)
           width (width-of image)
           height (height-of image))
-    (%nvg:bge-init-image-pattern (handle-value-of this)
-                                 (handle-value-of canvas)
-                                 0.0
-                                 0.0
-                                 (f (width-of image)) (f (height-of image))
-                                 0.0 (id-of img) 1.0)))
+    (%nvg:image-pattern (handle-value-of this)
+                        (handle-value-of canvas)
+                        0.0 0.0
+                        (f (width-of image)) (f (height-of image))
+                        0.0 (id-of img) 1.0)))
 
 
 (defun make-image-paint (image &key (canvas *canvas*) flip-vertically
@@ -56,8 +55,8 @@
 
 
 (defmethod (setf fill-paint) ((value image-paint) (canvas canvas))
-  (%nvg:bge-fill-paint (handle-value-of canvas) (handle-value-of value)))
+  (%nvg:fill-paint (handle-value-of canvas) (handle-value-of value)))
 
 
 (defmethod (setf stroke-paint) ((value image-paint) (canvas canvas))
-  (%nvg:bge-fill-paint (handle-value-of canvas) (handle-value-of value)))
+  (%nvg:fill-paint (handle-value-of canvas) (handle-value-of value)))

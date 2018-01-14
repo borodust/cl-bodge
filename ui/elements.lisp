@@ -47,17 +47,17 @@
 (defmacro with-styles ((&rest styles) &body body)
   (with-gensyms (ctx)
     (let ((stack-ops (loop for style in styles
-                        collect
-                          (destructuring-bind (new-value &rest path) style
-                            (with-gensyms (val)
-                              (list val
-                                    new-value
-                                    `(when ,val
-                                       (push-style *context* (,ctx :style ,@path &) ,val))
-                                    `(when ,val
-                                       (if (subtypep (class-of ,val) 'style-item)
-                                           (pop-style *context* 'style-item)
-                                           (pop-style *context* (class-name-of ,val))))))))))
+                           collect
+                           (destructuring-bind (new-value &rest path) style
+                             (with-gensyms (val)
+                               (list val
+                                     new-value
+                                     `(when ,val
+                                        (push-style *context* (,ctx :style ,@path &) ,val))
+                                     `(when ,val
+                                        (if (subtypep (class-of ,val) 'style-item)
+                                            (pop-style *context* 'style-item)
+                                            (pop-style *context* (class-name-of ,val))))))))))
       `(c-let ((,ctx (:struct (%nk:context)) :from *handle*))
          (let ,(mapcar (lambda (l) (list (first l) (second l))) stack-ops)
            (unwind-protect
@@ -146,18 +146,17 @@
     (%find-element window name)))
 
 
-(defun style-item-color (style-item color)
-  (%nk:bge-init-color-style-item style-item (x color) (y color) (z color) (w color)))
-
-
 (defun compose-window (win next-method)
   (with-slots (x y width height title option-mask id) win
-    (let ((val (%nk:bge-begin-titled *handle* id title
-                                     x (f  (- (height-of *context*) y height))
-                                     width height option-mask)))
-      (unless (= 0 val)
-        (funcall next-method win))
-      (%nk:end *handle*))))
+    (c-let ((bounds (:struct (%nk:rect))))
+      (setf (bounds :x) x
+            (bounds :y) (f  (- (height-of *context*) y height))
+            (bounds :w) width
+            (bounds :h) height)
+      (let ((val (%nk:begin-titled *handle* id title bounds option-mask)))
+        (unless (= 0 val)
+          (funcall next-method win))
+        (%nk:end *handle*)))))
 
 
 (defun compose-panel (win next-method)
@@ -359,13 +358,11 @@
       (c-let ((buf (:struct (%nk:text-edit)) :from buffer))
         (let* ((str-info (buf :string))
                (len (%nk:str-len-char str-info)))
-          (inhibit-string-conversion
-            (multiple-value-bind (text ptr) (%nk:str-get-const str-info)
-              (declare (ignore text))
-              (or (cffi:foreign-string-to-lisp ptr
-                                               :count len
-                                               :encoding :utf-8)
-                  ""))))))))
+          (let ((ptr (%nk:str-get-const str-info)))
+            (or (cffi:foreign-string-to-lisp ptr
+                                             :count len
+                                             :encoding :utf-8)
+                "")))))))
 
 
 (defmethod compose ((this text-edit))
@@ -383,7 +380,7 @@
 
 (defclass list-select-text-item (disposable)
   ((text :initarg :text :reader item-name-of)
-   (status-buf :initform (calloc-ptr :int) :reader item-status)))
+   (status-buf :initform (calloc :int) :reader item-status)))
 
 
 (define-destructor list-select-text-item (status-buf)

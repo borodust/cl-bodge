@@ -192,9 +192,14 @@
 (defclass color-style-item (style-item) ())
 
 
+(defun style-item-color (style-item color)
+  (c-let ((color-v (:struct (%nk:color))))
+    (%nk:style-item-color style-item
+                          (%nk:rgba-f color-v (x color) (y color) (z color) (w color)))))
+
 (defmethod initialize-instance :after ((this color-style-item)
                                        &key (color (error ":color missing")))
-  (%nk:bge-init-color-style-item (handle-value-of this) (x color) (y color) (z color) (w color)))
+  (style-item-color (handle-value-of this) color))
 
 
 ;;;
@@ -205,7 +210,10 @@
 
 
 (defmethod push-style ((context nuklear-context) destination (vec vec2))
-  (%nk:bge-style-push-vec2 (handle-value-of context) destination (x vec) (y vec)))
+  (c-let ((vec-v (:struct (%nk:vec2))))
+    (setf (vec-v :x) (x vec)
+          (vec-v :y) (y vec))
+    (%nk:style-push-vec2 (handle-value-of context) destination vec-v)))
 
 (defmethod pop-style ((context nuklear-context) (class (eql 'vec2)))
   (%nk:style-pop-vec2 (handle-value-of context)))
@@ -216,9 +224,8 @@
 (defmethod pop-style ((context nuklear-context) (class (eql 'single-float)))
   (%nk:style-pop-float (handle-value-of context)))
 
-
 (defmethod push-style ((context nuklear-context) destination (item style-item))
-  (%nk:bge-style-push-style-item (handle-value-of context) destination (handle-value-of item)))
+  (%nk:style-push-style-item (handle-value-of context) destination (handle-value-of item)))
 
 (defmethod pop-style ((context nuklear-context) (class (eql 'style-item)))
   (%nk:style-pop-style-item (handle-value-of context)))

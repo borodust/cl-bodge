@@ -1,7 +1,7 @@
 (ge.util:define-package :cl-bodge.ui
   (:nicknames :ge.ui)
-  (:use :cl :cl-bodge.engine :cl-bodge.utils :cl-bodge.graphics :bodge-plus-c
-        :cl-bodge.canvas :bodge-autowrap :cl-bodge.resources)
+  (:use :cl :cl-bodge.engine :cl-bodge.utils :cl-bodge.graphics
+        :cl-bodge.canvas :cl-bodge.resources :claw)
   (:export make-ui-context
            with-ui-access
            ui-font
