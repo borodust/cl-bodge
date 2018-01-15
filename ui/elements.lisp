@@ -368,7 +368,7 @@
 (defmethod compose ((this text-edit))
   (with-slots (buffer) this
     (%nk:edit-buffer *handle* %nk:+edit-simple+ buffer
-                     (ge.util:foreign-function-pointer '%nk:filter-default))))
+                     (claw:foreign-function-pointer '%nk:filter-default))))
 
 
 ;;

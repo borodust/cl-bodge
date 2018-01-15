@@ -9,8 +9,7 @@
                  :cl-bodge.physics
                  :cl-bodge.resources
                  :cl-bodge.scene
-                 :cl-bodge.poiu
+                 :cl-bodge.ui
                  :cl-bodge.text
                  :cl-bodge.canvas
-                 :cl-bodge.interactions
                  :cl-bodge.library.shading))

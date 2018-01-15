@@ -69,7 +69,6 @@
            expand-array
            float-array
            split-sequence
-           foreign-function-pointer
            stringify
            apply-argument-list
            with-float-traps-masked

@@ -45,7 +45,7 @@
   :mailto "dev@borodust.org"
   :license "MIT"
   :depends-on (alexandria uiop log4cl local-time dissect split-sequence cffi
-                          bodge-autowrap bodge-plus-c
+                          claw
                           static-vectors trivial-gray-streams)
   :pathname "utils/"
   :serial t
@@ -170,7 +170,7 @@
   :requires (bodge-blobs/network)
   :depends-on (cl-bodge/engine cl-bodge/utils cl-conspack log4cl closer-mop
                                flexi-streams trivial-gray-streams bodge-async
-                               bodge-autowrap bodge-plus-c)
+                               claw)
   :pathname "network/"
   :serial t
   :components ((:file "packages")
@@ -274,7 +274,7 @@
   :license "MIT"
   :class bodge-system
   :requires (bodge-blobs/physics)
-  :depends-on (cl-bodge/engine bodge-ode log4cl bodge-autowrap bodge-plus-c local-time)
+  :depends-on (cl-bodge/engine bodge-ode log4cl claw local-time)
   :pathname "physics/"
   :serial t
   :components ((:file "packages")
@@ -380,23 +380,6 @@
                (:file "model")))
 
 
-(asdf:defsystem cl-bodge/interactions
-  :description "Interactive components of Bodacious Game Engine"
-  :version "0.4.0"
-  :author "Pavel Korolev"
-  :mailto "dev@borodust.org"
-  :license "MIT"
-  :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/poiu cl-bodge/physics
-                               cl-bodge/host cl-bodge/scenegraph)
-  :pathname "interactions/"
-  :serial t
-  :components ((:file "packages")
-               (:file "input-state")
-               (:file "control-ray")
-               (:file "board")
-               (:file "system")))
-
-
 (asdf:defsystem cl-bodge/distribution
   :description "Bodacious Game Engine distribution helpers"
   :version "0.4.0"
@@ -450,6 +433,5 @@
   :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/host cl-bodge/network
                                cl-bodge/graphics cl-bodge/audio cl-bodge/physics
                                cl-bodge/resources cl-bodge/scenegraph
-                               cl-bodge/poiu cl-bodge/text cl-bodge/canvas
-                               cl-bodge/interactions)
+                               cl-bodge/ui cl-bodge/text cl-bodge/canvas)
   :components ((:file "packages")))
