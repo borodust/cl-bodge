@@ -48,7 +48,7 @@
 
 
 (defmethod make-system-context ((this audio-system))
-  (with-float-traps-masked
+  (claw:with-float-traps-masked ()
     (print-available-devices-info)
     (if-let ((dev (alc:open-device)))
       (progn

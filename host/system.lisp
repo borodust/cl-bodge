@@ -1,5 +1,6 @@
 (in-package :cl-bodge.host)
 
+(declaim (special *window*))
 
 (defclass host-system (dispatching generic-system)
   ((enabled-p :initform nil)
@@ -21,73 +22,84 @@
   (with-slots (task-queue) this
     (with-system-lock-held (this)
       (push-task fn task-queue)
-      (glfw:post-empty-event)))
+      (%glfw:post-empty-event)))
   t)
 
 
-(glfw:def-window-close-callback on-close (window)
-  (glfw:hide-window window)
+(glfw:define-window-close-callback on-close (window)
+  (%glfw:hide-window window)
   (post 'viewport-hiding-event))
 
 
-(glfw:def-key-callback on-key-action (window key scancode action mod-keys)
+(glfw:define-key-callback on-key-action (window key scancode action mod-keys)
   (declare (ignore window scancode mod-keys))
   (post 'keyboard-event
-              :key (glfw-enumval->keyboard-key key)
-              :state (glfw-enumval->button-state action)))
+        :key (glfw-enumval->keyboard-key key)
+        :state (glfw-enumval->button-state action)))
 
 
-(glfw:def-mouse-button-callback on-mouse-action (window button action mod-keys)
+(glfw:define-mouse-button-callback on-mouse-action (window button action mod-keys)
   (declare (ignore window mod-keys))
   (post 'mouse-event
               :button (glfw-enumval->mouse-button button)
               :state (glfw-enumval->button-state action)))
 
 
-(glfw:def-cursor-pos-callback on-cursor-movement (window x y)
-  (let ((height (second (glfw:get-window-size window))))
+(glfw:define-cursor-pos-callback on-cursor-movement (window x y)
+  (claw:c-let ((width :int)
+               (height :int))
+    (%glfw:get-window-size window (width &) (height &))
     (post 'cursor-event :x x :y (- height y))))
 
 
-(glfw:def-scroll-callback on-scroll (window x y)
+(glfw:define-scroll-callback on-scroll (window x y)
   (declare (ignore window))
   (post 'scroll-event :x-offset x :y-offset (- y)))
 
 
-(glfw:def-framebuffer-size-callback on-framebuffer-size-change (window w h)
+(glfw:define-framebuffer-size-callback on-framebuffer-size-change (window w h)
   (declare (ignore window))
   (post 'framebuffer-size-change-event :width w :height h))
 
 
-(glfw:def-framebuffer-size-callback on-viewport-size-change (window w h)
+(glfw:define-framebuffer-size-callback on-viewport-size-change (window w h)
   (declare (ignore window))
   (post 'viewport-size-change-event :width w :height h))
 
 
-(%glfw:define-glfw-callback on-character-input ((window :pointer) (char-code :unsigned-int))
+(glfw:define-char-callback on-character-input (window char-code)
   (declare (ignore window))
   (let ((character (code-char char-code)))
     (post 'character-input-event :character character)))
 
 
+(defun create-window (width height title gl-major-version gl-minor-version
+                      &key (shared (cffi:null-pointer)) (visible nil))
+  (glfw:with-window-hints ((%glfw:+context-version-major+ gl-major-version)
+                           (%glfw:+context-version-minor+ gl-minor-version)
+                           (%glfw:+opengl-profile+ %glfw:+opengl-core-profile+)
+                           (%glfw:+opengl-forward-compat+ %glfw:+true+)
+                           (%glfw:+depth-bits+ 24)
+                           (%glfw:+stencil-bits+ 8)
+                           (%glfw:+resizable+ %glfw:+false+)
+                           (%glfw:+visible+ (if visible %glfw:+true+ %glfw:+false+)))
+    (%glfw:create-window width height title (cffi:null-pointer) shared)))
+
+
 (defun make-shared-context (gl-major-version gl-minor-version)
-  (let ((current-window glfw:*window*))
-    (unwind-protect
-         (progn
-           (glfw:create-window :title ""
-                               :width 1 :height 1
-                               :context-version-major gl-major-version
-                               :context-version-minor gl-minor-version
-                               :opengl-profile :opengl-core-profile
-                               :opengl-forward-compat t
-                               :depth-bits 24
-                               :stencil-bits 8
-                               :resizable nil
-                               :visible nil
-                               :shared current-window)
-           (%glfw:make-context-current (cffi:null-pointer))
-           glfw:*window*)
-      (setf glfw:*window* current-window))))
+  (prog1 (create-window 1 1 "" gl-major-version gl-minor-version :shared *window*)
+    (%glfw:make-context-current (cffi:null-pointer))))
+
+
+(defun init-callbacks ()
+  (%glfw:set-window-close-callback *window* (claw:callback 'on-close))
+  (%glfw:set-key-callback *window* (claw:callback 'on-key-action))
+  (%glfw:set-mouse-button-callback *window* (claw:callback 'on-mouse-action))
+  (%glfw:set-cursor-pos-callback *window* (claw:callback 'on-cursor-movement))
+  (%glfw:set-scroll-callback *window* (claw:callback 'on-scroll))
+  (%glfw:set-framebuffer-size-callback *window* (claw:callback 'on-framebuffer-size-change))
+  (%glfw:set-window-size-callback *window* (claw:callback 'on-viewport-size-change))
+  (%glfw:set-char-callback *window* (claw:callback 'on-character-input)))
 
 
 ;; if current thread is the main one, this function will block
@@ -104,41 +116,30 @@
                    (property '(:host :opengl-version) '(4 1))
                  (log:debug "Initializing GLFW context for OpenGL version ~A.~A"
                             major-version minor-version)
-                 (with-float-traps-masked ()
-                   (glfw:with-init-window (:title "Scene"
-                                           :width 640 :height 480
-                                           :context-version-major major-version
-                                           :context-version-minor minor-version
-                                           :opengl-profile :opengl-core-profile
-                                           :opengl-forward-compat t
-                                           :depth-bits 24
-                                           :resizable nil
-                                           :stencil-bits 8
-                                           :visible t)
-                     (glfw:set-window-close-callback 'on-close)
-                     (glfw:set-key-callback 'on-key-action)
-                     (glfw:set-mouse-button-callback 'on-mouse-action)
-                     (glfw:set-cursor-position-callback 'on-cursor-movement)
-                     (glfw:set-scroll-callback 'on-scroll)
-                     (glfw:set-framebuffer-size-callback 'on-framebuffer-size-change)
-                     (glfw:set-window-size-callback 'on-viewport-size-change)
-                     (glfw:set-char-callback 'on-character-input)
-                     (glfw:swap-interval 0)
-                     (%glfw:make-context-current (cffi:null-pointer))
-                     (log:debug "GL context detached from main loop thread")
-                     (setf window glfw:*window*
-                           shared (make-shared-context major-version minor-version)
-                           enabled-p t)
-                     (let ((*system* this))
-                       (open-latch latch)
-                       (log:debug "Host main loop running")
-                       (loop while enabled-p
-                             do (log-errors
-                                  (glfw:wait-events)
-                                  (drain task-queue)))))))
-               (log:debug "Main loop stopped. Host system offline"))
-          (open-latch latch))))
-    (log:debug "Host system initialized")))
+                 (claw:with-float-traps-masked ()
+                   (glfw:with-init ()
+                     (let ((*window* (create-window 640 480 "Scene" major-version minor-version
+                                                    :visible t)))
+                       (unwind-protect
+                            (progn
+                              (init-callbacks)
+                              (%glfw:swap-interval 0)
+                              (%glfw:make-context-current (cffi:null-pointer))
+                              (log:debug "GL context detached from main loop thread")
+                              (setf window *window*
+                                    shared (make-shared-context major-version minor-version)
+                                    enabled-p t)
+                              (let ((*system* this))
+                                (open-latch latch)
+                                (log:debug "Host main loop running")
+                                (loop while enabled-p
+                                      do (log-errors
+                                           (%glfw:wait-events)
+                                           (drain task-queue)))))
+                         (%glfw:destroy-window *window*))))
+                   (log:debug "Main loop stopped. Host system offline"))))
+          (open-latch latch)))))
+  (log:debug "Host system initialized"))
 
 
 (defmethod discard-system :before ((this host-system))
@@ -169,7 +170,7 @@
 (defun swap-buffers (host-sys)
   (with-slots (window) host-sys
     (with-system-lock-held (host-sys)
-      (glfw:swap-buffers window))))
+      (%glfw:swap-buffers window))))
 
 
 (defun swap-interval (host-sys)
@@ -181,62 +182,69 @@
   (with-slots (swap-interval) host-sys
     (with-system-lock-held (host-sys)
       (setf swap-interval value)
-      (glfw:swap-interval value))))
+      (%glfw:swap-interval value))))
 
 
 (define-system-function (setf viewport-title) host-system (value &key (host-sys *system*))
   (with-slots (window) host-sys
     ;; some darwin systems go crazy throwing FPE around while setting a title
-    (ge.util:with-float-traps-masked
-      (glfw:set-window-title (format nil "~a" value) window))))
+    (claw:with-float-traps-masked ()
+      (%glfw:set-window-title window (format nil "~a" value)))))
 
 
 (defun viewport-size (&optional (host *system*))
   (check-type host host-system)
-  (let ((val (glfw:get-window-size (window-of host))))
-    (vec2 (first val) (second val))))
+  (claw:c-let ((width :int)
+               (height :int))
+    (%glfw:get-window-size (window-of host) (width &) (height &))
+    (vec2 width height)))
 
 
 (defun framebuffer-size (&optional (host *system*))
   (check-type host host-system)
-  (let ((val (glfw:get-framebuffer-size (window-of host))))
-    (vec2 (first val) (second val))))
+  (claw:c-let ((width :int)
+               (height :int))
+    (%glfw:get-framebuffer-size (window-of host) (width &) (height &))
+    (vec2 width height)))
 
 
 (define-system-function (setf viewport-size) host-system (value)
   ;; same as with #'(setf viewport-title)
   ;; some darwin systems go nuts throwing FPE around while setting a size
-  (ge.util:with-float-traps-masked
-    (glfw:set-window-size (floor (x value)) (floor (y value)) (window-of *system*))))
+  (claw:with-float-traps-masked ()
+    (%glfw:set-window-size (window-of *system*) (floor (x value)) (floor (y value)))))
 
 
 (define-system-function cursor-position host-system ()
-  (let ((height (second (viewport-size))))
-    (destructuring-bind (x y) (glfw:get-cursor-position (window-of *system*))
-      (list x (- height y)))))
+  (let ((height (y (viewport-size))))
+    (claw:c-let ((x :double)
+                 (y :double))
+      (%glfw:get-cursor-pos (window-of *system*) (x &) (y &))
+      (vec2 x (- height y)))))
 
 
 (define-system-function mouse-button-state host-system (button)
   (glfw-enumval->button-state
-   (glfw:get-mouse-button (mouse-button->glfw-enumval button) (window-of *system*))))
+   (%glfw:get-mouse-button (window-of *system*) (mouse-button->glfw-enumval button))))
 
 
 (define-system-function lock-cursor host-system (&key (host *system*))
   (with-slots (window) host
-    (glfw:set-input-mode :cursor :disabled)))
+    (%glfw:set-input-mode window %glfw:+cursor+ %glfw:+cursor-disabled+)))
 
 
 (define-system-function unlock-cursor host-system (&key (host *system*))
   (with-slots (window) host
-    (glfw:set-input-mode :cursor :normal)))
+    (%glfw:set-input-mode window %glfw:+cursor+ %glfw:+cursor-normal+)))
 
 
 (define-system-function (setf fullscreen-viewport-p) host-system (value)
   (with-slots (window) *system*
     (if value
-        (let* ((monitor (glfw:get-primary-monitor))
-               (video-mode (%glfw:get-video-mode monitor))
-               (width (getf video-mode '%glfw:width))
-               (height (getf video-mode '%glfw:height)))
-          (glfw:set-window-monitor monitor width height :window window))
-        (glfw:set-window-monitor nil 640 480 :window window :x-position 100 :y-position 100))))
+        (let* ((monitor (%glfw:get-primary-monitor)))
+          (claw:c-let ((video-mode %glfw:vidmode :from (%glfw:get-video-mode monitor)))
+            (%glfw:set-window-monitor window monitor 0 0
+                                      (video-mode :width)
+                                      (video-mode :height)
+                                      (video-mode :refresh-rate))))
+        (%glfw:set-window-monitor window (cffi:null-pointer) 100 100 640 480 %glfw:+dont-care+))))

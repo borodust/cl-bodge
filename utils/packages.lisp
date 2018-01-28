@@ -71,7 +71,6 @@
            split-sequence
            stringify
            apply-argument-list
-           with-float-traps-masked
            make-mutable-string
            string->mutable
            string->immutable

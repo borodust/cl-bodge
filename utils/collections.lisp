@@ -16,11 +16,11 @@
            ,@body)))))
 
 
-(defmacro make-hash-table-with-entries ((&rest initargs) (&rest keys) &body body)
+(defmacro make-hash-table-with-entries ((&rest initargs) &body pairs)
   (with-gensyms (table)
     `(let ((,table (make-hash-table ,@initargs)))
-       (with-hash-entries (,@keys) ,table
-	 ,@body)
+       ,@(loop for (key value) in pairs
+               collect `(setf (gethash ,key ,table) ,value))
        ,table)))
 
 

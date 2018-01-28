@@ -5,7 +5,7 @@
 
 
 (defhandle canvas-handle
-    :closeform (bodge-nanovg:destroy-context *handle-value*))
+    :closeform (nanovg:destroy-context *handle-value*))
 
 
 (defclass canvas (foreign-object)
@@ -31,7 +31,7 @@
                       (when antialiased (list :antialias))
                       (in-development-mode (list :debug)))))
     (make-instance 'canvas
-                   :handle (make-canvas-handle (apply #'bodge-nanovg:make-context opts))
+                   :handle (make-canvas-handle (apply #'nanovg:make-context opts))
                    :pixel-ratio pixel-ratio
                    :width width
                    :height height)))

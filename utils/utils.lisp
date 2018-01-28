@@ -39,18 +39,6 @@
   (/ (get-internal-real-time) internal-time-units-per-second))
 
 
-(defmacro with-float-traps-masked (&body body)
-  (let ((masking #+sbcl '(sb-int:with-float-traps-masked (:overflow
-                                                          :underflow
-                                                          :inexact
-                                                          :invalid
-                                                          :divide-by-zero))
-                 #-sbcl '(progn)))
-    `(,@masking
-      ,@body)))
-
-
-
 (defun current-file-truename ()
   (or *compile-file-truename* *load-truename* ""))
 

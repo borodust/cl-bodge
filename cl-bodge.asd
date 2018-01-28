@@ -1,43 +1,3 @@
-(cl:defpackage :cl-bodge.def
-  (:use :cl))
-(cl:in-package :cl-bodge.def)
-
-;;;
-;;; UTILITIES
-;;;
-
-(defclass bodge-system (asdf:system)
-  ((requires :initarg :requires :initform nil)))
-
-;;;
-;;; When lurking for dependencies, but before their loading, load bodge system :requires
-;;;
-(defmethod #-asdf3.2 asdf/plan:plan-record-dependency
-           #+asdf3.2 asdf/plan:record-dependency
-    :before (plan (o asdf:load-op) (c bodge-system))
-  (with-slots (requires) c
-    (loop for system in requires
-             if (asdf:find-system system nil)
-             do (asdf:operate 'asdf:load-op system)
-             else
-             do (error 'asdf:missing-dependency
-                          :required-by c
-                          :requires system))))
-
-;;;
-;;; Add :requires into explicit dependencies for tools to discover them
-;;;
-(defmethod asdf:system-depends-on ((c bodge-system))
-  (with-slots (requires) c
-    (flet ((to-downcased-name (name)
-                (etypecase name
-                  (symbol (string-downcase (symbol-name name)))
-                  (string (string-downcase name)))))
-      (append (mapcar #'to-downcased-name requires) (call-next-method)))))
-
-;;;
-;;; BODGE DEFINITIONS
-;;;
 (asdf:defsystem cl-bodge/utils
   :description "Bodacious Game Engine various utilities"
   :version "0.4.0"
@@ -45,8 +5,7 @@
   :mailto "dev@borodust.org"
   :license "MIT"
   :depends-on (alexandria uiop log4cl local-time dissect split-sequence cffi
-                          claw
-                          static-vectors trivial-gray-streams)
+                          claw static-vectors trivial-gray-streams)
   :pathname "utils/"
   :serial t
   :components ((:file "packages")
@@ -112,11 +71,9 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :class bodge-system
-  :requires (bodge-blobs/resources)
   :depends-on (cl-bodge/engine cl-bodge/utils flexi-streams
-               bodge-sndfile opticl cl-fad chipz
-               log4cl)
+               opticl cl-fad chipz log4cl
+               sndfile-blob bodge-sndfile)
   :pathname "resources/"
   :serial t
   :components ((:file "packages")
@@ -147,10 +104,8 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :class bodge-system
-  :requires (bodge-blobs/host)
-  :depends-on (cl-bodge/engine cl-bodge/utils cl-glfw3 log4cl bordeaux-threads
-                               cl-muth)
+  :depends-on (cl-bodge/engine cl-bodge/utils log4cl bordeaux-threads
+                               glfw-blob bodge-glfw cl-muth)
   :pathname "host/"
   :serial t
   :components ((:file "packages")
@@ -166,8 +121,7 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :class bodge-system
-  :requires (bodge-blobs/network)
+  :defsystem-depends-on (bodge-blobs)
   :depends-on (cl-bodge/engine cl-bodge/utils cl-conspack log4cl closer-mop
                                flexi-streams trivial-gray-streams bodge-async
                                claw)
@@ -192,10 +146,9 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :class bodge-system
-  :requires (bodge-blobs/graphics)
   :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/host cl-bodge/resources
-                               cl-opengl bodge-glad log4cl local-time cffi
+                               cl-opengl log4cl local-time cffi
+                               glad-blob bodge-glad
                                static-vectors)
   :pathname "graphics/"
   :serial t
@@ -217,10 +170,9 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :class bodge-system
-  :requires (bodge-blobs/canvas)
   :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/graphics
-                               cl-bodge/resources claw log4cl bodge-nanovg)
+                               cl-bodge/resources claw log4cl
+                               nanovg-blob bodge-nanovg)
   :pathname "canvas/"
   :serial t
   :components ((:file "packages")
@@ -253,8 +205,7 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :class bodge-system
-  :requires (bodge-blobs/audio)
+  :defsystem-depends-on (bodge-blobs)
   :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/host log4cl
                                cl-openal cl-alc)
   :pathname "audio/"
@@ -272,8 +223,7 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :class bodge-system
-  :requires (bodge-blobs/physics)
+  :defsystem-depends-on (bodge-blobs)
   :depends-on (cl-bodge/engine bodge-ode log4cl claw local-time)
   :pathname "physics/"
   :serial t
@@ -339,10 +289,8 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :class bodge-system
-  :requires (bodge-blobs/poiu)
-  :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/graphics bodge-nuklear
-                               cl-bodge/canvas claw)
+  :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/graphics cl-bodge/canvas
+                               nuklear-blob bodge-nuklear claw)
   :pathname "ui/"
   :serial t
   :components ((:file "packages")

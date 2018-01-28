@@ -55,7 +55,7 @@
   (with-slots (vertex-array primitive-type index-buffer) this
     (with-bound-vertex-array (vertex-array)
       (with-bound-buffer (index-buffer)
-	(with-float-traps-masked
+	(claw:with-float-traps-masked ()
 	  (%gl:draw-range-elements primitive-type start (1- end) (- end start)
 				   :unsigned-int (cffi:null-pointer)))))))
 

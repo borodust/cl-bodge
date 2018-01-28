@@ -32,42 +32,63 @@
   :unknown :left :right :middle)
 
 
+(defvar *mouse-button-map* (make-hash-table-with-entries (:test #'eql)
+                             (%glfw:+mouse-button-left+ :left)
+                             (%glfw:+mouse-button-right+ :right)
+                             (%glfw:+mouse-button-middle+ :middle)
+                             (:left %glfw:+mouse-button-left+)
+                             (:right %glfw:+mouse-button-right+)
+                             (:middle %glfw:+mouse-button-middle+)))
+
+
+(macrolet ((make-key-map ()
+             (flet ((ensure-keyword (value)
+                      (case value
+                        (:kp-0 :keypad-0)
+                        (:kp-1 :keypad-1)
+                        (:kp-2 :keypad-2)
+                        (:kp-3 :keypad-3)
+                        (:kp-4 :keypad-4)
+                        (:kp-5 :keypad-5)
+                        (:kp-6 :keypad-6)
+                        (:kp-7 :keypad-7)
+                        (:kp-8 :keypad-8)
+                        (:kp-9 :keypad-9)
+                        (:kp-decimal :keypad-decimal)
+                        (:kp-divide :keypad-divide)
+                        (:kp-multiply :keypad-multiply)
+                        (:kp-subtract :keypad-subtract)
+                        (:kp-add :keypad-add)
+                        (:kp-enter :keypad-enter)
+                        (:kp-equal :keypad-equal)
+                        (t value))))
+               `(make-hash-table-with-entries (:test #'eql)
+                  ,@(loop with prefix = (symbol-name '#:+key-)
+                          for name being the symbol in (find-package :%glfw)
+                          as symbol-name = (symbol-name name)
+                          when (alexandria:starts-with-subseq prefix symbol-name)
+                            append (let* ((name (subseq symbol-name 5
+                                                        (position #\+ symbol-name :start 1)))
+                                          (keyword (ensure-keyword (alexandria:make-keyword name))))
+                                     `((,name ,keyword)
+                                       (,keyword ,name))))))))
+  (defvar *key-map* (make-key-map)))
+
+
 (defun glfw-enumval->keyboard-key (value)
-  (cond
-    ((keyboard-key-p value) value)
-    ((case value
-       (:kp-0 :keypad-0)
-       (:kp-1 :keypad-1)
-       (:kp-2 :keypad-2)
-       (:kp-3 :keypad-3)
-       (:kp-4 :keypad-4)
-       (:kp-5 :keypad-5)
-       (:kp-6 :keypad-6)
-       (:kp-7 :keypad-7)
-       (:kp-8 :keypad-8)
-       (:kp-9 :keypad-9)
-       (:kp-decimal :keypad-decimal)
-       (:kp-divide :keypad-divide)
-       (:kp-multiply :keypad-multiply)
-       (:kp-subtract :keypad-subtract)
-       (:kp-add :keypad-add)
-       (:kp-enter :keypad-enter)
-       (:kp-equal :keypad-equal)
-       (t :unknown)))
-    (t :unknown)))
+  (gethash value *key-map* :unknown))
 
 
 (defun glfw-enumval->button-state (value)
-  (ecase value
-    (:press :pressed)
-    (:release :released)
-    (:repeat :repeating)))
+  (eswitch (value :test #'=)
+    (%glfw:+press+ :pressed)
+    (%glfw:+release+ :released)
+    (%glfw:+repeat+ :repeating)))
 
 
 (defun glfw-enumval->mouse-button (value)
-  (if (mouse-button-p value)
-      value
-      :unknown))
+  (gethash value *mouse-button-map* :unknown))
+
 
 (defun mouse-button->glfw-enumval (value)
   value)
