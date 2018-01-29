@@ -2,25 +2,45 @@
 
 
 (defhandle audio-buffer-handle
-    :initform (al:gen-buffer)
-    :closeform (al:delete-buffer *handle-value*))
+  :initform (claw:c-let ((buffer-id %al:uint))
+              (%al:gen-buffers 1 (buffer-id &))
+              buffer-id)
+  :closeform (claw:c-let ((buffer-id %al:uint))
+               (setf buffer-id *handle-value*)
+               (%al:delete-buffers 1 (buffer-id &))))
 
 
 (defclass audio-buffer (al-object) ()
   (:default-initargs :handle (make-audio-buffer-handle)))
 
 
+(defgeneric select-pcm-format (channel-format sample-depth)
+  (:method (c s) (error "Unsupported PCM format")))
+
+(defmethod select-pcm-format ((channel-format (eql :stereo)) (sample-depth (eql 16)))
+  %al:+format-stereo16+)
+
+(defmethod select-pcm-format ((channel-format (eql :stereo)) (sample-depth (eql 8)))
+  %al:+format-stereo8+)
+
+(defmethod select-pcm-format ((channel-format (eql :mono)) (sample-depth (eql 8)))
+  %al:+format-mono8+)
+
+(defmethod select-pcm-format ((channel-format (eql :mono)) (sample-depth (eql 16)))
+  %al:+format-mono16+)
+
+
 (defmethod initialize-instance :after ((this audio-buffer)
                                        &key channel-format sampling-rate sample-depth pcm-data)
-  (let ((pcm-format (make-keyword (format nil "~a~a" channel-format sample-depth)))
-        (foreign-type (ecase sample-depth
+  (let ((foreign-type (ecase sample-depth
                         (8 :uint8)
                         (16 :int16)))
         (foreign-size (* (/ sample-depth 8) (length pcm-data))))
     ;; fixme: remove :: hax
     (cffi::with-foreign-array (raw-data pcm-data (list :array foreign-type (length pcm-data)))
-      (al:buffer-data (handle-value-of this) pcm-format raw-data foreign-size sampling-rate))))
-
+      (%al:buffer-data (handle-value-of this)
+                       (select-pcm-format channel-format sample-depth)
+                       raw-data foreign-size sampling-rate))))
 
 
 (defun make-audio-buffer (resource)

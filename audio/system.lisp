@@ -16,45 +16,56 @@
 (definline audio ()
   (engine-system 'audio-system))
 
+
 (defun device-enumerable-p (device)
-  (alc:extension-present-p device "ALC_ENUMERATE_ALL_EXT"))
+  (%alc:is-extension-present device "ALC_ENUMERATE_ALL_EXT"))
 
 
 (defun device-name (device)
-  (alc:get-string device
-                  (if (device-enumerable-p device)
-                      :all-devices-specifier
-                      :device-specifier)))
+  (cffi:foreign-string-to-lisp
+   (%alc:get-string device
+                    (if (device-enumerable-p device)
+                        %alc:+all-devices-specifier+
+                        %alc:+device-specifier+))))
 
 
 (defun print-openal-info ()
   (log:debug "~%OpenAL version: ~A~%OpenAL vendor: ~A~%OpenAL renderer: ~A"
-             (al:get-string :version)
-             (al:get-string :vendor)
-             (al:get-string :renderer)))
+             (cffi:foreign-string-to-lisp
+              (%al:get-string %al:+version+))
+             (cffi:foreign-string-to-lisp
+              (%al:get-string %al:+vendor+))
+             (cffi:foreign-string-to-lisp
+              (%al:get-string %al:+renderer+))))
 
 
 (defun print-available-devices-info ()
   (log:debug "Available playback devices:~%~A" (device-name (cffi:null-pointer)))
   (log:debug "Available capture devices:~%~A"
-             (alc:get-string (cffi:null-pointer) :capture-device-specifier)))
+             (cffi:foreign-string-to-lisp
+              (%alc:get-string (cffi:null-pointer) %alc:+capture-device-specifier+))))
 
 
 (defun print-device-info (device)
-  (log:debug "Selected device: ~A~%ALC version: ~A.~A"
-             (device-name device)
-             (first (alc:get-integer device :major-version))
-             (first (alc:get-integer device :minor-version))))
+  (claw:c-let ((value %alc:int))
+    (log:debug "Selected device: ~A~%ALC version: ~A.~A"
+               (device-name device)
+               (progn
+                 (%alc:get-integerv device %alc:+major-version+ 1 (value &))
+                 value)
+               (progn
+                 (%alc:get-integerv device %alc:+minor-version+ 1 (value &))
+                 value))))
 
 
 (defmethod make-system-context ((this audio-system))
   (claw:with-float-traps-masked ()
     (print-available-devices-info)
-    (if-let ((dev (alc:open-device)))
+    (if-let ((dev (%alc:open-device (cffi:null-pointer))))
       (progn
         (print-device-info dev)
-        (let ((ctx (alc:create-context dev)))
-          (alc:make-context-current ctx)
+        (let ((ctx (%alc:create-context dev (cffi:null-pointer))))
+          (%alc:make-context-current ctx)
           (print-openal-info)
           (log:debug "Audio context assigned")
           (make-audio-context ctx dev)))
@@ -62,37 +73,40 @@
 
 
 (defmethod destroy-system-context ((this audio-system) ctx)
-  (alc:make-context-current (cffi:null-pointer))
-  (alc:destroy-context (ac-ctx ctx))
-  (alc:close-device (ac-dev ctx)))
+  (%alc:make-context-current (cffi:null-pointer))
+  (%alc:destroy-context (ac-ctx ctx))
+  (%alc:close-device (ac-dev ctx)))
 
 
-(declaim (ftype (function () (values vec3 &optional)) listener-gain)
-         (inline listener-gain))
 (defun listener-gain ()
-  (sequence->vec3 (al:get-listener :gain)))
+  (claw:c-let ((value %al:float))
+    (%al:get-listeneri %al:+gain+ (value &))
+    value))
 
 
-(declaim (ftype (function (vec3) *) (setf listener-gain))
-         (inline (setf listener-gain)))
 (defun (setf listener-gain) (value)
-  (al:listener :gain (vec->array value)))
+  (%al:listenerf %al:+gain+ (float value 0f0)))
 
 
 (declaim (ftype (function () (values vec3 &optional)) listener-position)
          (inline listener-position))
 (defun listener-position ()
-  (sequence->vec3 (al:get-listener :position)))
+  (static-vectors:with-static-vector (vec 3 :element-type 'single-float)
+    (%al:get-listenerfv %al:+position+ (static-vectors:static-vector-pointer vec))
+    (sequence->vec3 vec)))
 
 
 (declaim (ftype (function () (values vec3 &optional)) listener-velocity)
          (inline listener-velocity))
 (defun listener-velocity ()
-  (sequence->vec3 (al:get-listener :velocity)))
+  (static-vectors:with-static-vector (vec 3 :element-type 'single-float)
+    (%al:get-listenerfv %al:+velocity+ (static-vectors:static-vector-pointer vec))
+    (sequence->vec3 vec)))
 
 
 (declaim (inline listener-orientation))
 (defun listener-orientation ()
-  (let ((result (al:get-listener :orientation)))
-    (list (sequence->vec3 result)
-          (sequence->vec3 (subseq result 3)))))
+  (static-vectors:with-static-vector (vec 6 :element-type 'single-float)
+    (%al:get-listenerfv %al:+orientation+ (static-vectors:static-vector-pointer vec))
+    (list (sequence->vec3 vec)
+          (sequence->vec3 (subseq vec 3)))))

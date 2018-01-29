@@ -121,9 +121,9 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :defsystem-depends-on (bodge-blobs)
   :depends-on (cl-bodge/engine cl-bodge/utils cl-conspack log4cl closer-mop
-                               flexi-streams trivial-gray-streams bodge-async
+                               flexi-streams trivial-gray-streams
+                               async-blob bodge-async
                                claw)
   :pathname "network/"
   :serial t
@@ -205,9 +205,8 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :defsystem-depends-on (bodge-blobs)
   :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/host log4cl
-                               cl-openal cl-alc)
+                               openal-blob bodge-openal)
   :pathname "audio/"
   :serial t
   :components ((:file "packages")

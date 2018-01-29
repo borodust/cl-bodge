@@ -2,8 +2,12 @@
 
 
 (defhandle audio-source-handle
-    :initform (al:gen-source)
-    :closeform (al:delete-source *handle-value*))
+  :initform (claw:c-let ((source-id %al:uint))
+              (%al:gen-sources 1 (source-id &))
+              source-id)
+  :closeform (claw:c-let ((source-id %al:uint))
+               (setf source-id *handle-value*)
+               (%al:delete-sources 1 (source-id &))))
 
 
 (defclass audio-source (al-object) ()
@@ -17,38 +21,42 @@
 (declaim (ftype (function (audio-buffer audio-source) *) attach-buffer)
          (inline attach-buffer))
 (defun attach-audio-buffer (buffer source)
-  (al:source (handle-value-of source) :buffer (handle-value-of buffer)))
+  (%al:sourcei (handle-value-of source) %al:+buffer+ (handle-value-of buffer)))
 
 
 (declaim (ftype (function (audio-source) *) play-audio)
          (inline play-audio))
 (defun play-audio (source)
-  (al:source-play (handle-value-of source)))
+  (%al:source-play (handle-value-of source)))
 
 
 (declaim (ftype (function (audio-source) *) stop-audio)
          (inline stop-audio))
 (defun stop-audio (source)
-  (al:source-stop (handle-value-of source)))
+  (%al:source-stop (handle-value-of source)))
 
 
 (declaim (ftype (function (audio-source) *) pause-audio)
          (inline pause-audio))
 (defun pause-audio (source)
-  (al:source-pause (handle-value-of source)))
+  (%al:source-pause (handle-value-of source)))
 
 
 (defun audio-looped-p (source)
-  (al:get-source (handle-value-of source) :looped))
+  (claw:c-let ((value %al:int))
+    (%al:get-sourcei (handle-value-of source) %al:+looping+ (value &))
+    (= %al:+true+ value)))
 
 
 (defun (setf audio-looped-p) (value source)
-  (al:source (handle-value-of source) :looping (if value :true :false)))
+  (%al:sourcei (handle-value-of source) %al:+looping+ (if value %al:+true+ %al:+false+)))
 
 
 (defun audio-gain (source)
-  (al:get-source (handle-value-of source) :gain))
+  (claw:c-let ((value %al:float))
+    (%al:get-sourcef (handle-value-of source) %al:+gain+ (value &))
+    value))
 
 
 (defun (setf audio-gain) (value source)
-  (al:source (handle-value-of source) :gain value))
+  (%al:sourcei (handle-value-of source) %al:+gain+ (floor value)))
