@@ -55,7 +55,10 @@
 (ge.util:define-package :cl-bodge.math
   (:nicknames :ge.math)
   (:use :cl :cl-bodge.utils)
-  (:export lerp
+  (:export +double-infinity+
+           +single-ininity+
+
+           lerp
            nlerp
            mult
            add
