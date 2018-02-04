@@ -67,11 +67,12 @@
                           for name being the symbol in (find-package :%glfw)
                           as symbol-name = (symbol-name name)
                           when (alexandria:starts-with-subseq prefix symbol-name)
-                            append (let* ((name (subseq symbol-name 5
-                                                        (position #\+ symbol-name :start 1)))
-                                          (keyword (ensure-keyword (alexandria:make-keyword name))))
-                                     `((,name ,keyword)
-                                       (,keyword ,name))))))))
+                            append (let* ((symbol-name (subseq symbol-name 5
+                                                               (position #\+ symbol-name :start 1)))
+                                          (keyword (ensure-keyword
+                                                    (alexandria:make-keyword symbol-name))))
+                                     `((,(symbol-value name) ,keyword)
+                                       (,keyword ,(symbol-value name)))))))))
   (defvar *key-map* (make-key-map)))
 
 
