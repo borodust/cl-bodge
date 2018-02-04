@@ -1,6 +1,6 @@
 (cl:defpackage :cl-bodge.physics
   (:use :cl-bodge.engine :cl-bodge.utils
-        :cl :local-time :bodge-ode :claw)
+        :cl :local-time :ode :claw)
   (:nicknames :ge.phx)
   (:export physics-system
            physics

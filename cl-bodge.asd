@@ -222,8 +222,7 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :defsystem-depends-on (bodge-blobs)
-  :depends-on (cl-bodge/engine bodge-ode log4cl claw local-time)
+  :depends-on (cl-bodge/engine ode-blob bodge-ode log4cl claw local-time)
   :pathname "physics/"
   :serial t
   :components ((:file "packages")

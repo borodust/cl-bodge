@@ -1,8 +1,8 @@
 (in-package :cl-bodge.physics)
 
 
-(define-constant +precision+ (if ode:+double-precision-p+ 0d0 0f0)
-  :test #'=)
+(define-constant +precision+ 0d0)
+
 
 (defvar *contact-points-per-collision* 1)
 
