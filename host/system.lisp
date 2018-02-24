@@ -14,6 +14,11 @@
   (engine-system 'host-system))
 
 
+(defmacro for-host ((&optional arg) &body body)
+  `(-> (host) (,@(when arg (list arg)))
+     ,@body))
+
+
 (defmethod enabledp ((this host-system))
   (slot-value this 'enabled-p))
 

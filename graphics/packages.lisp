@@ -9,7 +9,8 @@
   (:use :cl :cl-bodge.engine :cl-bodge.host :cl-bodge.utils)
   (:export graphics-system
            graphics
-           rendering
+           for-graphics
+
            in-wireframe-mode
            preserving-state
            reset-state

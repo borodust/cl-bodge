@@ -100,8 +100,8 @@
   (engine-system 'graphics-system))
 
 
-(defmacro rendering ((&optional arg) &body body)
-  `(-> ((graphics)) (,@(ensure-list arg))
+(defmacro for-graphics ((&optional arg) &body body)
+  `(-> (graphics) (,@(when arg (list arg)))
      ,@body))
 
 

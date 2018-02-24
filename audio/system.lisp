@@ -3,14 +3,13 @@
 
 (defstruct (audio-context
              (:conc-name ac-)
-             (:constructor make-audio-context (ctx dev)))
+             (:constructor %make-audio-context (ctx dev)))
   (ctx nil :read-only t)
   (dev nil :read-only t))
 
 
-(defclass audio-system (thread-bound-system)
-  ()
-  (:default-initargs :depends-on '(cl-bodge.host:host-system)))
+(defclass audio-system (generic-system)
+  ((context :initform nil)))
 
 
 (definline audio ()
@@ -58,7 +57,7 @@
                  value))))
 
 
-(defmethod make-system-context ((this audio-system))
+(defun make-audio-context ()
   (claw:with-float-traps-masked ()
     (print-available-devices-info)
     (if-let ((dev (%alc:open-device (cffi:null-pointer))))
@@ -68,14 +67,24 @@
           (%alc:make-context-current ctx)
           (print-openal-info)
           (log:debug "Audio context assigned")
-          (make-audio-context ctx dev)))
+          (%make-audio-context ctx dev)))
       (error "Couldn't open sound device"))))
 
 
-(defmethod destroy-system-context ((this audio-system) ctx)
+(defun destroy-audio-context (ctx)
   (%alc:make-context-current (cffi:null-pointer))
   (%alc:destroy-context (ac-ctx ctx))
   (%alc:close-device (ac-dev ctx)))
+
+
+(defmethod initialize-system :after ((this audio-system))
+  (with-slots (context) this
+    (setf context (make-audio-context))))
+
+
+(defmethod discard-system :before ((this audio-system))
+  (with-slots (context) this
+    (destroy-audio-context context)))
 
 
 (defun listener-gain ()

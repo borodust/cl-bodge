@@ -87,7 +87,7 @@ file is stored."
 
 (defmacro concurrently ((&rest lambda-list) &body body)
   "Push task to engine's pooled executor."
-  `(-> (nil :concurrently t) ,lambda-list
+  `(-> nil :concurrently t ,lambda-list
      ,@body))
 
 

@@ -326,3 +326,13 @@
                                cl-bodge/physics cl-bodge/resources cl-bodge/ui cl-bodge/text
                                cl-bodge/canvas cl-bodge/animation)
   :components ((:file "packages")))
+
+
+(asdf:defsystem cl-bodge/demo
+  :description "cl-bodge demo to check if all systems work as expected"
+  :version "1.0.0"
+  :author "Pavel Korolev"
+  :license "MIT"
+  :depends-on (cl-bodge)
+  :pathname "demo/"
+  :components ((:file "demo")))

@@ -3,6 +3,7 @@
   (:use :cl-bodge.engine :cl-bodge.utils :cl :bordeaux-threads :cl-muth)
   (:export host-system
            host
+           for-host
 
            bind-rendering-context
            release-rendering-context
