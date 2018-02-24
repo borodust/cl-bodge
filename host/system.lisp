@@ -46,7 +46,7 @@
 
 
 (glfw:define-cursor-pos-callback on-cursor-movement (window x y)
-  (claw:c-let ((width :int)
+  (claw:c-with ((width :int)
                (height :int))
     (%glfw:get-window-size window (width &) (height &))
     (post 'cursor-event :x x :y (- height y))))
@@ -194,16 +194,16 @@
 
 (defun viewport-size (&optional (host *system*))
   (check-type host host-system)
-  (claw:c-let ((width :int)
-               (height :int))
+  (claw:c-with ((width :int)
+                (height :int))
     (%glfw:get-window-size (window-of host) (width &) (height &))
     (vec2 width height)))
 
 
 (defun framebuffer-size (&optional (host *system*))
   (check-type host host-system)
-  (claw:c-let ((width :int)
-               (height :int))
+  (claw:c-with ((width :int)
+                (height :int))
     (%glfw:get-framebuffer-size (window-of host) (width &) (height &))
     (vec2 width height)))
 
@@ -217,8 +217,8 @@
 
 (define-system-function cursor-position host-system ()
   (let ((height (y (viewport-size))))
-    (claw:c-let ((x :double)
-                 (y :double))
+    (claw:c-with ((x :double)
+                  (y :double))
       (%glfw:get-cursor-pos (window-of *system*) (x &) (y &))
       (vec2 x (- height y)))))
 

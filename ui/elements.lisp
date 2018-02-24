@@ -58,7 +58,7 @@
                                         (if (subtypep (class-of ,val) 'style-item)
                                             (pop-style *context* 'style-item)
                                             (pop-style *context* (class-name-of ,val))))))))))
-      `(c-let ((,ctx (:struct (%nk:context)) :from *handle*))
+      `(c-with ((,ctx (:struct (%nk:context)) :from *handle*))
          (let ,(mapcar (lambda (l) (list (first l) (second l))) stack-ops)
            (unwind-protect
                 (progn
@@ -148,7 +148,7 @@
 
 (defun compose-window (win next-method)
   (with-slots (x y width height title option-mask id) win
-    (c-let ((bounds (:struct (%nk:rect))))
+    (c-with ((bounds (:struct (%nk:rect))))
       (setf (bounds :x) x
             (bounds :y) (f  (- (height-of *context*) y height))
             (bounds :w) width

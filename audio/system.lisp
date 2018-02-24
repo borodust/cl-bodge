@@ -47,7 +47,7 @@
 
 
 (defun print-device-info (device)
-  (claw:c-let ((value %alc:int))
+  (claw:c-with ((value %alc:int))
     (log:debug "Selected device: ~A~%ALC version: ~A.~A"
                (device-name device)
                (progn
@@ -79,7 +79,7 @@
 
 
 (defun listener-gain ()
-  (claw:c-let ((value %al:float))
+  (claw:c-with ((value %al:float))
     (%al:get-listeneri %al:+gain+ (value &))
     value))
 

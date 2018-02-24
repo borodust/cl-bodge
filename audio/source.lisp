@@ -2,11 +2,10 @@
 
 
 (defhandle audio-source-handle
-  :initform (claw:c-let ((source-id %al:uint))
+  :initform (claw:c-with ((source-id %al:uint))
               (%al:gen-sources 1 (source-id &))
               source-id)
-  :closeform (claw:c-let ((source-id %al:uint))
-               (setf source-id *handle-value*)
+  :closeform (claw:c-with ((source-id %al:uint :value *handle-value*))
                (%al:delete-sources 1 (source-id &))))
 
 
@@ -43,7 +42,7 @@
 
 
 (defun audio-looped-p (source)
-  (claw:c-let ((value %al:int))
+  (claw:c-with ((value %al:int))
     (%al:get-sourcei (handle-value-of source) %al:+looping+ (value &))
     (= %al:+true+ value)))
 
@@ -53,7 +52,7 @@
 
 
 (defun audio-gain (source)
-  (claw:c-let ((value %al:float))
+  (claw:c-with ((value %al:float))
     (%al:get-sourcef (handle-value-of source) %al:+gain+ (value &))
     value))
 

@@ -193,7 +193,7 @@
 
 
 (defun style-item-color (style-item color)
-  (c-let ((color-v (:struct (%nk:color))))
+  (c-with ((color-v (:struct (%nk:color))))
     (%nk:style-item-color style-item
                           (%nk:rgba-f color-v (x color) (y color) (z color) (w color)))))
 
@@ -210,7 +210,7 @@
 
 
 (defmethod push-style ((context nuklear-context) destination (vec vec2))
-  (c-let ((vec-v (:struct (%nk:vec2))))
+  (c-with ((vec-v (:struct (%nk:vec2))))
     (setf (vec-v :x) (x vec)
           (vec-v :y) (y vec))
     (%nk:style-push-vec2 (handle-value-of context) destination vec-v)))
