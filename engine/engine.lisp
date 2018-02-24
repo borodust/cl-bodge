@@ -34,8 +34,8 @@
 (defun engine-system (system-name)
   "Return engine's system instance by class name. Throws error if system cannot be found."
   (with-slots (systems) (engine)
-    (with-instance-lock-held ((engine))
-      (if-let ((system (gethash system-name systems)))
+    (when-let ((system-map systems))
+      (if-let ((system (gethash system-name system-map)))
         system
         (error (format nil "~a not found" system-name))))))
 
