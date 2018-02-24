@@ -57,8 +57,7 @@
           (let ((contact-count (%ode:collide this that
                                              contacts-per-collision
                                              contact-geoms
-                                             (foreign-type-size
-                                              (find-type '%ode:contact-geom)))))
+                                             (sizeof '%ode:contact-geom))))
             (when (> contact-count 0)
               ;; todo: move allocation into universe/world/space object
               (c-with ((contact %ode:contact :calloc t))

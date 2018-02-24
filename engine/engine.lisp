@@ -104,9 +104,10 @@ file is stored."
 (defun always-true () t)
 
 (defun loop-flow (flow &optional (test #'always-true))
-  "Makes passed flow into a loop. Flow will be repeated while test function returns `t`.
+  "Turns passed flow into a loop. Flow will be repeated while test function returns `t`.
 Test happens before each flow execution. Result of the last flow iteration is passed to the next
 flow block after the looped flow."
+  (declare (type function test))
   (let (looped)
     (setf looped
           (->> (value)
