@@ -1,4 +1,4 @@
-(in-package :cl-bodge.host)
+(cl:in-package :cl-bodge.host)
 
 
 (defclass input-map (subscribing)

@@ -1,4 +1,4 @@
-(in-package :cl-bodge.memory)
+(cl:in-package :cl-bodge.memory)
 
 
 (defvar *auto-initialize-destructor* t)

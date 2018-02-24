@@ -1,4 +1,4 @@
-(in-package :cl-bodge.library.shading)
+(cl:in-package :cl-bodge.library.shading)
 
 
 (define-shader-library math

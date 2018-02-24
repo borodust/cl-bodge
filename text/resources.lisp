@@ -1,4 +1,4 @@
-(in-package :cl-bodge.text)
+(cl:in-package :cl-bodge.text)
 
 (define-system-function build-sdf-font ge.gx:graphics-system (name)
   (let* ((font-chunk (load-resource (ge.rsc:sdf-font-metrics-resource-name name)))

@@ -1,4 +1,4 @@
-(in-package :cl-bodge.memory)
+(cl:in-package :cl-bodge.memory)
 
 
 (defgeneric foreign-pointer-of (object))

@@ -1,4 +1,4 @@
-(in-package :cl-bodge.concurrency)
+(cl:in-package :cl-bodge.concurrency)
 
 
 (define-constant +default-queue-size+ 1024)

@@ -1,4 +1,4 @@
-(in-package :cl-bodge.canvas)
+(cl:in-package :cl-bodge.canvas)
 
 
 (defgeneric (setf fill-paint) (value canvas))

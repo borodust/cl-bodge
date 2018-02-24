@@ -1,4 +1,4 @@
-(in-package :cl-bodge.canvas)
+(cl:in-package :cl-bodge.canvas)
 
 
 (defun scissors (origin w h &optional (canvas *canvas*))

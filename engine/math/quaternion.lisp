@@ -1,4 +1,4 @@
-(in-package :cl-bodge.math)
+(cl:in-package :cl-bodge.math)
 
 
 (defun quat (x y z s)

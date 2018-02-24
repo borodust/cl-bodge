@@ -1,4 +1,4 @@
-(in-package :cl-bodge.library.shading)
+(cl:in-package :cl-bodge.library.shading)
 
 
 (defenum library-shader-type

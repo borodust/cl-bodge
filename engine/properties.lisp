@@ -1,4 +1,4 @@
-(in-package :cl-bodge.engine)
+(cl:in-package :cl-bodge.engine)
 
 
 (defun %get-property (key properties &optional (default-value nil))

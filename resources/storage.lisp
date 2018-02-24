@@ -1,4 +1,4 @@
-(in-package :cl-bodge.resources)
+(cl:in-package :cl-bodge.resources)
 
 (defun decompose-path (path)
   (labels ((%decompose-path (parent-list path)

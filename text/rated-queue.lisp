@@ -1,4 +1,4 @@
-(in-package :cl-bodge.text)
+(cl:in-package :cl-bodge.text)
 
 
 (define-constant +rating-threshold+ 0.95d0 :test #'=)

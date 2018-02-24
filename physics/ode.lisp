@@ -1,4 +1,4 @@
-(in-package :cl-bodge.physics)
+(cl:in-package :cl-bodge.physics)
 
 
 (define-constant +precision+ 0d0)

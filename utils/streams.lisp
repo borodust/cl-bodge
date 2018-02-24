@@ -1,4 +1,4 @@
-(in-package :cl-bodge.utils)
+(cl:in-package :cl-bodge.utils)
 
 
 (defun stream->byte-array (stream &key (initial-size 4096))

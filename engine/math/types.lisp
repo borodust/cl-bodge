@@ -1,4 +1,4 @@
-(in-package :cl-bodge.math)
+(cl:in-package :cl-bodge.math)
 
 (defgeneric lerp (this that f))
 (defgeneric normalize (this))

@@ -1,4 +1,4 @@
-(in-package :cl-bodge.utils)
+(cl:in-package :cl-bodge.utils)
 
 
 (defmacro dolines ((line-var text &optional result-form) &body body)

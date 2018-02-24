@@ -1,4 +1,4 @@
-(in-package :cl-bodge.utils)
+(cl:in-package :cl-bodge.utils)
 
 
 (defmacro with-hash-entries ((&rest keys) hash-table &body body)

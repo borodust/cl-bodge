@@ -1,4 +1,4 @@
-(in-package :cl-bodge.engine.resources)
+(cl:in-package :cl-bodge.engine.resources)
 
 ;;;
 ;;;

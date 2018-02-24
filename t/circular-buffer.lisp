@@ -1,4 +1,4 @@
-(in-package :cl-bodge.tests)
+(cl:in-package :cl-bodge.tests)
 
 
 (in-suite :bodge-circular-buffer)

@@ -1,4 +1,4 @@
-(in-package :cl-bodge.concurrency)
+(cl:in-package :cl-bodge.concurrency)
 
 
 (defgeneric dispatch (dispatcher task invariant &key &allow-other-keys))

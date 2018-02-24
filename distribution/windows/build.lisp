@@ -1,4 +1,4 @@
-(in-package :cl-bodge.distribution)
+(cl:in-package :cl-bodge.distribution)
 
 ;;;
 ;;; For MSYS2 environment

@@ -1,4 +1,4 @@
-(in-package :cl-bodge.ui)
+(cl:in-package :cl-bodge.ui)
 
 
 (defmacro dissect-c-struct ((&rest bindings) (wrapper type) &body body)

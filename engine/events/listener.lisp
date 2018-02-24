@@ -1,4 +1,4 @@
-(in-package :cl-bodge.events)
+(cl:in-package :cl-bodge.events)
 
 
 (defclass handler-table (disposable)

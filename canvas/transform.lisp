@@ -1,4 +1,4 @@
-(in-package :cl-bodge.canvas)
+(cl:in-package :cl-bodge.canvas)
 
 
 (defun translate-canvas (x y &key (canvas *canvas*))

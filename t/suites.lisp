@@ -1,4 +1,4 @@
-(in-package :cl-bodge.tests)
+(cl:in-package :cl-bodge.tests)
 
 
 (def-suite :bodge)

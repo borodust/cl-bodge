@@ -1,4 +1,4 @@
-(in-package :cl-bodge.engine)
+(cl:in-package :cl-bodge.engine)
 
 
 (defclass generic-system (lockable system)

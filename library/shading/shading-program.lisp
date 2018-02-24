@@ -1,4 +1,4 @@
-(in-package :cl-bodge.library.shading)
+(cl:in-package :cl-bodge.library.shading)
 
 
 (defun shading-program-source-name (program-name source-name)

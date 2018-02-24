@@ -1,4 +1,4 @@
-(in-package :cl-bodge.resources)
+(cl:in-package :cl-bodge.resources)
 
 
 (defun %map-value (val mapper)

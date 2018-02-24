@@ -1,4 +1,4 @@
-(in-package :cl-bodge.graphics)
+(cl:in-package :cl-bodge.graphics)
 
 
 (declaim (special *active-framebuffer*

@@ -1,4 +1,4 @@
-(in-package :cl-bodge.animation)
+(cl:in-package :cl-bodge.animation)
 
 ;;;
 ;;;
