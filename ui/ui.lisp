@@ -6,7 +6,7 @@
 
 
 (defhandle nuklear-font-handle
-    :closeform (bodge-nuklear:destroy-user-font *handle-value*))
+    :closeform (nuklear:destroy-user-font *handle-value*))
 
 
 (defclass nuklear-font (foreign-object) ())
@@ -15,12 +15,12 @@
 (defun make-nuklear-font (font-line-height font-width-callback-name)
   (make-instance 'nuklear-font
                  :handle (make-nuklear-font-handle
-                          (bodge-nuklear:make-user-font font-line-height
-                                                        font-width-callback-name))))
+                          (nuklear:make-user-font font-line-height
+                                                  font-width-callback-name))))
 
 
 (defhandle nuklear-context-handle
-    :closeform (bodge-nuklear:destroy-context *handle-value*))
+  :closeform (nuklear:destroy-context *handle-value*))
 
 ;;;
 ;;;
@@ -47,7 +47,7 @@
       advance)))
 
 
-(bodge-nuklear:define-text-width-callback calc-string-width (handle height string)
+(nuklear:define-text-width-callback calc-string-width (handle height string)
   (calc-text-width string))
 
 
@@ -73,7 +73,7 @@
                                          'calc-string-width)))
         (apply #'call-next-method this
                :handle (make-nuklear-context-handle
-                        (bodge-nuklear:make-context (handle-value-of nk-font)))
+                        (nuklear:make-context (handle-value-of nk-font)))
                :canvas canvas
                :nuklear-font nk-font
                :font font

@@ -96,7 +96,7 @@
 
 
 (defun stroke-color (color &optional (canvas *canvas*))
-  (c-let ((color-v %nvg:color))
+  (c-with ((color-v %nvg:color))
     (setf (color-v :r) (x color)
           (color-v :g) (y color)
           (color-v :b) (z color)
@@ -105,7 +105,7 @@
 
 
 (defun fill-color (color &optional (canvas *canvas*))
-  (c-let ((color-v %nvg:color))
+  (c-with ((color-v %nvg:color))
     (setf (color-v :r) (x color)
           (color-v :g) (y color)
           (color-v :b) (z color)

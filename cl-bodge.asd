@@ -115,31 +115,6 @@
                (:file "keymap")))
 
 
-(asdf:defsystem cl-bodge/network
-  :description "Bodacious Game Engine networking utilities"
-  :version "0.4.0"
-  :author "Pavel Korolev"
-  :mailto "dev@borodust.org"
-  :license "MIT"
-  :depends-on (cl-bodge/engine cl-bodge/utils cl-conspack log4cl closer-mop
-                               flexi-streams trivial-gray-streams
-                               async-blob bodge-async
-                               claw)
-  :pathname "network/"
-  :serial t
-  :components ((:file "packages")
-               (:file "utils")
-               (:file "pool-allocator")
-               (:file "message")
-               (:file "transport")
-               (:file "channel")
-               (:file "foreign-object-registry")
-               (:file "system")
-               (:file "socket")
-               (:file "server")
-               (:file "client")))
-
-
 (asdf:defsystem cl-bodge/graphics
   :description "Bodacious Game Engine graphics system"
   :version "0.4.0"
@@ -298,34 +273,6 @@
                (:file "rendering-backend")))
 
 
-(asdf:defsystem cl-bodge/scenegraph
-  :description "Bodacious Game Engine scenegraph implementation"
-  :version "0.4.0"
-  :author "Pavel Korolev"
-  :mailto "dev@borodust.org"
-  :license "MIT"
-  :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/graphics cl-bodge/physics
-                               cl-bodge/host cl-muth cl-bodge/animation
-                               cl-bodge/audio cl-bodge/shading-library)
-  :pathname "scene/"
-  :serial t
-  :components ((:file "packages")
-               (:file "node")
-               (:file "scene")
-               (:file "simulation")
-               (:module rendering
-                        :serial t
-                        :components ((:file "rendering-pass")
-                                     (:file "shading")
-                                     (:file "texturing")
-                                     (:file "lighting")
-                                     (:file "mesh")
-                                     (:file "banner")))
-               (:file "transformations")
-               (:file "animation")
-               (:file "model")))
-
-
 (asdf:defsystem cl-bodge/distribution
   :description "Bodacious Game Engine distribution helpers"
   :version "0.4.0"
@@ -359,13 +306,12 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (cl-bodge/text cl-bodge/network cl-bodge/utils flexi-streams fiveam)
+  :depends-on (cl-bodge/utils cl-bodge/text flexi-streams fiveam)
   :pathname "t/"
   :serial t
   :components ((:file "packages")
                (:file "suites")
                (:file "rated-queue")
-               (:file "network")
                (:file "circular-buffer")
                (:file "buffered-output-stream")))
 
@@ -376,8 +322,7 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/host cl-bodge/network
-                               cl-bodge/graphics cl-bodge/audio cl-bodge/physics
-                               cl-bodge/resources cl-bodge/scenegraph
-                               cl-bodge/ui cl-bodge/text cl-bodge/canvas)
+  :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/host cl-bodge/graphics cl-bodge/audio
+                               cl-bodge/physics cl-bodge/resources cl-bodge/ui cl-bodge/text
+                               cl-bodge/canvas cl-bodge/animation)
   :components ((:file "packages")))

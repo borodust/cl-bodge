@@ -230,7 +230,7 @@
 
 (defun render-ui (&optional (ui *context*))
   (with-canvas ((canvas-of ui))
-    (bodge-nuklear:docommands (cmd (handle-value-of ui))
+    (nuklear:docommands (cmd (handle-value-of ui))
       (case (command-type cmd)
         (:nop)
         (:scissor (render-scissor cmd ui))
