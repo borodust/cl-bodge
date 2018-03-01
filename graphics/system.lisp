@@ -40,7 +40,7 @@
         (-> host-sys ()
           (execute resource-executor
                    (lambda ()
-                     (bind-rendering-context host-sys :main nil)
+                     (bind-rendering-context :main nil)
                      (glad:init)
                      (log:debug "Shared context bound"))
                    :priority :highest :important-p t)))))
@@ -59,7 +59,7 @@
 
 (defmethod make-system-context ((this graphics-system))
   (with-slots (host-sys) this
-    (bind-rendering-context host-sys)
+    (bind-rendering-context)
     (log:debug "~%GL version: ~a~%GLSL version: ~a~%GL vendor: ~a~%GL renderer: ~a"
                (gl:get* :version)
                (gl:get* :shading-language-version)

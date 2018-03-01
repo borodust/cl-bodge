@@ -1,4 +1,4 @@
-(defpackage :cl-bodge.animation
+(ge.util:define-package :cl-bodge.animation
   (:nicknames :ge.ani)
   (:use :cl :cl-bodge.utils :cl-bodge.engine :cl-bodge.graphics)
   (:export make-keyframe

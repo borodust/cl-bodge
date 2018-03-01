@@ -161,8 +161,8 @@
     (stop-main-runner)))
 
 
-(defun bind-rendering-context (host-sys &key (main t))
-  (with-slots (window shared) host-sys
+(defun bind-rendering-context (&key (main t))
+  (with-slots (window shared) (host)
     (if main
         (%glfw:make-context-current window)
         (%glfw:make-context-current shared))))
@@ -172,44 +172,44 @@
   (%glfw:make-context-current (cffi:null-pointer)))
 
 
-(defun swap-buffers (host-sys)
-  (with-slots (window) host-sys
-    (with-system-lock-held (host-sys)
-      (%glfw:swap-buffers window))))
+(defun swap-buffers ()
+  (let ((host-sys (host)))
+    (with-slots (window) host-sys
+      (with-system-lock-held (host-sys)
+        (%glfw:swap-buffers window)))))
 
 
-(defun swap-interval (host-sys)
-  (with-slots (swap-interval) host-sys
+(defun swap-interval ()
+  (with-slots (swap-interval) (host)
     swap-interval))
 
 
-(defun (setf swap-interval) (value host-sys)
-  (with-slots (swap-interval) host-sys
-    (with-system-lock-held (host-sys)
-      (setf swap-interval value)
-      (%glfw:swap-interval value))))
+(defun (setf swap-interval) (value)
+  (let ((host-sys (host)))
+    (with-slots (swap-interval) host-sys
+      (with-system-lock-held (host-sys)
+        (setf swap-interval value)
+        (%glfw:swap-interval value)))))
 
 
-(define-system-function (setf viewport-title) host-system (value &key (host-sys *system*))
-  (with-slots (window) host-sys
+(define-system-function (setf viewport-title) host-system (value)
+  (with-slots (window) *system*
     ;; some darwin systems go crazy throwing FPE around while setting a title
     (claw:with-float-traps-masked ()
       (%glfw:set-window-title window (format nil "~a" value)))))
 
 
-(defun viewport-size (&optional (host *system*))
-  (check-type host host-system)
+(define-system-function viewport-size host-system ()
   (claw:c-with ((width :int)
                 (height :int))
-    (%glfw:get-window-size (window-of host) (width &) (height &))
+    (%glfw:get-window-size (window-of *system*) (width &) (height &))
     (vec2 width height)))
 
 
-(defun framebuffer-size (&optional (host *system*))
-  (check-type host host-system)
+(define-system-function framebuffer-size host-system ()
   (claw:c-with ((width :int)
                 (height :int))
-    (%glfw:get-framebuffer-size (window-of host) (width &) (height &))
+    (%glfw:get-framebuffer-size (window-of *system*) (width &) (height &))
     (vec2 width height)))
 
 
@@ -233,13 +233,13 @@
    (%glfw:get-mouse-button (window-of *system*) (mouse-button->glfw-enumval button))))
 
 
-(define-system-function lock-cursor host-system (&key (host *system*))
-  (with-slots (window) host
+(define-system-function lock-cursor host-system ()
+  (with-slots (window) *system*
     (%glfw:set-input-mode window %glfw:+cursor+ %glfw:+cursor-disabled+)))
 
 
-(define-system-function unlock-cursor host-system (&key (host *system*))
-  (with-slots (window) host
+(define-system-function unlock-cursor host-system ()
+  (with-slots (window) *system*
     (%glfw:set-input-mode window %glfw:+cursor+ %glfw:+cursor-normal+)))
 
 
