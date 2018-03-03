@@ -107,9 +107,40 @@
   (%glfw:set-char-callback *window* (claw:callback 'on-character-input)))
 
 
+
+(defun run-main-loop (host-system initialization-latch)
+  (with-slots (enabled-p task-queue window gl-major-version gl-minor-version shared)
+      host-system
+    (destructuring-bind (major-version minor-version)
+        (property '(:host :opengl-version) '(4 1))
+      (log:debug "Initializing GLFW context for OpenGL version ~A.~A"
+                 major-version minor-version)
+      (claw:with-float-traps-masked ()
+        (glfw:with-init ()
+          (let ((*window* (create-window 640 480 "Scene" major-version minor-version
+                                         :visible t)))
+            (unwind-protect
+                 (progn
+                   (init-callbacks)
+                   (%glfw:swap-interval 0)
+                   (%glfw:make-context-current (cffi:null-pointer))
+                   (log:debug "GL context detached from main loop thread")
+                   (setf window *window*
+                         shared (make-shared-context major-version minor-version)
+                         enabled-p t)
+                   (open-latch initialization-latch)
+                   (log:debug "Host main loop running")
+                   (loop while enabled-p
+                         do (log-errors
+                              (%glfw:wait-events)
+                              (drain task-queue)))))
+            (%glfw:destroy-window *window*))))
+      (log:debug "Main loop stopped. Host system offline"))))
+
+
 ;; if current thread is the main one, this function will block
 (defmethod initialize-system :after ((this host-system))
-  (with-slots (enabled-p task-queue window eve-sys gl-major-version gl-minor-version shared) this
+  (with-slots (enabled-p) this
     (when enabled-p
       (error "Host system already enabled"))
     (wait-with-latch (latch)
@@ -117,32 +148,8 @@
       (with-body-in-main-thread ()
         (unwind-protect
              (log-errors
-               (destructuring-bind (major-version minor-version)
-                   (property '(:host :opengl-version) '(4 1))
-                 (log:debug "Initializing GLFW context for OpenGL version ~A.~A"
-                            major-version minor-version)
-                 (claw:with-float-traps-masked ()
-                   (glfw:with-init ()
-                     (let ((*window* (create-window 640 480 "Scene" major-version minor-version
-                                                    :visible t)))
-                       (unwind-protect
-                            (progn
-                              (init-callbacks)
-                              (%glfw:swap-interval 0)
-                              (%glfw:make-context-current (cffi:null-pointer))
-                              (log:debug "GL context detached from main loop thread")
-                              (setf window *window*
-                                    shared (make-shared-context major-version minor-version)
-                                    enabled-p t)
-                              (let ((*system* this))
-                                (open-latch latch)
-                                (log:debug "Host main loop running")
-                                (loop while enabled-p
-                                      do (log-errors
-                                           (%glfw:wait-events)
-                                           (drain task-queue)))))
-                         (%glfw:destroy-window *window*))))
-                   (log:debug "Main loop stopped. Host system offline"))))
+               (let ((*system* this))
+                 (run-main-loop this latch)))
           (open-latch latch)))))
   (log:debug "Host system initialized"))
 
