@@ -31,7 +31,6 @@
    (height :initarg :height :reader height-of)
    (canvas :initarg :canvas :reader canvas-of)
    (compose-tasks :initform (make-task-queue))
-   (windows :initform nil :reader %windows-of)
    (font :initarg :font :reader font-of)))
 
 
@@ -88,16 +87,6 @@
                  :pixel-ratio pixel-ratio
                  :font-descriptor font-descriptor
                  :antialiased antialiased))
-
-
-(defun add-window (context window)
-  (with-slots (windows) context
-    (push window windows)))
-
-
-(defun remove-window (context window)
-  (with-slots (windows) context
-    (deletef windows window)))
 
 
 (defun push-compose-task (ctx fn)

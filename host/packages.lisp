@@ -12,12 +12,14 @@
            viewport-title
            viewport-size
            framebuffer-size
-           cursor-position
-           mouse-button-state
            hotkey-state
            fullscreen-viewport-p
            lock-cursor
            unlock-cursor
+
+           cursor-position
+           keyboard-button-state
+           mouse-button-state
 
            state-from
            keyboard-event
@@ -47,4 +49,5 @@
            bind-keyboard-button
            bind-keyboard-hotkey
            bind-characters
-           bind-cursor))
+           bind-cursor
+           bind-scroll))

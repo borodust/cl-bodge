@@ -80,6 +80,10 @@
   (gethash value *key-map* :unknown))
 
 
+(defun keyboard-key->glfw-enumval (value)
+  (gethash value *key-map* %glfw:+key-unknown+))
+
+
 (defun glfw-enumval->button-state (value)
   (eswitch (value :test #'=)
     (%glfw:+press+ :pressed)
@@ -92,7 +96,7 @@
 
 
 (defun mouse-button->glfw-enumval (value)
-  value)
+  (gethash value *mouse-button-map* %glfw:+key-unknown+))
 
 
 (defevent input-event () ())

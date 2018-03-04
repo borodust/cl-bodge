@@ -112,7 +112,7 @@
                (:file "events")
                (:file "system")
                (:file "hotkey")
-               (:file "keymap")))
+               (:file "input-map")))
 
 
 (asdf:defsystem cl-bodge/graphics
@@ -263,14 +263,15 @@
   :mailto "dev@borodust.org"
   :license "MIT"
   :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/graphics cl-bodge/canvas
-                               nuklear-blob bodge-nuklear claw)
+                               cl-bodge/host nuklear-blob bodge-nuklear claw)
   :pathname "ui/"
   :serial t
   :components ((:file "packages")
+               (:file "input-source")
                (:file "ui")
                (:file "events")
                (:file "elements")
-               (:file "rendering-backend")))
+               (:file "rendering")))
 
 
 (asdf:defsystem cl-bodge/distribution

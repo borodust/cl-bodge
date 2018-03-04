@@ -3,6 +3,7 @@
 
 (defclass input-map (subscribing)
   ((cursor-action :initform (make-guarded-reference nil))
+   (scroll-action :initform (make-guarded-reference nil))
    (key-table :initform (make-guarded-reference (make-hash-table :test 'eq)))
    (button-table :initform (make-guarded-reference (make-hash-table :test 'eq)))
    (key-action :initform nil)
@@ -13,7 +14,7 @@
 
 (defmethod initialize-instance :after ((input-map input-map) &key)
   (with-slots (cursor-action key-table button-table hotkey-listener
-               key-action button-action character-action)
+               key-action button-action character-action scroll-action)
       input-map
     (flet ((register-callback (class action)
              (add-event-handler input-map class action))
@@ -35,12 +36,16 @@
            (process-cursor-event (ev)
              (when-let ((action (guarded-value-of cursor-action)))
                (funcall action (x-from ev) (y-from ev))))
+           (process-scroll-event (ev)
+             (when-let ((action (guarded-value-of scroll-action)))
+               (funcall action (x-offset-from ev) (y-offset-from ev))))
            (process-character-event (ev)
              (when character-action
                (funcall character-action (character-from ev)))))
       (register-callback 'keyboard-event #'process-key-event)
       (register-callback 'mouse-event #'process-button-event)
       (register-callback 'cursor-event #'process-cursor-event)
+      (register-callback 'scroll-event #'process-scroll-event)
       (register-callback 'character-input-event #'process-character-event))))
 
 
@@ -99,3 +104,9 @@
   (with-slots (cursor-action) input-map
     (with-guarded-reference (cursor-action)
       (setf cursor-action action))))
+
+
+(defun bind-scroll (input-map action)
+  (with-slots (scroll-action) input-map
+    (with-guarded-reference (scroll-action)
+      (setf scroll-action action))))

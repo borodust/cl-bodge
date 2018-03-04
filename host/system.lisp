@@ -227,17 +227,24 @@
     (%glfw:set-window-size (window-of *system*) (floor (x value)) (floor (y value)))))
 
 
-(define-system-function cursor-position host-system ()
+(define-system-function cursor-position host-system (&optional (result-vec (vec2)))
   (let ((height (y (viewport-size))))
     (claw:c-with ((x :double)
                   (y :double))
       (%glfw:get-cursor-pos (window-of *system*) (x &) (y &))
-      (vec2 x (- height y)))))
+      (setf (x result-vec) x
+            (y result-vec) (- height y))
+      result-vec)))
 
 
 (define-system-function mouse-button-state host-system (button)
   (glfw-enumval->button-state
    (%glfw:get-mouse-button (window-of *system*) (mouse-button->glfw-enumval button))))
+
+
+(define-system-function keyboard-button-state host-system (button)
+  (glfw-enumval->keyboard-key
+   (%glfw:get-key (window-of *system*) (keyboard-key->glfw-enumval button))))
 
 
 (define-system-function lock-cursor host-system ()

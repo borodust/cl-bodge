@@ -51,7 +51,6 @@
     result))
 
 
-
 (defun expand-array (array dimensions)
   (unless (= (apply #'* (ensure-list dimensions)) (length array))
     (error "incorrect dimensions"))
