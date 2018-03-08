@@ -70,16 +70,16 @@
       (setf hidden-p nil))))
 
 
-(defmethod initialize-instance :after ((this window)
-                                       &key
-                                         (width (error ":width missing"))
-                                         (height (error ":height missing"))
-                                         (origin (vec2 0 0))
-                                         (title "") (background-color nil)
-                                         (panel-p nil) (hidden nil))
+(defun setup-window (window &key
+                              (width (error ":width missing"))
+                              (height (error ":height missing"))
+                              (origin (vec2 0 0))
+                              (title "") (background-color nil)
+                              (panel-p nil) (hidden nil)
+                     &allow-other-keys)
   (with-slots ((w width) (h height) x y background-style-item option-mask
                (this-panel-p panel-p) (this-title title))
-      this
+      window
     (setf w (float width 0f0)
           h (float height 0f0)
           x (x origin)
@@ -89,8 +89,11 @@
     (when background-color
       (setf background-style-item (make-instance 'color-style-item :color background-color)))
     (when hidden
-      (hide-window this))
-    (update-window-layout this)))
+      (hide-window window))))
+
+
+(defmethod initialize-instance :after ((this window) &key &allow-other-keys)
+  (reinitialize-window this))
 
 
 (defun add-window (window-class ui &rest initargs &key &allow-other-keys)
@@ -135,7 +138,7 @@
       this
     (unless hidden-p
       (when redefined-p
-        (update-window-layout this)
+        (reinitialize-window this)
         (setf redefined-p nil))
       (with-styles ((:window :fixed-background) background-style-item)
         (let ((*window* this))
@@ -174,7 +177,7 @@
     (setf redefined-p t)))
 
 
-(defgeneric update-window-layout (window)
+(defgeneric reinitialize-window (window)
   (:method (window) (declare (ignore window))))
 
 
@@ -199,19 +202,23 @@
 (defmacro defwindow (name-and-opts &body layout)
   (flet ((filter-window-initargs (opts)
            (loop with special-keywords = '(:inherit :options)
-                 for (key value) in opts
+                 for (key . value) in opts
                  unless (member key special-keywords)
-                   append (list key value))) )
+                   append (case key
+                            (:origin (list key `(vec2 ,(or (first value) 0) ,(or (second value) 0))))
+                            (t (list key (first value)))))))
     (destructuring-bind (name &rest opts) (ensure-list name-and-opts)
       (with-gensyms (layout-parent)
-        `(progn
-           (defclass ,name (window ,@(assoc-value opts :inherit)) ()
-             (:default-initargs ,@(filter-window-initargs opts)))
-           (defmethod update-window-layout ((,layout-parent ,name))
-             (update-window-options ,layout-parent ,@(assoc-value opts :options))
-             (abandon-all ,layout-parent)
-             (layout (,layout-parent) ,@layout))
-           (make-instances-obsolete ',name))))))
+        (let ((initargs (filter-window-initargs opts)))
+          `(progn
+             (defclass ,name (window ,@(assoc-value opts :inherit)) ()
+               (:default-initargs ,@initargs))
+             (defmethod reinitialize-window ((,layout-parent ,name))
+               (setup-window ,layout-parent ,@initargs)
+               (update-window-options ,layout-parent ,@(assoc-value opts :options))
+               (abandon-all ,layout-parent)
+               (layout (,layout-parent) ,@layout))
+             (make-instances-obsolete ',name)))))))
 
 ;;;
 ;;;
