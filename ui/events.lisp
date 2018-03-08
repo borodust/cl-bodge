@@ -1,5 +1,5 @@
 (cl:in-package :cl-bodge.ui)
 
 
-(defevent button-click-event ()
-    (button))
+(defevent ui-event ()
+    (source))

@@ -23,4 +23,6 @@
 
            make-host-input-source
            attach-host-input-source
-           detach-host-input-source))
+           detach-host-input-source
+
+           source-from))

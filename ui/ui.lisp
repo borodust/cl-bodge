@@ -137,15 +137,29 @@
 
 (defun button-state->nk (state)
   (ecase state
-    (:pressed 1)
-    (:released 0)))
+    (:pressed %nk:+true+)
+    (:released %nk:+false+)
+    (:repeating %nk:+button-repeater+)))
+
+
+(defvar *nk-key-map*
+  (make-hash-table-with-entries ()
+    (:left-shift %nk:+key-shift+)
+    (:right-shift %nk:+key-shift+)
+    (:left-control %nk:+key-ctrl+)
+    (:right-control %nk:+key-ctrl+)
+    (:delete %nk:+key-del+)
+    (:enter %nk:+key-enter+)
+    (:tab %nk:+key-tab+)
+    (:backspace %nk:+key-backspace+)
+    (:up %nk:+key-up+)
+    (:down %nk:+key-down+)
+    (:left %nk:+key-left+)
+    (:right %nk:+key-right+)))
 
 
 (defun key->nk (key)
-  (ecase key
-    (:backspace %nk:+key-backspace+)
-    (:left %nk:+key-left+)
-    (:right %nk:+key-right+)))
+  (gethash key *nk-key-map* %nk:+key-none+))
 
 
 (defun register-keyboard-input (key state)
