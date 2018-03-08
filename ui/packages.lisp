@@ -15,6 +15,7 @@
            combo-box
            color-picker
            float-property
+           option
 
            debug-console
            add-simple-reporter
