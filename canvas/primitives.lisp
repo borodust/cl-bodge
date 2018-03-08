@@ -3,7 +3,8 @@
 
 (defun scissors (origin w h &optional (canvas *canvas*))
   (path (canvas)
-    (%nvg:scissor (handle-value-of canvas) (x origin) (y origin)
+    (%nvg:scissor (handle-value-of canvas)
+                  (x origin) (y origin)
                   (f w) (f h))))
 
 

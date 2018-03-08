@@ -297,10 +297,6 @@
   ((hidden :initform nil :reader hiddenp)))
 
 
-(defmethod children-of ((this widget))
-  nil)
-
-
 (defmethod hide-widget ((this widget))
   (with-slots (hidden) this
     (setf hidden t)))
@@ -332,22 +328,24 @@
 ;;;
 ;;;
 ;;;
-(defclass label (widget)
-  ((text :initarg :text :initform (error ":text missing"))
-   (align :initarg :align :initform (error ":align missing"))))
-
-
 (defun text-align->nk (align)
   (ecase align
     (:left %nk:+text-align-left+)
-    (:right %nk:+text-align-right+)))
+    (:right %nk:+text-align-right+)
+    (:bottom %nk:+text-align-bottom+)
+    (:center %nk:+text-align-centered+)
+    (:middle %nk:+text-align-middle+)
+    (:top %nk:+text-align-top+)))
 
 
-(defun make-text-label (text-or-supplier &key name (align :left))
-  (make-instance 'label
-                 :text text-or-supplier
-                 :name name
-                 :align (text-align->nk align)))
+(defclass label (widget)
+  ((text :initarg :text :initform "")
+   (align :initarg :align)))
+
+
+(defmethod initialize-instance :after ((this label) &key (align :left))
+  (with-slots ((this-align align)) this
+    (setf this-align (text-align->nk align))))
 
 
 (defmethod compose ((this label))
@@ -357,8 +355,82 @@
                     text)))
       (%nk:label *handle* text align))))
 
+;;;
+;;;
+;;;
+(defclass combo-box (layout widget)
+  ((label :initarg :label :initform "")
+   (color :initarg :color :initform nil)
+   (height :initarg :height :initform 400f0)))
 
-;;
+
+(defmethod compose ((this combo-box))
+  (with-slots (height (this-color color) label) this
+    (claw:c-with ((size (:struct (%nk:vec2))))
+      (setf (size :x) (%nk:widget-width *handle*)
+            (size :y) (f height))
+      (flet ((combo-begin ()
+               (cond
+                 (this-color
+                  (claw:c-with ((color (:struct (%nk:colorf))))
+                    (setf (color :r) (x this-color)
+                          (color :g) (y this-color)
+                          (color :b) (z this-color)
+                          (color :a) (w this-color))
+                    (%nk:combo-begin-color *handle* (%nk:rgb-cf color color) size)))
+                 (t (%nk:combo-begin-label *handle* label size)))))
+        (unless (= (combo-begin) 0)
+          (unwind-protect
+               (call-next-method)
+            (%nk:combo-end *handle*)))))))
+
+;;;
+;;;
+;;;
+(defclass float-property (disposable widget)
+  ((label :initarg :label :initform "")
+   (min :initarg :start :initform 0f0)
+   (max :initarg :end :initform 1f0)
+   (step :initarg :step :initform 0f0)
+   (increment :initarg :increment :initform 0.005f0)
+   (value :initarg :value :initform 0f0)))
+
+
+(defmethod compose ((this float-property))
+  (with-slots (value min max step label increment) this
+    (setf value (%nk:propertyf *handle* label
+                               (f min) (f value) (f max)
+                               (f step) (f increment)))))
+;;;
+;;;
+;;;
+(defclass color-picker (widget disposable)
+  ((color)))
+
+
+(defmethod initialize-instance :after ((this color-picker) &key (color (vec4 1.0 1.0 1.0 1.0)))
+  (with-slots ((this-color color)) this
+    (setf this-color (c-let ((color-f (:struct (%nk:colorf))))
+                       (setf (color-f :r) (x color)
+                             (color-f :g) (y color)
+                             (color-f :b) (z color)
+                             (color-f :a) (w color))
+                       color-f))))
+
+
+(define-destructor color-picker (color)
+  (free color))
+
+
+(defmethod compose ((this color-picker))
+  (with-slots (color) this
+    (%nk:color-picker color *handle* color %nk:+rgba+)))
+
+
+
+;;;
+;;;
+;;;
 (defclass spacing (widget)
   ((columns :initform 1 :initarg :columns)))
 
@@ -489,8 +561,8 @@
 (defun add-simple-reporter (win label value-supplier)
   (with-slots (window) win
     (let ((row (make-dynamic-row-layout 24)))
-      (adopt row (make-text-label label))
-      (adopt row (make-text-label value-supplier :align :right))
+      (adopt row (make-instance 'label :label label))
+      (adopt row (make-instance 'label :label value-supplier :align :right))
       (adopt window row))))
 
 

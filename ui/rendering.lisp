@@ -15,7 +15,12 @@
     (vec4 (c r) (c g) (c b) (c a))))
 
 
-(defun saturate (v max)
+(defun bodge-color (nk-color)
+  (c-val ((nk-color (:struct (%nk:color))))
+    (clamp (nk-color :r) (nk-color :g) (nk-color :b) (nk-color :a))))
+
+
+(definline saturate (v max)
   (max (min v max) 0))
 
 
@@ -23,57 +28,71 @@
   (- (height-of ctx) y h))
 
 
-(defun draw-bounding-box (ui x y w h &optional (r 255) (g 0) (b 0) (a 255))
-  (draw-rect (vec2 x (%invert y ui h)) w h
-             :stroke-paint (clamp r g b a)
-             :canvas (canvas-of ui)))
+(defmacro as-command ((cmd-var type) &body body)
+  `(claw:c-val ((,cmd-var (:struct (,type))))
+     ,@body))
 
 
 (defun render-scissor (cmd ui)
-  (dissect-c-struct ((x :x) (y :y) (w :w) (h :h)) (cmd %nk:command-scissor)
-    (scissors (vec2 x (%invert y ui h)) w h (canvas-of ui))))
+  (as-command (cmd %nk:command-scissor)
+    (scissors (vec2 (cmd :x) (%invert (cmd :y) ui (cmd :h)))
+              (cmd :w) (cmd :h)
+              (canvas-of ui))))
 
 
 (defun render-line (cmd ui)
-  (dissect-c-struct ((x0 :begin :x) (y0 :begin :y) (x1 :end :x) (y1 :end :y)
-                     (r :color :r) (g :color :g) (b :color :b) (a :color :a))
-      (cmd %nk:command-line)
-    (draw-line (vec2 x0 (%invert y0 ui)) (vec2 x1 (%invert y1 ui)) (clamp r g b a)
-               :canvas (canvas-of ui))))
+  (as-command (cmd %nk:command-line)
+    (let ((x0 (cmd :begin :x))
+          (y0 (cmd :begin :y))
+          (x1 (cmd :end :x))
+          (y1 (cmd :end :y)))
+      (draw-line (vec2 x0 (%invert y0 ui)) (vec2 x1 (%invert y1 ui))
+                 (bodge-color (cmd :color))
+                 :thickness (cmd :line-thickness)
+                 :canvas (canvas-of ui)))))
 
 
 (defun render-curve (cmd ui)
-  (dissect-c-struct ((x0 :begin :x) (y0 :begin :y) (x1 :end :x) (y1 :end :y)
-                     (cx0 :ctrl 0 :x) (cy0 :ctrl 0 :y) (cx1 :ctrl 1 :x) (cy1 :ctrl 1 :y)
-                     (r :color :r) (g :color :g) (b :color :b) (a :color :a))
-      (cmd %nk:command-curve)
-    (draw-curve (vec2 x0 (%invert y0 ui)) (vec2 x1 (%invert y1 ui))
-                (vec2 cx0 cy0) (vec2 cx1 cy1)
-                (clamp r g b a)
-                :canvas (canvas-of ui))))
+  (as-command (cmd %nk:command-curve)
+    (let ((x0 (cmd :begin :x))
+          (y0 (cmd :begin :y))
+          (x1 (cmd :end :x))
+          (y1 (cmd :end :y))
+          (cx0 (cmd :ctrl 0 :x))
+          (cy0 (cmd :ctrl 0 :y))
+          (cx1 (cmd :ctrl 1 :x))
+          (cy1 (cmd :ctrl 1 :y)))
+      (draw-curve (vec2 x0 (%invert y0 ui)) (vec2 x1 (%invert y1 ui))
+                  (vec2 cx0 cy0) (vec2 cx1 cy1)
+                  (bodge-color (cmd :color))
+                  :thickness (cmd :line-thickness)
+                  :canvas (canvas-of ui)))))
 
 
 (defun render-rect (cmd ui)
-  (dissect-c-struct ((x :x) (y :y) (w :w) (h :h)
-                     (thickness :line-thickeness)
-                     (rounding :rounding)
-                     (r :color :r) (g :color :g) (b :color :b) (a :color :a))
-      (cmd %nk:command-rect)
-    (draw-rect (vec2 x (%invert y ui h)) w h
-               :stroke-paint (clamp r g b a)
-               :rounding rounding
-               :canvas (canvas-of ui))))
+  (as-command (cmd %nk:command-rect)
+    (let ((x (cmd :x)) (y (cmd :y))
+          (w (cmd :w)) (h (cmd :h))
+          (thickness (cmd :line-thickness))
+          (rounding (cmd :rounding)))
+      (draw-rect (vec2 x (%invert y ui h)) w h
+                 :stroke-paint (bodge-color (cmd :color))
+                 :rounding rounding
+                 :thickness thickness
+                 :canvas (canvas-of ui)))))
 
 
 (defun render-rect-filled (cmd ui)
-  (dissect-c-struct ((x :x) (y :y) (w :w) (h :h)
-                     (rounding :rounding)
-                     (r :color :r) (g :color :g) (b :color :b) (a :color :a))
-      (cmd %nk:command-rect-filled)
-    (draw-rect (vec2 x (%invert y ui h)) w h
-               :fill-paint (clamp r g b a)
-               :rounding rounding
-               :canvas (canvas-of ui))))
+  (as-command (cmd %nk:command-rect-filled)
+    (let ((x (cmd :x))
+          (y (cmd :y))
+          (w (cmd :w))
+          (h (cmd :h))
+          (rounding (cmd :rounding)))
+      (draw-rect (vec2 x (%invert y ui h)) w h
+                 :fill-paint (bodge-color (cmd :color))
+                 :rounding rounding
+                 :canvas (canvas-of ui)))))
 
 
 (defun render-rect-multi-color (cmd ui)
@@ -208,14 +227,6 @@
                                         (canvas-font-metrics (canvas-of ui)))))
                  lisp-string
                  :fill-color (clamp r g b a)))))
-
-
-(defun render-text-bounding-box (cmd ui)
-  (dissect-c-struct ((x :x) (y :y) (w :w) (h :h)
-                     (r :foreground :r) (g :foreground :g)
-                     (b :foreground :b) (a :foreground :a))
-      (cmd %nk:command-text)
-    (draw-bounding-box ui x y w h r g b a)))
 
 
 (defun render-image (cmd ui)

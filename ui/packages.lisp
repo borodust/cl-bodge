@@ -11,6 +11,10 @@
 
            vertical-layout
            button
+           label
+           combo-box
+           color-picker
+           float-property
 
            debug-console
            add-simple-reporter

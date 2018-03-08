@@ -138,8 +138,7 @@
 (defun button-state->nk (state)
   (ecase state
     (:pressed %nk:+true+)
-    (:released %nk:+false+)
-    (:repeating %nk:+button-repeater+)))
+    (:released %nk:+false+)))
 
 
 (defvar *nk-key-map*
