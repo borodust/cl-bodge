@@ -336,9 +336,10 @@
 
 (defmethod compose ((this option))
   (with-slots (enabled-p click-listener label) this
-    (let ((return-value (%nk:option-label *handle* label (if enabled-p %nk:+true+ %nk:+false+))))
+    (let ((return-value (%nk:option-label *handle* label (if enabled-p 1 0))))
       (unless (or (= return-value %nk:+false+) (null click-listener))
         (funcall click-listener *window* (make-ui-event this))))))
+
 
 ;;;
 ;;;
@@ -556,6 +557,39 @@
         (dolist (other-item items)
           (unless (eq item other-item)
             (select-item other-item nil)))))))
+
+
+;;;
+;;;
+;;;
+(defgeneric render-widget (widget origin width height))
+(defgeneric update-widget (widget)
+  (:method (widget) (declare (ignore widget))))
+
+
+(defclass custom-widget (disposable widget)
+  ((id :initform (%next-custom-widget-id) :reader %id-of)
+   (bounds)))
+
+
+(defmethod initialize-instance :after ((this custom-widget) &key)
+  (with-slots (bounds) this
+    (setf bounds (calloc '(:struct (%nk:rect))))))
+
+
+(define-destructor custom-widget (bounds)
+  (free bounds))
+
+
+(defmethod compose ((this custom-widget))
+  (with-slots (bounds) this
+    (let ((state (%nk:widget bounds *handle*)))
+      (unless (= state %nk:+widget-rom+)
+        (update-widget this))
+      (setf (context-custom-widget (%id-of this)) this)
+      (c-let ((ctx (:struct (%nk:context)) :from *handle*))
+        (%nk:push-custom (ctx :current :buffer)
+                         bounds nil (cffi:make-pointer (%id-of this)))))))
 
 ;;;
 ;;;

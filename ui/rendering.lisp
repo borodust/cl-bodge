@@ -237,6 +237,13 @@
   (declare (ignore cmd ui)))
 
 
+(defun render-custom-widget (cmd ui)
+  (as-command (cmd %nk:command-custom)
+    (when-let ((widget (context-custom-widget (cffi:pointer-address (cmd :callback-data :ptr)) ui)))
+      (let ((height (cmd :h)))
+        (render-widget widget (vec2 (cmd :x) (%invert (cmd :y) ui height)) (cmd :w) height)))))
+
+
 (defun command-type (cmd)
   (claw:enum-key '(:enum (%nk:command-type)) (c-ref cmd (:struct (%nk:command)) :type)))
 
@@ -262,7 +269,8 @@
         (:polygon-filled (render-polygon-filled cmd ui))
         (:polyline (render-polyline cmd ui))
         (:text (render-text cmd ui))
-        (:image (render-image cmd ui))))))
+        (:image (render-image cmd ui))
+        (:custom (render-custom-widget cmd ui))))))
 
 
 (define-system-function compose-ui graphics-system (context)

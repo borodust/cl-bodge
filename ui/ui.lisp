@@ -36,7 +36,9 @@
    (last-scroll :initform (vec2) :reader %last-scroll-of)
    (nuklear-font :initarg :nuklear-font :reader font-of)
    (last-window-id :initform 0)
-   (windows :initform nil :accessor %windows-of)))
+   (last-custom-widget-id :initform 0)
+   (windows :initform nil :accessor %windows-of)
+   (custom-widget-table :initform (make-hash-table))))
 
 
 (define-destructor nuklear-context (nuklear-font canvas)
@@ -81,6 +83,21 @@
     (format nil "~A" (incf last-window-id))))
 
 
+(defun %next-custom-widget-id ()
+  (with-slots (last-custom-widget-id) *context*
+    (incf last-custom-widget-id)))
+
+
+(defun context-custom-widget (id &optional (ui *context*))
+  (with-slots (custom-widget-table) ui
+    (gethash id custom-widget-table)))
+
+
+(defun (setf context-custom-widget) (value id &optional (ui *context*))
+  (with-slots (custom-widget-table) ui
+    (setf (gethash id custom-widget-table) value)))
+
+
 (defun push-compose-task (ctx fn)
   (with-slots (compose-tasks) ctx
     (push-task fn compose-tasks)))
@@ -110,6 +127,8 @@
 
 
 (definline clear-ui (&optional (ui *context*))
+  (with-slots (custom-widget-table) ui
+    (clrhash custom-widget-table))
   (%nk:clear (handle-value-of ui)))
 
 

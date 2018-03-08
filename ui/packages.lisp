@@ -16,6 +16,9 @@
            color-picker
            float-property
            option
+           custom-widget
+           render-widget
+           update-widget
 
            debug-console
            add-simple-reporter
