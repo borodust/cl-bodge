@@ -204,12 +204,10 @@
                      (b :foreground :b) (a :foreground :a))
       (cmd %nk:command-text)
     (let ((lisp-string (cffi:foreign-string-to-lisp string :count length)))
-      (with-font ((font-of ui) (canvas-of ui))
-        (draw-text (vec2 x (%invert y ui (canvas-font-ascender
-                                            (canvas-font-metrics (font-of ui)
-                                                                 (canvas-of ui)))))
-                   lisp-string
-                   :fill-color (clamp r g b a))))))
+      (draw-text (vec2 x (%invert y ui (canvas-font-ascender
+                                        (canvas-font-metrics (canvas-of ui)))))
+                 lisp-string
+                 :fill-color (clamp r g b a)))))
 
 
 (defun render-text-bounding-box (cmd ui)
@@ -254,7 +252,26 @@
 
 (define-system-function compose-ui graphics-system (context)
   (with-ui (context)
-    (clear-ui-context)
+    (clear-ui)
+    (drain-compose-task-queue context)
+    (when-let ((input-source (%input-source-of context)))
+      (with-ui-input (context)
+        (loop (multiple-value-bind (key state) (next-keyboard-interaction input-source)
+                (if key
+                    (register-keyboard-input key state)
+                    (return))))
+        (let ((cursor (last-cursor-position input-source
+                                            (%last-cursor-position-of context))))
+          (loop (multiple-value-bind (button state) (next-mouse-interaction input-source)
+                  (if button
+                      (register-mouse-input (x cursor) (y cursor) button state))
+                      (return)))
+          (register-cursor-position (x cursor) (y cursor)))
+        (loop for character = (next-character input-source)
+              while character
+              do (register-character-input character))
+        (let ((scroll (next-scroll input-source (%last-scroll-of context))))
+          (register-scroll-input (x scroll) (y scroll)))))
     (loop for win in (%windows-of context)
           do (compose win))
     (render-ui)))

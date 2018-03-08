@@ -1,15 +1,20 @@
 (cl:in-package :cl-bodge.ui)
 
 
-(defgeneric next-keyboard-interaction (input-source))
+(defgeneric next-keyboard-interaction (input-source)
+  (:method (input-source) (declare (ignore input-source))))
 
-(defgeneric next-mouse-interaction (input-source))
+(defgeneric next-mouse-interaction (input-source)
+  (:method (input-source) (declare (ignore input-source))))
 
-(defgeneric last-cursor-position (input-source &optional result-vec))
+(defgeneric last-cursor-position (input-source &optional result-vec)
+  (:method (input-source &optional result-vec) (declare (ignore input-source result-vec))))
 
-(defgeneric next-character (input-source))
+(defgeneric next-character (input-source)
+  (:method (input-source) (declare (ignore input-source))))
 
-(defgeneric next-scroll (input-source &optional result-vec))
+(defgeneric next-scroll (input-source &optional result-vec)
+  (:method (input-source &optional result-vec) (declare (ignore input-source result-vec))))
 
 
 (defstruct (bounded-queue

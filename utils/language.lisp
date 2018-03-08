@@ -65,3 +65,11 @@
 
 (definline class-name-of (obj)
   (class-name (class-of obj)))
+
+
+(defun parse-initargs-and-list (initargs-and-list)
+  (loop for (key . rest) on initargs-and-list by #'cddr
+        until (listp key)
+        append (list key (first rest)) into initargs
+        finally (return (values initargs (unless (atom key)
+                                           (append (list key) rest))))))

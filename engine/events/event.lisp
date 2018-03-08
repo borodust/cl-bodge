@@ -8,7 +8,7 @@
 
 
 
-(defmacro defevent (name (&rest superclass-names) (&rest field-names) &rest class-options)
+(defmacro defevent (name (&rest superclass-names) (&rest field-names) &body class-options)
   (let ((constructor-name (symbolicate 'make- name)))
     `(progn
        (defclass ,name ,(if superclass-names

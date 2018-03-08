@@ -36,9 +36,11 @@
 
            register-font-face
            make-font
+           make-default-font
            with-font
            draw-text
            canvas-text-bounds
+           canvas-text-advance
            canvas-font-metrics
            canvas-font-line-height
            canvas-font-ascender

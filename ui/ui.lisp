@@ -26,12 +26,17 @@
 ;;;
 ;;;
 (defclass nuklear-context (foreign-object)
-  ((nuklear-font :initarg :nuklear-font)
-   (width :initarg :width :reader width-of)
+  ((width :initarg :width :reader width-of)
    (height :initarg :height :reader height-of)
    (canvas :initarg :canvas :reader canvas-of)
    (compose-tasks :initform (make-task-queue))
-   (font :initarg :font :reader font-of)))
+   (input-source :initform nil :initarg :input-source :reader %input-source-of)
+   (style-stack :initform nil)
+   (last-cursor-position :initform (vec2) :reader %last-cursor-position-of)
+   (last-scroll :initform (vec2) :reader %last-scroll-of)
+   (nuklear-font :initarg :nuklear-font :reader font-of)
+   (last-window-id :initform 0)
+   (windows :initform nil :accessor %windows-of)))
 
 
 (define-destructor nuklear-context (nuklear-font canvas)
@@ -40,53 +45,40 @@
 
 
 (defun calc-text-width (text)
-  (with-font ((font-of *context*) (canvas-of *context*))
-    (multiple-value-bind (bounds advance) (canvas-text-bounds text (canvas-of *context*))
-      (declare (ignore bounds))
-      advance)))
+  (canvas-text-advance text (canvas-of *context*)))
 
 
 (nuklear:define-text-width-callback calc-string-width (handle height string)
   (calc-text-width string))
 
 
-(defun ui-font (name size canvas-font-container
-                &key letter-spacing line-height alignment)
-  (list name canvas-font-container size letter-spacing line-height alignment))
-
-
 (defmethod initialize-instance ((this nuklear-context) &rest keys &key width height
-                                                                    font-descriptor
                                                                     antialiased
                                                                     pixel-ratio)
-  (let ((canvas (make-canvas width height :antialiased antialiased
-                                          :pixel-ratio pixel-ratio)))
-    (destructuring-bind (name canvas-font-container size letter-spacing line-height alignment)
-        font-descriptor
-      (let* ((font-face-id (register-font-face name canvas-font-container canvas))
-             (font (make-font font-face-id size
-                              :letter-spacing letter-spacing
-                              :line-height line-height
-                              :alignment alignment))
-             (nk-font (make-nuklear-font (canvas-font-line-height (canvas-font-metrics font canvas))
-                                         'calc-string-width)))
-        (apply #'call-next-method this
-               :handle (make-nuklear-context-handle
-                        (nuklear:make-context (handle-value-of nk-font)))
-               :canvas canvas
-               :nuklear-font nk-font
-               :font font
-               keys)))))
+  (let* ((canvas (make-canvas width height :antialiased antialiased
+                                          :pixel-ratio pixel-ratio))
+         (nk-font (make-nuklear-font (canvas-font-line-height (canvas-font-metrics canvas))
+                                     'calc-string-width)))
+    (apply #'call-next-method this
+           :handle (make-nuklear-context-handle
+                    (nuklear:make-context (handle-value-of nk-font)))
+           :canvas canvas
+           :nuklear-font nk-font
+           keys)))
 
 
-(definline make-ui-context (width height font-descriptor
-                                  &key antialiased (pixel-ratio 1.0))
+(definline make-ui (width height &key antialiased (pixel-ratio 1.0) input-source)
   (make-instance 'nuklear-context
+                 :input-source input-source
                  :width width
                  :height height
                  :pixel-ratio pixel-ratio
-                 :font-descriptor font-descriptor
                  :antialiased antialiased))
+
+
+(defun %next-window-id ()
+  (with-slots (last-window-id) *context*
+    (format nil "~A" (incf last-window-id))))
 
 
 (defun push-compose-task (ctx fn)
@@ -98,15 +90,15 @@
   `(push-compose-task ,ctx (lambda () ,@body)))
 
 
-(defun drain-compose-task-queue (ctx)
-  (with-slots (compose-tasks) ctx
-    (drain compose-tasks)))
-
-
 (defmacro with-ui ((ctx) &body body)
   `(let ((*context* ,ctx)
          (*handle* (handle-value-of ,ctx)))
      ,@body))
+
+
+(defun drain-compose-task-queue (ctx)
+  (with-slots (compose-tasks) ctx
+    (drain compose-tasks)))
 
 
 (defmacro with-ui-input ((ui) &body body)
@@ -117,7 +109,7 @@
        (%nk:input-end *handle*))))
 
 
-(definline clear-ui-context (&optional (ui *context*))
+(definline clear-ui (&optional (ui *context*))
   (%nk:clear (handle-value-of ui)))
 
 
@@ -127,6 +119,13 @@
 
 (defun register-character-input (character)
   (%nk:input-unicode *handle* (char-code character)))
+
+
+(defun register-scroll-input (x y)
+  (c-with ((vec (:struct (%nk:vec2))))
+    (setf (vec :x) (float x 0f0)
+          (vec :y) (float y 0f0))
+    (%nk:input-scroll *handle* vec)))
 
 
 (defun update-ui-size (ui width height)
@@ -194,27 +193,38 @@
 ;;;
 ;;;
 ;;;
+
+(defun push-style-popper (fu context)
+  (with-slots (style-stack) context
+    (push fu style-stack)))
+
+
+(defun pop-style (context)
+  (with-slots (style-stack) context
+    (when-let ((pop-fu (pop style-stack)))
+      (funcall pop-fu (handle-value-of context)))))
+
+
 (defgeneric push-style (context destination source))
-(defgeneric pop-style (context class))
 
 
 (defmethod push-style ((context nuklear-context) destination (vec vec2))
   (c-with ((vec-v (:struct (%nk:vec2))))
     (setf (vec-v :x) (x vec)
           (vec-v :y) (y vec))
-    (%nk:style-push-vec2 (handle-value-of context) destination vec-v)))
-
-(defmethod pop-style ((context nuklear-context) (class (eql 'vec2)))
-  (%nk:style-pop-vec2 (handle-value-of context)))
+    (%nk:style-push-vec2 (handle-value-of context) destination vec-v)
+    (push-style-popper #'%nk:style-pop-vec2 context)))
 
 (defmethod push-style ((context nuklear-context) destination (value single-float))
-  (%nk:style-push-float (handle-value-of context) destination value))
-
-(defmethod pop-style ((context nuklear-context) (class (eql 'single-float)))
-  (%nk:style-pop-float (handle-value-of context)))
+  (%nk:style-push-float (handle-value-of context) destination value)
+  (push-style-popper #'%nk:style-pop-float context))
 
 (defmethod push-style ((context nuklear-context) destination (item style-item))
-  (%nk:style-push-style-item (handle-value-of context) destination (handle-value-of item)))
+  (%nk:style-push-style-item (handle-value-of context) destination (handle-value-of item))
+  (push-style-popper #'%nk:style-pop-style-item context))
 
-(defmethod pop-style ((context nuklear-context) (class (eql 'style-item)))
-  (%nk:style-pop-style-item (handle-value-of context)))
+(defun %nopper (handle)
+  (declare (ignore handle)))
+
+(defmethod push-style ((context nuklear-context) destination (item null))
+  (push-style-popper #'%nopper context))

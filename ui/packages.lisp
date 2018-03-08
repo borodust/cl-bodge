@@ -2,17 +2,17 @@
   (:nicknames :ge.ui)
   (:use :cl :cl-bodge.engine :cl-bodge.utils :cl-bodge.graphics
         :cl-bodge.canvas :cl-bodge.resources :claw)
-  (:export make-ui-context
-           with-ui-context
+  (:export make-ui
+           with-ui
            with-ui-access
-
+           compose-ui
            defwindow
-           make-window
-           compose-window
+           add-window
 
-           make-debug-console
-           show-debug-console
-           hide-debug-console
+           vertical-layout
+           button
+
+           debug-console
            add-simple-reporter
 
            next-keyboard-interaction

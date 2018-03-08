@@ -18,6 +18,7 @@
            alist-hash-table
            plist-alist
            read-file-into-string
+           read-file-into-byte-vector
            read-stream-content-into-string
            write-stream-content-into-string
            nconcf
@@ -80,4 +81,6 @@
            translate-name-to-foreign
            translate-name-from-foreign
            current-executable-path
-           make-bounded-input-stream))
+           make-bounded-input-stream
+           system-relative-pathname
+           parse-initargs-and-list))

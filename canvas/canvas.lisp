@@ -7,11 +7,20 @@
 (defhandle canvas-handle
     :closeform (nanovg:destroy-context *handle-value*))
 
+(defvar *default-font-name* "NotoMono-Regular")
+
+(defvar *default-font-data*
+  (let ((data (read-file-into-byte-vector
+               (system-relative-pathname :cl-bodge/canvas
+                                         (format nil "font/~A.ttf" *default-font-name*)))))
+    (static-vectors:make-static-vector (length data) :initial-contents data)))
+
 
 (defclass canvas (foreign-object)
   ((width :initarg :width :initform (error ":width missing") :reader width-of)
    (height :initarg :height :initform (error ":height missing") :reader height-of)
    (pixel-ratio :initarg :pixel-ratio :initform 1.0 :reader pixel-ratio-of)
+   (default-font-id :reader %default-font-of)
    (font-map :initform (make-hash-table :test #'equal))))
 
 
@@ -20,10 +29,38 @@
     (setf (gethash (namestring name) font-map) font-data)))
 
 
+(defun %ensure-font-face (canvas name foreign-data-ptr data-size)
+  (let ((font-face-id (%nvg:find-font (handle-value-of canvas) (namestring name))))
+    (if (< font-face-id 0)
+        (%nvg:create-font-mem (handle-value-of canvas) (namestring name)
+                              foreign-data-ptr data-size 0)
+        font-face-id)))
+
+
+(defun %register-font-face (canvas name data)
+  (let* ((f-data (static-vectors:make-static-vector (length data) :initial-contents data))
+         (id (%ensure-font-face canvas name
+                                (static-vectors:static-vector-pointer f-data) (length f-data))))
+    (when (< id 0)
+      (static-vectors:free-static-vector f-data)
+      (error "Failed to register face with name '~A'" name))
+    (%register-font canvas name f-data)
+    id))
+
+
 (defun update-canvas-size (canvas width height)
   (with-slots ((w width) (h height)) canvas
-    (setf w width
-          h height)))
+    (setf w (floor width)
+          h (floor height))))
+
+
+(defmethod initialize-instance :after ((this canvas) &key)
+  (with-slots (default-font-id) this
+    (let ((font-id (%ensure-font-face this *default-font-name*
+                                      (static-vectors:static-vector-pointer *default-font-data*)
+                                      (length *default-font-data*))))
+      (%nvg:add-fallback-font-id (handle-value-of this) font-id font-id)
+      (setf default-font-id font-id))))
 
 
 (define-system-function make-canvas graphics-system (width height &key (pixel-ratio 1.0) antialiased)
@@ -33,8 +70,8 @@
     (make-instance 'canvas
                    :handle (make-canvas-handle (apply #'nanovg:make-context opts))
                    :pixel-ratio pixel-ratio
-                   :width width
-                   :height height)))
+                   :width (floor width)
+                   :height (floor height))))
 
 
 (defun %invert-coordinate-system (canvas)

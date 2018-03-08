@@ -23,56 +23,29 @@
   (make-instance 'layout))
 
 
-(defmacro adopt-layout-by ((parent-layout) &body elements)
-  (labels ((expand-element (descriptor)
-             (destructuring-bind (name &rest params) (ensure-list descriptor)
-               `(,(symbolicate 'make- name) ,@params)))
-           (expand-element-hierarchy (root)
-             (with-gensyms (parent)
-               (let ((root (ensure-list root)))
-                 (if (listp (car root))
-                     `(let ((,parent ,(expand-element (car root))))
-                        ,@(loop for child in (cdr root)
-                                collect `(adopt ,parent
-                                                ,(expand-element-hierarchy child)))
-                        ,parent)
-                     (expand-element root))))))
-    (once-only (parent-layout)
-      `(prog1 ,parent-layout
-         ,@(loop for element in (mapcar #'expand-element-hierarchy elements)
-                 collect `(adopt ,parent-layout ,element))))))
-
-
-;; todo: wrap each push/pop into proper unwind-protect?
-(defmacro with-styles ((&rest styles) &body body)
+(defmacro with-style (((&rest path) value) &body body)
   (with-gensyms (ctx)
-    (let ((stack-ops (loop for style in styles
-                           collect
-                           (destructuring-bind (new-value &rest path) style
-                             (with-gensyms (val)
-                               (list val
-                                     new-value
-                                     `(when ,val
-                                        (push-style *context* (,ctx :style ,@path &) ,val))
-                                     `(when ,val
-                                        (if (subtypep (class-of ,val) 'style-item)
-                                            (pop-style *context* 'style-item)
-                                            (pop-style *context* (class-name-of ,val))))))))))
-      `(c-with ((,ctx (:struct (%nk:context)) :from *handle*))
-         (let ,(mapcar (lambda (l) (list (first l) (second l))) stack-ops)
-           (unwind-protect
-                (progn
-                  ,@(mapcar #'third stack-ops)
-                  ,@body))
-           ,@(reverse (mapcar #'fourth stack-ops)))))))
+    `(c-let ((,ctx (:struct (%nk:context)) :from (handle-value-of *context*)))
+       (push-style *context* (,ctx :style ,@path &) ,value)
+       (unwind-protect
+            (progn ,@body)
+         (pop-style *context*)))))
 
+
+(defmacro with-styles ((&rest styles) &body body)
+  (labels ((expand-next (rest-styles)
+             (if-let ((path (first rest-styles))
+                      (value (second rest-styles)))
+               `(with-style ((,@path) ,value)
+                  ,(expand-next (cddr rest-styles)))
+               `(progn ,@body))))
+    (expand-next styles)))
 
 ;;;
 ;;;
 ;;;
-(defclass window (layout disposable)
-  ((id :initform (symbol-name (gensym "ui-window")))
-   (ui :initarg :ui :initform (error ":ui missing"))
+(defclass window (layout)
+  ((id :initform (%next-window-id))
    (x :initarg :x :initform 0.0)
    (y :initarg :y :initform 0.0)
    (panel-p :initarg :panel-p)
@@ -81,7 +54,8 @@
    (background-style-item :initform nil)
    (title :initarg :title :initform "")
    (hidden-p :initform nil :reader hiddenp)
-   (option-mask :initarg :option-mask :initform '())))
+   (option-mask :initarg :option-mask :initform '())
+   (redefined-p :initform nil)))
 
 
 (defun hide-window (window)
@@ -96,45 +70,32 @@
       (setf hidden-p nil))))
 
 
-(defmethod initialize-instance :after ((this window) &key width height hidden-p background-color)
-  (with-slots ((w width) (h height) title ui background-style-item) this
+(defmethod initialize-instance :after ((this window)
+                                       &key
+                                         (width (error ":width missing"))
+                                         (height (error ":height missing"))
+                                         (origin (vec2 0 0))
+                                         (title "") (background-color nil)
+                                         (panel-p nil) (hidden nil))
+  (with-slots ((w width) (h height) x y background-style-item option-mask
+               (this-panel-p panel-p) (this-title title))
+      this
     (setf w (float width 0f0)
-          h (float height 0f0))
+          h (float height 0f0)
+          x (x origin)
+          y (y origin)
+          this-panel-p panel-p
+          this-title title)
     (when background-color
       (setf background-style-item (make-instance 'color-style-item :color background-color)))
-    (when hidden-p
-      (hide-window this))))
+    (when hidden
+      (hide-window this))
+    (update-window-layout this)))
 
 
-(define-destructor window (ui id)
+(defun add-window (window-class ui &rest initargs &key &allow-other-keys)
   (with-ui-access (ui)
-    (%nk:window-close (handle-value-of ui) id)))
-
-
-(defun make-window (ui origin w h &key (title "") (background-color nil)
-                                      (headerless t) (scrollable nil) (background-p nil)
-                                      (borderless nil) (panel-p nil) (resizable nil)
-                                      (minimizable nil) (movable nil) (closable nil)
-                                      (hidden nil))
-  (macrolet ((opt (key option)
-               `(when ,key
-                  (list ,option))))
-    (make-instance 'window
-                   :ui ui
-                   :x (x origin) :y (y origin) :width w :height h
-                   :panel-p panel-p
-                   :title title
-                   :background-color background-color
-                   :hidden-p hidden
-                   :option-mask (apply #'nk:panel-mask
-                                       (nconc (opt (not headerless) :title)
-                                              (opt (not scrollable) :no-scrollbar)
-                                              (opt (not (or panel-p borderless)) :border)
-                                              (opt closable :closable)
-                                              (opt background-p :background)
-                                              (opt resizable :scalable)
-                                              (opt minimizable :minimizable)
-                                              (opt movable :movable))))))
+    (push (apply #'make-instance window-class initargs) (%windows-of ui))))
 
 
 (defun find-element (name &optional (window *window*))
@@ -161,18 +122,22 @@
 
 (defun compose-panel (win next-method)
   (let ((vec (vec2 0.0 0.0)))
-    (with-styles ((vec :window :spacing)
-                  (vec :window :padding)
-                  (vec :window :header :label-padding)
-                  (vec :window :header :padding)
-                  (0.0 :window :border))
+    (with-styles ((:window :spacing) vec
+                  (:window :padding) vec
+                  (:window :header :label-padding) vec
+                  (:window :header :padding) vec
+                  (:window :border) 0.0)
       (compose-window win next-method))))
 
 
 (defmethod compose ((this window))
-  (with-slots (background-style-item panel-p hidden-p id) this
+  (with-slots (background-style-item panel-p hidden-p id redefined-p layout-constructor)
+      this
     (unless hidden-p
-      (with-styles ((background-style-item :window :fixed-background))
+      (when redefined-p
+        (update-window-layout this)
+        (setf redefined-p nil))
+      (with-styles ((:window :fixed-background) background-style-item)
         (let ((*window* this))
           (if panel-p
               (compose-panel this #'call-next-method)
@@ -181,12 +146,73 @@
         (setf hidden-p t)))))
 
 
+(defmacro layout ((parent-layout) &body elements)
+  (labels ((expand-element (root)
+             (when (atom root)
+               (error "Element descriptor must be a list, but got ~A" root))
+             (with-gensyms (parent)
+               (destructuring-bind (element-class &rest initargs-and-children) root
+                 (multiple-value-bind (initargs children)
+                     (ge.util:parse-initargs-and-list initargs-and-children)
+                   `(let ((,parent (make-instance ',element-class ,@initargs)))
+                      ,@(loop for child in children
+                              collect `(adopt ,parent ,(expand-element child)))
+                      ,parent))))))
+    (once-only (parent-layout)
+      `(prog1 ,parent-layout
+         ,@(loop for element in (mapcar #'expand-element elements)
+                 collect `(adopt ,parent-layout ,element))))))
+
+
+(defmethod update-instance-for-redefined-class :after ((this window)
+                                                       added-slots
+                                                       discarded-slots
+                                                       property-list
+                                                       &rest initargs)
+  (declare (ignore added-slots discarded-slots property-list initargs))
+  (with-slots (redefined-p) this
+    (setf redefined-p t)))
+
+
+(defgeneric update-window-layout (window)
+  (:method (window) (declare (ignore window))))
+
+
+(defun update-window-options (window &rest opts)
+  (with-slots (option-mask) window
+    (flet ((to-nuklear-opts (opts)
+             (let ((updated-opts (list :title :no-scrollbar :border)))
+               (loop for opt in opts
+                     do (case opt
+                          (:resizable (push :scalable updated-opts))
+                          (:headerless (deletef updated-opts :title))
+                          (:borderless (deletef updated-opts :border))
+                          (:closable (push :closable updated-opts))
+                          (:minimizable (push :minimizable updated-opts))
+                          (:movable (push :movable updated-opts))
+                          (:backgrounded (push :background updated-opts))
+                          (:scrollable (deletef updated-opts :no-scrollbar))))
+               updated-opts)))
+      (setf option-mask (apply #'nk:panel-mask (to-nuklear-opts opts))))))
+
+
 (defmacro defwindow (name-and-opts &body layout)
-  (destructuring-bind (name &rest opts) (ensure-list name-and-opts)
-    (with-gensyms (ui origin width height)
-      `(defun ,(symbolicate 'make- name) (,ui ,origin ,width ,height)
-         (adopt-layout-by ((make-window ,ui ,origin ,width ,height ,@opts))
-           ,@layout)))))
+  (flet ((filter-window-initargs (opts)
+           (loop with special-keywords = '(:inherit :options)
+                 for (key value) in opts
+                 unless (member key special-keywords)
+                   append (list key value))) )
+    (destructuring-bind (name &rest opts) (ensure-list name-and-opts)
+      (with-gensyms (layout-parent)
+        `(progn
+           (defclass ,name (window ,@(assoc-value opts :inherit)) ()
+             (:default-initargs ,@(filter-window-initargs opts)))
+           (defmethod update-window-layout ((,layout-parent ,name))
+             (update-window-options ,layout-parent ,@(assoc-value opts :options))
+             (abandon-all ,layout-parent)
+             (layout (,layout-parent) ,@layout))
+           (make-instances-obsolete ',name))))))
+
 ;;;
 ;;;
 ;;;
@@ -203,6 +229,17 @@
   (%nk:menubar-end *handle*))
 
 
+;;;
+;;;
+;;;
+(defclass vertical-layout (layout)
+  ((row-height :initarg :row-height :initform (error ":row-height missing"))))
+
+
+(defmethod compose ((this vertical-layout))
+  (with-slots (row-height) this
+    (%nk:layout-row-dynamic *handle* (f row-height) 1)
+    (call-next-method)))
 ;;;
 ;;;
 ;;;
@@ -274,19 +311,15 @@
 ;;;
 ;;;
 ;;;
-(defclass label-button (widget)
-  ((label :initarg :label :initform (error ":label missing"))
-   (click-listener :initarg :click-listener :initform nil)))
+(defclass button (widget)
+  ((label :initarg :label :initform "")
+   (click-listener :initarg :on-click :initform nil)))
 
 
-(defun make-label-button (text &key name on-click)
-  (make-instance 'label-button :label text :name name :click-listener on-click))
-
-
-(defmethod compose ((this label-button))
+(defmethod compose ((this button))
   (with-slots (label click-listener) this
     (unless (or (= (%nk:button-label *handle* label) 0) (null click-listener))
-      (funcall click-listener (make-button-click-event this)))))
+      (funcall click-listener *window* (make-button-click-event this)))))
 
 
 ;;;
@@ -433,20 +466,7 @@
 ;;;
 ;;;
 ;;;
-(defclass debug-console ()
-  ((window :initform nil)))
-
-
-(defmethod initialize-instance :after ((this debug-console) &key ui origin width height hidden)
-  (with-slots (window) this
-    (setf window (make-window ui origin width height :title "Debug Console"
-                              :headerless nil :scrollable t :resizable t
-                              :movable t :closable t :hidden hidden))))
-
-
-(defun make-debug-console (ui x y &key (width 640.0) (height 480.0) (hidden-p t))
-  (make-instance 'debug-console :ui ui
-                 :x x :y y :width width :height height :hidden-p hidden-p))
+(defclass debug-console (window) ())
 
 
 (defun show-debug-console (mon)

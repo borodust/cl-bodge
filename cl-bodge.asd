@@ -147,6 +147,7 @@
   :license "MIT"
   :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/graphics
                                cl-bodge/resources claw log4cl
+                               static-vectors asdf
                                nanovg-blob bodge-nanovg)
   :pathname "canvas/"
   :serial t

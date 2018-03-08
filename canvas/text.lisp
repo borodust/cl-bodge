@@ -3,12 +3,11 @@
 
 (defvar *active-font* nil)
 
-
 (defvar *black* (vec4 0 0 0 1))
 
 (defclass font ()
   ((face :initarg :face :reader %face-of)
-   (size :initarg :size :reader %size-of)
+   (size :initarg :size :initform nil :reader %size-of)
    (letter-spacing :initarg :letter-spacing :initform nil :reader %letter-spacing-of)
    (line-height :initarg :line-height :initform nil :reader %line-height-of)
    (alignment :initarg :alignment :initform nil :reader %alignment-of)))
@@ -25,29 +24,26 @@
 
 (defun register-font-face (name font-container &optional (canvas *canvas*))
   (let ((data (ge.rsc:font-container-data font-container)))
-      (let ((font-face-id (%nvg:find-font (handle-value-of canvas) (namestring name))))
-        (if (< font-face-id 0)
-            (let* ((f-data (static-vectors:make-static-vector (length data) :initial-contents data))
-                   (id (%nvg:create-font-mem (handle-value-of canvas) (namestring name)
-                                             (static-vectors:static-vector-pointer f-data)
-                                             (length f-data) 0)))
-              (when (< id 0)
-                (static-vectors:free-static-vector f-data)
-                (error "Failed to register face with name '~A'" name))
-              (%register-font canvas name f-data)
-              id)
-            font-face-id))))
+    (%register-font-face canvas name data)))
 
 
-(defun make-font (face-id size &rest args &key letter-spacing line-height alignment)
-  (declare (ignore letter-spacing line-height alignment))
-  (apply #'make-instance 'font :face face-id :size size args))
+(defun make-font (face-id &rest args &key size letter-spacing line-height alignment)
+  (declare (ignore letter-spacing line-height alignment size))
+  (apply #'make-instance 'font :face face-id args))
+
+
+(defun make-default-font (&rest args &key size letter-spacing line-height alignment)
+  (declare (ignore letter-spacing line-height alignment size))
+  (apply #'make-font nil args))
 
 
 (defun %apply-font (font canvas)
   (let ((context (handle-value-of canvas)))
-    (%nvg:font-face-id context (%face-of font))
-    (%nvg:font-size context (f (%size-of font)))
+    (if-let ((face-id (%face-of font)))
+      (%nvg:font-face-id context face-id)
+      (%nvg:font-face-id context (%default-font-of canvas)))
+    (when-let ((size (%size-of font)))
+      (%nvg:font-size context (f size)))
     (when-let ((spacing (%letter-spacing-of font)))
       (%nvg:text-letter-spacing context (f spacing)))
     (when-let ((line-height (%line-height-of font)))
@@ -73,6 +69,10 @@
       (values (vec4 (aref bounds 0) (- (aref bounds 1)) (aref bounds 2) (- (aref bounds 3)))
               advance))))
 
+
+(defun canvas-text-advance (string &optional (canvas *canvas*))
+  (%nvg:text-bounds (handle-value-of canvas) 0f0 0f0 string nil nil))
+
 ;;;
 ;;; Metrics
 ;;;
@@ -83,10 +83,9 @@
   (descender (f 0) :type single-float :read-only t))
 
 
-(defun canvas-font-metrics (font &optional (canvas *canvas*))
-  (with-font (font canvas)
-    (c-with ((ascender :float) (descender :float) (line-height :float))
-      (%nvg:text-metrics (handle-value-of canvas) (ascender &) (descender &) (line-height &))
-      (make-font-metrics :line-height line-height
-                         :ascender ascender
-                         :descender descender))))
+(defun canvas-font-metrics (&optional (canvas *canvas*))
+  (c-with ((ascender :float) (descender :float) (line-height :float))
+    (%nvg:text-metrics (handle-value-of canvas) (ascender &) (descender &) (line-height &))
+    (make-font-metrics :line-height line-height
+                       :ascender ascender
+                       :descender descender)))

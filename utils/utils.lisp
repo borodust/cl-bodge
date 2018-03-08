@@ -45,3 +45,7 @@
 
 (defun current-executable-path ()
   (merge-pathnames (first (uiop:raw-command-line-arguments)) (uiop:getcwd)))
+
+
+(defun system-relative-pathname (system-name pathname)
+  (merge-pathnames pathname (asdf:component-pathname (asdf:find-system system-name))))
