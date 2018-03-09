@@ -8,8 +8,12 @@
 (defgeneric compose (element))
 
 (defvar *zero-vec2* (vec2))
-
 (defvar *one-vec2* (vec2 1 1))
+(defvar *nk-buttons* (list %nk:+button-left+ :left
+                           %nk:+button-right+ :right
+                           %nk:+button-middle+ :middle))
+
+
 
 (defclass named ()
   ((name :initarg :name :initform nil :reader name-of)))
@@ -702,14 +706,17 @@
 ;;;
 ;;;
 ;;;
-(defgeneric render-widget (widget origin width height))
+(defgeneric render-custom-widget (widget origin width height))
 (defgeneric update-widget (widget)
   (:method (widget) (declare (ignore widget))))
 
 
 (defclass custom-widget (disposable widget)
   ((id :initform (%next-custom-widget-id) :reader %id-of)
-   (bounds)))
+   (bounds)
+   (clicked-buttons :initform nil)
+   (pressed-buttons :initform nil)
+   (hovered-p :initform nil)))
 
 
 (defmethod initialize-instance :after ((this custom-widget) &key)
@@ -721,15 +728,48 @@
   (free bounds))
 
 
+(defmethod update-widget ((this custom-widget))
+  (with-slots (clicked-buttons pressed-buttons hovered-p bounds) this
+    (c-let ((ctx (:struct (%nk:context)) :from *handle*))
+      (flet ((widget-hovered-p ()
+               (= %nk:+true+ (%nk:input-is-mouse-hovering-rect (ctx :input) bounds)))
+             (widget-clicked-p (button)
+               (= %nk:+true+ (%nk:input-has-mouse-click-in-rect (ctx :input) button bounds)))
+             (widget-pressed-p (button)
+               (= %nk:+true+ (%nk:input-has-mouse-click-down-in-rect (ctx :input) button bounds
+                                                                     %nk:+true+))))
+        (setf hovered-p (widget-hovered-p)
+              clicked-buttons (loop for (nk-key key) on *nk-buttons* by #'cddr
+                                    when (widget-clicked-p nk-key)
+                                      collect key)
+              pressed-buttons (loop for (nk-key key) on *nk-buttons* by #'cddr
+                                    when (widget-pressed-p nk-key)
+                                      collect key))))))
+
+
+(defun custom-widget-hovered-p (widget)
+  (with-slots (hovered-p) widget
+    hovered-p))
+
+
+(defun custom-widget-clicked-p (widget button)
+  (with-slots (clicked-buttons) widget
+    (member button clicked-buttons)))
+
+
+(defun custom-widget-pressed-p (widget button)
+  (with-slots (pressed-buttons) widget
+    (member button pressed-buttons)))
+
+
 (defmethod compose ((this custom-widget))
   (with-slots (bounds) this
-    (let ((state (%nk:widget bounds *handle*)))
-      (unless (= state %nk:+widget-rom+)
-        (update-widget this))
-      (setf (context-custom-widget (%id-of this)) this)
-      (c-let ((ctx (:struct (%nk:context)) :from *handle*))
-        (%nk:push-custom (ctx :current :buffer)
-                         bounds nil (cffi:make-pointer (%id-of this)))))))
+    (%nk:widget bounds *handle*)
+    (update-widget this)
+    (setf (context-custom-widget (%id-of this)) this)
+    (c-let ((ctx (:struct (%nk:context)) :from *handle*))
+      (%nk:push-custom (ctx :current :buffer)
+                       bounds nil (cffi:make-pointer (%id-of this))))))
 
 ;;;
 ;;;

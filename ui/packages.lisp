@@ -18,8 +18,10 @@
            float-property
            option
            custom-widget
-           render-widget
-           update-widget
+           render-custom-widget
+           custom-widget-hovered-p
+           custom-widget-clicked-p
+           custom-widget-pressed-p
 
            debug-console
            add-simple-reporter
