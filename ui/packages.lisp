@@ -36,4 +36,5 @@
            attach-host-input-source
            detach-host-input-source
 
-           source-from))
+           source-from
+           button-from))
