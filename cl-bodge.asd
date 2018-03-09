@@ -271,6 +271,7 @@
                (:file "input-source")
                (:file "ui")
                (:file "events")
+               (:file "style")
                (:file "elements")
                (:file "rendering")))
 

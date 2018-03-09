@@ -78,7 +78,7 @@
                  :antialiased antialiased))
 
 
-(defun %next-window-id ()
+(defun %next-panel-id ()
   (with-slots (last-window-id) *context*
     (format nil "~A" (incf last-window-id))))
 

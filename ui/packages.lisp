@@ -10,6 +10,7 @@
            add-window
 
            vertical-layout
+           horizontal-layout
            button
            label
            combo-box
