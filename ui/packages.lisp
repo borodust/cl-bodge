@@ -2,6 +2,8 @@
   (:nicknames :ge.ui)
   (:use :cl :cl-bodge.engine :cl-bodge.utils :cl-bodge.graphics
         :cl-bodge.canvas :cl-bodge.resources :claw)
+  (:import-from :cl-bodge.host
+                :button-from)
   (:export make-ui
            with-ui
            with-ui-access
