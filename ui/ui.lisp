@@ -58,7 +58,7 @@
                                                                     antialiased
                                                                     pixel-ratio)
   (let* ((canvas (make-canvas width height :antialiased antialiased
-                                          :pixel-ratio pixel-ratio))
+                                           :pixel-ratio pixel-ratio))
          (nk-font (make-nuklear-font (canvas-font-line-height (canvas-font-metrics canvas))
                                      'calc-string-width)))
     (apply #'call-next-method this
@@ -69,7 +69,7 @@
            keys)))
 
 
-(definline make-ui (width height &key antialiased (pixel-ratio 1.0) input-source)
+(definline make-ui (width height &key (antialiased t) (pixel-ratio 1.0) input-source)
   (make-instance 'nuklear-context
                  :input-source input-source
                  :width width

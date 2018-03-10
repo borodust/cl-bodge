@@ -595,10 +595,6 @@
   ((columns :initform 1 :initarg :columns)))
 
 
-(defun make-spacing (&optional (columns 1))
-  (make-instance 'spacing :columns columns))
-
-
 (defmethod compose ((this spacing))
   (with-slots (columns) this
     (%nk:spacing *handle* (floor columns))))

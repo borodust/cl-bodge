@@ -16,6 +16,7 @@
            button
            label
            combo-box
+           spacing
            color-picker
            float-property
            option
