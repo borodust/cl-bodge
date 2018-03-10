@@ -95,6 +95,7 @@
    (style :initform (make-default-style))
    (layout :initform (make-instance 'vertical-layout))
    (bounds :initform (alloc '(:struct (%nk:rect))))
+   (panel-spacing :initform (vec2))
    (redefined-p :initform nil)))
 
 
@@ -174,7 +175,7 @@
 
 
 (defun compose-window (win)
-  (with-slots (x y width height title option-mask layout bounds) win
+  (with-slots (x y width height title option-mask layout bounds panel-spacing) win
     (c-val ((bounds (:struct (%nk:rect))))
       (setf (bounds :x) (f x)
             (bounds :y) (f (- (height-of *context*) y height))
@@ -183,7 +184,9 @@
       (let ((val (%nk:begin-titled *handle* (%panel-id-of win) title bounds option-mask)))
         (unwind-protect
              (unless (= 0 val)
-               (with-styles ((:window :spacing) *zero-vec2*
+               (setf (x panel-spacing) (style :layout-spacing)
+                     (y panel-spacing) (style :layout-spacing))
+               (with-styles ((:window :spacing) panel-spacing
                              (:window :padding) *zero-vec2*
                              (:window :group-padding) *zero-vec2*)
                  (multiple-value-bind (width height) (calc-bounds layout)
@@ -314,28 +317,36 @@
            (compose-panel this)
         (%nk:group-end *handle*)))))
 
+
 ;;;
 ;;;
 ;;;
+(defclass stacking-layout (expandable panel layout) ())
+
+
 (defun default-row-height (child-height)
-  (f (+ (or child-height (style :row-height)) (style :row-padding))))
+  (f (or child-height (style :row-height))))
 
 
-(defclass vertical-layout (expandable panel layout) ())
+(defclass vertical-layout (stacking-layout) ())
 
 
 (defmethod calc-bounds ((this vertical-layout))
-  (let (width height)
+  (let (width
+        height
+        (spacing (style :layout-spacing)))
     (dochildren (child this)
       (multiple-value-bind (child-width child-height) (calc-bounds child)
         (when child-width
-          (setf width (if width
-                          (max width child-width)
-                          child-width)))
+          (setf width (+ (if width
+                             (max width child-width)
+                             child-width)
+                         spacing)))
         (let ((child-height (default-row-height child-height)))
-          (setf height (if height
-                           (+ height child-height)
-                           child-height)))))
+          (setf height (+ (if height
+                              (+ height child-height)
+                              child-height)
+                          spacing)))))
     (values width height)))
 
 
@@ -351,26 +362,31 @@
 ;;;
 ;;;
 ;;;
-(defclass horizontal-layout (expandable panel layout) ())
+(defclass horizontal-layout (stacking-layout) ())
 
 
 (defmethod calc-bounds ((this horizontal-layout))
-  (let (width height width-undefined)
+  (let (width
+        height
+        width-undefined
+        (spacing (style :layout-spacing)))
     (dochildren (child this)
       (multiple-value-bind (child-width child-height) (calc-bounds child)
         ;; if at least one child has undefined width
         ;; make the whole container width undefined
         (unless width-undefined
           (if child-width
-              (setf width (if width
-                              (+ width child-width)
-                              child-width))
+              (setf width (+ (if width
+                                 (+ width child-width)
+                                 child-width)
+                             spacing))
               (setf width nil
                     width-undefined t)))
         (when child-height
-          (setf height (if height
-                          (max height child-height)
-                          child-height)))))
+          (setf height (+ (if height
+                              (max height child-height)
+                              child-height)
+                          spacing)))))
     (values width height)))
 
 
@@ -496,11 +512,6 @@
 
 (defmethod compose :around ((this widget))
   (unless (hiddenp this)
-    #++(when (eq *layout* nil)
-      (let ((height (f (or (height-of this) (style :row-height)))))
-        (if-let ((width (width-of this)))
-          (%nk:layout-row-static *handle* height (floor width) 1)
-          (%nk:layout-row-dynamic *handle* height 1))))
     (call-next-method)))
 
 ;;;

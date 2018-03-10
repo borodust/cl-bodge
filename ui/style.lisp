@@ -24,5 +24,5 @@
 (defun make-default-style ()
   (let ((style (make-hash-table-with-entries (:test 'equal)
                  ('(:row-height) 26)
-                 ('(:row-padding) 4))))
+                 ('(:layout-spacing) 4))))
     (make-instance 'style :style-table style)))
