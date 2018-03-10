@@ -1,8 +1,7 @@
 (cl:in-package :cl-bodge.ui)
 
 
-(declaim (special *window*
-                  *layout*))
+(declaim (special *window*))
 
 
 (defgeneric compose (element))
@@ -27,16 +26,29 @@
           (max value element-value)))))
 
 
-(defgeneric calc-bounds (element))
+(defgeneric calc-bounds (element)
+  (:method (element) (declare (ignore element)) (values nil nil)))
+
+
+(defgeneric expand-ratio-of (element)
+  (:method (element) (declare (ignore element))))
+
+
+(defgeneric expandablep (element)
+  (:method (element) (declare (ignore element)) t))
+
+
+(defclass expandable ()
+  ((expand-ratio :initform nil :initarg :expand-ratio :reader expand-ratio-of)
+   (expandable-p :initform t :initarg :expandable :reader expandablep)))
 
 
 (defclass layout (named parent) ())
 
 
 (defmethod compose ((this layout))
-  (let ((*layout* this))
-    (dochildren (element this)
-      (compose element))))
+  (dochildren (element this)
+    (compose element)))
 
 
 (definline make-container-layout ()
@@ -71,7 +83,7 @@
 ;;;
 ;;;
 ;;;
-(defclass window (basic-panel)
+(defclass window (disposable basic-panel)
   ((x :initarg :x :initform 0.0)
    (y :initarg :y :initform 0.0)
    (width :initform nil)
@@ -82,6 +94,7 @@
    (option-mask :initarg :option-mask :initform '())
    (style :initform (make-default-style))
    (layout :initform (make-instance 'vertical-layout))
+   (bounds :initform (alloc '(:struct (%nk:rect))))
    (redefined-p :initform nil)))
 
 
@@ -122,6 +135,10 @@
   (reinitialize-window this))
 
 
+(define-destructor window (bounds)
+  (free bounds))
+
+
 (defmethod children-of ((this window))
   (with-slots (layout) this
     (children-of layout)))
@@ -142,11 +159,6 @@
     (abandon-all layout)))
 
 
-(defmethod compose ((this window))
-  (with-slots (layout) this
-    (compose layout)))
-
-
 (defun add-window (window-class ui &rest initargs &key &allow-other-keys)
   (with-ui-access (ui)
     (push (apply #'make-instance window-class initargs) (%windows-of ui))))
@@ -162,19 +174,22 @@
 
 
 (defun compose-window (win)
-  (with-slots (x y width height title option-mask layout) win
-    (c-with ((bounds (:struct (%nk:rect))))
-      (setf (bounds :x) x
+  (with-slots (x y width height title option-mask layout bounds) win
+    (c-val ((bounds (:struct (%nk:rect))))
+      (setf (bounds :x) (f x)
             (bounds :y) (f (- (height-of *context*) y height))
-            (bounds :w) width
-            (bounds :h) height)
+            (bounds :w) (f width)
+            (bounds :h) (f height))
       (let ((val (%nk:begin-titled *handle* (%panel-id-of win) title bounds option-mask)))
         (unwind-protect
              (unless (= 0 val)
                (with-styles ((:window :spacing) *zero-vec2*
                              (:window :padding) *zero-vec2*
-                             (:window :group-padding) *one-vec2*)
-                 (compose layout)))
+                             (:window :group-padding) *zero-vec2*)
+                 (multiple-value-bind (width height) (calc-bounds layout)
+                   (declare (ignore width))
+                   (%nk:layout-row-dynamic *handle* (f height) 1)
+                   (compose layout))))
           (%nk:end *handle*))))))
 
 
@@ -187,8 +202,7 @@
         (setf redefined-p nil))
       (with-styles ((:window :fixed-background) background-style-item)
         (let ((*window* this)
-              (*style* style)
-              (*layout* nil))
+              (*style* style))
           (compose-window this))))
       (unless (= 0 (%nk:window-is-closed *handle* (%panel-id-of this)))
         (setf hidden-p t))))
@@ -284,25 +298,22 @@
 ;;;
 ;;;
 (defclass panel (basic-panel)
-  ((content :initarg :content :initform (error ":content missing"))))
+  ())
 
 
-(defmethod calc-bounds ((this panel))
-  (with-slots (content) this
-    (calc-bounds content)))
+(defgeneric compose-panel (element))
 
 
 (defmethod compose ((this panel))
-  (with-slots (content) this
-    (let ((begin-result (%nk:group-begin-titled *handle*
-                                                (%panel-id-of this)
-                                                ""
-                                                (nk:panel-mask :no-scrollbar))))
-      (unless (= begin-result 0)
-        (unwind-protect
-             (let ((*layout* nil))
-               (compose content))
-          (%nk:group-end *handle*))))))
+  (let ((begin-result (%nk:group-begin-titled *handle*
+                                              (%panel-id-of this)
+                                              ""
+                                              (nk:panel-mask :no-scrollbar))))
+    (unless (= begin-result 0)
+      (unwind-protect
+           (compose-panel this)
+        (%nk:group-end *handle*)))))
+
 ;;;
 ;;;
 ;;;
@@ -310,11 +321,7 @@
   (f (+ (or child-height (style :row-height)) (style :row-padding))))
 
 
-(defclass vertical-layout (layout) ())
-
-
-(defmethod adopt ((this vertical-layout) child)
-  (call-next-method this (make-instance 'panel :content child)))
+(defclass vertical-layout (expandable panel layout) ())
 
 
 (defmethod calc-bounds ((this vertical-layout))
@@ -332,7 +339,7 @@
     (values width height)))
 
 
-(defmethod compose ((this vertical-layout))
+(defmethod compose-panel ((this vertical-layout))
   (dochildren (child this)
     (multiple-value-bind (child-width child-height) (calc-bounds child)
       (let ((height (default-row-height child-height)))
@@ -344,21 +351,22 @@
 ;;;
 ;;;
 ;;;
-(defclass horizontal-layout (layout) ())
-
-
-(defmethod adopt ((this horizontal-layout) child)
-  (call-next-method this (make-instance 'panel :content child)))
+(defclass horizontal-layout (expandable panel layout) ())
 
 
 (defmethod calc-bounds ((this horizontal-layout))
-  (let (width height)
+  (let (width height width-undefined)
     (dochildren (child this)
       (multiple-value-bind (child-width child-height) (calc-bounds child)
-        (when child-width
-          (setf width (if width
-                          (+ width child-width)
-                          child-width)))
+        ;; if at least one child has undefined width
+        ;; make the whole container width undefined
+        (unless width-undefined
+          (if child-width
+              (setf width (if width
+                              (+ width child-width)
+                              child-width))
+              (setf width nil
+                    width-undefined t)))
         (when child-height
           (setf height (if height
                           (max height child-height)
@@ -366,18 +374,58 @@
     (values width height)))
 
 
-(defmethod compose ((this horizontal-layout))
+(defun compose-horizontal-expand (this height expand-range child-count)
+  (let ((normalizing-expand-multiplier (f (/ 1 (if (= expand-range 0) 1 expand-range)))))
+    (%nk:layout-row-begin *handle* %nk:+dynamic+ height child-count)
+    (unwind-protect
+         (dochildren (child this)
+           (let ((expand-ratio (expand-ratio-of child)))
+             (if expand-ratio
+                 (%nk:layout-row-push *handle* (f (* expand-ratio normalizing-expand-multiplier)))
+                 (%nk:layout-row-push *handle* normalizing-expand-multiplier)))
+           (compose child))
+      (%nk:layout-row-end *handle*))))
+
+
+(defun compose-horizontal-flex (this height)
+  (%nk:layout-row-template-begin *handle* height)
+  (unwind-protect
+       (dochildren (child this)
+         (if-let ((width (calc-bounds child)))
+           (if (expandablep child)
+               (%nk:layout-row-template-push-variable *handle* (f width))
+               (%nk:layout-row-template-push-static *handle* (f width)))
+           (%nk:layout-row-template-push-dynamic *handle*)))
+    (with-float-traps-masked ()
+      (%nk:layout-row-template-end *handle*)))
+  (dochildren (child this)
+    (compose child)))
+
+
+(defmethod compose-panel ((this horizontal-layout))
   (flet ((height-max (value element)
            (multiple-value-bind (el-width el-height) (calc-bounds element)
              (declare (ignore el-width))
              (if value
                  (when el-height
                    (max el-height value))
-                 el-height))))
-    (let ((height (f (or (reduce #'height-max (children-of this) :initial-value nil)
-                         (style :row-height)))))
-      (%nk:layout-row-dynamic *handle* height (length (children-of this)))
-      (call-next-method))))
+                 el-height)))
+         (add-expand-ratio (value element)
+           (if-let ((ratio (expand-ratio-of element)))
+             (progn
+               (incf (car value) ratio)
+               (unless (cdr value)
+                 (setf (cdr value) t)))
+             (incf (car value) 1.0))
+           value))
+    (let* ((children (children-of this))
+           (child-count (length children))
+           (height (f (or (reduce #'height-max children :initial-value nil)
+                          (style :row-height))))
+           (expand-range (reduce #'add-expand-ratio children :initial-value (cons 0.0 nil))))
+      (if (cdr expand-range)
+          (compose-horizontal-expand this height (car expand-range) child-count)
+          (compose-horizontal-flex this height)))))
 
 
 ;;;
@@ -426,7 +474,7 @@
 (defgeneric show-widget (widget))
 
 
-(defclass widget (named)
+(defclass widget (named expandable)
   ((hidden :initform nil :reader hiddenp)
    (width :initform nil :initarg :width :reader width-of)
    (height :initform nil :initarg :height :reader height-of)))
@@ -448,7 +496,7 @@
 
 (defmethod compose :around ((this widget))
   (unless (hiddenp this)
-    (when (eq *layout* nil)
+    #++(when (eq *layout* nil)
       (let ((height (f (or (height-of this) (style :row-height)))))
         (if-let ((width (width-of this)))
           (%nk:layout-row-static *handle* height (floor width) 1)
