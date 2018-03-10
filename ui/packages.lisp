@@ -9,7 +9,9 @@
            with-ui-access
            compose-ui
            defwindow
+           on-window-close
            add-window
+           remove-window
 
            vertical-layout
            horizontal-layout

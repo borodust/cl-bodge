@@ -99,6 +99,10 @@
    (redefined-p :initform nil)))
 
 
+(defgeneric on-window-close (window)
+  (:method ((this window)) (declare (ignore this))))
+
+
 (defun hide-window (window)
   (with-slots (hidden-p) window
     (unless hidden-p
@@ -160,9 +164,14 @@
     (abandon-all layout)))
 
 
-(defun add-window (window-class ui &rest initargs &key &allow-other-keys)
+(defun add-window (window-class &rest initargs &key (ui *context*) &allow-other-keys)
   (with-ui-access (ui)
-    (push (apply #'make-instance window-class initargs) (%windows-of ui))))
+    (%add-window ui (apply #'make-instance window-class initargs))))
+
+
+(defun remove-window (window &key (ui *context*))
+  (with-ui-access (ui)
+    (%remove-window ui window)))
 
 
 (defun find-element (name &optional (window *window*))
@@ -206,9 +215,11 @@
       (with-styles ((:window :fixed-background) background-style-item)
         (let ((*window* this)
               (*style* style))
-          (compose-window this))))
-      (unless (= 0 (%nk:window-is-closed *handle* (%panel-id-of this)))
-        (setf hidden-p t))))
+          (compose-window this)))
+      (when (or (/= %nk:+false+ (%nk:window-is-hidden *handle* (%panel-id-of this)))
+                (/= %nk:+false+ (%nk:window-is-closed *handle* (%panel-id-of this))))
+        (setf hidden-p t)
+        (on-window-close this)))))
 
 
 (defmacro layout ((parent-layout) &body elements)

@@ -338,4 +338,7 @@
   :license "MIT"
   :depends-on (cl-bodge)
   :pathname "demo/"
-  :components ((:file "demo")))
+  :serial t
+  :components ((:file "packages")
+               (:file "ui")
+               (:file "demo")))

@@ -78,6 +78,15 @@
                  :antialiased antialiased))
 
 
+(defun %add-window (ui window)
+  (push window (%windows-of ui)))
+
+
+(defun %remove-window (ui window)
+  (deletef (%windows-of ui) window)
+  (%nk:window-close (handle-value-of ui) (%panel-id-of window)))
+
+
 (defun %next-panel-id ()
   (with-slots (last-window-id) *context*
     (format nil "~A" (incf last-window-id))))
