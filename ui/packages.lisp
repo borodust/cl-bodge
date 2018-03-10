@@ -21,7 +21,8 @@
            spacing
            color-picker
            float-property
-           option
+           radio
+           check-box
            custom-widget
            render-custom-widget
            custom-widget-hovered-p

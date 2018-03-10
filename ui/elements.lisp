@@ -542,6 +542,59 @@
 ;;;
 ;;;
 ;;;
+(defclass radio (widget)
+  ((label :initarg :label :initform "")
+   (enabled-p :initarg :enabled-p :initform nil)
+   (click-listener :initarg :on-click :initform nil)))
+
+
+(defmethod compose ((this radio))
+  (with-slots (enabled-p click-listener label) this
+    (let ((return-value (%nk:option-label *handle* label (if enabled-p 1 0))))
+      (unless (= return-value %nk:+false+)
+        (setf enabled-p t)
+        (when click-listener
+          (funcall click-listener *window* (make-ui-event this)))))))
+
+
+;;;
+;;;
+;;;
+(defclass check-box (widget)
+  ((label :initarg :label :initform "")
+   (checked-p :initarg :enabled-p :initform nil)
+   (click-listener :initarg :on-click :initform nil)))
+
+
+(defmethod compose ((this check-box))
+  (with-slots ((this-checked-p checked-p) click-listener label) this
+    (let ((checked-p (/= %nk:+false+
+                         (%nk:check-label *handle* label
+                                          (if this-checked-p %nk:+true+ %nk:+false+)))))
+      (unless (eq this-checked-p checked-p)
+        (setf this-checked-p checked-p)
+        (when click-listener
+          (funcall click-listener *window* (make-ui-event this)))))))
+
+;;;
+;;;
+;;;
+(defclass option (widget)
+  ((label :initarg :label :initform "")
+   (enabled-p :initarg :enabled-p :initform nil)
+   (click-listener :initarg :on-click :initform nil)))
+
+
+(defmethod compose ((this option))
+  (with-slots (enabled-p click-listener label) this
+    (let ((return-value (%nk:option-label *handle* label (if enabled-p 1 0))))
+      (unless (or (= return-value %nk:+false+) (null click-listener))
+        (funcall click-listener *window* (make-ui-event this))))))
+
+
+;;;
+;;;
+;;;
 (defclass option (widget)
   ((label :initarg :label :initform "")
    (enabled-p :initarg :enabled-p :initform nil)
@@ -560,12 +613,9 @@
 ;;;
 (defun text-align->nk (align)
   (ecase align
-    (:left %nk:+text-align-left+)
-    (:right %nk:+text-align-right+)
-    (:bottom %nk:+text-align-bottom+)
-    (:center %nk:+text-align-centered+)
-    (:middle %nk:+text-align-middle+)
-    (:top %nk:+text-align-top+)))
+    (:left %nk:+text-left+)
+    (:right %nk:+text-right+)
+    ((or :center :middle) %nk:+text-centered+)))
 
 
 (defclass label (widget)
