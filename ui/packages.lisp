@@ -22,7 +22,10 @@
            color-picker
            float-property
            radio
+           activated
+           radio-group
            check-box
+           checked
            custom-widget
            render-custom-widget
            custom-widget-hovered-p
