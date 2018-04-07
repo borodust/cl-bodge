@@ -27,7 +27,7 @@
   :license "MIT"
   :depends-on (cl-bodge/utils cl-muth rtg-math log4cl bordeaux-threads local-time
                               bodge-blobs-support trivial-garbage uiop cffi cl-flow uiop
-                              trivial-main-thread simple-flow-dispatcher)
+                              trivial-main-thread simple-flow-dispatcher claw)
   :pathname "engine/"
   :serial t
   :components ((:file "packages")
@@ -192,24 +192,69 @@
                (:file "system")))
 
 
+(asdf:defsystem cl-bodge/physics/backend
+  :description "Bodacious Game Engine physics system"
+  :version "0.4.0"
+  :author "Pavel Korolev"
+  :mailto "dev@borodust.org"
+  :license "MIT"
+  :pathname "physics/backend"
+  :serial t
+  :components ((:file "packages")
+               (:file "backend")))
+
+
 (asdf:defsystem cl-bodge/physics
   :description "Bodacious Game Engine physics system"
   :version "0.4.0"
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (cl-bodge/engine ode-blob bodge-ode log4cl claw local-time)
+  :depends-on (cl-bodge/utils cl-bodge/engine cl-bodge/physics/backend)
   :pathname "physics/"
   :serial t
   :components ((:file "packages")
+               (:file "api")
+               (:file "system")))
+
+
+(asdf:defsystem cl-bodge/physics/3d
+  :description "Bodacious Game Engine physics system"
+  :version "0.4.0"
+  :author "Pavel Korolev"
+  :mailto "dev@borodust.org"
+  :license "MIT"
+  :depends-on (cl-bodge/engine cl-bodge/physics/backend
+                               ode-blob bodge-ode log4cl claw local-time)
+  :pathname "physics/3d/"
+  :serial t
+  :components () #++((:file "packages")
                (:file "ode")
                (:file "contacts")
                (:file "universe")
-               (:file "system")
                (:file "mass")
                (:file "rigid-body")
                (:file "joints")
                (:file "geometry")))
+
+
+(asdf:defsystem cl-bodge/physics/2d
+  :description "Bodacious Game Engine physics system"
+  :version "0.4.0"
+  :author "Pavel Korolev"
+  :mailto "dev@borodust.org"
+  :license "MIT"
+  :depends-on (cl-bodge/utils cl-bodge/engine cl-bodge/physics/backend
+                              chipmunk-blob bodge-chipmunk log4cl claw
+                              trivial-garbage cffi)
+  :pathname "physics/2d/"
+  :serial t
+  :components ((:file "packages")
+               (:file "utils")
+               (:file "chipmunk")
+               (:file "universe")
+               (:file "body")
+               (:file "shape")))
 
 
 (asdf:defsystem cl-bodge/shading-library
@@ -326,7 +371,8 @@
   :mailto "dev@borodust.org"
   :license "MIT"
   :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/host cl-bodge/graphics cl-bodge/audio
-                               cl-bodge/physics cl-bodge/resources cl-bodge/ui cl-bodge/text
+                               cl-bodge/physics cl-bodge/physics/2d cl-bodge/physics/3d
+                               cl-bodge/resources cl-bodge/ui cl-bodge/text
                                cl-bodge/canvas cl-bodge/animation)
   :components ((:file "packages")))
 
@@ -340,5 +386,10 @@
   :pathname "demo/"
   :serial t
   :components ((:file "packages")
-               (:file "ui")
+               (:file "case")
+               (:module cases
+                        :serial t
+                        :components ((:file "2d-physics")
+                                     (:file "3d-physics")
+                                     (:file "ui")))
                (:file "demo")))

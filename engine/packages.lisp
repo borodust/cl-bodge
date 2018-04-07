@@ -202,6 +202,7 @@
 
            handle-value-of
            defhandle
+           destroy-handle
            *handle-value*
            value-of
 
@@ -244,4 +245,9 @@
            add-event-handler
            remove-event-handler
            employ-subscriber
-           dismiss-subscriber))
+           dismiss-subscriber
+
+           adopt
+           abandon
+           abandon-all
+           dochildren))

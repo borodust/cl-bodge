@@ -1,13 +1,13 @@
 (cl:in-package :cl-bodge.concurrency)
 
-;; lifo
+;; FIFO
 (defstruct (task-queue
              (:constructor %make-task-queue))
   (queue (make-guarded-reference '()) :read-only t))
 
 
 (definline make-task-queue ()
-  "Make trivial thread-safe task LIFO queue."
+  "Make trivial thread-safe task FIFO queue."
   (%make-task-queue))
 
 
@@ -23,7 +23,7 @@
 
 
 (defun drain (task-queue &optional invoker)
-  "Execute tasks in LIFO order once. If `invoker` function provided, invoke it with task
+  "Execute tasks in FIFO order once. If `invoker` function provided, invoke it with task
 function as an argument instead. Thread-safe."
   (loop for count = 0 then (1+ count)
      do (multiple-value-bind (queue-empty-p task)

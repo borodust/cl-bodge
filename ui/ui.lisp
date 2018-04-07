@@ -79,7 +79,8 @@
 
 
 (defun %add-window (ui window)
-  (push window (%windows-of ui)))
+  (push window (%windows-of ui))
+  window)
 
 
 (defun %remove-window (ui window)
@@ -124,7 +125,8 @@
 
 (defun drain-compose-task-queue (ctx)
   (with-slots (compose-tasks) ctx
-    (drain compose-tasks)))
+    (with-ui (ctx)
+      (drain compose-tasks))))
 
 
 (defmacro with-ui-input ((ui) &body body)

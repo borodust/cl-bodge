@@ -74,7 +74,9 @@
       (setf default-font-id font-id))))
 
 
-(define-system-function make-canvas graphics-system (width height &key (pixel-ratio 1.0) antialiased)
+(define-system-function make-canvas graphics-system (width height &key
+                                                           (pixel-ratio 1.0)
+                                                           (antialiased t))
   (let ((opts (append (list :stencil-strokes)
                       (when antialiased (list :antialias))
                       (in-development-mode (list :debug)))))

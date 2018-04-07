@@ -167,13 +167,12 @@
 
 
 (defun add-window (window-class &rest initargs &key (ui *context*) &allow-other-keys)
-  (with-ui-access (ui)
+  (with-ui (ui)
     (%add-window ui (apply #'make-instance window-class initargs))))
 
 
 (defun remove-window (window &key (ui *context*))
-  (with-ui-access (ui)
-    (%remove-window ui window)))
+  (%remove-window ui window))
 
 
 (defun find-element (name &optional (window *window*))

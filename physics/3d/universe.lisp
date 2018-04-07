@@ -93,3 +93,11 @@
   (with-slots (world) universe
     (with-contact-joint-group () universe
       (%ode:world-quick-step world (ode-real seconds-since-last-observation)))))
+
+
+
+(defun (setf gravity) (vec)
+  (%ode:world-set-gravity (world-of (universe))
+                          (ode-real (vref vec 0))
+                          (ode-real (vref vec 1))
+                          (ode-real (vref vec 2))))
