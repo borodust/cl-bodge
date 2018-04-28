@@ -9,11 +9,21 @@
 
 (defvar *default-font-name* "NotoMono-Regular")
 
-(defvar *default-font-data*
-  (let ((data (read-file-into-byte-vector
-               (system-relative-pathname :cl-bodge/canvas
-                                         (format nil "font/~A.ttf" *default-font-name*)))))
-    (static-vectors:make-static-vector (length data) :initial-contents data)))
+
+(let* ((default-font-data
+         (read-file-into-byte-vector
+          (system-relative-pathname :cl-bodge/canvas
+                                    (format nil "font/~A.ttf" *default-font-name*))))
+       (default-font-data-static (make-guarded-reference nil)))
+  (defun default-font-static-data ()
+    ;; trick to load static-vectorized data upon first usage
+    ;; but dump default-font-data as a plain array into an image
+    (with-guarded-reference (font-data default-font-data-static)
+      (unless font-data
+        (setf font-data (static-vectors:make-static-vector (length default-font-data)
+                                                           :initial-contents default-font-data)
+              default-font-data nil))
+      font-data)))
 
 
 (defclass canvas (foreign-object)
@@ -56,9 +66,10 @@
 
 (defmethod initialize-instance :after ((this canvas) &key)
   (with-slots (default-font-id) this
-    (let ((font-id (%ensure-font-face this *default-font-name*
-                                      (static-vectors:static-vector-pointer *default-font-data*)
-                                      (length *default-font-data*))))
+    (let* ((default-font-data (default-font-static-data))
+           (font-id (%ensure-font-face this *default-font-name*
+                                      (static-vectors:static-vector-pointer default-font-data)
+                                      (length default-font-data))))
       (%nvg:add-fallback-font-id (handle-value-of this) font-id font-id)
       (setf default-font-id font-id))))
 
