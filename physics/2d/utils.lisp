@@ -1,9 +1,6 @@
 (cl:in-package :cl-bodge.physics.chipmunk)
 
 
-(defvar +cpv-zero+ (claw:calloc '%cp:vect))
-
-
 (definline cp-float (val)
   (float val 0d0))
 

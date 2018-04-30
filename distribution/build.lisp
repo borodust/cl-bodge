@@ -16,11 +16,11 @@
     manifest-file))
 
 
-(defun find-lisp ()
-  (or #+sbcl
-      (when-let ((sbcl-home (uiop:getenv "SBCL_HOME")))
-        (probe-file (file (dir sbcl-home) #p"../../bin/" *lisp*)))
-      *lisp*))
+(defun sbcl-core-param ()
+  ;; adapted from run-sbcl.sh
+  #+sbcl
+  (when-let ((core-file (probe-file (file (directory-namestring *lisp*) #p"../../output/sbcl.core"))))
+    (list "--core" core-file)))
 
 
 (defun build-executable ()
@@ -38,8 +38,9 @@
               (asset-file (enough-namestring
                            (file (asset-directory-of *distribution*) +resource-filename+)
                            (directory-of *distribution*))))
-          (apply #'run-program (find-lisp)
-                 (append (list #+ccl "--batch"
+          (apply #'run-program *lisp*
+                 (append #+sbcl (sbcl-core-param)
+                         (list #+ccl "--batch"
                                #+sbcl "--script" #+ccl "--load"
                                (file (distribution-system-path) "builder.lisp")
                                #+ccl "--"

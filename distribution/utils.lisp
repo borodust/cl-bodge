@@ -6,7 +6,7 @@
 (defun wrap-executable-name (name)
   (format nil "~A~A" name #+windows ".exe" #-windows ""))
 
-(defvar *lisp* (wrap-executable-name (first (uiop:raw-command-line-arguments))))
+(defvar *lisp* (first (uiop:raw-command-line-arguments)))
 (defvar *zip* (wrap-executable-name "zip"))
 
 

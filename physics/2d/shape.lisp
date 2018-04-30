@@ -131,10 +131,13 @@
 
 
 (defmethod initialize-instance ((this circular-shape) &rest args &key radius body universe)
-  (apply #'call-next-method this
-         :handle (make-shape-handle (%cp:circle-shape-new (body-handle-or-static universe body)
-                                                          (cp-float radius) +cpv-zero+))
-         args))
+  (with-cp-vect (zero-vect)
+    (setf (zero-vect :x) (cp-float 0)
+          (zero-vect :y) (cp-float 0))
+    (apply #'call-next-method this
+           :handle (make-shape-handle (%cp:circle-shape-new (body-handle-or-static universe body)
+                                                            (cp-float radius) zero-vect))
+           args)))
 
 
 (defmethod simulation-engine-make-circle-shape ((engine chipmunk-engine) (universe universe)

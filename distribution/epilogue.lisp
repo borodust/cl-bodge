@@ -8,3 +8,7 @@
                           "/_engine/"))
 
 (pushnew #'load-engine-assets ge.ng:*engine-startup-hooks*)
+
+
+(ge.ng::unload-foreign-libraries)
+(ge.ng::mark-executable)
