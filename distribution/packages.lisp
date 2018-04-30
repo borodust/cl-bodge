@@ -3,7 +3,7 @@
   (:use :cl :alexandria :asdf)
   (:export descriptor
            configure-system
-           *sbcl*
+           *lisp*
            *zip*
            register-distribution
            make-distribution))

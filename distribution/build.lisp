@@ -16,10 +16,11 @@
     manifest-file))
 
 
-(defun find-sbcl ()
-  (or (when-let ((sbcl-home (uiop:getenv "SBCL_HOME")))
-        (probe-file (file (dir sbcl-home) #p"../../bin/" *sbcl*)))
-      *sbcl*))
+(defun find-lisp ()
+  (or #+sbcl
+      (when-let ((sbcl-home (uiop:getenv "SBCL_HOME")))
+        (probe-file (file (dir sbcl-home) #p"../../bin/" *lisp*)))
+      *lisp*))
 
 
 (defun build-executable ()
@@ -37,8 +38,11 @@
               (asset-file (enough-namestring
                            (file (asset-directory-of *distribution*) +resource-filename+)
                            (directory-of *distribution*))))
-          (apply #'run-program (find-sbcl)
-                 (append (list "--script" (file (distribution-system-path) "builder.lisp")
+          (apply #'run-program (find-lisp)
+                 (append (list #+ccl "--batch"
+                               #+sbcl "--script" #+ccl "--load"
+                               (file (distribution-system-path) "builder.lisp")
+                               #+ccl "--"
                                "--output" output-file
                                "--entry" (entry-function-of *distribution*)
                                "--manifest-file" manifest-file)

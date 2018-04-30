@@ -1,9 +1,3 @@
-(cl:in-package :cl-user)
-
-;;;
-;;; SBCL-only code allowed w/o feature testing
-;;;
-
 (cl:in-package :cl-bodge.distribution.build)
 
 (ge.rsc:unmount-all)
