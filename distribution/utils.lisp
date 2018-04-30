@@ -98,7 +98,15 @@
   (let* ((parent-path (fad:canonical-pathname (fad:pathname-parent-directory path)))
          (last-path-el (enough-namestring (fad:canonical-pathname path) parent-path))
          (name (or name (file last-path-el))))
-    (inferior-shell:run/nil (list (wrap-executable-name "sh") "-c" (inferior-shell:token-string
-                                             (list (format nil "cd \"~A\" && " parent-path) " "
-                                                   *zip* " -r " (format nil "~A.zip" name) " "
-                                                   last-path-el))))))
+    (multiple-value-bind (output error-output code)
+        (inferior-shell:run/nil (list (wrap-executable-name "sh")
+                                      "-c" (inferior-shell:token-string
+                                            (list "cd " parent-path " && "
+                                                  *zip* " -v -r " name ".zip "
+                                                  last-path-el)))
+                                :output :string
+                                :error-output :string
+                                :show t
+                                :on-error nil)
+      (unless (= code 0)
+        (error "~A~&~A" output error-output)))))

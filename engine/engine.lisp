@@ -186,6 +186,7 @@ specified."
   (defvar *unloaded-foreign-libraries* nil)
 
   (defun unload-foreign-libraries ()
+    (shout "Closing foreign libraries")
     (bodge-blobs-support:close-foreign-libraries)
     (handler-bind ((style-warning #'muffle-warning))
       (loop for lib in (cffi:list-foreign-libraries)
@@ -205,10 +206,8 @@ specified."
   (defun mark-executable ()
     (setf *executable-p* t))
 
-
-  #+sbcl
-  (ge.util:unionf sb-ext:*save-hooks* (list #'unload-foreign-libraries
-                                            #'mark-executable)))
+  (dolist (hook (list #'unload-foreign-libraries #'mark-executable))
+    (uiop:register-image-dump-hook hook)))
 
 
 (defun enable-systems (engine)

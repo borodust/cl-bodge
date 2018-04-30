@@ -49,3 +49,8 @@
 
 (defun system-relative-pathname (system-name pathname)
   (merge-pathnames pathname (asdf:component-pathname (asdf:find-system system-name))))
+
+
+(defun shout (control-string &rest args)
+  (format t "~&~A" (apply #'format nil control-string args))
+  (finish-output t))

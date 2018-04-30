@@ -83,4 +83,5 @@
            current-executable-path
            make-bounded-input-stream
            system-relative-pathname
-           parse-initargs-and-list))
+           parse-initargs-and-list
+           shout))
