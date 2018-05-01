@@ -352,14 +352,16 @@ task is dispatched to the object provided under this key."
                           (when-let ((continue-handler (find-restart 'continue)))
                             (log:error "Error encountered while engine is in coma, ignoring: ~A" e)
                             (invoke-restart continue-handler))))))
-
-      (etypecase invariant
-        (null (if concurrently
-                  (execute shared-pool task :priority priority)
-                  (funcall task)))
-        (symbol (execute shared-pool task :invariant invariant :priority priority))
-        (dispatching (apply #'dispatch invariant task nil keys)))
-      t)))
+      (flet ((traps-masking-task ()
+               (claw:with-float-traps-masked ()
+                 (funcall task))))
+        (etypecase invariant
+          (null (if concurrently
+                    (execute shared-pool #'traps-masking-task :priority priority)
+                    (traps-masking-task)))
+          (symbol (execute shared-pool #'traps-masking-task :invariant invariant :priority priority))
+          (dispatching (apply #'dispatch invariant #'traps-masking-task nil keys)))
+        t))))
 
 
 (defgeneric initialization-flow (object &key &allow-other-keys)
