@@ -13,6 +13,8 @@
            infuse-circle-mass
            apply-force
            apply-torque
+           body-force
+           body-torque
            body-position
            body-rotation
            body-linear-velocity

@@ -18,7 +18,7 @@
            #:simulation-engine-apply-force
            #:simulation-engine-body-force
            #:simulation-engine-apply-torque
-           #:simulation-engine-body-force
+           #:simulation-engine-body-torque
            #:simulation-engine-body-mass
            #:simulation-engine-body-position
            #:simulation-engine-body-linear-velocity

@@ -90,10 +90,20 @@
                                  force-vec))
 
 
+(defun body-force (rigid-body)
+  (simulation-engine-body-force (%engine-of rigid-body)
+                                (%handle-of rigid-body)))
+
+
 (defun apply-torque (rigid-body torque)
   (simulation-engine-apply-torque (%engine-of rigid-body)
                                   (%handle-of rigid-body)
                                   torque))
+
+
+(defun body-torque (rigid-body)
+  (simulation-engine-body-torque (%engine-of rigid-body)
+                                 (%handle-of rigid-body)))
 
 
 (defun body-position (body)
