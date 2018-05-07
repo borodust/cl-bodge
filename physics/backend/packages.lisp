@@ -32,4 +32,13 @@
            #:simulation-engine-make-polygon-shape
            #:simulation-engine-make-box-shape
            #:simulation-engine-make-circle-shape
-           #:simulation-engine-destroy-shape))
+           #:simulation-engine-destroy-shape
+
+           #:simulation-engine-contact-friction
+           #:simulation-engine-contact-elasticity
+           #:simulation-engine-contact-surface-velocity
+           #:simulation-engine-contact-normal
+           #:simulation-engine-contact-point
+           #:simulation-engine-contact-depth
+           #:simulation-engine-contact-this-shape
+           #:simulation-engine-contact-that-shape))

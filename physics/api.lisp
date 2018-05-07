@@ -252,3 +252,36 @@
                                                             radius
                                                             :body (%handle-of body)
                                                             :substance prepared-substance))))
+
+
+;;;
+;;; Contacts
+;;;
+(defun has-next-shape-contact ())
+
+
+(defun next-shape-contact ())
+
+
+(defun contact-friction ())
+
+
+(defun contact-elasticity ())
+
+
+(defun contact-surface-velocity ())
+
+
+(defun contact-normal ())
+
+
+(defun contact-point ())
+
+
+(defun contact-depth ())
+
+
+(defun contact-this-shape ())
+
+
+(defun contact-that-shape ())

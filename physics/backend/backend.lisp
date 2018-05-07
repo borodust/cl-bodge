@@ -70,12 +70,14 @@
 ;;;
 (defgeneric simulation-engine-shape-substance (engine shape))
 (defgeneric simulation-engine-shape-body (engine shape))
+(defgeneric simulation-engine-destroy-shape (engine shape))
+
+
 (defgeneric simulation-engine-make-segment-shape (engine universe start end &key body substance))
 (defgeneric simulation-engine-make-polyline-shape (engine universe points &key body substance))
 (defgeneric simulation-engine-make-polygon-shape (engine universe points &key body substance))
 (defgeneric simulation-engine-make-box-shape (engine universe width height &key offset body substance))
 (defgeneric simulation-engine-make-circle-shape (engine universe radius &key body substance))
-(defgeneric simulation-engine-destroy-shape (engine shape))
 
 
 ;;;
