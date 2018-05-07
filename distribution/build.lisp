@@ -19,7 +19,8 @@
 (defun sbcl-core-param ()
   ;; adapted from run-sbcl.sh
   #+sbcl
-  (when-let ((core-file (probe-file (file (directory-namestring *lisp*) #p"../../output/sbcl.core"))))
+  (when-let* ((lisp-directory (uiop:absolute-pathname-p (directory-namestring *lisp*)))
+              (core-file (probe-file (file lisp-directory #p"../../output/sbcl.core"))))
     (list "--core" core-file)))
 
 
