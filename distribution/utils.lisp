@@ -101,7 +101,7 @@
     (multiple-value-bind (output error-output code)
         (inferior-shell:run/nil (list (wrap-executable-name "sh")
                                       "-c" (inferior-shell:token-string
-                                            (list "cd " parent-path " && "
+                                            (list "cd " (namestring parent-path) " && "
                                                   *zip* " -v -r " name ".zip "
                                                   last-path-el)))
                                 :output :string
