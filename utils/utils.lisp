@@ -7,24 +7,32 @@
   `(progn ,@body))
 
 
+(defun invoke-continue-restart ()
+  (when-let ((continue-restart (find-restart 'continue)))
+    (invoke-restart continue-restart)))
+
+
 (defun invoke-bodgy (fu)
   (block skippable
-    (handler-bind ((warning (lambda (w)
-                              (log:warn w)
-                              (return-from skippable)))
-                   (t (lambda (e)
-                        (dissect:with-capped-stack ()
-                          (let ((error-text (with-output-to-string (stream)
-                                              (format stream "Unhandled error:~%")
-                                              (dissect:present e stream))))
-                            (log:error "~a" error-text)
-                            (in-development-mode
-                              (break "~A: ~A" (type-of e) e)
-                              (when-let ((continue-restart (find-restart 'continue)))
-                                (invoke-restart continue-restart)))
-                            (return-from skippable))))))
-      (dissect:with-truncated-stack ()
-        (funcall fu)))))
+    (macrolet ((with-error-report-string ((report) c &body body)
+                 (once-only (c)
+                   `(dissect:with-capped-stack ()
+                      (let ((,report (with-output-to-string (stream)
+                                       (format stream "Unhandled condition:~%")
+                                       (dissect:present ,c stream))))
+                        ,@body)))))
+      (handler-bind ((serious-condition (lambda (e)
+                                          (with-error-report-string (error-text) e
+                                            (log:error "~A" error-text)
+                                            (in-development-mode
+                                              (break "~A: ~A" (type-of e) e)
+                                              (invoke-continue-restart))
+                                            (return-from skippable))))
+                     (t (lambda (e)
+                          (with-error-report-string (error-text) e
+                            (log:warn "~A" error-text)))))
+        (dissect:with-truncated-stack ()
+          (funcall fu))))))
 
 
 (defmacro log-errors (&body body)
