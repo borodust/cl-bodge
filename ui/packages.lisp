@@ -26,6 +26,8 @@
            radio-group
            check-box
            checked
+           notebook
+           tab
 
            deflayout
            custom-widget
