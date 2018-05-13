@@ -911,13 +911,19 @@
 
 
 ;;;
+;;; CUSTOM LAYOUT
 ;;;
+(defclass custom-layout (layout) ())
+
+
 ;;;
-(defgeneric render-custom-widget (widget origin width height))
+;;; CUSTOM WIDGET
+;;;
+(defgeneric render-custom-widget (widget origin width height)
+  (:method (widget origin width height) (declare (ignore widget origin width height))))
 
 (defgeneric update-widget (widget)
   (:method (widget) (declare (ignore widget))))
-
 
 (defclass custom-widget (disposable widget)
   ((id :initform (%next-custom-widget-id) :reader %id-of)
@@ -992,7 +998,6 @@
           (setf this-hovered-p hovered-p
                 this-clicked-buttons clicked-buttons
                 this-pressed-buttons pressed-buttons))))))
-
 
 
 (defun custom-widget-hovered-p (widget)

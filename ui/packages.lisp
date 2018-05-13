@@ -26,6 +26,10 @@
            radio-group
            check-box
            checked
+
+           layout
+           custom-layout
+
            custom-widget
            render-custom-widget
            custom-widget-hovered-p
