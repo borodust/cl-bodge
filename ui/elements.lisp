@@ -45,16 +45,16 @@
    (expandable-p :initform t :initarg :expandable :reader expandablep)))
 
 
-(defclass layout (named parent) ())
+(defclass %layout (named parent) ())
 
 
-(defmethod compose ((this layout))
+(defmethod compose ((this %layout))
   (dochildren (element this)
     (compose element)))
 
 
 (definline make-container-layout ()
-  (make-instance 'layout))
+  (make-instance '%layout))
 
 
 (defmacro with-style (((&rest path) value) &body body)
@@ -298,7 +298,7 @@
 ;;;
 ;;;
 ;;;
-(defclass menu-bar (layout) ())
+(defclass menu-bar (%layout) ())
 
 
 (defun make-menu-bar ()
@@ -334,7 +334,7 @@
 ;;;
 ;;;
 ;;;
-(defclass stacking-layout (expandable panel layout) ())
+(defclass stacking-layout (expandable panel %layout) ())
 
 
 (defun default-row-height (child-height)
@@ -460,7 +460,7 @@
 ;;;
 ;;;
 ;;;
-(defclass static-row (layout)
+(defclass static-row (%layout)
   ((height :initarg :height :initform (error ":height missing"))
    (item-width :initarg :item-width)))
 
@@ -480,7 +480,7 @@
 ;;;
 ;;;
 ;;;
-(defclass dynamic-row (layout)
+(defclass dynamic-row (%layout)
   ((height :initarg :height :initform (error ":height missing"))
    (columns :initform nil :initarg :columns)))
 
@@ -729,7 +729,7 @@
 ;;;
 ;;;
 ;;;
-(defclass combo-box (layout widget)
+(defclass combo-box (%layout widget)
   ((label :initarg :label :initform "")
    (color :initarg :color :initform nil)
    (height :initarg :height :initform 400f0)))
@@ -913,7 +913,7 @@
 ;;;
 ;;; CUSTOM LAYOUT
 ;;;
-(defclass custom-layout (layout) ())
+(defclass custom-layout (%layout) ())
 
 
 ;;;
