@@ -27,11 +27,10 @@
            check-box
            checked
 
-           layout
-           custom-layout
-
+           deflayout
            custom-widget
            render-custom-widget
+           initialize-custom-layout
            custom-widget-hovered-p
            custom-widget-clicked-p
            custom-widget-pressed-p
