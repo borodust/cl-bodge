@@ -253,7 +253,7 @@ specified."
           event-emitter (make-instance 'event-emitting))
     (loop for (event-class-name . handlers) in *predefined-event-callbacks*
        do (dolist (handler handlers)
-            (subscribe-to event-class-name event-emitter handler)))))
+            (ge.eve:subscribe-to event-class-name event-emitter handler)))))
 
 
 (define-destructor bodge-engine (shared-pool shared-executors)

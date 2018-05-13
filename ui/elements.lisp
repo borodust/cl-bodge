@@ -201,7 +201,7 @@
                              (:window :group-padding) *zero-vec2*)
                  (multiple-value-bind (width height) (calc-bounds layout)
                    (declare (ignore width))
-                   (%nk:layout-row-dynamic *handle* (f height) 1)
+                   (%nk:layout-row-dynamic *handle* (default-row-height height) 1)
                    (compose layout))))
           (%nk:end *handle*))))))
 
@@ -291,7 +291,8 @@
                (setup-window ,layout-parent ,@initargs)
                (update-window-options ,layout-parent ,@(assoc-value opts :options))
                (abandon-all ,layout-parent)
-               (layout (,layout-parent) ,@layout))
+               ,(when layout
+                  `(layout (,layout-parent) ,@layout)))
              (make-instances-obsolete ',name)))))))
 
 ;;;

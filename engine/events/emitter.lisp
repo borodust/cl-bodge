@@ -64,12 +64,12 @@
     handler))
 
 
-(defmacro %with-accessor-bindings ((accessor-bindings event-var) &body body)
+(defmacro %with-accessor-bindings ((accessor-bindings accessor-package event-var) &body body)
   (let ((bindings (loop for binding in accessor-bindings
                      for (name accessor) = (if (and (listp binding) (second binding))
                                                binding
                                                (list binding (symbolicate binding '-from)))
-                     collect `(,name (,accessor ,event-var)))))
+                     collect `(,name (,(format-symbol accessor-package "~A" accessor) ,event-var)))))
     `(symbol-macrolet ,bindings
        ,@body)))
 
@@ -80,5 +80,7 @@
   `(subscribe-to ',event-class ,emitter
                  (lambda (,event-var)
                    (declare (ignorable ,event-var))
-                   (%with-accessor-bindings (,accessor-bindings ,event-var)
+                   (%with-accessor-bindings (,accessor-bindings
+                                             ,(package-name (symbol-package event-class))
+                                             ,event-var)
                      ,@body))))

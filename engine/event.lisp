@@ -25,7 +25,9 @@
   `(progn
      (defun ,name (,event)
        (declare (ignorable ,event))
-       (ge.eve::%with-accessor-bindings (,accessor-bindings ,event)
+       (ge.eve::%with-accessor-bindings (,accessor-bindings
+                                         ,(package-name (symbol-package event-class-name))
+                                         ,event)
          ,@body))
      (register-predefined-callback ',event-class-name ',name)))
 
