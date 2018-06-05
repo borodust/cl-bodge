@@ -87,6 +87,7 @@
                            (%glfw:+depth-bits+ 24)
                            (%glfw:+stencil-bits+ 8)
                            (%glfw:+resizable+ %glfw:+false+)
+                           (%glfw:+samples+ (or (property '(:host :samples)) 1))
                            (%glfw:+visible+ (if visible %glfw:+true+ %glfw:+false+)))
     (%glfw:create-window width height title (cffi:null-pointer) shared)))
 
