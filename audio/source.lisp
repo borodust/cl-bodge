@@ -48,7 +48,8 @@
 
 
 (defun (setf audio-looped-p) (value source)
-  (%al:sourcei (handle-value-of source) %al:+looping+ (if value %al:+true+ %al:+false+)))
+  (%al:sourcei (handle-value-of source) %al:+looping+ (if value %al:+true+ %al:+false+))
+  value)
 
 
 (defun audio-gain (source)
@@ -58,7 +59,30 @@
 
 
 (defun (setf audio-gain) (value source)
-  (%al:sourcef (handle-value-of source) %al:+gain+ (f value)))
+  (%al:sourcef (handle-value-of source) %al:+gain+ (f value))
+  value)
+
+
+(defun audio-min-gain (source)
+  (claw:c-with ((value %al:float))
+    (%al:get-sourcef (handle-value-of source) %al:+min-gain+ (value &))
+    value))
+
+
+(defun (setf audio-min-gain) (value source)
+  (%al:sourcef (handle-value-of source) %al:+min-gain+ (f value))
+  value)
+
+
+(defun audio-max-gain (source)
+  (claw:c-with ((value %al:float))
+    (%al:get-sourcef (handle-value-of source) %al:+max-gain+ (value &))
+    value))
+
+
+(defun (setf audio-max-gain) (value source)
+  (%al:sourcef (handle-value-of source) %al:+max-gain+ (f value))
+  value)
 
 
 (defun audio-pitch (source)
@@ -68,4 +92,5 @@
 
 
 (defun (setf audio-pitch) (value source)
-  (%al:sourcef (handle-value-of source) %al:+pitch+ (f value)))
+  (%al:sourcef (handle-value-of source) %al:+pitch+ (f value))
+  value)

@@ -14,6 +14,8 @@
            pause-audio
            stop-audio
            audio-gain
+           audio-min-gain
+           audio-max-gain
            audio-looped-p
            audio-pitch
 
