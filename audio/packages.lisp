@@ -15,6 +15,7 @@
            stop-audio
            audio-gain
            audio-looped-p
+           audio-pitch
 
            make-audio-buffer
            attach-audio-buffer))

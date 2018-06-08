@@ -58,4 +58,14 @@
 
 
 (defun (setf audio-gain) (value source)
-  (%al:sourcei (handle-value-of source) %al:+gain+ (floor value)))
+  (%al:sourcef (handle-value-of source) %al:+gain+ (f value)))
+
+
+(defun audio-pitch (source)
+  (claw:c-with ((value %al:float))
+    (%al:get-sourcef (handle-value-of source) %al:+pitch+ (value &))
+    value))
+
+
+(defun (setf audio-pitch) (value source)
+  (%al:sourcef (handle-value-of source) %al:+pitch+ (f value)))
