@@ -88,6 +88,13 @@
   (%nk:window-close (handle-value-of ui) (%panel-id-of window)))
 
 
+(defun %remove-all-windows (ui)
+  (let ((ui-handle (handle-value-of ui)))
+    (dolist (window (%windows-of ui))
+      (%nk:window-close ui-handle (%panel-id-of window))))
+  (setf (%windows-of ui) nil))
+
+
 (defun %next-panel-id ()
   (with-slots (last-window-id) *context*
     (format nil "~A" (incf last-window-id))))

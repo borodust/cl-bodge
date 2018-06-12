@@ -1,7 +1,8 @@
 (cl:in-package :cl-bodge.ui)
 
 
-(declaim (special *window*))
+(declaim (special *window*
+                  *row-height*))
 
 (defvar *radio-group* nil)
 
@@ -175,6 +176,10 @@
   (%remove-window ui window))
 
 
+(defun remove-all-windows (&optional (ui *context*))
+  (%remove-all-windows ui))
+
+
 (defun find-element (name &optional (window *window*))
   (labels ((%find-element (root name)
              (if (equal (name-of root) name)
@@ -214,8 +219,9 @@
         (reinitialize-window this)
         (setf redefined-p nil))
       (with-styles ((:window :fixed-background) background-style-item)
-        (let ((*window* this)
-              (*style* style))
+        (let* ((*window* this)
+               (*style* style)
+               (*row-height* (style :row-height)))
           (compose-window this)))
       (when (or (/= %nk:+false+ (%nk:window-is-hidden *handle* (%panel-id-of this)))
                 (/= %nk:+false+ (%nk:window-is-closed *handle* (%panel-id-of this))))
@@ -474,7 +480,8 @@
 (defmethod compose ((this static-row))
   (with-slots (height item-width) this
     (%nk:layout-row-static *handle* (f height) (floor item-width) (length (children-of this)))
-    (call-next-method)))
+    (let ((*row-height* height))
+      (call-next-method))))
 
 
 ;;;
@@ -493,7 +500,8 @@
   (with-slots (height columns) this
     (%nk:layout-row-dynamic *handle* (f height) (or (and columns (floor columns))
                                                     (length (children-of this))))
-    (call-next-method)))
+    (let ((*row-height* height))
+      (call-next-method))))
 
 
 ;;;
@@ -683,7 +691,6 @@
         (funcall click-listener *window* (make-ui-event this))))))
 
 
-
 ;;;
 ;;; NOTEBOOK
 ;;;
@@ -782,15 +789,59 @@
       (%nk:label *handle* text align))))
 
 ;;;
+;;; COMBO BOX
 ;;;
+(defclass combo-box (disposable %layout widget)
+  ((selected :initform 0)
+   (count :initform 1)
+   (drop-height :initform nil :initarg :drop-height)
+   (drop-width :initform nil :initarg :drop-width)
+   (values :initform (list "") :initarg :values)
+   (foreign-array :initform nil)))
+
+
+(define-destructor combo-box (foreign-array count)
+  (claw:c-let ((array-ptr :pointer :ptr foreign-array))
+    (loop for i from 0 below count
+          do (cffi:foreign-string-free (array-ptr i)))
+    (claw:free array-ptr)))
+
+
+(defmethod initialize-instance :after ((this combo-box) &key)
+  (with-slots (values foreign-array count drop-height drop-width) this
+    (claw:c-let ((array-ptr :pointer :count (length values)))
+      (loop with max-width = 0
+            for value in values
+            for i from 0
+            do (setf (array-ptr i) (cffi:foreign-string-alloc value)
+                     max-width (max max-width (calc-text-width value)))
+            finally (progn
+                      (setf count (1+ i)
+                            foreign-array (array-ptr &))
+                      (unless drop-width
+                        (setf drop-width (+ (f max-width) 24))))))))
+
+
+(defmethod compose ((this combo-box))
+  (with-slots (foreign-array count selected drop-width drop-height) this
+    (claw:c-with ((size (:struct (%nk:vec2))))
+      (setf (size :x) drop-width
+            (size :y) (f (or drop-height (* count (+ *row-height* 8)))))
+      (let ((new-value
+              (%nk:combo *handle* foreign-array count selected (floor *row-height*) size)))
+        (unless (= new-value selected)
+          (setf selected new-value))))))
+
 ;;;
-(defclass combo-box (%layout widget)
+;;; COLOR BOX
+;;;
+(defclass color-box (%layout widget)
   ((label :initarg :label :initform "")
    (color :initarg :color :initform nil)
    (height :initarg :height :initform 400f0)))
 
 
-(defmethod compose ((this combo-box))
+(defmethod compose ((this color-box))
   (with-slots (height (this-color color) label) this
     (claw:c-with ((size (:struct (%nk:vec2))))
       (setf (size :x) (%nk:widget-width *handle*)
@@ -984,7 +1035,8 @@
   (with-slots (redefined-p) this
     (when redefined-p
       (abandon-all this)
-      (initialize-custom-layout this)))
+      (initialize-custom-layout this)
+      (setf redefined-p nil)))
   (call-next-method))
 
 

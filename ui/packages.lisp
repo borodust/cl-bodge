@@ -8,16 +8,19 @@
            with-ui
            with-ui-access
            compose-ui
+           update-ui-size
            defwindow
            on-window-close
            add-window
            remove-window
+           remove-all-windows
 
            vertical-layout
            horizontal-layout
            button
            label
            combo-box
+           color-box
            spacing
            color-picker
            float-property
