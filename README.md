@@ -1,10 +1,15 @@
 # cl-bodge
 Experimental **bod**acious **g**ame **e**ngine written in **C**ommon **L**isp.
 
+1. [Documentation](#documentation)
 1. [Engine modules](#engine-modules)
 1. [Installation](#installation)
 1. [Demonstrations](#demonstrations)
 1. [Help and Support](#help-and-support)
+
+
+## Documentation
+See `cl-bodge` external [documentation](https://borodust.org/projects/cl-bodge/).
 
 
 ## Engine modules
@@ -46,8 +51,8 @@ Experimental **bod**acious **g**ame **e**ngine written in **C**ommon **L**isp.
 
 * ***Physics***
 
-  ODE-backed rigid body physics engine with collision detection: rigid bodies, joints, geoms,
-  spaces (geom islands), etc. See `cl-bodge/physics`.
+  2D and 3D rigid body physics engine with collision detection: rigid bodies, joints, shapes,
+  etc. See `cl-bodge/physics`.
 
 * ***Text***
 
@@ -57,13 +62,7 @@ Experimental **bod**acious **g**ame **e**ngine written in **C**ommon **L**isp.
 * ***2D GUI***
 
   System for creating in-game hardware-accelerated multi-window user interfaces: windows,
-  widgets, layouts, UI events.  See `cl-bodge/ui`.
-
-* ***Scenegraph***
-
-  Node-based scene processing. High-level convenience layer on top of low-level systems: scene
-  passes (rendering, simulation, etc); graphics-oriented, physics-oriented, transformation,
-  animation, generic model and other types of nodes. See `cl-bodge/scenegraph`.
+  widgets, layouts.  See `cl-bodge/ui`.
 
 * ***Distribution***
 
