@@ -73,7 +73,8 @@
   (with-slots (on-pre-solve ptr-store) *active-universe*
     (if-let (pre-solve-fu on-pre-solve)
       (with-colliding-shapes (this that) arbiter
-        (if (funcall pre-solve-fu this that) %cp:+true+ %cp:+false+))
+        (let ((*arbiter* arbiter))
+          (if (funcall pre-solve-fu this that) %cp:+true+ %cp:+false+)))
       %cp:+true+)))
 
 
@@ -82,7 +83,8 @@
   (with-slots (on-post-solve) *active-universe*
     (when-let (post-solve-fu on-post-solve)
       (with-colliding-shapes (this that) arbiter
-        (funcall post-solve-fu this that)))))
+        (let ((*arbiter* arbiter))
+          (funcall post-solve-fu this that))))))
 
 
 (defmethod initialize-instance :after ((this universe) &key)

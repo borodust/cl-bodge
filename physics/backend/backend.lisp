@@ -39,6 +39,7 @@
 ;;; BODY
 ;;;
 (defgeneric simulation-engine-make-mass-for-circle (engine mass radius &key offset))
+(defgeneric simulation-engine-make-mass-for-box (engine mass width height &key offset))
 
 (defgeneric simulation-engine-make-rigid-body (engine universe &key mass))
 (defgeneric simulation-engine-destroy-rigid-body (engine rigid-body))
@@ -83,12 +84,10 @@
 ;;;
 ;;; CONTACT
 ;;;
-(defgeneric (setf simulation-engine-contact-friction) (value engine contact))
-(defgeneric (setf simulation-engine-contact-elasticity) (value engine contact))
-(defgeneric (setf simulation-engine-contact-surface-velocity) (value engine contact))
+(defgeneric (setf simulation-engine-collision-friction) (value engine))
+(defgeneric (setf simulation-engine-collision-elasticity) (value engine))
+(defgeneric (setf simulation-engine-collision-surface-velocity) (value engine))
 
-(defgeneric simulation-engine-contact-normal (engine contact))
-(defgeneric simulation-engine-contact-point (engine contact))
-(defgeneric simulation-engine-contact-depth (engine contact))
-(defgeneric simulation-engine-contact-this-shape (engine contact))
-(defgeneric simulation-engine-contact-that-shape (engine contact))
+(defgeneric simulation-engine-contact-normal (engine))
+(defgeneric simulation-engine-contact-point (engine))
+(defgeneric simulation-engine-contact-depth (engine))

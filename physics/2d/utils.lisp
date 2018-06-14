@@ -31,3 +31,12 @@
      ,@(when bodge-vec
          `((init-cp-vect ,vect ,bodge-vec)))
      ,@body))
+
+
+(defmacro with-cp-vects ((&rest defs) &body body)
+  (labels ((%expand (defs body)
+             (if defs
+                 `((with-cp-vect (,@(ensure-list (first defs)))
+                     ,@(%expand (rest defs) body)))
+                 body)))
+    (first (%expand defs body))))

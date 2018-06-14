@@ -1,5 +1,6 @@
 (cl:in-package :cl-bodge.physics)
 
+(declaim (special *engine*))
 
 (defclass simulation-handle (disposable)
   ((engine :initarg :engine :initform (error ":engine missing") :reader %engine-of)
@@ -35,11 +36,13 @@
                (substance-wrapper-shape (simulation-engine-shape-substance engine engine-shape)))
              (%pre-solve (this that)
                (if on-pre-solve
-                   (funcall on-pre-solve (%shape-handle-of this) (%shape-handle-of that))
+                   (let ((*engine* engine))
+                     (funcall on-pre-solve (%shape-handle-of this) (%shape-handle-of that)))
                    t))
              (%post-solve (this that)
                (when on-post-solve
-                   (funcall on-post-solve (%shape-handle-of this) (%shape-handle-of that)))))
+                 (let ((*engine* engine))
+                   (funcall on-post-solve (%shape-handle-of this) (%shape-handle-of that))))))
       (make-universe-handle engine (apply #'simulation-engine-make-universe engine
                                           :on-pre-solve #'%pre-solve
                                           :on-post-solve #'%post-solve args)))
@@ -79,9 +82,12 @@
                                                              :mass mass)))
 
 
-(defun infuse-circle-mass (body mass radius)
-  (setf body (simulation-engine-make-mass-for-circle (%engine-of body)
-                                                     mass radius)))
+(defun infuse-circle-mass (body mass radius &key (offset (vec2)))
+  (setf body (simulation-engine-make-mass-for-circle (%engine-of body) mass radius :offset offset)))
+
+
+(defun infuse-box-mass (body mass width height &key (offset (vec2)))
+  (setf body (simulation-engine-make-mass-for-box (%engine-of body) mass width height :offset offset)))
 
 
 (defun apply-force (rigid-body force-vec)
@@ -257,19 +263,22 @@
 ;;;
 ;;; Contacts
 ;;;
+(defun (setf collision-friction) (value)
+  (setf (simulation-engine-collision-friction *engine*) value))
+
+
+(defun (setf collision-elasticity) (value)
+  (setf (simulation-engine-collision-elasticity *engine*) value))
+
+
+(defun (setf collision-surface-velocity) (value)
+  (setf (simulation-engine-collision-surface-velocity *engine*) value))
+
+
 (defun has-next-shape-contact ())
 
 
 (defun next-shape-contact ())
-
-
-(defun contact-friction ())
-
-
-(defun contact-elasticity ())
-
-
-(defun contact-surface-velocity ())
 
 
 (defun contact-normal ())
@@ -279,9 +288,3 @@
 
 
 (defun contact-depth ())
-
-
-(defun contact-this-shape ())
-
-
-(defun contact-that-shape ())

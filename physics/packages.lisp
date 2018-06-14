@@ -11,6 +11,7 @@
 
            make-rigid-body
            infuse-circle-mass
+           infuse-box-mass
            apply-force
            apply-torque
            body-force
@@ -30,4 +31,8 @@
            make-polygon-shape
            make-polyline-shape
            make-box-shape
-           make-circle-shape))
+           make-circle-shape
+
+           collision-friction
+           collision-elasticity
+           collision-surface-velocity))

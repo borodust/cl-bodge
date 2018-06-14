@@ -12,6 +12,7 @@
            #:simulation-engine-observe-universe
 
            #:simulation-engine-make-mass-for-circle
+           #:simulation-engine-make-mass-for-box
 
            #:simulation-engine-make-rigid-body
            #:simulation-engine-destroy-rigid-body
@@ -34,11 +35,9 @@
            #:simulation-engine-make-circle-shape
            #:simulation-engine-destroy-shape
 
-           #:simulation-engine-contact-friction
-           #:simulation-engine-contact-elasticity
-           #:simulation-engine-contact-surface-velocity
+           #:simulation-engine-collision-friction
+           #:simulation-engine-collision-elasticity
+           #:simulation-engine-collision-surface-velocity
            #:simulation-engine-contact-normal
            #:simulation-engine-contact-point
-           #:simulation-engine-contact-depth
-           #:simulation-engine-contact-this-shape
-           #:simulation-engine-contact-that-shape))
+           #:simulation-engine-contact-depth))

@@ -252,6 +252,7 @@
   :components ((:file "packages")
                (:file "utils")
                (:file "chipmunk")
+               (:file "contact")
                (:file "universe")
                (:file "body")
                (:file "shape")))

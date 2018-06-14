@@ -16,6 +16,21 @@
                  :inertia (%cp:moment-for-circle cp-mass (cp-float 0) (cp-float radius) vect)))))
 
 
+(defmethod simulation-engine-make-mass-for-box ((engine chipmunk-engine) (mass number)
+                                                (width number) (height number) &key (offset (vec2)))
+  (let ((cp-mass (cp-float mass))
+        (w/2 (/ width 2))
+        (h/2 (/ height 2)))
+    (claw:c-with ((verts %cp:vect :count 5))
+      (init-cp-vect (verts 0) (vec2 (- w/2) (- h/2)))
+      (init-cp-vect (verts 1) (vec2 (- w/2) h/2))
+      (init-cp-vect (verts 2) (vec2 w/2 h/2))
+      (init-cp-vect (verts 3) (vec2 w/2 (- h/2)))
+      (init-cp-vect (verts 4) offset)
+      (make-mass :value cp-mass
+                 :inertia (%cp:moment-for-poly cp-mass 4 (verts &) (verts 4 &) (cp-float 0))))))
+
+
 
 ;;;
 ;;; RIGID BODY
