@@ -84,4 +84,6 @@
            make-bounded-input-stream
            system-relative-pathname
            parse-initargs-and-list
-           shout))
+           shout
+           bind-for-serious-condition
+           with-simple-array-pointer))

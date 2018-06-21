@@ -1,5 +1,5 @@
 #version 330
-#include <lighting>
+#include <bodge/lighting>
 
 
 vec4 computeLight(vec4 base, vec3 normal, DirectionalLight lightSource) {

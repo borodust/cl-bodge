@@ -6,10 +6,21 @@
 
 (ge.util:define-package :cl-bodge.graphics
   (:nicknames :ge.gx)
-  (:use :cl :cl-bodge.engine :cl-bodge.host :cl-bodge.utils)
+  (:use :cl :cl-bodge.engine :cl-bodge.host :cl-bodge.utils :defstar)
   (:export graphics-system
            graphics
            for-graphics
+
+           #|
+make-vertex-array-input
+           make-uniform-input
+           make-texture-input
+
+           make-framebuffer-output
+
+           make-shading-pipeline
+           render-pipeline
+|#
 
            in-wireframe-mode
            preserving-state

@@ -7,16 +7,14 @@
 
 
 (defclass graphics-system (thread-bound-system)
-  ((host-sys :initform nil)
-   (resource-executor)
+  ((resource-executor)
    (state :initform nil))
   (:default-initargs :depends-on '(host-system)))
 
 
 (defmethod initialize-system :after ((this graphics-system))
-  (with-slots (host-sys resource-executor) this
-    (setf host-sys (host)
-          resource-executor (acquire-executor :single-threaded-p t :exclusive-p t))))
+  (with-slots (resource-executor) this
+    (setf resource-executor (acquire-executor :single-threaded-p t :exclusive-p t))))
 
 
 (defmethod discard-system :before ((this graphics-system))
@@ -35,9 +33,9 @@
 
 
 (defmethod enabling-flow ((this graphics-system))
-  (with-slots (host-sys resource-executor) this
+  (with-slots (resource-executor) this
     (>> (call-next-method)
-        (-> host-sys ()
+        (for-host ()
           (execute resource-executor
                    (lambda ()
                      (bind-rendering-context :main nil)
@@ -58,38 +56,37 @@
 
 
 (defmethod make-system-context ((this graphics-system))
-  (with-slots (host-sys) this
-    (bind-rendering-context)
-    (log:debug "~%GL version: ~a~%GLSL version: ~a~%GL vendor: ~a~%GL renderer: ~a"
-               (gl:get* :version)
-               (gl:get* :shading-language-version)
-               (gl:get* :vendor)
-               (gl:get* :renderer))
-    (glad:init)
-    (log:debug "GLAD initialized")
-    (let ((ctx (make-graphics-context)))
-      (with-current-state-slice ((ctx-state ctx))
-        (gx.state:enable :blend
-                         :cull-face
-                         :depth-test
-                         :program-point-size)
-        (gx.state:disable :scissor-test
-                          :stencil-test)
+  (bind-rendering-context)
+  (log:debug "~%GL version: ~a~%GLSL version: ~a~%GL vendor: ~a~%GL renderer: ~a"
+             (gl:get* :version)
+             (gl:get* :shading-language-version)
+             (gl:get* :vendor)
+             (gl:get* :renderer))
+  (glad:init)
+  (log:debug "GLAD initialized")
+  (let ((ctx (make-graphics-context)))
+    (with-current-state-slice ((ctx-state ctx))
+      (gx.state:enable :blend
+                       :cull-face
+                       :depth-test
+                       :program-point-size)
+      (gx.state:disable :scissor-test
+                        :stencil-test)
 
-        (gx.state:cull-face :back)
-        (gx.state:front-face :ccw)
-        (gx.state:clear-color 1.0 1.0 1.0 1.0)
-        (gx.state:color-mask t t t t)
-        (gx.state:clear-depth 1.0)
-        (gx.state:blend-func :src-alpha :one-minus-src-alpha)
-        (gx.state:blend-func-separate :src-alpha :one-minus-src-alpha
-                                      :one :zero)
-        (gx.state:clear-stencil 0)
-        (gx.state:stencil-mask #xffffffff)
-        (gx.state:stencil-func :always 0 #xffffffff)
-        (gx.state:stencil-op :keep :keep :keep)
+      (gx.state:cull-face :back)
+      (gx.state:front-face :ccw)
+      (gx.state:clear-color 1.0 1.0 1.0 1.0)
+      (gx.state:color-mask t t t t)
+      (gx.state:clear-depth 1.0)
+      (gx.state:blend-func :src-alpha :one-minus-src-alpha)
+      (gx.state:blend-func-separate :src-alpha :one-minus-src-alpha
+                                    :one :zero)
+      (gx.state:clear-stencil 0)
+      (gx.state:stencil-mask #xffffffff)
+      (gx.state:stencil-func :always 0 #xffffffff)
+      (gx.state:stencil-op :keep :keep :keep)
 
-        ctx))))
+      ctx)))
 
 
 (defmethod destroy-system-context (ctx (this graphics-system))

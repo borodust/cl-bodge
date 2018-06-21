@@ -124,18 +124,17 @@
   :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/host cl-bodge/resources
                                cl-opengl log4cl local-time cffi
                                glad-blob bodge-glad
-                               static-vectors)
+                               static-vectors defstar)
   :pathname "graphics/"
   :serial t
   :components ((:file "packages")
-               (:file "gl")
-               (:file "buffers")
-               (:file "vertex-array")
-               (:file "mesh")
-               (:file "shading")
-               (:file "textures")
-               (:file "framebuffer")
                (:file "state")
+               (:file "input")
+               (:file "output")
+               (:file "shader-registry")
+               (:file "shader")
+               (:file "pipeline")
+               (:file "rendering")
                (:file "system")))
 
 

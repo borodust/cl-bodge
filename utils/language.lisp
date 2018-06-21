@@ -73,3 +73,10 @@
         append (list key (first rest)) into initargs
         finally (return (values initargs (unless (atom key)
                                            (append (list key) rest))))))
+
+
+(defmacro bind-for-serious-condition ((handler) &body body)
+  `(handler-bind ((serious-condition (lambda (c)
+                                       (declare (ignore c))
+                                       (funcall ,handler))))
+     ,@body))

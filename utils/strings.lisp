@@ -1,16 +1,21 @@
 (cl:in-package :cl-bodge.utils)
 
 
+(defun for-each-line (text action)
+  (loop with line-start = 0 and slen = (length text)
+        for line-end = (or (position #\Newline text :start line-start) slen)
+        for line = (make-array (- line-end line-start) :element-type 'character
+                                                       :displaced-to text
+                                                       :displaced-index-offset line-start)
+        do (funcall action line)
+           (setf line-start (1+ line-end))
+        until (= line-end slen)))
+
+
 (defmacro dolines ((line-var text &optional result-form) &body body)
-  (once-only (text)
-    (with-gensyms (line-start line-end slen)
-      `(loop with ,line-start = 0 and ,slen = (length ,text)
-          for ,line-end = (or (position #\Newline ,text :start ,line-start) ,slen)
-          for ,line-var = (make-array (- ,line-end ,line-start) :element-type 'character
-                                      :displaced-to ,text :displaced-index-offset ,line-start)
-          do (progn ,@body (setf ,line-start (1+ ,line-end)))
-          until (= ,line-end ,slen)
-          finally (return ,result-form)))))
+  `(block nil
+     (for-each-line ,text (lambda (,line-var) ,@body))
+     ,result-form))
 
 
 (defun stringify (value &optional (format-string "~A"))

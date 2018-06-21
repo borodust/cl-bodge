@@ -1,14 +1,6 @@
 (cl:in-package :cl-bodge.ui)
 
 
-(defmacro dissect-c-struct ((&rest bindings) (wrapper type) &body body)
-  (once-only (wrapper)
-    (let ((let-bindings (loop for (var . access-list) in bindings collect
-                             `(,var (c-ref ,wrapper (:struct (,type)) ,@access-list)))))
-      `(symbol-macrolet ,let-bindings
-         ,@body))))
-
-
 (defun clamp (r g b a)
   (flet ((c (v)
            (min (max (/ v 255.0) 0.0) 1.0)))
@@ -18,10 +10,6 @@
 (defun bodge-color (nk-color)
   (c-val ((nk-color (:struct (%nk:color))))
     (clamp (nk-color :r) (nk-color :g) (nk-color :b) (nk-color :a))))
-
-
-(definline saturate (v max)
-  (max (min v max) 0))
 
 
 (definline %invert (y ctx &optional (h 0.0))
