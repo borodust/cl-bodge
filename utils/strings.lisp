@@ -2,14 +2,15 @@
 
 
 (defun for-each-line (text action)
-  (loop with line-start = 0 and slen = (length text)
-        for line-end = (or (position #\Newline text :start line-start) slen)
-        for line = (make-array (- line-end line-start) :element-type 'character
-                                                       :displaced-to text
-                                                       :displaced-index-offset line-start)
-        do (funcall action line)
-           (setf line-start (1+ line-end))
-        until (= line-end slen)))
+  (when text
+    (loop with line-start = 0 and slen = (length text)
+          for line-end = (or (position #\Newline text :start line-start) slen)
+          for line = (make-array (- line-end line-start) :element-type 'base-char
+                                                         :displaced-to text
+                                                         :displaced-index-offset line-start)
+          do (funcall action line)
+             (setf line-start (1+ line-end))
+          until (= line-end slen))))
 
 
 (defmacro dolines ((line-var text &optional result-form) &body body)

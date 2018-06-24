@@ -1,6 +1,6 @@
 #version 330 core
 
-#include <text>
+#include <bodge/text>
 
 #ifdef FRAGMENT_SHADER
 

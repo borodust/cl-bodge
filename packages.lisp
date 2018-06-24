@@ -9,5 +9,4 @@
                  :cl-bodge.resources
                  :cl-bodge.ui
                  :cl-bodge.text
-                 :cl-bodge.canvas
-                 :cl-bodge.library.shading))
+                 :cl-bodge.canvas))

@@ -1,10 +1,6 @@
 (cl:in-package :cl-bodge.graphics)
 
 
-(declaim (special *active-texture*
-                  *active-texture-unit*))
-
-
 (defenum texture-format
   :grey :rgb :rgba :depth :depth16 :depth-stencil)
 
@@ -33,55 +29,19 @@
   :mirrored-repeat)
 
 
-;;;
-;;;
-;;;
-(defhandle texture-handle
-    :initform (gl:gen-texture)
-    :closeform (gl:delete-textures (list *handle-value*)))
+(defclass texture-input (disposable)
+  ((texture-id :initform (gl:gen-texture) :reader %texture-id-of)
+   (target :initarg :target :reader %target-of)
+   (dimensions :initarg :dimensions :initform nil :reader texture-dimensions)))
 
 
-(defclass texture (gl-object)
-  ((target :initarg :target :reader target-of)
-   (dimensions :initarg :dimensions :initform nil :reader dimensions-of))
-  (:default-initargs :handle (make-texture-handle)))
-
-
-(defun use-texture-unit (val)
-  (gl:active-texture (+ (cffi:foreign-enum-value '%gl:enum :texture0) val)))
-
-
-(defmacro with-texture-unit (value &body body)
-  (once-only (value)
-    `(unwind-protect
-          (progn
-            (use-texture-unit ,value)
-            (let ((*active-texture-unit* ,value))
-                  ,@body))
-       (use-texture-unit (bound-symbol-value *active-texture-unit* 0)))))
-
-
-(definline use-texture (texture)
-  (gl:bind-texture (target-of texture) (handle-value-of texture)))
-
-
-(defmacro with-bound-texture ((place &optional (unit nil)) &body body)
-  (once-only (place)
-    `(unwind-protect
-          (,@(if (null unit)
-                 '(progn)
-                 `(with-texture-unit ,unit))
-             (use-texture ,place)
-             (let ((*active-texture* ,place))
-               ,@body))
-       (if-bound *active-texture*
-                 (use-texture *active-texture*)
-                 (gl:bind-texture (target-of ,place) 0)))))
+(define-destructor texture-input (texture-id)
+  (gl:delete-texture texture-id))
 
 
 (defun (setf wrap-mode-of) (mode texture)
-  (with-bound-texture (texture)
-    (let ((target (target-of texture)))
+  (with-bound-texture ((%target-of texture) (%texture-id-of texture))
+    (let ((target (%target-of texture)))
       (gl:tex-parameter target :texture-wrap-s mode)
       (gl:tex-parameter target :texture-wrap-t mode)
       (gl:tex-parameter target :texture-wrap-r mode))))
@@ -89,21 +49,22 @@
 ;;;
 ;;;
 ;;;
-(defclass texture-2d (texture) ()
+(defclass texture-2d-input (texture-input) ()
   (:default-initargs :target :texture-2d))
 
 
-(defmethod initialize-instance :after ((this texture-2d) &key image external-format
-                                                           internal-format width height
-                                                           generate-mipmaps-p)
+(defmethod initialize-instance :after ((this texture-2d-input)
+                                       &key image external-format
+                                         internal-format width height
+                                         generate-mipmaps-p)
   (with-slots (dimensions) this
     (setf dimensions (list width height)))
-  (with-bound-texture (this)
-    (let ((target (target-of this))
+  (with-bound-texture ((%target-of this) (%texture-id-of this))
+    (let ((target (%target-of this))
           (data (foreign-array-of image)))
       (gl:pixel-store :unpack-alignment 1)
       (gl:tex-image-2d target 0 internal-format width height 0 external-format
-                       :unsigned-byte (foreign-pointer-of data))
+                       :unsigned-byte (foreign-pointer-of data) :raw t)
       (gl:tex-parameter target :texture-mag-filter :linear)
       (if generate-mipmaps-p
           (progn
@@ -116,13 +77,12 @@
 
 
 (define-system-function make-2d-texture graphics-system
-    (image texture-format &key (generate-mipmaps-p t) (system *system*))
+    (image texture-format &key (generate-mipmaps-p t))
   (let ((ex-format (%pixel-format->external-format (pixel-format-of image)))
         (in-format (%texture-format->internal-format texture-format))
         (width (width-of image))
         (height (height-of image)))
-      (make-instance 'texture-2d
-                     :system system
+      (make-instance 'texture-2d-input
                      :image image
                      :external-format ex-format
                      :internal-format in-format
@@ -130,6 +90,13 @@
                      :width width
                      :height height)))
 
+
+(defmethod inject-shader-input ((this texture-2d-input) &key name)
+  (let ((location (gl:get-uniform-location *active-shading-program* name))
+        (texture-unit (next-texture-unit)))
+    (with-texture-unit (texture-unit)
+      (gl:bind-texture (%target-of this) (%texture-id-of this)))
+    (%gl:uniform-1i location texture-unit)))
 
 ;;;
 ;;;
@@ -154,4 +121,4 @@
 
 
 (defmethod foreign-array-of ((this blank-image))
-  nil)
+  (cffi:null-pointer))

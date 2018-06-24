@@ -1,6 +1,6 @@
 #version 330 core
 
-#include <text>
+#include <bodge/text>
 
 out vec4 fColor;
 

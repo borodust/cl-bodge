@@ -84,7 +84,7 @@
                          (font-line-gap font)))
          (len (length string))
          (atlas (font-atlas-texture font)))
-    (destructuring-bind (atlas-w atlas-h) (dimensions-of atlas)
+    (destructuring-bind (atlas-w atlas-h) (texture-dimensions atlas)
       (loop with y = 0.0 and x-max = 0.0 and idx = 0 and size = 0
          for next-idx = (or (position #\Newline string :start idx) len)
          for x = 0.0

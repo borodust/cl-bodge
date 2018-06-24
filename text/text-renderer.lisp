@@ -1,15 +1,19 @@
 (cl:in-package :cl-bodge.text)
 
 
-(defclass text-renderer ()
+(defclass text-renderer (disposable)
   ((default-color :initarg :default-color)
-   (shading-program :initarg :shading-program)
+   (pipeline :initarg :pipeline)
    (scale :initform 1.0 :reader scale-of)
    (line-height :initarg :line-height :reader text-line-height)
    (proj :initform nil)
    (width :initarg :width :reader width-of)
    (height :initarg :height :reader height-of)
    (text-cache :initform nil)))
+
+
+(define-destructor text-renderer (pipeline)
+  (dispose pipeline))
 
 
 (defgeneric font-of (obj)
@@ -36,7 +40,7 @@
 (define-system-function make-text-renderer graphics-system
     (width height font line-height &key (color (vec4 0.0 0.0 0.0 1.0)))
   (make-instance 'text-renderer
-                 :shading-program (build-shading-program 'text)
+                 :pipeline (make-pipeline 'text-pipeline)
                  :font font
                  :width width
                  :height height
@@ -56,16 +60,13 @@
 
 
 (defun print-text (renderer string &key position color)
-  (with-slots (text-cache shading-program proj default-color height scale) renderer
+  (with-slots (text-cache pipeline proj default-color scale) renderer
     (let* ((text (get-text text-cache string))
            (model-view-mat (if position
                              (mult proj (translation-mat4 (x position)
                                                           (y position)
                                                           0.0))
                              proj)))
-      (with-active-shading-program (shading-program)
-        (setf (program-uniform-variable shading-program "atlas") 0
-              (program-uniform-variable shading-program "scale") (f scale)
-              (program-uniform-variable shading-program "baseColor") (or color default-color)
-              (program-uniform-variable shading-program "proj") model-view-mat)
-        (render text)))))
+      (render-text t pipeline text :scale (f scale)
+                                   :base-color (or color default-color)
+                                   :mvp-matrix model-view-mat))))

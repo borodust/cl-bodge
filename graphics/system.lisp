@@ -90,6 +90,7 @@
 
 
 (defmethod destroy-system-context (ctx (this graphics-system))
+  (clear-registry-cache)
   (release-rendering-context))
 
 

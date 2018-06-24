@@ -46,7 +46,6 @@
     data))
 
 
-
 (defun read-image-from-stream (stream type)
   (let* ((data (opticl:read-image-stream stream type))
          (format (etypecase data

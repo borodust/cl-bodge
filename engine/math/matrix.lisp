@@ -176,10 +176,7 @@
     result))
 
 
-(declaim (ftype (function (single-float single-float single-float single-float) *)
-                perspective-projection-mat)
-         (inline perspective-projection-mat))
-(defun perspective-projection-mat (width height near far)
+(definline perspective-projection-mat (width height near far)
   (let ((x0 (f (/ near width 1/2)))
         (y1 (f (/ near height 1/2)))
         (z2 (f (/ (+ near far) (- near far))))

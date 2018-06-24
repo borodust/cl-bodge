@@ -1,17 +1,19 @@
-(cl:defpackage :cl-bodge.text
+(ge.util:define-package :cl-bodge.text
   (:nicknames :ge.text)
-  (:use :cl :cl-bodge.utils :cl-bodge.engine :cl-bodge.graphics
-        :cl-bodge.resources :cl-bodge.library.shading)
+  (:use :cl :cl-bodge.utils :cl-bodge.engine :cl-bodge.graphics :cl-bodge.resources)
   (:export make-glyph
-           bake-font
+           build-sdf-font
+
            font-ascender-height
            font-descender-height
            font-line-gap
 
+           text-pipeline
+
            measure-string
            make-text
-           render-text
            update-text
+           render-text
            string-of
            width-of
            height-of

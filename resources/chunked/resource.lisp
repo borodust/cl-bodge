@@ -85,24 +85,26 @@
           (error "Unknown format: ~a" format))
         (unless (eql 1 version)
           (error "Unsupported version: ~a" version))
-        (let ((chunk-table (make-hash-table :test 'equal)))
-          (loop for chunk-header = (read-preserving-whitespace char-stream nil nil nil)
-             for position = (file-position in)
-             until (null chunk-header)
-             do (destructuring-bind (chunk-type &rest parameters &key name size
-                                                &allow-other-keys)
-                    chunk-header
-                  (with-hash-entries ((chunk name)) chunk-table
-                    (cond
-                      ((null name)
-                       (error "Nameless chunk header of type ~A found" chunk-type))
-                      ((null size)
-                       (error "Size for '~A' chunk is not specified" name))
-                      ((not (null chunk))
-                       (error "Duplicate chunk with name '~A' found" name)))
-                    (setf chunk (make-chunk-record :type chunk-type
-                                                   :parameters parameters
-                                                   :position position
-                                                   :size size)))
-                  (file-position in (+ position size))))
-          (make-instance 'resource :chunks chunk-table :path path))))))
+        (with-standard-io-syntax
+          (let ((chunk-table (make-hash-table :test 'equal))
+                (*read-eval* nil))
+            (loop for chunk-header = (read-preserving-whitespace char-stream nil nil nil)
+                  for position = (file-position in)
+                  until (null chunk-header)
+                  do (destructuring-bind (chunk-type &rest parameters &key name size
+                                          &allow-other-keys)
+                         chunk-header
+                       (with-hash-entries ((chunk name)) chunk-table
+                         (cond
+                           ((null name)
+                            (error "Nameless chunk header of type ~A found" chunk-type))
+                           ((null size)
+                            (error "Size for '~A' chunk is not specified" name))
+                           ((not (null chunk))
+                            (error "Duplicate chunk with name '~A' found" name)))
+                         (setf chunk (make-chunk-record :type chunk-type
+                                                        :parameters parameters
+                                                        :position position
+                                                        :size size)))
+                       (file-position in (+ position size))))
+            (make-instance 'resource :chunks chunk-table :path path)))))))

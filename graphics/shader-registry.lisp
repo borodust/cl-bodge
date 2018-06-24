@@ -63,6 +63,12 @@
   (setf (shader-library-cache shader-library) nil))
 
 
+(defun clear-registry-cache ()
+  (with-slots (library-table) *shader-registry*
+    (loop for shader-library being the hash-values of library-table
+          do (clear-shader-library-cache shader-library))))
+
+
 (defun remove-from-dependencies (shader-class dependencies)
   (with-slots (dependency-table) *shader-registry*
     (loop for dependency in dependencies do
@@ -103,26 +109,37 @@
 
 (defun compile-shader (name source type)
   (let ((shader (gl:create-shader (shader-type->gl type))))
-    (handler-bind ((serious-condition (lambda (c) (declare (ignore c)) (gl:delete-shader shader))))
+    (handler-bind ((serious-condition (lambda (c)
+                                        (declare (ignore c))
+                                        (gl:delete-shader shader))))
       (gl:shader-source shader source)
       (gl:compile-shader shader)
       (unless (gl:get-shader shader :compile-status)
         (error "~A '~A' (id = ~A) compilation failed:~%~A"
-               type name shader (gl:get-shader-info-log shader)))
-      shader)))
+               type name shader (gl:get-shader-info-log shader))))
+    shader))
 
 
 (defun refresh-compiled-shader (library type)
-  (let* ((descriptor (shader-library-descriptor library))
-         (shader-class (class-name-of descriptor)))
-    (multiple-value-bind (source dependencies)
-        (preprocess-shader descriptor type)
-      (register-dependencies shader-class dependencies)
-      (let ((shader-id (compile-shader (%name-of descriptor) source type)))
-        (setf (assoc-value (shader-library-cache library) type) shader-id
-              (shader-library-dirty-p library) nil
-              (shader-library-last-compiled library) (float (real-time-seconds) 0d0))
-        shader-id))))
+  (let (shader-id)
+    (tagbody start
+       (restart-case
+           (let* ((descriptor (shader-library-descriptor library))
+                  (shader-class (class-name-of descriptor)))
+             (multiple-value-bind (source dependencies)
+                 (preprocess-shader descriptor type)
+               (setf (shader-library-dependencies library) dependencies)
+               (register-dependencies shader-class dependencies)
+               (setf shader-id (compile-shader (%name-of descriptor) source type)
+                     (assoc-value (shader-library-cache library) type) shader-id
+                     (shader-library-dirty-p library) nil
+                     (shader-library-last-compiled library) (float (real-time-seconds) 0d0))))
+         (recompile ()
+           :report "Try recompiling the shader"
+           (when-let ((shader (shader-library-descriptor library)))
+             (reload-shader-sources shader))
+           (go start))))
+    shader-id))
 
 
 (defun collect-compiled-libraries (shader-class type)
@@ -142,17 +159,21 @@
 
 (defun link-shader-libraries (&rest libraries &key &allow-other-keys)
   (let ((shaders (loop for (type shader-class) on libraries by #'cddr
-                       append (collect-compiled-libraries shader-class type)))
+                       when shader-class
+                         append (collect-compiled-libraries shader-class type)))
         (program (gl:create-program)))
     (handler-bind ((serious-condition (lambda (c)
-                                        (declare (ignore c)) (gl:delete-program program))))
+                                        (declare (ignore c))
+                                        (gl:delete-program program)
+                                        (setf program nil))))
       (unwind-protect
            (progn
              (loop for shader-id in shaders do
                (gl:attach-shader program shader-id))
              (gl:link-program program)
              (unless (gl:get-program program :link-status)
-               (error "Program linking failed:~%~a" (gl:get-program-info-log program))))
-        (loop for shader-id in shaders do
-          (gl:detach-shader program shader-id))))
+               (error "Program linking failed~%~A" (gl:get-program-info-log program))))
+        (when program
+          (loop for shader-id in shaders do
+            (gl:detach-shader program shader-id)))))
     program))

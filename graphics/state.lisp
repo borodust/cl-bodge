@@ -72,26 +72,16 @@
 
 
 (defun %reset-managed-state ()
-  (macrolet ((foreign-handle (symbol default)
-               `(if-bound ,symbol
-                          (handle-value-of ,symbol)
-                          ,default)))
-    (gl:use-program (foreign-handle *active-shading-program* 0))
+  (gl:use-program 0)
 
-    ;; fixme: reset other units
-    (use-texture-unit (bound-symbol-value *active-texture-unit* 0))
-    (if-bound *active-texture*
-              (when (eq (target-of *active-texture*) :texture-2d)
-                (use-texture *active-texture*))
-              (gl:bind-texture :texture-2d 0))
+  ;; fixme: reset other units
+  (use-texture-unit 0)
+  (gl:bind-texture :texture-2d 0)
 
-    (gl:bind-vertex-array (foreign-handle *active-vertex-array* 0))
-    (if-bound *active-buffer*
-              (when (eq :array-buffer (target-of *active-buffer*))
-                (use-buffer *active-buffer*))
-              (gl:bind-buffer :array-buffer 0))
-
-    (gl:bind-buffer :uniform-buffer 0)))
+  (gl:bind-vertex-array 0)
+  (gl:bind-buffer :array-buffer 0)
+  (gl:bind-buffer :element-array-buffer 0)
+  (gl:bind-buffer :uniform-buffer 0))
 
 
 (defun reset-context-state (state)

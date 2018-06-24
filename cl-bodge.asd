@@ -124,12 +124,18 @@
   :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/host cl-bodge/resources
                                cl-opengl log4cl local-time cffi
                                glad-blob bodge-glad
-                               static-vectors defstar)
+                               static-vectors)
   :pathname "graphics/"
   :serial t
   :components ((:file "packages")
+               (:file "gl")
                (:file "state")
-               (:file "input")
+               (:module "input" :components ((:file "common")
+                                             (:file "buffers")
+                                             (:file "array-buffer")
+                                             (:file "index-buffer")
+                                             (:file "uniforms")
+                                             (:file "textures")))
                (:file "output")
                (:file "shader-registry")
                (:file "shader")
@@ -286,7 +292,7 @@
   :mailto "dev@borodust.org"
   :license "MIT"
   :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/resources
-                               cl-bodge/graphics cl-bodge/shading-library
+                               cl-bodge/graphics
                                log4cl)
   :pathname "text/"
   :serial t
@@ -295,9 +301,7 @@
                (:file "text")
                (:file "rated-queue")
                (:file "text-cache")
-               (:module shaders
-                        :components ((:file "text-program/text")
-                                     (:file "text-library/text")))
+               (:module shaders :components ((:file "text")))
                (:file "text-renderer")
                (:file "resources")))
 
@@ -387,10 +391,12 @@
   :pathname "demo/"
   :serial t
   :components ((:file "packages")
+               (:file "resources")
                (:file "case")
                (:module cases
                         :serial t
                         :components ((:file "2d-physics")
                                      (:file "3d-physics")
-                                     (:file "ui")))
+                                     (:file "ui")
+                                     (:file "text")))
                (:file "demo")))
