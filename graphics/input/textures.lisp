@@ -36,7 +36,7 @@
 
 
 (define-destructor texture-input (texture-id)
-  (gl:delete-texture texture-id))
+  (dispose-gl-object texture-id #'gl:delete-texture))
 
 
 (defun (setf wrap-mode-of) (mode texture)

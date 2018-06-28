@@ -44,14 +44,16 @@
                    :priority :highest :important-p t)))))
 
 
-(defmethod dispatch ((this graphics-system) (task function) invariant &key (main-p t))
+(defmethod dispatch ((this graphics-system) (task function) invariant &key (main-p t) disposing)
   (with-slots (resource-executor) this
     (flet ((run-task ()
              (let ((*system* this)
                    (*system-context* (system-context-of this)))
                (funcall task))))
       (if main-p
-          (call-next-method)
+          (if disposing
+              (call-next-method this task invariant :important-p t :priority :highest)
+              (call-next-method))
           (execute resource-executor #'run-task)))))
 
 

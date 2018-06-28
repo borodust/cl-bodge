@@ -21,3 +21,8 @@
             (gl:bind-texture ,target ,texture-id)
             ,@body)
        (gl:bind-texture ,target 0))))
+
+
+(defun dispose-gl-object (object destructor)
+  (run (-> (engine-system 'graphics-system) :disposing t ()
+           (funcall destructor object))))

@@ -6,7 +6,7 @@
 
 
 (define-destructor array-buffer-input (buffer-id)
-  (gl:delete-buffers (list buffer-id)))
+  (dispose-gl-object (list buffer-id) #'gl:delete-buffers))
 
 
 (defun update-array-buffer (array-buffer data &optional size)

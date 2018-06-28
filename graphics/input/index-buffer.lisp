@@ -11,7 +11,7 @@
 
 
 (define-destructor index-buffer-input (buffer-id)
-  (gl:delete-buffers (list buffer-id)))
+  (dispose-gl-object (list buffer-id) #'gl:delete-buffers))
 
 
 (defmethod initialize-instance :after ((this index-buffer-input) &key data)

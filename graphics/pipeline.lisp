@@ -17,7 +17,7 @@
 
 
 (define-destructor pipeline (shading-program)
-  (gl:delete-program shading-program))
+  (dispose-gl-object shading-program #'gl:delete-program))
 
 
 (defun pipeline-shaders-outdated-p (pipeline)
