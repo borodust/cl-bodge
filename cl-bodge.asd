@@ -263,26 +263,20 @@
                (:file "shape")))
 
 
-(asdf:defsystem cl-bodge/shading-library
+(asdf:defsystem cl-bodge/shading
   :description "Bodacious Game Engine shading library"
   :version "0.4.0"
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/resources cl-bodge/graphics flexi-streams)
-  :pathname "library/shading/"
+  :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/graphics)
+  :pathname "shading/"
   :serial t
   :components ((:file "packages")
-               (:file "lighting")
-               (:file "shader-source")
-               (:file "shader-library")
-               (:file "shading-program")
-               (:module shaders
-                        :components
-                        ((:file "math")
-                         (:file "lighting")
-                         (:file "banner")
-                         (:file "skinning")))))
+               (:file "math/math")
+               (:file "phong/phong")
+               (:file "banner/banner")
+               (:file "skinning/skinning")))
 
 
 (asdf:defsystem cl-bodge/text
@@ -378,7 +372,8 @@
   :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/host cl-bodge/graphics cl-bodge/audio
                                cl-bodge/physics cl-bodge/physics/2d cl-bodge/physics/3d
                                cl-bodge/resources cl-bodge/ui cl-bodge/text
-                               cl-bodge/canvas cl-bodge/animation)
+                               cl-bodge/canvas cl-bodge/animation
+                               cl-bodge/shading)
   :components ((:file "packages")))
 
 
