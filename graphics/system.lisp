@@ -89,7 +89,7 @@
       ctx)))
 
 
-(defmethod destroy-system-context (ctx (this graphics-system))
+(defmethod destroy-system-context ((this graphics-system) ctx)
   (clear-registry-cache)
   (release-rendering-context))
 
