@@ -386,6 +386,7 @@
   :pathname "demo/"
   :serial t
   :components ((:file "packages")
+               (:file "utils")
                (:file "resources")
                (:file "case")
                (:module cases

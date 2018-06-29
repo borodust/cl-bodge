@@ -9,19 +9,19 @@
   (dispose-gl-object (list buffer-id) #'gl:delete-buffers))
 
 
-(defun update-array-buffer (array-buffer data &optional size)
+(defun update-array-buffer (array-buffer data &optional element-size)
   (with-slots (buffer-id type (this-size size)) array-buffer
     (gl:bind-buffer :array-buffer buffer-id)
     (let ((*buffer-target* :array-buffer))
       (multiple-value-bind (element-type computed-size)
           (fill-buffer (apply #'aref data (mapcar (constantly 0) (array-dimensions data))) data)
         (setf type element-type
-              this-size (or computed-size size))))
+              this-size (or element-size computed-size))))
     (gl:bind-buffer :array-buffer 0)))
 
 
 (defmethod initialize-instance :after ((this array-buffer-input) &key data size)
-  (with-slots (buffer-id type (this-size size)) this
+  (with-slots (buffer-id type) this
     (when (zerop (array-dimension data 0))
       (error "Arrays of zero length are not tolerated"))
     (let ((id (gl:gen-buffer)))
