@@ -128,7 +128,7 @@
   :pathname "graphics/"
   :serial t
   :components ((:file "packages")
-               (:file "gl")
+               (:file "utils")
                (:file "state")
                (:module "input" :components ((:file "common")
                                              (:file "buffers")
@@ -392,7 +392,7 @@
                (:module cases
                         :serial t
                         :components ((:file "2d-physics")
-                                     (:file "3d-physics")
+                                     (:file "3d-physics/3d-physics")
                                      (:file "ui")
                                      (:file "text")))
                (:file "demo")))

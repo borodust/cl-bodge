@@ -5,7 +5,7 @@
   (when text
     (loop with line-start = 0 and slen = (length text)
           for line-end = (or (position #\Newline text :start line-start) slen)
-          for line = (make-array (- line-end line-start) :element-type 'base-char
+          for line = (make-array (- line-end line-start) :element-type (array-element-type text)
                                                          :displaced-to text
                                                          :displaced-index-offset line-start)
           do (funcall action line)

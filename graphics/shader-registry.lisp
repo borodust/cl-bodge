@@ -7,7 +7,6 @@
 (defstruct shader-library
   (descriptor nil :read-only t)
   (dirty-p t)
-  (last-compiled 0d0 :type double-float)
   (dependencies nil)
   (cache nil))
 
@@ -15,26 +14,11 @@
 (defclass shader-registry ()
   ((library-table :initform (make-hash-table))
    (name-table :initform (make-hash-table :test #'equalp))
-   (dependency-table :initform (make-hash-table))))
+   (dependency-table :initform (make-hash-table))
+   (dirty-lock :initform (mt:make-spin-lock))))
 
 
 (defvar *shader-registry* (make-instance 'shader-registry))
-
-
-(defun register-shader-library (shader-class)
-  (with-slots (library-table name-table) *shader-registry*
-    (with-hash-entries ((shader-library shader-class)) library-table
-      (if shader-library
-          (let ((library-name (%name-of (shader-library-descriptor shader-library))))
-            (setf (gethash library-name name-table) shader-class))
-          (let ((descriptor (make-instance shader-class)))
-            (setf shader-library (make-shader-library :descriptor descriptor)
-                  (gethash (%name-of descriptor) name-table) shader-class))))))
-
-
-(defun shader-library-last-updated (shader-class)
-  (shader-descriptor-last-updated (shader-library-descriptor
-                                   (find-shader-library shader-class))))
 
 
 (defun find-shader-library (shader-class)
@@ -82,13 +66,38 @@
             do (pushnew shader-class (gethash dependency dependency-table)))))
 
 
-(defun mark-dependent-dirty (shader-class)
-  (with-slots (dependency-table) *shader-registry*
-    (loop for dependent in (gethash shader-class dependency-table)
-          for library = (find-shader-library dependent)
-          when library
-            do (setf (shader-library-dirty-p library) t)
-               (mark-dependent-dirty dependent))))
+(defun mark-dirty (shader-class)
+  (with-slots (dependency-table dirty-lock) *shader-registry*
+    (mt:with-spin-lock-held (dirty-lock)
+      (labels ((%mark-dirty (shader-class)
+                 (when-let ((library (find-shader-library shader-class)))
+                   (setf (shader-library-dirty-p library) t)
+                   (loop for dependent in (gethash shader-class dependency-table)
+                         do (%mark-dirty dependent)))))
+        (%mark-dirty shader-class)))))
+
+
+(defun clean-if-dirty (library)
+  (with-slots (dirty-lock) *shader-registry*
+    (mt:with-spin-lock-held (dirty-lock)
+      (when (shader-library-dirty-p library)
+        (clear-shader-library-cache library)
+        (setf (shader-library-dirty-p library) nil)
+        t))))
+
+
+(defun register-shader-library (shader-class)
+  (with-slots (library-table name-table) *shader-registry*
+    (with-hash-entries ((shader-library shader-class)) library-table
+      (if shader-library
+          (let* ((descriptor (shader-library-descriptor shader-library))
+                 (library-name (%name-of descriptor)))
+            (reload-shader-sources descriptor)
+            (setf (gethash library-name name-table) shader-class)
+            (mark-dirty shader-class))
+          (let ((descriptor (make-instance shader-class)))
+            (setf shader-library (make-shader-library :descriptor descriptor)
+                  (gethash (%name-of descriptor) name-table) shader-class))))))
 
 
 (defenum shader-type
@@ -115,8 +124,8 @@
       (gl:shader-source shader source)
       (gl:compile-shader shader)
       (unless (gl:get-shader shader :compile-status)
-        (error "~A '~A' (id = ~A) compilation failed:~%~A"
-               type name shader (gl:get-shader-info-log shader))))
+        (error "~A '~A' (id = ~A) compilation failed:~&~A~&~%~A"
+               type name shader (gl:get-shader-info-log shader) source)))
     shader))
 
 
@@ -124,16 +133,13 @@
   (let (shader-id)
     (tagbody start
        (restart-case
-           (let* ((descriptor (shader-library-descriptor library))
-                  (shader-class (class-name-of descriptor)))
+           (let* ((descriptor (shader-library-descriptor library)))
              (multiple-value-bind (source dependencies)
                  (preprocess-shader descriptor type)
-               (setf (shader-library-dependencies library) dependencies)
-               (register-dependencies shader-class dependencies)
-               (setf shader-id (compile-shader (%name-of descriptor) source type)
-                     (assoc-value (shader-library-cache library) type) shader-id
-                     (shader-library-dirty-p library) nil
-                     (shader-library-last-compiled library) (float (real-time-seconds) 0d0))))
+               (register-dependencies (class-name-of (shader-library-descriptor library)) dependencies)
+               (setf (shader-library-dependencies library) dependencies
+                     shader-id (compile-shader (%name-of descriptor) source type)
+                     (assoc-value (shader-library-cache library) type) shader-id)))
          (recompile ()
            :report "Try recompiling the shader"
            (when-let ((shader (shader-library-descriptor library)))
@@ -144,12 +150,10 @@
 
 (defun collect-compiled-libraries (shader-class type)
   (when-let ((library (find-shader-library shader-class)))
-    (let ((descriptor (shader-library-descriptor library)))
-      (when (> (shader-descriptor-last-updated descriptor)
-               (shader-library-last-compiled library))
-        (remove-from-dependencies shader-class (shader-library-dependencies library))
-        (mark-dependent-dirty shader-class)
-        (clear-shader-library-cache library))
+    (when (clean-if-dirty library)
+      (remove-from-dependencies (class-name-of (shader-library-descriptor library))
+                                (shader-library-dependencies library)))
+    (when (%source-of (shader-library-descriptor library))
       (let ((shader-id (if-let ((compiled-shader (find-compiled-shader shader-class type)))
                          compiled-shader
                          (refresh-compiled-shader library type))))

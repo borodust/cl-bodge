@@ -23,7 +23,7 @@
 (defun pipeline-shaders-outdated-p (pipeline)
   (with-slots (last-updated) pipeline
     (loop for shader-class in (pipeline-shaders pipeline)
-            thereis (< last-updated (shader-library-last-updated shader-class)))))
+            thereis (shader-library-dirty-p (find-shader-library shader-class)))))
 
 
 (defun refresh-parameter-table (table shaders)

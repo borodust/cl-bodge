@@ -18,32 +18,20 @@
 (defgeneric shader-descriptor-parameters (shader))
 
 (defclass shader ()
-  ((last-updated :initform 0 :reader shader-descriptor-last-updated)
-   (header :reader %header-of)
+  ((header :reader %header-of)
    (source :reader %source-of)))
 
 
 (defun %reload-shader-sources (shader header-paths source-paths)
   (with-slots (header source) shader
     (setf header (when header-paths
-                   (format nil "~{~A~}" (mapcar #'read-file-into-string header-paths)))
+                   (format nil "~{~A~&~}" (mapcar #'read-file-into-string header-paths)))
           source (when source-paths
-                   (format nil "~{~A~}" (mapcar #'read-file-into-string source-paths))))))
+                   (format nil "~{~A~&~}" (mapcar #'read-file-into-string source-paths))))))
 
 
 (defmethod initialize-instance :after ((this shader) &key)
   (reload-shader-sources this))
-
-
-(defmethod update-instance-for-redefined-class :after ((this shader)
-                                                       added-slots
-                                                       discarded-slots
-                                                       property-list
-                                                       &rest initargs)
-  (declare (ignore added-slots discarded-slots property-list initargs))
-  (with-slots (last-updated) this
-    (setf last-updated (real-time-seconds))
-    (reload-shader-sources this)))
 
 
 (defun expand-asdf-base-path (base-path)
