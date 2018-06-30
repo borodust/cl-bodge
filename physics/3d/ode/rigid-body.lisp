@@ -12,7 +12,9 @@
 (defgeneric (setf position-of) (value this))
 (defgeneric rotation-of (this))
 (defgeneric linear-velocity-of (this))
+(defgeneric (setf linear-velocity-of) (value this))
 (defgeneric angular-velocity-of (this))
+(defgeneric (setf angular-velocity-of) (value this))
 (defgeneric mass-of (this))
 (defgeneric (setf mass-of) (value this))
 
@@ -48,7 +50,8 @@
 
 (defmethod (setf mass-of) (value (this rigid-body))
   (declare (type mass value))
-  (%ode:body-set-mass (handle-value-of this) (value-of value)))
+  (%ode:body-set-mass (handle-value-of this) (value-of value))
+  value)
 
 
 (defmethod rotation-of ((this rigid-body))
@@ -67,6 +70,21 @@
                        (ode-real (z vec3))))
 
 
+(defun body-force (rigid-body)
+  (ode->vec3 (%ode:body-get-force (handle-value-of rigid-body))))
+
+
+(defun apply-torque (rigid-body vec3)
+  (%ode:body-add-torque (handle-value-of rigid-body)
+                        (ode-real (x vec3))
+                        (ode-real (y vec3))
+                        (ode-real (z vec3))))
+
+
+(defun body-torque (rigid-body)
+  (ode->vec3 (%ode:body-get-torque (handle-value-of rigid-body))))
+
+
 (defmethod transform-of ((this rigid-body))
   (ode-transform (%ode:body-get-rotation (handle-value-of this))
                  (%ode:body-get-position (handle-value-of this))))
@@ -76,5 +94,15 @@
   (ode->vec3 (%ode:body-get-linear-vel (handle-value-of this))))
 
 
+(defmethod (setf linear-velocity-of) (value (this rigid-body))
+  (%ode:body-set-linear-vel (handle-value-of this) (x value) (y value) (z value))
+  value)
+
+
 (defmethod angular-velocity-of ((this rigid-body))
   (ode->vec3 (%ode:body-get-angular-vel (handle-value-of this))))
+
+
+(defmethod (setf angular-velocity-of) (value (this rigid-body))
+  (%ode:body-set-angular-vel (handle-value-of this) (x value) (y value) (z value))
+  value)

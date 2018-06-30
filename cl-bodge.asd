@@ -243,7 +243,8 @@
                                          (:file "joints")
                                          (:file "geometry")))
                (:file "engine")
-               (:file "universe")))
+               (:file "universe")
+               (:file "rigid-body")))
 
 
 (asdf:defsystem cl-bodge/physics/2d

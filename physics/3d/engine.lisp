@@ -9,8 +9,10 @@
 
 
 (defmethod simulation-engine-initialize ((this ode-engine))
-  (declare (ignore this)))
+  (declare (ignore this))
+  (%ode:init-ode))
 
 
 (defmethod simulation-engine-discard ((this ode-engine))
-  (declare (ignore this)))
+  (declare (ignore this))
+  (%ode:close-ode))

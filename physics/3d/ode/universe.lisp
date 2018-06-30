@@ -32,15 +32,14 @@
 
 
 (defun destroy-universe (uni)
-  (with-slots (world space collision-callbacks) uni
-    (setf collision-callbacks '())
+  (with-slots (world space) uni
     (%ode:world-destroy world)
     (%ode:space-destroy space)))
 
 
 (defun %filter-contacts (contact-count contact-geoms this-geom that-geom)
   (let* ((contacts (loop for i from 0 below contact-count
-                      collecting (make-contact (claw:c-ref contact-geoms %ode:contact-geom i)))))
+                         collect (make-contact (claw:c-ref contact-geoms %ode:contact-geom i)))))
     (filter-contacts contacts this-geom that-geom)))
 
 
@@ -95,8 +94,15 @@
       (%ode:world-quick-step world (ode-real seconds-since-last-observation)))))
 
 
+(defun gravity (universe)
+  (claw:c-with ((vec %ode:vector3))
+    (%ode:world-get-gravity (world-of universe) vec)
+    (vec3 (vec 0) (vec 1) (vec 2))))
+
+
 (defun (setf gravity) (vec universe)
   (%ode:world-set-gravity (world-of universe)
                           (ode-real (vref vec 0))
                           (ode-real (vref vec 1))
-                          (ode-real (vref vec 2))))
+                          (ode-real (vref vec 2)))
+  vec)
