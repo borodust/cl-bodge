@@ -60,11 +60,11 @@ vec3 calcPhongReflection(PhongPointLight light,
   float falloff = attenuation(light.radius, light.falloff, lightDistance);
 
   vec3 L = normalize(lightVector);              //light direction
-  vec3 V = -normalize(position);                //eye direction
+  vec3 V = normalize(position);                 //eye direction
 
   //compute our diffuse & specular terms
   float specular = specularStrength *
-    computeSpecular(L, V, normal, material.shininess) *
+    computeSpecular(L, -V, normal, material.shininess) *
     material.specularScale *
     falloff;
   vec3 diffuse = light.color *

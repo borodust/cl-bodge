@@ -6,10 +6,11 @@
                  (instance-count 1)
                  vertex-count
                  (vertex-offset 0)
+                 primitive
                &allow-other-keys)
   (enable-rendering-output output)
   (enable-pipeline pipeline input)
-  (let ((mode (pipeline-primitive pipeline))
+  (let ((mode (or primitive (pipeline-primitive pipeline)))
         (vertex-count (or vertex-count (index-buffer-length index-buffer) 0)))
     (if index-buffer
         (progn
