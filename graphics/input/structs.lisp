@@ -40,7 +40,12 @@
     `(make-shader-struct-descriptor (list ,@expanded-field-descriptors))))
 
 
-(defun fields-to-slots (fields)
+(defun fields-to-parameters (fields)
+  (loop for field in fields
+        collect (first (ensure-list field))))
+
+
+(defun fields-to-slots (class-name fields)
   (loop for field in fields
         collect (destructuring-bind (symbol-name &rest opts) (ensure-list field)
                   (declare (ignore opts))
@@ -49,7 +54,7 @@
                                                        (prin1 keyword-name s)
                                                        (format s " missing")))
                                    :initarg ,keyword-name
-                                   :accessor ,(symbolicate symbol-name '-of))))))
+                                   :accessor ,(symbolicate class-name '- symbol-name))))))
 
 
 (defmacro defsstruct (name-and-opts &body fields)
@@ -58,8 +63,10 @@
     (with-gensyms (initargs)
       `(progn
          (defclass ,name (shader-structure)
-           (,@(fields-to-slots fields)))
-         (defun ,(symbolicate 'make- name) (&rest ,initargs &key &allow-other-keys)
+           (,@(fields-to-slots name fields)))
+         (defun ,(symbolicate 'make- name) (&rest ,initargs
+                                            &key ,@(fields-to-parameters fields) &allow-other-keys)
+           (declare (ignore ,@(fields-to-parameters fields)))
            (apply #'make-instance ',name ,initargs))
          (register-shader-struct-descriptor ',name ,(fields-to-descriptor fields))))))
 

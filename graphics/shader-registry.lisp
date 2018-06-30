@@ -124,8 +124,8 @@
       (gl:shader-source shader source)
       (gl:compile-shader shader)
       (unless (gl:get-shader shader :compile-status)
-        (error "~A '~A' (id = ~A) compilation failed:~&~A~&~%~A"
-               type name shader (gl:get-shader-info-log shader) source)))
+        (error "~A '~A' (id = ~A) compilation failed:~&~A~&"
+               type name shader (gl:get-shader-info-log shader))))
     shader))
 
 

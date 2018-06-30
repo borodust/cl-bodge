@@ -1,9 +1,7 @@
 #ifndef _PHONG_H
 #define _PHONG_H
 
-const float GAMMA = 2.2;
-
-struct Light {
+struct PhongPointLight {
   vec3 position;
   vec3 color;
   vec3 ambient;
@@ -11,15 +9,15 @@ struct Light {
   float radius;
 };
 
-struct Material {
+struct PhongMaterial {
   float specularScale;
   float shininess;
   float roughness;
   float albedo;
 };
 
-vec3 calcPhongReflection(Light light,
-                         Material material,
+vec3 calcPhongReflection(PhongPointLight light,
+                         PhongMaterial material,
                          vec3 normal,
                          vec3 viewPosition,
                          vec3 diffuseColor,

@@ -86,6 +86,10 @@
                                                 :geometry-shader geometry))
          (relink ()
            :report "Try relinking the pipeline"
+           (go start))
+         (clear-cache-and-relink ()
+           :report "Reset whole shader cache and try relinking the pipeline"
+           (clear-registry-cache)
            (go start))))
     program))
 

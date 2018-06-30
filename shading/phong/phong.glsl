@@ -6,44 +6,6 @@
 #ifdef FRAGMENT_SHADER
 
 // adapted from https://github.com/stackgl/glsl-lighting-walkthrough
-
-float toLinear(float v) {
-  return pow(v, GAMMA);
-}
-
-vec2 toLinear(vec2 v) {
-  return pow(v, vec2(GAMMA));
-}
-
-vec3 toLinear(vec3 v) {
-  return pow(v, vec3(GAMMA));
-}
-
-vec4 toLinear(vec4 v) {
-  return vec4(toLinear(v.rgb), v.a);
-}
-
-float toGamma(float v) {
-  return pow(v, 1.0 / GAMMA);
-}
-
-vec2 toGamma(vec2 v) {
-  return pow(v, vec2(1.0 / GAMMA));
-}
-
-vec3 toGamma(vec3 v) {
-  return pow(v, vec3(1.0 / GAMMA));
-}
-
-vec4 toGamma(vec4 v) {
-  return vec4(toGamma(v.rgb), v.a);
-}
-
-//account for gamma-corrected images
-vec4 textureLinear(sampler2D uTex, vec2 uv) {
-  return toLinear(texture2D(uTex, uv));
-}
-
 float attenuation(float r, float f, float d) {
   float denom = d / r + 1.0;
   float attenuation = 1.0 / (denom * denom);
@@ -104,8 +66,8 @@ float computeSpecular(vec3 lightDirection,
   return pow(max(0.0, dot(viewDirection, R)), shininess);
 }
 
-vec3 calcPhongReflection(Light light,
-                         Material material,
+vec3 calcPhongReflection(PhongPointLight light,
+                         PhongMaterial material,
                          vec3 normal,
                          vec3 viewPosition,
                          vec3 diffuseColor,
@@ -115,6 +77,8 @@ vec3 calcPhongReflection(Light light,
   vec4 lightPosition = view * vec4(light.position, 1.0);
   vec3 lightVector = lightPosition.xyz - viewPosition;
   vec3 color = vec3(0.0);
+  vec4(normal, 1.0);
+
 
   //calculate attenuation
   float lightDistance = length(lightVector);
@@ -135,8 +99,7 @@ vec3 calcPhongReflection(Light light,
   //add the lighting
   color += diffuseColor * (diffuse + ambient) + specular;
 
-  //re-apply gamma to output buffer
-  return toGamma(color);
+  return color;
 }
 
 #endif
