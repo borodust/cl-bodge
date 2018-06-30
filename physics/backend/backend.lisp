@@ -74,6 +74,10 @@
 (defgeneric simulation-engine-destroy-shape (engine shape))
 
 
+(defgeneric simulation-engine-make-sphere-shape (engine universe radius &key body substance))
+(defgeneric simulation-engine-make-cuboid-shape (engine universe width height depth
+                                                 &key body substance))
+
 (defgeneric simulation-engine-make-segment-shape (engine universe start end &key body substance))
 (defgeneric simulation-engine-make-polyline-shape (engine universe points &key body substance))
 (defgeneric simulation-engine-make-polygon-shape (engine universe points &key body substance))

@@ -244,7 +244,8 @@
                                          (:file "geometry")))
                (:file "engine")
                (:file "universe")
-               (:file "rigid-body")))
+               (:file "rigid-body")
+               (:file "shape")))
 
 
 (asdf:defsystem cl-bodge/physics/2d

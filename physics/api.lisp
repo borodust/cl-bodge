@@ -188,12 +188,31 @@
 ;;;
 ;;; 3D SHAPES
 ;;;
-(defun make-plane-shape (universe)
-  (declare (ignore universe)))
-(defun make-sphere-shape (universe)
-  (declare (ignore universe)))
-(defun make-cube-shape (universe)
-  (declare (ignore universe)))
+(defun make-sphere-shape (universe radius &key body substance)
+  (make-shape-handle
+   (%engine-of universe)
+   body
+   substance
+   (lambda (prepared-substance)
+     (simulation-engine-make-sphere-shape (%engine-of universe)
+                                          (%handle-of universe)
+                                          radius
+                                          :body (%handle-of body)
+                                          :substance prepared-substance))))
+
+
+(defun make-cuboid-shape (universe width height depth &key body substance)
+  (make-shape-handle
+   (%engine-of universe)
+   body
+   substance
+   (lambda (prepared-substance)
+     (simulation-engine-make-cuboid-shape (%engine-of universe)
+                                          (%handle-of universe)
+                                          width height depth
+                                          :body (%handle-of body)
+                                          :substance prepared-substance))))
+
 
 
 ;;;

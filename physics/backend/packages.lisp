@@ -28,6 +28,8 @@
 
            #:simulation-engine-shape-substance
            #:simulation-engine-shape-body
+           #:simulation-engine-make-sphere-shape
+           #:simulation-engine-make-cuboid-shape
            #:simulation-engine-make-segment-shape
            #:simulation-engine-make-polyline-shape
            #:simulation-engine-make-polygon-shape

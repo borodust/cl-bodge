@@ -25,7 +25,7 @@
            shape-body
            make-plane-shape
            make-sphere-shape
-           make-cube-shape
+           make-cuboid-shape
 
            make-segment-shape
            make-polygon-shape
