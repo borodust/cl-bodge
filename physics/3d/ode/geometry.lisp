@@ -1,4 +1,4 @@
-(cl:in-package :cl-bodge.physics)
+(cl:in-package :cl-bodge.physics.ode)
 
 
 (defhandle geom-handle
@@ -8,9 +8,9 @@
 (defclass geom (ode-object) ())
 
 
-(defmethod initialize-instance :around ((this geom) &key)
+(defmethod initialize-instance :around ((this geom) &key universe)
   (call-next-method)
-  (%register-geom (universe) this))
+  (%register-geom universe this))
 
 
 (defmethod enable ((this geom))
@@ -64,10 +64,10 @@
 
 
 (defmethod initialize-instance ((this sphere-geom) &rest args
-                                &key (radius (error ":radius missing")))
+                                &key universe (radius (error ":radius missing")))
   (apply #'call-next-method
          this
-         :handle (make-geom-handle (%ode:create-sphere (space-of (universe)) (ode-real radius)))
+         :handle (make-geom-handle (%ode:create-sphere (space-of universe) (ode-real radius)))
          args))
 
 ;;;
@@ -77,10 +77,10 @@
 
 
 (defmethod initialize-instance ((this box-geom) &rest args
-                                &key (dimensions (error ":dimensions missing")))
+                                &key universe (dimensions (error ":dimensions missing")))
   (apply #'call-next-method
          this
-         :handle (make-geom-handle (%ode:create-box (space-of (universe))
+         :handle (make-geom-handle (%ode:create-box (space-of universe)
                                                     (ode-real (x dimensions))
                                                     (ode-real (y dimensions))
                                                     (ode-real (z dimensions))))
@@ -95,11 +95,12 @@
 
 
 (defmethod initialize-instance ((this cylinder-geom) &rest args
-                                &key (length (error ":length missing"))
+                                &key universe
+                                  (length (error ":length missing"))
                                   (radius (error ":radius missing")))
   (apply #'call-next-method
          this
-         :handle (make-geom-handle (%ode:create-cylinder (space-of (universe))
+         :handle (make-geom-handle (%ode:create-cylinder (space-of universe)
                                                          (ode-real radius)
                                                          (ode-real length)))
          args))
@@ -113,12 +114,13 @@
 
 
 (defmethod initialize-instance ((this plane-geom) &rest args
-                                &key (normal (error ":normal missing"))
+                                &key universe
+                                  (normal (error ":normal missing"))
                                   (offset 0.0))
   (apply #'call-next-method
          this
          :handle (make-geom-handle
-                  (%ode:create-plane (space-of (universe))
+                  (%ode:create-plane (space-of universe)
                                      (ode-real (x normal))
                                      (ode-real (y normal))
                                      (ode-real (z normal))
@@ -144,11 +146,13 @@
 
 
 (defmethod initialize-instance ((this ray-geom) &rest args
-                                &key (position (vec3 0.0 0.0 0.0))
+                                &key
+                                  universe
+                                  (position (vec3 0.0 0.0 0.0))
                                   (direction (error ":direction missing"))
                                   (length (error ":length missing")))
   (with-slots ((pos position) (dir direction)) this
-    (let ((ode-ray (%ode:create-ray (space-of (universe)) (ode-real length))))
+    (let ((ode-ray (%ode:create-ray (space-of universe) (ode-real length))))
       (setf pos position
             dir direction)
       (set-ray ode-ray position direction)

@@ -1,8 +1,7 @@
-(cl:in-package :cl-bodge.physics)
+(cl:in-package :cl-bodge.physics.ode)
 
 
 (defhandle rigid-body-handle
-    :initform (%ode:body-create (world-of (universe)))
     :closeform (%ode:body-destroy *handle-value*))
 
 
@@ -18,10 +17,9 @@
 (defgeneric (setf mass-of) (value this))
 
 
-(define-system-function make-rigid-body physics-system (&key (system *system*))
+(defun make-rigid-body (universe)
   (make-instance 'rigid-body
-                 :system system
-                 :handle (make-rigid-body-handle)))
+                 :handle (make-rigid-body-handle (%ode:body-create (world-of universe)))))
 
 
 (defmethod enable ((this rigid-body))

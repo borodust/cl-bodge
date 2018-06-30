@@ -1,4 +1,4 @@
-(cl:in-package :cl-bodge.physics)
+(cl:in-package :cl-bodge.physics.ode)
 
 
 (defhandle joint-handle
@@ -8,13 +8,12 @@
 (defclass joint (ode-object) ())
 
 
-(define-system-function make-joint physics-system
-    (joint-ctor class-name universe this-body that-body &key (system *system*))
+(defun make-joint (joint-ctor class-name universe this-body that-body)
   (let ((joint (funcall joint-ctor (world-of universe))))
     (%ode:joint-attach joint (handle-value-of this-body) (if (null that-body)
                                                    (cffi:null-pointer)
                                                    (handle-value-of that-body)))
-    (make-instance class-name :system system :handle (make-joint-handle joint))))
+    (make-instance class-name :handle (make-joint-handle joint))))
 
 
 (defmacro define-joint-class (class-name joint-ctor-name)
@@ -22,10 +21,10 @@
     `(progn
        (defclass ,class-name (joint) ())
        (declaim (inline ,class-ctor-name))
-       (defun ,class-ctor-name (this-body &optional that-body)
+       (defun ,class-ctor-name (universe this-body &optional that-body)
          (make-joint (lambda (world)
-                       (c-fun ,joint-ctor-name world 0))
-                     ',class-name (universe) this-body that-body)))))
+                       (claw:c-fun ,joint-ctor-name world 0))
+                     ',class-name universe this-body that-body)))))
 
 
 (define-joint-class ball-joint %ode:joint-create-ball)

@@ -1,13 +1,13 @@
-(cl:in-package :cl-bodge.physics)
+(cl:in-package :cl-bodge.physics.ode)
 
 
 (define-constant +precision+ 0d0)
 
 
-(defvar *contact-points-per-collision* 1)
+(defvar *contact-points-per-collision* 3)
 
 
-(defclass ode-object (system-foreign-object) ())
+(defclass ode-object (foreign-object) ())
 
 
 (defgeneric direction-of (object))
@@ -50,12 +50,12 @@
 
 
 (defun ode->vec3 (pointer)
-  (c-let ((vec %ode:real :ptr pointer))
+  (claw:c-let ((vec %ode:real :ptr pointer))
     (vec3 (vec 0) (vec 1) (vec 2))))
 
 
 (defun ode->mat3 (pointer)
-  (c-let ((mat %ode:real :ptr pointer))
+  (claw:c-let ((mat %ode:real :ptr pointer))
     (macrolet ((init ()
                  `(mat3 ,@(loop for i from 0 below 3 append
                                (loop for j from 0 below 3 collect
@@ -64,7 +64,7 @@
 
 
 (defun copy-mat3 (ptr mat3)
-  (c-let ((m3 %ode:real :ptr ptr))
+  (claw:c-let ((m3 %ode:real :ptr ptr))
     (macrolet ((init ()
                  `(progn
                     ,@(loop for i from 0 below 3 append
@@ -76,13 +76,13 @@
 
 
 (defmacro with-mat3-ptr ((mat-ptr bodge-mat3) &body body)
-  `(with-calloc (,mat-ptr '%ode:real (* 4 3))
+  `(claw:with-calloc (,mat-ptr '%ode:real (* 4 3))
      (copy-mat3 ,mat-ptr ,bodge-mat3)
      ,@body))
 
 
 (defun ode-transform (rotation-ptr position-ptr)
-  (c-let ((pos %ode:real :ptr position-ptr)
+  (claw:c-let ((pos %ode:real :ptr position-ptr)
           (rot %ode:real :ptr rotation-ptr))
     (mat4 (rot 0) (rot 1) (rot 2)  (pos 0)
           (rot 4) (rot 5) (rot 6)  (pos 1)

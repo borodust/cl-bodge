@@ -230,18 +230,20 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (cl-bodge/engine cl-bodge/physics/backend
-                               ode-blob bodge-ode log4cl claw local-time)
+  :depends-on (cl-bodge/utils cl-bodge/engine cl-bodge/physics/backend
+                              ode-blob bodge-ode log4cl claw local-time)
   :pathname "physics/3d/"
   :serial t
-  :components () #++((:file "packages")
-               (:file "ode")
-               (:file "contacts")
-               (:file "universe")
-               (:file "mass")
-               (:file "rigid-body")
-               (:file "joints")
-               (:file "geometry")))
+  :components ((:file "packages")
+               (:module ode :components ((:file "ode")
+                                         (:file "contacts")
+                                         (:file "universe")
+                                         (:file "mass")
+                                         (:file "rigid-body")
+                                         (:file "joints")
+                                         (:file "geometry")))
+               (:file "engine")
+               (:file "universe")))
 
 
 (asdf:defsystem cl-bodge/physics/2d

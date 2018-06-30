@@ -1,12 +1,12 @@
-(cl:in-package :cl-bodge.physics)
+(cl:in-package :cl-bodge.physics.ode)
 
 
 (defclass mass (disposable)
-  ((value :initform (calloc '%ode:mass) :reader value-of)))
+  ((value :initform (claw:calloc '%ode:mass) :reader value-of)))
 
 
 (define-destructor mass (value)
-  (free value))
+  (claw:free value))
 
 
 (defun make-box-mass (total x y z)
