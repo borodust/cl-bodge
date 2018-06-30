@@ -135,6 +135,7 @@
                                              (:file "array-buffer")
                                              (:file "index-buffer")
                                              (:file "uniforms")
+                                             (:file "structs")
                                              (:file "textures")))
                (:file "output")
                (:file "shader-registry")

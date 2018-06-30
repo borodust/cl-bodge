@@ -24,6 +24,8 @@
            make-2d-texture
            texture-dimensions
 
+           defsstruct
+
            make-framebuffer
 
            render
