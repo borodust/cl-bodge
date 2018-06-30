@@ -18,10 +18,10 @@ struct PhongMaterial {
 
 vec3 calcPhongReflection(PhongPointLight light,
                          PhongMaterial material,
+                         vec3 position,
                          vec3 normal,
-                         vec3 viewPosition,
                          vec3 diffuseColor,
                          float specularStrength,
-                         mat4 view);
+                         mat4 viewMatrix);
 
 #endif

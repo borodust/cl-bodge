@@ -86,6 +86,12 @@
         t))))
 
 
+(defun reload-all-shader-sources ()
+  (with-slots (library-table) *shader-registry*
+    (loop for library being the hash-values of library-table
+          do (reload-shader-sources (shader-library-descriptor library)))))
+
+
 (defun register-shader-library (shader-class)
   (with-slots (library-table name-table) *shader-registry*
     (with-hash-entries ((shader-library shader-class)) library-table

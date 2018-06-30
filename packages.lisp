@@ -4,6 +4,7 @@
                  :cl-bodge.audio
                  :cl-bodge.engine
                  :cl-bodge.graphics
+                 :cl-bodge.shading
                  :cl-bodge.host
                  :cl-bodge.physics
                  :cl-bodge.resources

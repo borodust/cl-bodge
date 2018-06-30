@@ -90,6 +90,7 @@
          (clear-cache-and-relink ()
            :report "Reset whole shader cache and try relinking the pipeline"
            (clear-registry-cache)
+           (reload-all-shader-sources)
            (go start))))
     program))
 

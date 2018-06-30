@@ -389,11 +389,12 @@
   :components ((:file "packages")
                (:file "utils")
                (:file "resources")
+               (:file "scene")
                (:file "case")
                (:module cases
                         :serial t
                         :components ((:file "2d-physics")
-                                     (:file "3d-physics/3d-physics")
+                                     (:file "3d-physics")
                                      (:file "ui")
                                      (:file "text")))
                (:file "demo")))
