@@ -41,6 +41,14 @@
     (vec3 (vec 0) (vec 1) (vec 2))))
 
 
+(defun vec3->ode (vec3 pointer)
+  (claw:c-val ((pointer %ode:vector3))
+    (setf (pointer 0) (ode-real (x vec3))
+          (pointer 1) (ode-real (y vec3))
+          (pointer 2) (ode-real (z vec3))))
+  pointer)
+
+
 (defun ode->mat3 (pointer)
   (claw:c-let ((mat %ode:real :ptr pointer))
     (macrolet ((init ()

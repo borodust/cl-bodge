@@ -3,12 +3,13 @@
 
 (defstruct (contact-surface
              (:constructor make-contact-surface))
-  (friction 0d0)
-  (bounciness 0.4d0))
+  (friction 0.05d0)
+  (bounciness 0.4d0)
+  (velocity 0d0))
 
 
 (defstruct (contact
-             (:constructor make-contact (geom)))
+             (:constructor %make-contact (geom)))
   (geom nil :read-only t)
   (surface (make-contact-surface)))
 
@@ -43,14 +44,34 @@
   (setf (contact-surface-bounciness (contact-surface info)) value))
 
 
+(defun surface-velocity (info)
+  (contact-surface-velocity (contact-surface info)))
+
+
+(defun (setf surface-velocity) (value info)
+  (setf (contact-surface-velocity (contact-surface info)) value))
+
+
+(defun make-contact (geom friction elasticity surface-velocity)
+  (let ((contact (%make-contact geom)))
+    (when friction
+      (setf (surface-friction contact) friction))
+    (when elasticity
+      (setf (surface-bounciness contact) elasticity))
+    (when surface-velocity
+      (setf (surface-velocity contact) surface-velocity))
+    contact))
+
+
 (defun fill-contact-geom (contact-geom info)
   (claw:memcpy (claw:ptr contact-geom) (claw:ptr (contact-geom info)) :type '%ode:contact-geom))
 
 
 (defun fill-contact (contact info)
   (claw:c-val ((contact %ode:contact))
-    (setf (contact :surface :mode) (claw:mask 'ode:contact-flags :approx0 :bounce)
+    (setf (contact :surface :mode) (claw:mask 'ode:contact-flags :approx0 :bounce :motion1)
           (contact :surface :mu) (ode-real (surface-friction info))
-          (contact :surface :bounce) (ode-real (surface-bounciness info)))
+          (contact :surface :bounce) (ode-real (surface-bounciness info))
+          (contact :surface :motion1) (surface-velocity info))
     (fill-contact-geom (contact :geom &) info))
   contact)

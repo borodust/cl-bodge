@@ -235,6 +235,7 @@
   :pathname "physics/3d/"
   :serial t
   :components ((:file "packages")
+               (:file "common")
                (:module ode :components ((:file "ode")
                                          (:file "contacts")
                                          (:file "universe")
