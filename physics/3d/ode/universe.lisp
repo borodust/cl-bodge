@@ -1,10 +1,13 @@
 (cl:in-package :cl-bodge.physics.ode)
 
 
-(defvar *world-quick-step-iterations* 40)
-(defvar *auto-disable-bodies-p* t)
-(defvar *error-reduction-parameter* 0.1) ;; 0.1 ~ 0.8 recommended
-(defvar *constant-force-mixing* 0.001) ;; 10e-9 ~ 1.0 recommended
+(defparameter *world-quick-step-iterations* 40)
+(defparameter *auto-disable-bodies-p* t)
+(defparameter *error-reduction-parameter* 0.1) ;; 0.1 ~ 0.8 recommended
+(defparameter *constant-force-mixing* 0d000001)   ;; 10e-9 ~ 1.0 recommended
+(defparameter *contact-points-per-collision* 3)
+;; https://en.wikipedia.org/wiki/Successive_over-relaxation
+(defparameter *world-over-relaxation* 1.3d0)
 
 
 (defclass universe ()
@@ -24,13 +27,14 @@
 (defmethod initialize-instance :after ((this universe) &key)
   (with-slots (world) this
     (%ode:world-set-quick-step-num-iterations world *world-quick-step-iterations*)
+    (%ode:world-set-quick-step-w world *world-over-relaxation*)
     (%ode:world-set-auto-disable-flag world (if *auto-disable-bodies-p* 1 0))
     (%ode:world-set-erp world (ode-real *error-reduction-parameter*))
     (%ode:world-set-cfm world (ode-real *constant-force-mixing*))))
 
 
-(defun make-universe ()
-  (make-instance 'universe))
+(defun make-universe (on-pre-solve on-post-solve)
+  (make-instance 'universe :pre-solve on-pre-solve :post-solve on-post-solve))
 
 
 (defun destroy-universe (uni)

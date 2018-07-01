@@ -4,9 +4,6 @@
 (define-constant +precision+ 0d0)
 
 
-(defvar *contact-points-per-collision* 3)
-
-
 (defclass ode-object (foreign-object) ())
 
 

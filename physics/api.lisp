@@ -103,15 +103,18 @@
     (setf (simulation-engine-body-mass (%engine-of body) (%handle-of body)) mass-handle)))
 
 
-(defun infuse-sphere-mass (body mass radius)
-  (let ((mass-handle (simulation-engine-make-mass-for-sphere (%engine-of body) mass
-                                                             radius)))
+(defun infuse-sphere-mass (body mass radius &key offset)
+  (let ((mass-handle (simulation-engine-make-mass-for-sphere (%engine-of body)
+                                                             mass
+                                                             radius
+                                                             :offset offset)))
     (setf (simulation-engine-body-mass (%engine-of body) (%handle-of body)) mass-handle)))
 
 
-(defun infuse-cuboid-mass (body mass width height depth)
+(defun infuse-cuboid-mass (body mass width height depth &key offset)
   (let ((mass-handle (simulation-engine-make-mass-for-cuboid (%engine-of body) mass
-                                                             width height depth)))
+                                                             width height depth
+                                                             :offset offset)))
     (setf (simulation-engine-body-mass (%engine-of body) (%handle-of body)) mass-handle)))
 
 

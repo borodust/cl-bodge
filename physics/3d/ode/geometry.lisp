@@ -7,7 +7,7 @@
 
 (defclass geom (ode-object)
   ((substance :initarg :substance :initform nil :reader substance-of)
-   (body :initarg :body :initform nil :reader body-of)))
+   (body :initarg :body :initform t :reader body-of)))
 
 
 (defmethod initialize-instance :around ((this geom) &key universe)

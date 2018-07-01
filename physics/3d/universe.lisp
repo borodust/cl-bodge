@@ -3,7 +3,7 @@
 
 (defmethod simulation-engine-make-universe ((engine ode-engine)
                                             &key on-pre-solve on-post-solve &allow-other-keys)
-  (make-universe))
+  (make-universe on-pre-solve on-post-solve))
 
 
 (defmethod simulation-engine-destroy-universe ((engine ode-engine) universe)

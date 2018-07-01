@@ -246,6 +246,7 @@
                (:file "engine")
                (:file "universe")
                (:file "mass")
+               (:file "contact")
                (:file "rigid-body")
                (:file "shape")))
 
