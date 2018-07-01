@@ -2,7 +2,7 @@
 
 
 (defun quat (x y z s)
-  (make-instance 'quat :value (q:q! x y z s)))
+  (make-instance 'quat :value (q:q! (f x) (f y) (f z) (f s))))
 
 
 (defun identity-quat ()
