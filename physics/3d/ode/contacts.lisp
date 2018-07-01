@@ -3,8 +3,8 @@
 
 (defstruct (contact-surface
              (:constructor make-contact-surface))
-  (friction +double-infinity+)
-  (bounciness 0.0))
+  (friction 0d0)
+  (bounciness 0.4d0))
 
 
 (defstruct (contact
