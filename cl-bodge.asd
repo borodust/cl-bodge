@@ -245,6 +245,7 @@
                                          (:file "geometry")))
                (:file "engine")
                (:file "universe")
+               (:file "mass")
                (:file "rigid-body")
                (:file "shape")))
 

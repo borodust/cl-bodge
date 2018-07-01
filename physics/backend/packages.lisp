@@ -13,6 +13,8 @@
 
            #:simulation-engine-make-mass-for-circle
            #:simulation-engine-make-mass-for-box
+           #:simulation-engine-make-mass-for-sphere
+           #:simulation-engine-make-mass-for-cuboid
 
            #:simulation-engine-make-rigid-body
            #:simulation-engine-destroy-rigid-body

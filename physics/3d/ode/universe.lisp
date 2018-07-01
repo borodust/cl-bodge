@@ -1,7 +1,7 @@
 (cl:in-package :cl-bodge.physics.ode)
 
 
-(defvar *world-quick-step-iterations* 20)
+(defvar *world-quick-step-iterations* 40)
 (defvar *auto-disable-bodies-p* t)
 (defvar *error-reduction-parameter* 0.1) ;; 0.1 ~ 0.8 recommended
 (defvar *constant-force-mixing* 0.001) ;; 10e-9 ~ 1.0 recommended

@@ -90,11 +90,29 @@
 
 
 (defun infuse-circle-mass (body mass radius &key (offset (vec2)))
-  (setf body (simulation-engine-make-mass-for-circle (%engine-of body) mass radius :offset offset)))
+  (let ((mass-handle (simulation-engine-make-mass-for-circle (%engine-of body) mass
+                                                             radius
+                                                             :offset offset)))
+    (setf (simulation-engine-body-mass (%engine-of body) (%handle-of body)) mass-handle)))
 
 
 (defun infuse-box-mass (body mass width height &key (offset (vec2)))
-  (setf body (simulation-engine-make-mass-for-box (%engine-of body) mass width height :offset offset)))
+  (let ((mass-handle (simulation-engine-make-mass-for-box (%engine-of body) mass
+                                                          width height
+                                                          :offset offset)))
+    (setf (simulation-engine-body-mass (%engine-of body) (%handle-of body)) mass-handle)))
+
+
+(defun infuse-sphere-mass (body mass radius)
+  (let ((mass-handle (simulation-engine-make-mass-for-sphere (%engine-of body) mass
+                                                             radius)))
+    (setf (simulation-engine-body-mass (%engine-of body) (%handle-of body)) mass-handle)))
+
+
+(defun infuse-cuboid-mass (body mass width height depth)
+  (let ((mass-handle (simulation-engine-make-mass-for-cuboid (%engine-of body) mass
+                                                             width height depth)))
+    (setf (simulation-engine-body-mass (%engine-of body) (%handle-of body)) mass-handle)))
 
 
 (defun apply-force (rigid-body force-vec)
@@ -243,10 +261,10 @@
                      substance
                      (lambda (prepared-substance)
                        (simulation-engine-make-polyline-shape (%engine-of universe)
-                                                            (%handle-of universe)
-                                                            points
-                                                            :body (%handle-of body)
-                                                            :substance prepared-substance))))
+                                                              (%handle-of universe)
+                                                              points
+                                                              :body (%handle-of body)
+                                                              :substance prepared-substance))))
 
 
 (defun make-polygon-shape (universe points &key body substance)

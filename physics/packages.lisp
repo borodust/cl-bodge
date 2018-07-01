@@ -12,6 +12,8 @@
            make-rigid-body
            infuse-circle-mass
            infuse-box-mass
+           infuse-sphere-mass
+           infuse-cuboid-mass
            make-kinematic-body
            apply-force
            apply-torque
