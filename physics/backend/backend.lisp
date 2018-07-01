@@ -41,7 +41,7 @@
 (defgeneric simulation-engine-make-mass-for-circle (engine mass radius &key offset))
 (defgeneric simulation-engine-make-mass-for-box (engine mass width height &key offset))
 
-(defgeneric simulation-engine-make-rigid-body (engine universe &key mass))
+(defgeneric simulation-engine-make-rigid-body (engine universe &key mass kinematic))
 (defgeneric simulation-engine-destroy-rigid-body (engine rigid-body))
 
 (defgeneric simulation-engine-apply-force (engine body force))

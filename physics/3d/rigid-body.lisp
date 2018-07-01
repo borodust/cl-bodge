@@ -1,8 +1,8 @@
 (cl:in-package :cl-bodge.physics.ode)
 
 
-(defmethod simulation-engine-make-rigid-body ((engine ode-engine) universe &key mass)
-  (make-rigid-body universe))
+(defmethod simulation-engine-make-rigid-body ((engine ode-engine) universe &key mass kinematic)
+  (make-rigid-body universe kinematic))
 
 
 (defmethod simulation-engine-destroy-rigid-body ((engine ode-engine) rigid-body)

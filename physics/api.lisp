@@ -82,6 +82,13 @@
                                                              :mass mass)))
 
 
+(defun make-kinematic-body (universe)
+  (make-rigid-body-handle (%engine-of universe)
+                          (simulation-engine-make-rigid-body (%engine-of universe)
+                                                             (%handle-of universe)
+                                                             :kinematic t)))
+
+
 (defun infuse-circle-mass (body mass radius &key (offset (vec2)))
   (setf body (simulation-engine-make-mass-for-circle (%engine-of body) mass radius :offset offset)))
 

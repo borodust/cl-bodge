@@ -10,7 +10,9 @@
 (defclass universe ()
   ((world :initform (%ode:world-create) :reader world-of)
    (space :initform (%ode:hash-space-create (cffi:null-pointer)) :reader space-of)
-   (geoms :initform (tg:make-weak-hash-table :weakness :value :test 'eql) :reader geoms-of)))
+   (geoms :initform (tg:make-weak-hash-table :weakness :value :test 'eql) :reader geoms-of)
+   (pre-solve :initarg :pre-solve :initform nil :reader pre-solve-of)
+   (post-solve :initarg :post-solve :initform nil :reader post-solve-of)))
 
 
 (defun %register-geom (universe geom)
@@ -37,10 +39,9 @@
     (%ode:space-destroy space)))
 
 
-(defun %filter-contacts (contact-count contact-geoms this-geom that-geom)
-  (let* ((contacts (loop for i from 0 below contact-count
-                         collect (make-contact (claw:c-ref contact-geoms %ode:contact-geom i)))))
-    (filter-contacts contacts this-geom that-geom)))
+(defun %filter-contacts (contact-count contact-geoms)
+  (loop for i from 0 below contact-count
+        collect (make-contact (claw:c-ref contact-geoms %ode:contact-geom i))))
 
 
 (ode:define-collision-callback fill-joint-group (in this that)
@@ -48,9 +49,12 @@
     (let* ((geoms (geoms-of universe))
            (this-geom (gethash (cffi:pointer-address (claw:ptr this)) geoms))
            (that-geom (gethash (cffi:pointer-address (claw:ptr that)) geoms))
-           (contacts-per-collision (contacts-per-collision this-geom that-geom))
-           (world (world-of universe)))
-      (unless (collide this-geom that-geom)
+           (contacts-per-collision *contact-points-per-collision*)
+           (world (world-of universe))
+           (pre-solve-result (if-let ((pre-solve (pre-solve-of universe)))
+                               (funcall pre-solve this-geom that-geom)
+                               t)))
+      (when pre-solve-result
         ;; todo: move allocation into universe/world/space object
         (claw:c-with ((contact-geoms %ode:contact-geom :count contacts-per-collision))
           (let ((contact-count (%ode:collide this that
@@ -60,8 +64,7 @@
             (when (> contact-count 0)
               ;; todo: move allocation into universe/world/space object
               (claw:c-with ((contact %ode:contact :calloc t))
-                (let ((contacts (%filter-contacts contact-count contact-geoms
-                                                  this-geom that-geom)))
+                (let ((contacts (%filter-contacts contact-count contact-geoms)))
                   (loop for contact-info in contacts do
                        (let* ((contact (fill-contact contact contact-info))
                               (joint (%ode:joint-create-contact world

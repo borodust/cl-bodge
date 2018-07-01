@@ -14,19 +14,6 @@
 (defgeneric (setf direction-of) (value object))
 
 
-(defgeneric collide (this-geom that-geom)
-  (:method (this-geom that-geom) t))
-
-
-(defgeneric filter-contacts (contacts this-geom that-geom)
-  (:method (contacts this-geom that-geom) contacts))
-
-
-(defgeneric contacts-per-collision (this-geom that-geom)
-  (:method (this that) *contact-points-per-collision*))
-
-
-
 ;;;
 ;;;
 ;;;

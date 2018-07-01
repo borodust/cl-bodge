@@ -49,7 +49,7 @@
 
 (defun fill-contact (contact info)
   (claw:c-val ((contact %ode:contact))
-    (setf (contact :surface :mode) (claw:mask 'contact-flags :approx0 :bounce)
+    (setf (contact :surface :mode) (claw:mask 'ode:contact-flags :approx0 :bounce)
           (contact :surface :mu) (ode-real (surface-friction info))
           (contact :surface :bounce) (ode-real (surface-bounciness info)))
     (fill-contact-geom (contact :geom &) info))

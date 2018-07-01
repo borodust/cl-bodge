@@ -19,9 +19,11 @@
 (defgeneric (setf mass-of) (value this))
 
 
-(defun make-rigid-body (universe)
-  (make-instance 'rigid-body
-                 :handle (make-rigid-body-handle (%ode:body-create (world-of universe)))))
+(defun make-rigid-body (universe &optional kinematic)
+  (let ((body-id (%ode:body-create (world-of universe))))
+    (when kinematic
+      (%ode:body-set-kinematic body-id))
+    (make-instance 'rigid-body :handle (make-rigid-body-handle body-id))))
 
 
 (defmethod enable ((this rigid-body))

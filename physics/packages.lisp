@@ -12,6 +12,7 @@
            make-rigid-body
            infuse-circle-mass
            infuse-box-mass
+           make-kinematic-body
            apply-force
            apply-torque
            body-force

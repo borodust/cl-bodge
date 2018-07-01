@@ -47,16 +47,22 @@
   (%remove-and-free-body universe body-handle))
 
 
-(defmethod initialize-instance ((this rigid-body) &rest args &key mass &allow-other-keys)
+(defmethod initialize-instance ((this rigid-body) &rest args &key mass kinematic &allow-other-keys)
   (apply #'call-next-method this
          :handle (make-rigid-body-handle
-                  (%cp:body-new (mass-value mass) (mass-inertia mass)))
+                  (if kinematic
+                      (progn
+                        (when mass (error "Kinematic bodies cannot have mass"))
+                        (%cp:body-new-kinematic))
+                      (%cp:body-new (mass-value mass) (mass-inertia mass))))
          args))
 
 
-(defmethod simulation-engine-make-rigid-body ((engine chipmunk-engine) (universe universe) &key mass)
+(defmethod simulation-engine-make-rigid-body ((engine chipmunk-engine) (universe universe)
+                                              &key mass kinematic)
   (let ((body (make-instance 'rigid-body :mass (or mass (make-mass :value 1d0 :inertia 1d0))
-                                         :universe universe)))
+                                         :universe universe
+                                         :kinematic kinematic)))
     (%cp:space-add-body (handle-value-of universe) (handle-value-of body))
     body))
 
