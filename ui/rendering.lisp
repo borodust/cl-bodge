@@ -236,8 +236,8 @@
   (claw:enum-key '(:enum (%nk:command-type)) (c-ref cmd (:struct (%nk:command)) :type)))
 
 
-(defun render-ui (&optional (ui *context*))
-  (with-canvas ((canvas-of ui))
+(defcanvas ui-canvas ()
+  (let ((ui *context*))
     (nuklear:docommands (cmd (handle-value-of ui))
       (case (command-type cmd)
         (:nop)
@@ -285,4 +285,4 @@
           (register-scroll-input (x scroll) (y scroll)))))
     (loop for win in (%windows-of context)
           do (compose win))
-    (render-ui)))
+    (render t (canvas-of context))))

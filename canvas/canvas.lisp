@@ -74,13 +74,24 @@
       (setf default-font-id font-id))))
 
 
-(define-system-function make-canvas graphics-system (width height &key
-                                                           (pixel-ratio 1.0)
-                                                           (antialiased t))
+(defmacro defcanvas (name-and-opts (&rest key-parameters) &body body)
+  (destructuring-bind (name &rest opts) (ensure-list name-and-opts)
+    (declare (ignore opts))
+    (with-gensyms (this)
+      `(progn
+         (defclass ,name (canvas) ())
+         (defmethod ge.gx::render-pipeline ((,this ,name) &key ,@key-parameters)
+           (with-canvas (,this)
+             ,@body))))))
+
+
+(define-system-function make-canvas graphics-system (canvas-class width height &key
+                                                                  (pixel-ratio 1.0)
+                                                                  (antialiased t))
   (let ((opts (append (list :stencil-strokes)
                       (when antialiased (list :antialias))
                       (in-development-mode (list :debug)))))
-    (make-instance 'canvas
+    (make-instance canvas-class
                    :handle (make-canvas-handle (apply #'nanovg:make-context opts))
                    :pixel-ratio pixel-ratio
                    :width (floor width)

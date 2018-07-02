@@ -1,12 +1,10 @@
 (ge.util:define-package :cl-bodge.canvas
   (:nicknames :ge.vg)
   (:use :cl :cl-bodge.engine :cl-bodge.utils :cl-bodge.graphics :claw)
-  (:export make-canvas
+  (:export defcanvas
+           make-canvas
            update-canvas-size
-           begin-canvas
-           end-canvas
            flush-canvas
-           with-canvas
            push-canvas
            pop-canvas
            with-pushed-canvas

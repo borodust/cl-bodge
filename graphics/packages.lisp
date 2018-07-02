@@ -14,7 +14,7 @@
            defshader
            defpipeline
 
-           make-pipeline
+           make-shader-pipeline
 
            make-array-buffer
            update-array-buffer

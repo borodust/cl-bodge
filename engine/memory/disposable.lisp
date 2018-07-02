@@ -1,6 +1,7 @@
 (cl:in-package :cl-bodge.memory)
 
 
+(defvar *explicit-dispose-p* nil)
 (defvar *auto-initialize-destructor* t)
 
 
@@ -34,13 +35,16 @@
 
 (defun dispose (obj)
   "Call destructor for object `obj`."
-  (if (finalizedp obj)
-      (error "Attempt to dispose already finalized object.")
-      (loop for finalizer in (destructor-of obj)
-         do (funcall finalizer)
-         finally
-           (cancel-finalization obj)
-           (setf (holder-value (slot-value obj 'finalized-p)) t))))
+  (let ((*explicit-dispose-p* t))
+    (if (functionp obj)
+        (funcall obj)
+        (if (finalizedp obj)
+            (error "Attempt to dispose already finalized object.")
+            (loop for finalizer in (destructor-of obj)
+                  do (funcall finalizer)
+                  finally
+                     (cancel-finalization obj)
+                     (setf (holder-value (slot-value obj 'finalized-p)) t))))))
 
 
 (definline %ensure-not-null (value)

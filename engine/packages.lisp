@@ -2,6 +2,7 @@
   (:nicknames :ge.mem)
   (:use :cl :cl-bodge.utils :trivial-garbage :static-vectors)
   (:export *auto-initialize-destructor*
+           *explicit-dispose-p*
 
            define-destructor
            initialize-destructor

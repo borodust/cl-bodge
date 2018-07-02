@@ -52,7 +52,34 @@
   (ensure-clean-pipeline this))
 
 
-(defun make-pipeline (pipeline-name)
+(defgeneric render-pipeline (pipeline &key &allow-other-keys))
+
+
+(defun %render-pipeline (pipeline index-buffer instance-count
+                        vertex-count vertex-offset primitive
+                        &rest input)
+  (enable-pipeline pipeline input)
+  (let ((mode (or primitive (pipeline-primitive pipeline)))
+        (vertex-count (or vertex-count (index-buffer-length index-buffer) 0)))
+    (if index-buffer
+        (progn
+          (inject-shader-input index-buffer)
+          (%gl:draw-elements-instanced mode
+                                       vertex-count
+                                       :unsigned-int
+                                       (cffi:make-pointer vertex-offset)
+                                       instance-count))
+        (%gl:draw-arrays-instanced mode vertex-offset vertex-count instance-count))))
+
+
+(defmethod render-pipeline ((this pipeline) &rest input
+                            &key index-buffer instance-count
+                              vertex-count vertex-offset primitive)
+  (apply #'%render-pipeline this index-buffer instance-count
+         vertex-count vertex-offset primitive input))
+
+
+(defun make-shader-pipeline (pipeline-name)
   (make-instance pipeline-name))
 
 

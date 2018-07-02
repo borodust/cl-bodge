@@ -14,8 +14,8 @@
 
 
 (defhandle paint-handle
-    :initform  (alloc '(:struct (%nvg:paint)))
-    :closeform (free *handle-value*))
+  :initform  (alloc '(:struct (%nvg:paint)))
+  :closeform (free *handle-value*))
 
 
 (defclass image-paint (foreign-object)

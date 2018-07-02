@@ -57,8 +57,8 @@
 (defmethod initialize-instance ((this nuklear-context) &rest keys &key width height
                                                                     antialiased
                                                                     pixel-ratio)
-  (let* ((canvas (make-canvas width height :antialiased antialiased
-                                           :pixel-ratio pixel-ratio))
+  (let* ((canvas (make-canvas 'ui-canvas width height :antialiased antialiased
+                                                      :pixel-ratio pixel-ratio))
          (nk-font (make-nuklear-font (canvas-font-line-height (canvas-font-metrics canvas))
                                      'calc-string-width)))
     (apply #'call-next-method this
