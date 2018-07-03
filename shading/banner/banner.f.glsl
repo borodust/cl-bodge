@@ -2,7 +2,7 @@
 
 out vec4 fColor;
 
-in v_PerVertex {
+in g_PerVertex {
   vec2 texCoord;
 };
 

@@ -14,4 +14,10 @@
            phong-point-light-color
            phong-point-light-ambient
            phong-point-light-falloff
-           phong-point-light-radius))
+           phong-point-light-radius
+
+           banner-pipeline
+           banner-position
+           banner-tex-coord
+           banner-mvp
+           banner-texture))

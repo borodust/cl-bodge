@@ -3,12 +3,13 @@
 
 (defstruct (graphics-context
              (:conc-name ctx-))
-  (state (make-instance 'context-state) :read-only t))
+  (state (make-instance 'context-state) :read-only t)
+  (supplementary-framebuffer nil :read-only t)
+  (depth-stencil-renderbuffer nil :read-only t))
 
 
 (defclass graphics-system (thread-bound-system)
-  ((resource-executor)
-   (state :initform nil))
+  (resource-executor)
   (:default-initargs :depends-on '(host-system)))
 
 
@@ -44,16 +45,22 @@
                    :priority :highest :important-p t)))))
 
 
-(defmethod dispatch ((this graphics-system) (task function) invariant &key (main-p t) disposing)
+(defmethod dispatch ((this graphics-system) (task function) invariant &rest args
+                     &key (main-p t) disposing)
   (with-slots (resource-executor) this
     (flet ((run-task ()
              (let ((*system* this)
-                   (*system-context* (system-context-of this)))
+                   (*system-context* (system-context-of this))
+                   (*supplementary-framebuffer*
+                     (ctx-supplementary-framebuffer (system-context-of this)))
+                   (*depth-stencil-renderbuffer*
+                     (ctx-depth-stencil-renderbuffer (system-context-of this))))
                (funcall task))))
       (if main-p
           (if disposing
-              (call-next-method this task invariant :important-p t :priority :highest)
-              (call-next-method))
+              (apply #'call-next-method this #'run-task invariant
+                     :important-p t :priority :highest args)
+              (apply #'call-next-method this #'run-task invariant args))
           (execute resource-executor #'run-task)))))
 
 
@@ -66,7 +73,8 @@
              (gl:get* :renderer))
   (glad:init)
   (log:debug "GLAD initialized")
-  (let ((ctx (make-graphics-context)))
+  (let ((ctx (make-graphics-context :supplementary-framebuffer (gl:gen-framebuffer)
+                                    :depth-stencil-renderbuffer (gl:gen-renderbuffer))))
     (with-current-state-slice ((ctx-state ctx))
       (gx.state:enable :blend
                        :cull-face
@@ -92,6 +100,8 @@
 
 
 (defmethod destroy-system-context ((this graphics-system) ctx)
+  (gl:delete-framebuffers (list (ctx-supplementary-framebuffer ctx)))
+  (gl:delete-renderbuffers (list (ctx-depth-stencil-renderbuffer ctx)))
   (clear-registry-cache)
   (release-rendering-context))
 

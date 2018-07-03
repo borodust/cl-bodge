@@ -102,7 +102,7 @@
 ;;;
 ;;;
 (defclass blank-image ()
-  ((width :initform nil :reader widht-of)
+  ((width :initform nil :reader width-of)
    (height :initform nil :reader height-of)))
 
 
@@ -121,4 +121,8 @@
 
 
 (defmethod foreign-array-of ((this blank-image))
-  (cffi:null-pointer))
+  nil)
+
+
+(define-system-function make-empty-2d-texture graphics-system (width height texture-format)
+  (make-2d-texture (make-blank-image width height) texture-format :generate-mipmaps-p nil))

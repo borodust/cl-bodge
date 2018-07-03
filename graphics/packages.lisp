@@ -20,14 +20,15 @@
            update-array-buffer
            make-index-buffer
 
-           make-blank-image
            make-2d-texture
+           make-empty-2d-texture
            texture-dimensions
 
            defsstruct
 
            make-framebuffer
 
+           clear-rendering-output
            render
 
            preserving-state

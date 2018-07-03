@@ -4,6 +4,10 @@
 (defgeneric foreign-pointer-of (object))
 
 
+(defmethod foreign-pointer-of ((object null))
+  (cffi:null-pointer))
+
+
 (defclass foreign-array (disposable)
   ((array :initarg :array :type (simple-array * *) :reader simple-array-of)))
 

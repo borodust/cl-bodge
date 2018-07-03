@@ -1,6 +1,29 @@
 (cl:in-package :cl-bodge.graphics)
 
 
+(declaim (special *supplementary-framebuffer*
+                  *depth-stencil-renderbuffer*))
+
+
+
+(defgeneric %clear-rendering-output (output &key color))
+
+
+(defmethod %clear-rendering-output ((this t) &key color)
+  (gl:bind-framebuffer :framebuffer 0)
+  (when color
+    (gl:clear-color (x color) (y color) (z color) (w color)))
+  (gl:clear :color-buffer :depth-buffer :stencil-buffer))
+
+
+(defun clear-rendering-output (output &key color)
+  (%clear-rendering-output output :color color))
+
+
+(definline index->color-attachment (idx)
+  (+ (cffi:foreign-enum-value '%gl:enum :color-attachment0) idx))
+
+
 (defgeneric enable-rendering-output (output))
 
 
@@ -8,6 +31,74 @@
   (gl:bind-framebuffer :framebuffer 0))
 
 
+(defun bind-texture-framebuffer (texture)
+  (gl:bind-framebuffer :framebuffer *supplementary-framebuffer*)
+  (gl:framebuffer-texture-2d :framebuffer (index->color-attachment 0)
+                             :texture-2d (%texture-id-of texture) 0)
+  (destructuring-bind (width height) (texture-dimensions texture)
+    (gl:bind-renderbuffer :renderbuffer *depth-stencil-renderbuffer*)
+    (gl:renderbuffer-storage :renderbuffer :depth-stencil width height))
+  (gl:framebuffer-renderbuffer :framebuffer :depth-stencil-attachment
+                               :renderbuffer *depth-stencil-renderbuffer*))
+
+
+(defmethod enable-rendering-output ((output texture-2d-input))
+  (bind-texture-framebuffer output))
+
+
+(defmethod %clear-rendering-output ((this texture-2d-input) &key color)
+  (bind-texture-framebuffer this)
+  (when color
+    (gl:clear-color (x color) (y color) (z color) (w color)))
+  (gl:clear :color-buffer :depth-buffer :stencil-buffer))
+
+;;;
+;;;
+;;;
+(defclass renderbuffer (disposable)
+  ((id :initform (gl:gen-renderbuffer) :reader %id-of)))
+
+
+(defun delete-renderbuffer (id)
+  (gl:delete-renderbuffers (list id)))
+
+
+(define-destructor renderbuffer (id)
+  (dispose-gl-object id #'delete-renderbuffer))
+
+
+(defmacro with-bound-renderbuffer ((rbuf) &body body)
+  (with-gensyms (active-renderbuffer)
+    `(let ((,active-renderbuffer (%id-of ,rbuf)))
+       (unwind-protect
+            (progn
+              (gl:bind-renderbuffer :renderbuffer ,active-renderbuffer)
+              ,@body)
+         (gl:bind-renderbuffer :renderbuffer 0)))))
+
+
+(defmethod initialize-instance :after ((this renderbuffer) &key
+                                                             texture-format
+                                                             width
+                                                             height
+                                                             (samples 0))
+  (with-bound-renderbuffer (this)
+    (gl:renderbuffer-storage-multisample :renderbuffer samples
+                                         (%texture-format->internal-format texture-format)
+                                         width height)))
+
+
+(define-system-function make-renderbuffer graphics-system (texture-format width height
+                                                                           &optional (samples 0))
+  (make-instance 'renderbuffer
+                 :texture-format texture-format
+                 :width width
+                 :height height
+                 :samples samples))
+
+;;;
+;;;
+;;;
 (defclass framebuffer (disposable)
   ((id :initform (gl:gen-framebuffer))))
 
@@ -26,10 +117,6 @@
 
 (defmethod enable-rendering-output ((output framebuffer))
   (%gl:bind-framebuffer :framebuffer (handle-value-of output)))
-
-
-(definline index->color-attachment (idx)
-  (+ (cffi:foreign-enum-value '%gl:enum :color-attachment0) idx))
 
 
 #|
@@ -118,41 +205,7 @@
 ;;;
 ;;;
 ;;;
-(defhandle renderbuffer-handle
-    :initform (gl:gen-renderbuffer)
-    :closeform (gl:delete-renderbuffers (list *handle-value*)))
 
-
-(defclass renderbuffer (gl-object) ()
-  (:default-initargs :handle (make-renderbuffer-handle)))
-
-
-(defmacro with-bound-renderbuffer ((rbuf) &body body)
-  `(unwind-protect
-        (let ((*active-renderbuffer* (handle-value-of ,rbuf)))
-          (gl:bind-renderbuffer :renderbuffer *active-renderbuffer*)
-          ,@body)
-     (gl:bind-renderbuffer :renderbuffer (bound-symbol-value *active-renderbuffer* 0))))
-
-
-(defmethod initialize-instance :after ((this renderbuffer) &key
-                                                             texture-format
-                                                             width
-                                                             height
-                                                             (samples 0))
-  (with-bound-renderbuffer (this)
-    (gl:renderbuffer-storage-multisample :renderbuffer samples
-                                         (%texture-format->internal-format texture-format)
-                                         width height)))
-
-
-(define-system-function make-renderbuffer graphics-system (texture-format width height
-                                                                           &optional (samples 0))
-  (make-instance 'renderbuffer
-                 :texture-format texture-format
-                 :width width
-                 :height height
-                 :samples samples))
 
 
 (defmethod attach-rendering-surface ((this framebuffer) (that renderbuffer) target)
