@@ -57,8 +57,7 @@
 
 
 (defmethod rotation-of ((this rigid-body))
-  (claw:c-let ((ode-quat %ode:quaternion :ptr (%ode:body-get-quaternion (handle-value-of this))))
-    (quat->rotation-mat3 (quat (ode-quat 0) (ode-quat 1) (ode-quat 2) (ode-quat 3)))))
+  (ode->mat3 (%ode:body-get-rotation (handle-value-of this))))
 
 
 (defmethod (setf rotation-of) ((value mat3) (this rigid-body))

@@ -7,28 +7,32 @@
 (defmethod enable-rendering-output ((output t))
   (gl:bind-framebuffer :framebuffer 0))
 
-#|
-(defhandle framebuffer-handle
-    :initform (gl:gen-framebuffer)
-    :closeform (gl:delete-buffers (list *handle-value*)))
+
+(defclass framebuffer (disposable)
+  ((id :initform (gl:gen-framebuffer))))
 
 
-(defclass framebuffer (foreign-object) ()
-  (:default-initargs :handle (make-framebuffer-handle)))
+(defun delete-framebuffer (id)
+  (gl:delete-framebuffers (list id)))
+
+
+(define-destructor framebuffer (id)
+  (dispose-gl-object id #'delete-framebuffer))
 
 
 (define-system-function make-framebuffer graphics-system ()
-  (make-instance 'framebuffer))
+  (make-instance 'framebuffer :id (gl:gen-framebuffer)))
 
 
 (defmethod enable-rendering-output ((output framebuffer))
-  (%gl:bind-framebuffer :framebuffer (handle-value-of framebuffer)))
+  (%gl:bind-framebuffer :framebuffer (handle-value-of output)))
 
 
 (definline index->color-attachment (idx)
   (+ (cffi:foreign-enum-value '%gl:enum :color-attachment0) idx))
 
 
+#|
 (defgeneric attach-rendering-surface (framebuffer rendering-surface target))
 
 

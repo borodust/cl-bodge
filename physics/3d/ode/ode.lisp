@@ -49,9 +49,9 @@
 (defun ode->mat3 (pointer)
   (claw:c-let ((mat %ode:real :ptr pointer))
     (macrolet ((init ()
-                 `(mat3 ,@(loop for i from 0 below 3 append
-                               (loop for j from 0 below 3 collect
-                                    `(mat ,(+ (* j 4) i)))))))
+                 `(mat3 ,@(loop for i from 0 below 3
+                                append (loop for j from 0 below 3 collect
+                                             `(mat ,(+ (* i 4) j)))))))
       (init))))
 
 
