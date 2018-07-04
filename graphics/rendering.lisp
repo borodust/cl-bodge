@@ -8,11 +8,12 @@
                  (vertex-offset 0)
                  primitive
                &allow-other-keys)
-  (enable-rendering-output output)
-  (apply #'render-pipeline pipeline
-         :index-buffer index-buffer
-         :instance-count instance-count
-         :vertex-count vertex-count
-         :vertex-offset vertex-offset
-         :primitive primitive
-         input))
+  (flet ((%render ()
+           (apply #'render-pipeline pipeline
+                  :index-buffer index-buffer
+                  :instance-count instance-count
+                  :vertex-count vertex-count
+                  :vertex-offset vertex-offset
+                  :primitive primitive
+                  input)))
+    (run-with-bound-output output #'%render)))

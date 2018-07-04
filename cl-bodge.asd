@@ -282,6 +282,7 @@
   :serial t
   :components ((:file "packages")
                (:file "math/math")
+               (:file "shadow/shadow")
                (:file "phong/phong")
                (:file "banner/banner")
                (:file "skinning/skinning")))

@@ -20,4 +20,7 @@
            banner-position
            banner-tex-coord
            banner-mvp
-           banner-texture))
+           banner-texture
+
+           depth-pipeline
+           depth-mvp))

@@ -22,6 +22,7 @@
 
            make-2d-texture
            make-empty-2d-texture
+           make-empty-depth-texture
            texture-dimensions
 
            defsstruct

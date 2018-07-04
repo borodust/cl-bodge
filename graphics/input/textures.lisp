@@ -2,14 +2,15 @@
 
 
 (defenum texture-format
-  :grey :rgb :rgba :depth :depth16 :depth-stencil)
+  :grey :rgb :rgba :depth :depth16 :depth24 :depth-stencil)
 
 
 (defun %pixel-format->external-format (value)
   (ecase value
     (:grey :red)
     (:rgb :rgb)
-    (:rgba :rgba)))
+    (:rgba :rgba)
+    (:depth :depth-component)))
 
 
 (defun %texture-format->internal-format (value)
@@ -18,6 +19,7 @@
     (:rgb :rgb8)
     (:rgba :rgba8)
     (:depth16 :depth-component16)
+    (:depth24 :depth-component24)
     (:depth :depth-component32)
     (:depth-stencil :depth24-stencil8)))
 
@@ -49,7 +51,8 @@
 ;;;
 ;;;
 ;;;
-(defclass texture-2d-input (texture-input) ()
+(defclass texture-2d-input (texture-input)
+  ((format :initarg :internal-format :reader texture-format))
   (:default-initargs :target :texture-2d))
 
 
@@ -76,19 +79,24 @@
             (gl:tex-parameter target :texture-max-level 0))))))
 
 
-(define-system-function make-2d-texture graphics-system
-    (image texture-format &key (generate-mipmaps-p t))
-  (let ((ex-format (%pixel-format->external-format (pixel-format-of image)))
+(defun %make-2d-texture (class image texture-format &key (generate-mipmaps-p t))
+    (let ((ex-format (%pixel-format->external-format (pixel-format-of image)))
         (in-format (%texture-format->internal-format texture-format))
         (width (width-of image))
         (height (height-of image)))
-      (make-instance 'texture-2d-input
-                     :image image
-                     :external-format ex-format
-                     :internal-format in-format
-                     :generate-mipmaps-p generate-mipmaps-p
-                     :width width
-                     :height height)))
+    (make-instance class
+                   :image image
+                   :external-format ex-format
+                   :internal-format in-format
+                   :generate-mipmaps-p generate-mipmaps-p
+                   :width width
+                   :height height)))
+
+
+(define-system-function make-2d-texture graphics-system
+    (image texture-format &key (generate-mipmaps-p t))
+  (%make-2d-texture 'texture-2d-input image texture-format
+                    :generate-mipmaps-p generate-mipmaps-p))
 
 
 (defmethod inject-shader-input ((this texture-2d-input) &key name)
@@ -103,7 +111,8 @@
 ;;;
 (defclass blank-image ()
   ((width :initform nil :reader width-of)
-   (height :initform nil :reader height-of)))
+   (height :initform nil :reader height-of)
+   (pixel-format :initform :grey :initarg :pixel-format :reader pixel-format-of)))
 
 
 (defmethod initialize-instance :after ((this blank-image) &key width height)
@@ -112,12 +121,8 @@
           h height)))
 
 
-(definline make-blank-image (width height)
-  (make-instance 'blank-image :width width :height height))
-
-
-(defmethod pixel-format-of ((this blank-image))
-  :grey)
+(definline make-blank-image (width height &key (format :grey))
+  (make-instance 'blank-image :width width :height height :pixel-format format))
 
 
 (defmethod foreign-array-of ((this blank-image))
@@ -126,3 +131,11 @@
 
 (define-system-function make-empty-2d-texture graphics-system (width height texture-format)
   (make-2d-texture (make-blank-image width height) texture-format :generate-mipmaps-p nil))
+
+
+(defclass depth-texture (texture-2d-input) ())
+
+
+(define-system-function make-empty-depth-texture graphics-system (width height)
+  (%make-2d-texture 'depth-texture (make-blank-image width height :format :depth)
+                    :depth :generate-mipmaps-p nil))
