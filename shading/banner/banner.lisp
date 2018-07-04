@@ -5,12 +5,7 @@
             (:sources "banner.v.glsl")
             (:base-path :system-relative :cl-bodge/shading "banner/"))
   (banner-position :location 0)
-  (banner-tex-coord :location 1))
-
-
-(defshader (banner-geometry
-            (:sources "banner.g.glsl")
-            (:base-path :system-relative :cl-bodge/shading "banner/"))
+  (banner-tex-coord :location 1)
   (banner-mvp :name "MVP"))
 
 
@@ -20,8 +15,6 @@
   (banner-texture :location 1 :name "banner"))
 
 
-(defpipeline (banner-pipeline
-              (:primitive :points))
+(defpipeline banner-pipeline
   :vertex banner-vertex
-  :geometry banner-geometry
   :fragment banner-fragment)
