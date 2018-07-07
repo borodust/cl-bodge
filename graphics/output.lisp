@@ -5,7 +5,6 @@
                   *depth-stencil-renderbuffer*))
 
 
-
 (defvar *default-clear-color* (vec4 1 1 1 1))
 
 (defgeneric run-with-bound-output (output function))
@@ -120,11 +119,66 @@
                  :height height
                  :samples samples))
 
+
+;;;
+;;; FRAMEBUFFER ATTACHMENTS
+;;;
+(defgeneric make-framebuffer-attachment (target &key &allow-other-keys))
+
+(defun framebuffer-attachment (value &rest opts &key &allow-other-keys)
+  (apply #'make-framebuffer-attachment value opts))
+
+(defgeneric bind-framebuffer-attachment (attachment &key &allow-other-keys))
+(defgeneric unbind-framebuffer-attachment (attachment))
+
+
+
+(defclass color-texture-attachment ()
+  ((texture :initarg :texture)
+   (location :initarg :location)))
+
+
+(defmethod make-framebuffer-attachment ((target texture-2d-input) &key (output-location 0))
+  (make-instance 'color-texture-attachment :texture target
+                                           :location (index->color-attachment output-location)))
+
+
+(defmethod bind-framebuffer-attachment ((this color-texture-attachment) &key)
+  (with-slots (texture location) this
+    (gl:framebuffer-texture-2d :framebuffer location
+                               :texture-2d (%texture-id-of texture) 0)))
+
+
+(defmethod unbind-framebuffer-attachment ((this color-texture-attachment))
+  (with-slots (location) this
+    (gl:framebuffer-texture-2d :framebuffer location
+                               :texture-2d 0 0)))
+
+
+(defclass depth-texture-attachment ()
+  ((texture :initarg :texture)))
+
+
+(defmethod make-framebuffer-attachment ((target depth-texture) &key)
+  (make-instance 'depth-texture-attachment :texture target))
+
+
+(defmethod bind-framebuffer-attachment ((this depth-texture-attachment) &key)
+  (with-slots (texture) this
+    (%gl:framebuffer-texture :framebuffer :depth-attachment (%texture-id-of texture) 0)))
+
+
+(defmethod unbind-framebuffer-attachment ((this depth-texture-attachment))
+  (%gl:framebuffer-texture :framebuffer :depth-attachment 0 0))
+
+
 ;;;
 ;;; FRAMEBUFFER
 ;;;
 (defclass framebuffer (disposable)
-  ((id :initform (gl:gen-framebuffer))))
+  ((id :initform (gl:gen-framebuffer))
+   (attachments :initform nil)
+   (bound-buffers :initform nil)))
 
 
 (defun delete-framebuffer (id)
@@ -137,6 +191,19 @@
 
 (define-system-function make-framebuffer graphics-system ()
   (make-instance 'framebuffer :id (gl:gen-framebuffer)))
+
+
+(defun configure-framebuffer (framebuffer &rest attachments)
+  (with-slots ((this-attachments attachments)) framebuffer
+    (setf this-attachments attachments)))
+
+
+(defmethod %clear-rendering-output ((this framebuffer) color)
+  (with-slots (bound-buffers) this
+    (flet ((%clear ()
+             (gl:clear-color (x color) (y color) (z color) (w color))
+             (apply #'gl:clear bound-buffers)))
+      (run-with-bound-output this #'%clear))))
 
 
 (defmethod run-with-bound-output ((output framebuffer) function)
