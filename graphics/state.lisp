@@ -141,3 +141,4 @@
 (export-mutator gl:stencil-func (function reference mask))
 (export-mutator gl:stencil-op (fail z-fail z-pass))
 (export-mutator gl:pixel-store (pname value))
+(export-mutator gl:viewport (x y width height))

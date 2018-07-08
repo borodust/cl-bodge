@@ -30,6 +30,7 @@
 
 
 (defmethod run-with-bound-output ((output t) function)
+  (reset-viewport)
   (gl:bind-framebuffer :framebuffer 0)
   (funcall function))
 
@@ -46,6 +47,8 @@
   (gl:renderbuffer-storage :renderbuffer :depth-stencil d-width d-height)
   (gl:framebuffer-renderbuffer :framebuffer :depth-stencil-attachment
                                :renderbuffer *depth-stencil-renderbuffer*)
+  (gl:viewport 0 0 d-width d-height)
+  (gl:clear :depth-buffer :stencil-buffer)
   (unwind-protect
        (funcall function)
     (gl:framebuffer-texture-2d :framebuffer (index->color-attachment 0)
@@ -79,6 +82,8 @@
   (gl:bind-framebuffer :framebuffer *supplementary-framebuffer*)
   (gl:draw-buffer :none)
   (%gl:framebuffer-texture :framebuffer :depth-attachment (%texture-id-of texture) 0)
+  (destructuring-bind (width height) (texture-dimensions texture)
+    (gl:viewport 0 0 width height))
   (unwind-protect
        (funcall function)
     (%gl:framebuffer-texture :framebuffer :depth-attachment 0 0)))
@@ -160,6 +165,8 @@
 ;;; FRAMEBUFFER ATTACHMENTS
 ;;;
 (defgeneric framebuffer-attachment-buffer-type (attachment))
+(defgeneric framebuffer-attachment-dimensions (attachment)
+  (:method (attachment) (declare (ignore attachment)) nil))
 (defgeneric bind-framebuffer-attachment (attachment))
 (defgeneric unbind-framebuffer-attachment (attachment))
 
@@ -188,7 +195,6 @@
 (defmethod framebuffer-attachment-buffer-type ((this color-attachment-placeholder))
   :color)
 
-
 (defmethod bind-framebuffer-attachment (attachment)
   (next-color-attachment-index))
 
@@ -199,6 +205,10 @@
 
 (defun color-attachment-placeholder ()
   (make-instance 'color-attachment-placeholder))
+
+
+(defmethod framebuffer-attachment-dimensions ((this texture-input))
+  (texture-dimensions this))
 
 
 (defmethod framebuffer-attachment-buffer-type ((this texture-2d))
@@ -219,6 +229,10 @@
   :depth)
 
 
+(defmethod framebuffer-attachment-dimensions ((this texture-2d))
+  (texture-dimensions this))
+
+
 (defmethod bind-framebuffer-attachment ((this depth-texture))
   (%gl:framebuffer-texture :framebuffer :depth-attachment (%texture-id-of this) 0))
 
@@ -229,6 +243,10 @@
 
 (defmethod framebuffer-attachment-buffer-type ((this cubemap-texture-layer))
   :color)
+
+
+(defmethod framebuffer-attachment-dimensions ((this cubemap-texture-layer))
+  (texture-dimensions (%texture-of this)))
 
 
 (defmethod bind-framebuffer-attachment ((this cubemap-texture-layer))
@@ -247,6 +265,8 @@
   ((id :initarg :id :initform (gl:gen-framebuffer))
    (attachments :initform nil)
    (color-attachment-count :initform 0)
+   (width :initform 0)
+   (height :initform 0)
    (bound-buffers :initform nil)))
 
 
@@ -263,26 +283,36 @@
 
 
 (defun configure-framebuffer (framebuffer &rest attachments)
-  (with-slots ((this-attachments attachments) bound-buffers id color-attachment-count)
+  (with-slots ((this-attachments attachments) bound-buffers id color-attachment-count
+               (this-width width) (this-height height))
       framebuffer
-    (dolist (attachment attachments)
-      (ecase (framebuffer-attachment-buffer-type attachment)
-        (:color (pushnew :color-buffer bound-buffers))
-        (:depth (pushnew :depth-buffer bound-buffers))
-        (:stencil (pushnew :stencil-buffer bound-buffers))
-        (:depth-stencil
-         (pushnew :depth-buffer bound-buffers)
-         (pushnew :stencil-buffer bound-buffers))))
     (%gl:bind-framebuffer :framebuffer id)
     (with-color-attachments (color-attachment-count)
       (dolist (attachment this-attachments)
         (unbind-framebuffer-attachment attachment)))
-    (setf this-attachments (reverse attachments))
+    (setf this-attachments (reverse attachments)
+          bound-buffers nil)
     (unwind-protect
-         (with-color-attachments ()
-           (dolist (attachment attachments)
-             (bind-framebuffer-attachment attachment))
-           (setf color-attachment-count (color-attachment-counter)))
+         (let (width height)
+           (with-color-attachments ()
+             (dolist (attachment attachments)
+               (ecase (framebuffer-attachment-buffer-type attachment)
+                 (:color (pushnew :color-buffer bound-buffers))
+                 (:depth (pushnew :depth-buffer bound-buffers))
+                 (:stencil (pushnew :stencil-buffer bound-buffers))
+                 (:depth-stencil
+                  (pushnew :depth-buffer bound-buffers)
+                  (pushnew :stencil-buffer bound-buffers)))
+               (destructuring-bind (&optional attachment-width attachment-height)
+                   (framebuffer-attachment-dimensions attachment)
+                 (when (or (null width) (and attachment-width (< attachment-width width)))
+                   (setf width attachment-width))
+                 (when (or (null height) (and attachment-height (< attachment-height height)))
+                   (setf height attachment-height)))
+               (bind-framebuffer-attachment attachment))
+             (setf color-attachment-count (color-attachment-counter)))
+           (setf this-width (floor (or width (viewport-width)))
+                 this-height (floor (or height (viewport-height)))))
       (%gl:bind-framebuffer :framebuffer *active-framebuffer*))))
 
 
@@ -295,9 +325,10 @@
 
 
 (defmethod run-with-bound-output ((output framebuffer) function)
-  (with-slots (attachments id) output
+  (with-slots (attachments id width height) output
     (let ((*active-framebuffer* id))
       (%gl:bind-framebuffer :framebuffer id)
+      (gl:viewport 0 0 width height)
       (unwind-protect
            (funcall function)
         (%gl:bind-framebuffer :framebuffer *active-framebuffer*)))))

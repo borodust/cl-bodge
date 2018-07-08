@@ -5,6 +5,8 @@
              (:conc-name ctx-))
   (state (make-instance 'context-state) :read-only t)
   (supplementary-framebuffer nil :read-only t)
+  (framebuffer-width 0 :type fixnum)
+  (framebuffer-height 0 :type fixnum)
   (depth-stencil-renderbuffer nil :read-only t))
 
 
@@ -33,6 +35,11 @@
     (release-executor resource-executor)))
 
 
+(defmacro for-graphics ((&optional arg) &body body)
+  `(-> (graphics) (,@(when arg (list arg)))
+     ,@body))
+
+
 (defmethod enabling-flow ((this graphics-system))
   (with-slots (resource-executor) this
     (>> (call-next-method)
@@ -42,7 +49,13 @@
                      (bind-rendering-context :main nil)
                      (glad:init)
                      (log:debug "Shared context bound"))
-                   :priority :highest :important-p t)))))
+                   :priority :highest :important-p t)
+          (framebuffer-size))
+        (-> this (viewport)
+          (declare (type vec2 viewport))
+          (update-context-framebuffer-size (floor (x viewport))
+                                           (floor (y viewport)))))))
+
 
 
 (defmethod dispatch ((this graphics-system) (task function) invariant &rest args
@@ -62,6 +75,20 @@
                      :important-p t :priority :highest args)
               (apply #'call-next-method this #'run-task invariant args))
           (execute resource-executor #'run-task)))))
+
+
+(define-system-function reset-viewport graphics-system ()
+  (gl:viewport 0 0
+               (ctx-framebuffer-width *system-context*)
+               (ctx-framebuffer-height *system-context*)))
+
+
+(define-system-function viewport-width graphics-system ()
+  (ctx-framebuffer-width *system-context*))
+
+
+(define-system-function viewport-height graphics-system ()
+  (ctx-framebuffer-height *system-context*))
 
 
 (defmethod make-system-context ((this graphics-system))
@@ -112,9 +139,13 @@
   (engine-system 'graphics-system))
 
 
-(defmacro for-graphics ((&optional arg) &body body)
-  `(-> (graphics) (,@(when arg (list arg)))
-     ,@body))
+(defun update-context-framebuffer-size (width height)
+  (setf (ctx-framebuffer-width *system-context*) width
+        (ctx-framebuffer-height *system-context*) height))
+
+
+(define-event-handler on-framebuffer-size-change ((ev framebuffer-size-change-event) width height)
+  (run (for-graphics () (update-context-framebuffer-size width height))))
 
 
 (define-system-function reset-state graphics-system ()
