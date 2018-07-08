@@ -403,6 +403,7 @@
                         :serial t
                         :components ((:file "2d-physics")
                                      (:file "3d-physics")
+                                     (:file "framebuffers/framebuffers")
                                      (:file "ui")
                                      (:file "text")))
                (:file "demo")))

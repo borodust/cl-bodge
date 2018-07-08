@@ -13,6 +13,7 @@
 
            defshader
            defpipeline
+           defsstruct
 
            make-shader-pipeline
 
@@ -25,7 +26,15 @@
            make-empty-depth-texture
            texture-dimensions
 
-           defsstruct
+           make-cubemap-texture
+           make-empty-cubemap-texture
+           make-empty-depth-cubemap-texture
+           cubemap-positive-x-layer
+           cubemap-positive-y-layer
+           cubemap-positive-z-layer
+           cubemap-negative-x-layer
+           cubemap-negative-y-layer
+           cubemap-negative-z-layer
 
            make-framebuffer
            configure-framebuffer

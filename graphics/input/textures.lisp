@@ -34,6 +34,7 @@
 (defclass texture-input (disposable)
   ((texture-id :initform (gl:gen-texture) :reader %texture-id-of)
    (target :initarg :target :reader %target-of)
+   (format :initarg :internal-format :reader texture-format)
    (dimensions :initarg :dimensions :initform nil :reader texture-dimensions)))
 
 
@@ -48,11 +49,19 @@
       (gl:tex-parameter target :texture-wrap-t mode)
       (gl:tex-parameter target :texture-wrap-r mode))))
 
+
+(defmethod inject-shader-input ((this texture-input) &key name)
+  (let ((location (gl:get-uniform-location *active-shading-program* name))
+        (texture-unit (next-texture-unit)))
+    (with-texture-unit (texture-unit)
+      (gl:bind-texture (%target-of this) (%texture-id-of this)))
+    (%gl:uniform-1i location texture-unit)))
+
 ;;;
-;;;
+;;; 2D TEXTURE
 ;;;
 (defclass texture-2d (texture-input)
-  ((format :initarg :internal-format :reader texture-format))
+  ()
   (:default-initargs :target :texture-2d))
 
 
@@ -65,7 +74,6 @@
   (with-bound-texture ((%target-of this) (%texture-id-of this))
     (let ((target (%target-of this))
           (data (foreign-array-of image)))
-      (gl:pixel-store :unpack-alignment 1)
       (gl:tex-image-2d target 0 internal-format width height 0 external-format
                        :unsigned-byte (foreign-pointer-of data) :raw t)
       (gl:tex-parameter target :texture-mag-filter :linear)
@@ -99,12 +107,120 @@
                     :generate-mipmaps-p generate-mipmaps-p))
 
 
-(defmethod inject-shader-input ((this texture-2d) &key name)
-  (let ((location (gl:get-uniform-location *active-shading-program* name))
-        (texture-unit (next-texture-unit)))
-    (with-texture-unit (texture-unit)
-      (gl:bind-texture (%target-of this) (%texture-id-of this)))
-    (%gl:uniform-1i location texture-unit)))
+
+;;;
+;;; CUBEMAP TEXTURE
+;;;
+(defclass cubemap-texture (texture-input) ()
+  (:default-initargs :target :texture-cube-map))
+
+
+(defun %make-cubemap-texture (class
+                              positive-x-image
+                              positive-y-image
+                              positive-z-image
+                              negative-x-image
+                              negative-y-image
+                              negative-z-image
+                              texture-format &key (generate-mipmaps-p t))
+  (let ((ex-format (%pixel-format->external-format (pixel-format-of positive-x-image)))
+        (in-format (%texture-format->internal-format texture-format))
+        (width (width-of positive-x-image))
+        (height (height-of positive-x-image)))
+    (unless (= width height)
+      (error "Cubemap texture must have same width and height"))
+    (make-instance class
+                   :images (list :texture-cube-map-positive-x positive-x-image
+                                 :texture-cube-map-positive-y positive-y-image
+                                 :texture-cube-map-positive-z positive-z-image
+                                 :texture-cube-map-negative-x negative-x-image
+                                 :texture-cube-map-negative-y negative-y-image
+                                 :texture-cube-map-negative-z negative-z-image)
+                   :external-format ex-format
+                   :internal-format in-format
+                   :generate-mipmaps-p generate-mipmaps-p
+                   :size width)))
+
+
+(defmethod initialize-instance :after ((this cubemap-texture)
+                                       &key images
+                                         external-format
+                                         internal-format
+                                         generate-mipmaps-p
+                                         size)
+  (with-slots (dimensions) this
+    (setf dimensions (list size size)))
+  (with-bound-texture ((%target-of this) (%texture-id-of this))
+    (loop for (target image) on images by #'cddr
+          do (let ((data (foreign-array-of image)))
+               (unless (and (= (width-of image) size) (= (height-of image) size))
+                 (error "Cubemap images all must have the same edge size"))
+               (gl:tex-image-2d target 0 internal-format size size 0 external-format
+                                :unsigned-byte (foreign-pointer-of data) :raw t)))
+    (let ((target (%target-of this)))
+      (gl:tex-parameter target :texture-mag-filter :linear)
+      (if generate-mipmaps-p
+          (progn
+            (gl:generate-mipmap target)
+            (gl:tex-parameter target :texture-min-filter :nearest-mipmap-linear))
+          (progn
+            (gl:tex-parameter target :texture-min-filter :linear)
+            (gl:tex-parameter target :texture-base-level 0)
+            (gl:tex-parameter target :texture-max-level 0))))))
+
+
+(defun make-cubemap-texture (positive-x-image
+                             positive-y-image
+                             positive-z-image
+                             negative-x-image
+                             negative-y-image
+                             negative-z-image
+                             texture-format
+                             &key (generate-mipmaps-p t))
+  (%make-cubemap-texture 'cubemap-texture positive-x-image
+                         positive-y-image
+                         positive-z-image
+                         negative-x-image
+                         negative-y-image
+                         negative-z-image
+                         texture-format
+                         :generate-mipmaps-p generate-mipmaps-p))
+
+
+(defclass cubemap-texture-layer ()
+  ((texture :initarg :texture :reader %texture-of)
+   (layer-id :initarg :layer-id :reader %layer-of)))
+
+
+(defun cubemap-positive-x-layer (cubemap)
+  (make-instance 'cubemap-texture-layer
+                 :texture cubemap
+                 :layer-id :texture-cube-map-positive-x))
+
+(defun cubemap-positive-y-layer (cubemap)
+  (make-instance 'cubemap-texture-layer
+                 :texture cubemap
+                 :layer-id :texture-cube-map-positive-y))
+
+(defun cubemap-positive-z-layer (cubemap)
+  (make-instance 'cubemap-texture-layer
+                 :texture cubemap
+                 :layer-id :texture-cube-map-positive-z))
+
+(defun cubemap-negative-x-layer (cubemap)
+  (make-instance 'cubemap-texture-layer
+                 :texture cubemap
+                 :layer-id :texture-cube-map-negative-x))
+
+(defun cubemap-negative-y-layer (cubemap)
+  (make-instance 'cubemap-texture-layer
+                 :texture cubemap
+                 :layer-id :texture-cube-map-negative-y))
+
+(defun cubemap-negative-z-layer (cubemap)
+  (make-instance 'cubemap-texture-layer
+                 :texture cubemap
+                 :layer-id :texture-cube-map-negative-z))
 
 ;;;
 ;;;
@@ -133,9 +249,35 @@
   (make-2d-texture (make-blank-image width height) texture-format :generate-mipmaps-p nil))
 
 
+(define-system-function make-empty-cubemap-texture graphics-system (edge-size texture-format)
+  (let ((blank-image (make-blank-image edge-size edge-size)))
+    (make-cubemap-texture blank-image
+                          blank-image
+                          blank-image
+                          blank-image
+                          blank-image
+                          blank-image
+                          texture-format :generate-mipmaps-p nil)))
+
+
 (defclass depth-texture (texture-2d) ())
 
 
 (define-system-function make-empty-depth-texture graphics-system (width height)
   (%make-2d-texture 'depth-texture (make-blank-image width height :format :depth)
                     :depth :generate-mipmaps-p nil))
+
+
+(defclass depth-cubemap-texture (cubemap-texture) ())
+
+
+(define-system-function make-empty-depth-cubemap-texture graphics-system (edge-size)
+  (let ((blank-image (make-blank-image edge-size edge-size :format :depth)))
+    (%make-cubemap-texture 'depth-cubemap-texture
+                           blank-image
+                           blank-image
+                           blank-image
+                           blank-image
+                           blank-image
+                           blank-image
+                           :depth :generate-mipmaps-p nil)))

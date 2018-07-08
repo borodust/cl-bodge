@@ -79,7 +79,8 @@
       (gx.state:enable :blend
                        :cull-face
                        :depth-test
-                       :program-point-size)
+                       :program-point-size
+                       :texture-cube-map-seamless)
       (gx.state:disable :scissor-test
                         :stencil-test)
 
@@ -95,6 +96,7 @@
       (gx.state:stencil-mask #xffffffff)
       (gx.state:stencil-func :always 0 #xffffffff)
       (gx.state:stencil-op :keep :keep :keep)
+      (gx.state:pixel-store :unpack-alignment 1)
 
       ctx)))
 
