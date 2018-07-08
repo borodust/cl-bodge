@@ -2,10 +2,12 @@
 
 
 (declaim (special *supplementary-framebuffer*
-                  *depth-stencil-renderbuffer*))
+                  *depth-stencil-renderbuffer*
+                  *current-color-attachment-index*))
 
 
 (defvar *default-clear-color* (vec4 1 1 1 1))
+(defvar *active-framebuffer* 0)
 
 (defgeneric run-with-bound-output (output function))
 (defgeneric %clear-rendering-output (output color))
@@ -35,14 +37,14 @@
 ;;;
 ;;; TEXTURES
 ;;;
-(defmethod %clear-rendering-output ((this texture-2d-input) color)
+(defmethod %clear-rendering-output ((this texture-2d) color)
   (flet ((%clear ()
            (gl:clear-color (x color) (y color) (z color) (w color))
            (gl:clear :color-buffer :depth-buffer :stencil-buffer)))
     (run-with-bound-output this #'%clear)))
 
 
-(defmethod run-with-bound-output ((texture texture-2d-input) function)
+(defmethod run-with-bound-output ((texture texture-2d) function)
   (gl:bind-framebuffer :framebuffer *supplementary-framebuffer*)
   (gl:draw-buffer :color-attachment0)
   (gl:framebuffer-texture-2d :framebuffer (index->color-attachment 0)
@@ -123,52 +125,67 @@
 ;;;
 ;;; FRAMEBUFFER ATTACHMENTS
 ;;;
-(defgeneric make-framebuffer-attachment (target &key &allow-other-keys))
-
-(defun framebuffer-attachment (value &rest opts &key &allow-other-keys)
-  (apply #'make-framebuffer-attachment value opts))
-
-(defgeneric bind-framebuffer-attachment (attachment &key &allow-other-keys))
+(defgeneric framebuffer-attachment-buffer-type (attachment))
+(defgeneric bind-framebuffer-attachment (attachment))
 (defgeneric unbind-framebuffer-attachment (attachment))
 
 
-
-(defclass color-texture-attachment ()
-  ((texture :initarg :texture)
-   (location :initarg :location)))
-
-
-(defmethod make-framebuffer-attachment ((target texture-2d-input) &key (output-location 0))
-  (make-instance 'color-texture-attachment :texture target
-                                           :location (index->color-attachment output-location)))
+(defmacro with-color-attachments (() &body body)
+  `(let ((*current-color-attachment-index* 0))
+     ,@body))
 
 
-(defmethod bind-framebuffer-attachment ((this color-texture-attachment) &key)
-  (with-slots (texture location) this
-    (gl:framebuffer-texture-2d :framebuffer location
-                               :texture-2d (%texture-id-of texture) 0)))
+(defun next-color-attachment-index ()
+  (prog1 (index->color-attachment *current-color-attachment-index*)
+    (incf *current-color-attachment-index*)))
 
 
-(defmethod unbind-framebuffer-attachment ((this color-texture-attachment))
-  (with-slots (location) this
-    (gl:framebuffer-texture-2d :framebuffer location
-                               :texture-2d 0 0)))
+(defun prev-color-attachment-index ()
+  (index->color-attachment (decf *current-color-attachment-index*)))
 
 
-(defclass depth-texture-attachment ()
-  ((texture :initarg :texture)))
+(defclass color-attachment-placeholder () ())
 
 
-(defmethod make-framebuffer-attachment ((target depth-texture) &key)
-  (make-instance 'depth-texture-attachment :texture target))
+(defmethod framebuffer-attachment-buffer-type ((this color-attachment-placeholder))
+  :color)
 
 
-(defmethod bind-framebuffer-attachment ((this depth-texture-attachment) &key)
-  (with-slots (texture) this
-    (%gl:framebuffer-texture :framebuffer :depth-attachment (%texture-id-of texture) 0)))
+(defmethod bind-framebuffer-attachment (attachment)
+  (next-color-attachment-index))
 
 
-(defmethod unbind-framebuffer-attachment ((this depth-texture-attachment))
+(defmethod unbind-framebuffer-attachment (attachment)
+  (prev-color-attachment-index))
+
+
+(defun color-attachment-placeholder ()
+  (make-instance 'color-attachment-placeholder))
+
+
+(defmethod framebuffer-attachment-buffer-type ((this texture-2d))
+  :color)
+
+
+(defmethod bind-framebuffer-attachment ((this texture-2d))
+  (gl:framebuffer-texture-2d :framebuffer (next-color-attachment-index)
+                             :texture-2d (%texture-id-of this) 0))
+
+
+(defmethod unbind-framebuffer-attachment ((this texture-2d))
+  (gl:framebuffer-texture-2d :framebuffer (prev-color-attachment-index)
+                             :texture-2d 0))
+
+
+(defmethod framebuffer-attachment-buffer-type ((this depth-texture))
+  :depth)
+
+
+(defmethod bind-framebuffer-attachment ((this depth-texture))
+  (%gl:framebuffer-texture :framebuffer :depth-attachment (%texture-id-of this) 0))
+
+
+(defmethod unbind-framebuffer-attachment ((this depth-texture))
   (%gl:framebuffer-texture :framebuffer :depth-attachment 0 0))
 
 
@@ -176,7 +193,7 @@
 ;;; FRAMEBUFFER
 ;;;
 (defclass framebuffer (disposable)
-  ((id :initform (gl:gen-framebuffer))
+  ((id :initarg :id :initform (gl:gen-framebuffer))
    (attachments :initform nil)
    (bound-buffers :initform nil)))
 
@@ -194,8 +211,20 @@
 
 
 (defun configure-framebuffer (framebuffer &rest attachments)
-  (with-slots ((this-attachments attachments)) framebuffer
-    (setf this-attachments attachments)))
+  (with-slots ((this-attachments attachments) bound-buffers id) framebuffer
+    (dolist (attachment attachments)
+      (ecase (framebuffer-attachment-buffer-type attachment)
+        (:color (pushnew :color-buffer bound-buffers))
+        (:depth (pushnew :depth-buffer bound-buffers))
+        (:stencil (pushnew :stencil-buffer bound-buffers))
+        (:depth-stencil (pushnew :depth-buffer bound-buffers)
+                        (pushnew :stencil-buffer bound-buffers))))
+    (%gl:bind-framebuffer :framebuffer id)
+    (unwind-protect
+         (with-color-attachments ()
+           (dolist (attachment attachments)
+             (bind-framebuffer-attachment attachment)))
+      (%gl:bind-framebuffer :framebuffer *active-framebuffer*))))
 
 
 (defmethod %clear-rendering-output ((this framebuffer) color)
@@ -207,5 +236,9 @@
 
 
 (defmethod run-with-bound-output ((output framebuffer) function)
-  (%gl:bind-framebuffer :framebuffer (handle-value-of output))
-  (funcall function))
+  (with-slots (attachments id) output
+    (let ((*active-framebuffer* id))
+      (%gl:bind-framebuffer :framebuffer id)
+      (unwind-protect
+           (funcall function)
+        (%gl:bind-framebuffer :framebuffer *active-framebuffer*)))))

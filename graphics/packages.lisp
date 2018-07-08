@@ -28,6 +28,7 @@
            defsstruct
 
            make-framebuffer
+           configure-framebuffer
 
            clear-rendering-output
            render

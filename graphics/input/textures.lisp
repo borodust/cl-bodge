@@ -51,12 +51,12 @@
 ;;;
 ;;;
 ;;;
-(defclass texture-2d-input (texture-input)
+(defclass texture-2d (texture-input)
   ((format :initarg :internal-format :reader texture-format))
   (:default-initargs :target :texture-2d))
 
 
-(defmethod initialize-instance :after ((this texture-2d-input)
+(defmethod initialize-instance :after ((this texture-2d)
                                        &key image external-format
                                          internal-format width height
                                          generate-mipmaps-p)
@@ -95,11 +95,11 @@
 
 (define-system-function make-2d-texture graphics-system
     (image texture-format &key (generate-mipmaps-p t))
-  (%make-2d-texture 'texture-2d-input image texture-format
+  (%make-2d-texture 'texture-2d image texture-format
                     :generate-mipmaps-p generate-mipmaps-p))
 
 
-(defmethod inject-shader-input ((this texture-2d-input) &key name)
+(defmethod inject-shader-input ((this texture-2d) &key name)
   (let ((location (gl:get-uniform-location *active-shading-program* name))
         (texture-unit (next-texture-unit)))
     (with-texture-unit (texture-unit)
@@ -133,7 +133,7 @@
   (make-2d-texture (make-blank-image width height) texture-format :generate-mipmaps-p nil))
 
 
-(defclass depth-texture (texture-2d-input) ())
+(defclass depth-texture (texture-2d) ())
 
 
 (define-system-function make-empty-depth-texture graphics-system (width height)
