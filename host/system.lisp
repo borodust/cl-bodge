@@ -120,8 +120,9 @@
         (glfw:with-init ()
           (let ((*window* (create-window 640 480 "Scene" major-version minor-version
                                          :visible t)))
-            (unless *window*
-              (error "Failed to create main window. Please, check OpenGL version."))
+            (when (claw:wrapper-null-p *window*)
+              (error "Failed to create main window. Please, check OpenGL version. Requested: ~A.~A"
+                     major-version minor-version))
             (unwind-protect
                  (progn
                    (init-callbacks)
