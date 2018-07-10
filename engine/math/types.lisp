@@ -67,27 +67,52 @@
 (defclass square-mat (mat) ())
 
 
-(defclass mat2 (square-mat)
-  ((value :initarg :value
-          :initform (make-array 4 :element-type 'single-float :initial-element 0.0)
-          :type (simple-array single-float (4)) :reader value-of)))
-
-
-(defclass mat3 (square-mat)
-  ((value :initarg :value :initform (m3:0!) :type rtg-math.types:mat3 :reader value-of)))
-
-
-(defclass mat4 (square-mat)
-  ((value :initarg :value :initform (m4:0!) :type rtg-math.types:mat4 :reader value-of)))
-
-
-
 (declaim (ftype (function (square-mat) (integer 2 4)) square-matrix-size))
 (definline square-matrix-size (square-mat)
   (etypecase square-mat
     (mat2 2)
     (mat3 3)
     (mat4 4)))
+
+
+(defun print-mat (object accessor stream)
+  (let* ((class-name (symbol-name (class-name-of object)))
+         (indent (+ 2 (length class-name)))
+         (mat (value-of object))
+         (size (square-matrix-size object)))
+    (format stream "#<~A" class-name)
+    (loop for j below size
+          do (format stream " ~A" (funcall accessor mat 0 j)))
+    (loop for i from 1 below size
+          do (format stream "~&~vA" indent " ")
+             (loop for j below size
+                   do (format stream " ~A" (funcall accessor mat i j)))
+          finally (format stream ">"))))
+
+
+(defclass mat2 (square-mat)
+  ((value :initarg :value :initform (m2:0!) :type rtg-math.types:mat2 :reader value-of)))
+
+
+(defmethod print-object ((object mat2) stream)
+  (print-mat object #'m2:melm stream))
+
+
+(defclass mat3 (square-mat)
+  ((value :initarg :value :initform (m3:0!) :type rtg-math.types:mat3 :reader value-of)))
+
+
+(defmethod print-object ((object mat3) stream)
+  (print-mat object #'m3:melm stream))
+
+
+(defclass mat4 (square-mat)
+  ((value :initarg :value :initform (m4:0!) :type rtg-math.types:mat4 :reader value-of)))
+
+
+(defmethod print-object ((object mat4) stream)
+  (print-mat object #'m4:melm stream))
+
 
 
 ;;;

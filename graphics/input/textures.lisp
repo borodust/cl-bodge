@@ -187,39 +187,47 @@
                          :generate-mipmaps-p generate-mipmaps-p))
 
 
+(defgeneric cubemap-positive-x-layer (cubemap))
+(defgeneric cubemap-positive-y-layer (cubemap))
+(defgeneric cubemap-positive-z-layer (cubemap))
+(defgeneric cubemap-negative-x-layer (cubemap))
+(defgeneric cubemap-negative-y-layer (cubemap))
+(defgeneric cubemap-negative-z-layer (cubemap))
+
+
 (defclass cubemap-texture-layer ()
   ((texture :initarg :texture :reader %texture-of)
-   (layer-id :initarg :layer-id :reader %layer-of)))
+   (layer-id :initarg :layer-id :reader %layer-type-of)))
 
 
-(defun cubemap-positive-x-layer (cubemap)
+(defmethod cubemap-positive-x-layer ((this cubemap-texture))
   (make-instance 'cubemap-texture-layer
-                 :texture cubemap
+                 :texture this
                  :layer-id :texture-cube-map-positive-x))
 
-(defun cubemap-positive-y-layer (cubemap)
+(defmethod cubemap-positive-y-layer ((this cubemap-texture))
   (make-instance 'cubemap-texture-layer
-                 :texture cubemap
+                 :texture this
                  :layer-id :texture-cube-map-positive-y))
 
-(defun cubemap-positive-z-layer (cubemap)
+(defmethod cubemap-positive-z-layer ((this cubemap-texture))
   (make-instance 'cubemap-texture-layer
-                 :texture cubemap
+                 :texture this
                  :layer-id :texture-cube-map-positive-z))
 
-(defun cubemap-negative-x-layer (cubemap)
+(defmethod cubemap-negative-x-layer ((this cubemap-texture))
   (make-instance 'cubemap-texture-layer
-                 :texture cubemap
+                 :texture this
                  :layer-id :texture-cube-map-negative-x))
 
-(defun cubemap-negative-y-layer (cubemap)
+(defmethod cubemap-negative-y-layer ((this cubemap-texture))
   (make-instance 'cubemap-texture-layer
-                 :texture cubemap
+                 :texture this
                  :layer-id :texture-cube-map-negative-y))
 
-(defun cubemap-negative-z-layer (cubemap)
+(defmethod cubemap-negative-z-layer ((this cubemap-texture))
   (make-instance 'cubemap-texture-layer
-                 :texture cubemap
+                 :texture this
                  :layer-id :texture-cube-map-negative-z))
 
 ;;;
@@ -249,8 +257,8 @@
   (make-2d-texture (make-blank-image width height) texture-format :generate-mipmaps-p nil))
 
 
-(define-system-function make-empty-cubemap-texture graphics-system (edge-size texture-format)
-  (let ((blank-image (make-blank-image edge-size edge-size)))
+(define-system-function make-empty-cubemap-texture graphics-system (width texture-format)
+  (let ((blank-image (make-blank-image width width)))
     (make-cubemap-texture blank-image
                           blank-image
                           blank-image
@@ -268,6 +276,9 @@
                     :depth :generate-mipmaps-p nil))
 
 
+(defclass depth-cubemap-texture-layer (cubemap-texture-layer) ())
+
+
 (defclass depth-cubemap-texture (cubemap-texture) ())
 
 
@@ -281,3 +292,34 @@
                            blank-image
                            blank-image
                            :depth :generate-mipmaps-p nil)))
+
+
+(defmethod cubemap-positive-x-layer ((this depth-cubemap-texture))
+  (make-instance 'depth-cubemap-texture-layer
+                 :texture this
+                 :layer-id :texture-cube-map-positive-x))
+
+(defmethod cubemap-positive-y-layer ((this depth-cubemap-texture))
+  (make-instance 'depth-cubemap-texture-layer
+                 :texture this
+                 :layer-id :texture-cube-map-positive-y))
+
+(defmethod cubemap-positive-z-layer ((this depth-cubemap-texture))
+  (make-instance 'depth-cubemap-texture-layer
+                 :texture this
+                 :layer-id :texture-cube-map-positive-z))
+
+(defmethod cubemap-negative-x-layer ((this depth-cubemap-texture))
+  (make-instance 'depth-cubemap-texture-layer
+                 :texture this
+                 :layer-id :texture-cube-map-negative-x))
+
+(defmethod cubemap-negative-y-layer ((this depth-cubemap-texture))
+  (make-instance 'depth-cubemap-texture-layer
+                 :texture this
+                 :layer-id :texture-cube-map-negative-y))
+
+(defmethod cubemap-negative-z-layer ((this depth-cubemap-texture))
+  (make-instance 'depth-cubemap-texture-layer
+                 :texture this
+                 :layer-id :texture-cube-map-negative-z))

@@ -20,8 +20,8 @@
   (make-instance 'quat :value (q:from-axis-angle (value-of vec3) a)))
 
 
-(defun euler-angles->quat (x y z)
-  (make-instance 'quat :value (q:from-fixed-angles x y z)))
+(defun euler-angles->quat (vec3)
+  (make-instance 'quat :value (q:from-fixed-angles (x vec3) (y vec3) (z vec3))))
 
 
 (defmethod normalize ((this quat))

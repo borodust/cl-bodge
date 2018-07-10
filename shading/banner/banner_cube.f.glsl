@@ -2,9 +2,9 @@
 
 out vec4 fColor;
 
-in vec2 texCoord;
+in vec3 texCoord;
 
-uniform sampler2D banner;
+uniform samplerCube banner;
 
 void main() {
   fColor = texture(banner, texCoord);

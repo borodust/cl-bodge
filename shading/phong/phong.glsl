@@ -20,7 +20,7 @@ float computeDiffuse(vec3 lightDirection,
                      float roughness,
                      float albedo) {
   float LdotV = dot(lightDirection, viewDirection);
-  float NdotL = dot(lightDirection, surfaceNormal);
+  float NdotL = dot(surfaceNormal, lightDirection);
   float NdotV = dot(surfaceNormal, viewDirection);
 
   float s = LdotV - NdotL * NdotV;
@@ -49,10 +49,9 @@ vec3 calcPhongReflection(PhongPointLight light,
                          vec3 normal,
                          vec3 diffuseColor,
                          float specularStrength,
-                         mat4 viewMatrix) {
+                         vec3 eyeDirection) {
   //determine surface to light direction
-  vec4 lightPosition = viewMatrix * vec4(light.position, 1.0);
-  vec3 lightVector = lightPosition.xyz - position;
+  vec3 lightVector = light.position - position;
   vec3 color = vec3(0.0);
 
   //calculate attenuation
@@ -60,7 +59,7 @@ vec3 calcPhongReflection(PhongPointLight light,
   float falloff = attenuation(light.radius, light.falloff, lightDistance);
 
   vec3 L = normalize(lightVector);              //light direction
-  vec3 V = normalize(position);                 //eye direction
+  vec3 V = eyeDirection;                        //eye direction
 
   //compute our diffuse & specular terms
   float specular = specularStrength *
@@ -68,7 +67,7 @@ vec3 calcPhongReflection(PhongPointLight light,
     material.specularScale *
     falloff;
   vec3 diffuse = light.color *
-    computeDiffuse(L, V, normal, material.roughness, material.albedo) *
+    computeDiffuse(L, -V, normal, material.roughness, material.albedo) *
     falloff;
   vec3 ambient = light.ambient;
 

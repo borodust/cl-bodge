@@ -50,10 +50,16 @@
       (t switch))))
 
 
+(defun default-library-name (name)
+  (format nil "~A/~A"
+          (translate-name-to-foreign (symbolicate (package-name (symbol-package name))))
+          (translate-name-to-foreign name)))
+
+
 (defmacro defshader (name-and-opts &body input)
   (destructuring-bind (name &rest opts) (ensure-list name-and-opts)
     (destructuring-bind (&key headers sources
-                           ((:name stringified-name) (list (translate-name-to-foreign name)))
+                           ((:name stringified-name) (list (default-library-name name)))
                            (base-path (list (current-file-truename))))
         (alist-plist opts)
       (with-gensyms (%base-path this input-list)

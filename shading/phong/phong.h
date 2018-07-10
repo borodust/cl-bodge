@@ -22,6 +22,6 @@ vec3 calcPhongReflection(PhongPointLight light,
                          vec3 normal,
                          vec3 diffuseColor,
                          float specularStrength,
-                         mat4 viewMatrix);
+                         vec3 eyeDirection);
 
 #endif

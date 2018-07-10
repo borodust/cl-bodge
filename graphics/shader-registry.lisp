@@ -187,3 +187,8 @@
           (loop for shader-id in shaders do
             (gl:detach-shader program shader-id)))))
     program))
+
+
+(defun shader-source (shader-library shader-type)
+  (values (preprocess-shader (shader-library-descriptor (find-shader-library shader-library))
+                             shader-type)))

@@ -50,15 +50,14 @@
                         (when name
                           (gl:get-attrib-location *active-shading-program* name))
                         (error ":name or :location missing"))))
-      (when (= location -1)
-        (error "Attribute with name ~A not found or unused" name))
-      (gl:enable-vertex-attrib-array location)
-      (gl:bind-buffer :array-buffer buffer-id)
-      (case type
-        (:float
-         (gl:vertex-attrib-pointer location size type nil 0 (cffi:null-pointer)))
-        (:double
-         (%gl:vertex-attrib-lpointer location size type 0 (cffi:null-pointer)))
-        (t
-         (%gl:vertex-attrib-ipointer location size type 0 (cffi:null-pointer))))
-      (gl:bind-buffer :array-buffer 0))))
+      (unless (= location -1)
+        (gl:enable-vertex-attrib-array location)
+        (gl:bind-buffer :array-buffer buffer-id)
+        (case type
+          (:float
+           (gl:vertex-attrib-pointer location size type nil 0 (cffi:null-pointer)))
+          (:double
+           (%gl:vertex-attrib-lpointer location size type 0 (cffi:null-pointer)))
+          (t
+           (%gl:vertex-attrib-ipointer location size type 0 (cffi:null-pointer))))
+        (gl:bind-buffer :array-buffer 0)))))

@@ -176,7 +176,7 @@
     result))
 
 
-(definline perspective-projection-mat (width height near far)
+(defun perspective-projection-mat (width height near far)
   (let ((x0 (f (/ near width 1/2)))
         (y1 (f (/ near height 1/2)))
         (z2 (f (/ (+ near far) (- near far))))
@@ -187,7 +187,7 @@
                                          0f0  0f0  -1f0 0f0))))
 
 
-(definline orthographic-projection-mat (width height near far)
+(defun orthographic-projection-mat (width height near far)
   (make-instance 'mat4 :value (rtg-math.projection:orthographic (f width) (f height)
                                                                 (f near) (f far))))
 

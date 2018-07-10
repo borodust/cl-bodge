@@ -35,12 +35,14 @@
            cubemap-negative-x-layer
            cubemap-negative-y-layer
            cubemap-negative-z-layer
+           do-cubemap-layers
 
            make-framebuffer
            configure-framebuffer
 
            clear-rendering-output
            render
+           shader-source
 
            preserving-state
            reset-state))

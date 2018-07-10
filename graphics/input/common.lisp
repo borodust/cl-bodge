@@ -68,7 +68,9 @@
 (defclass shader-input () ())
 
 
-(defgeneric inject-shader-input (shader-input &rest args &key &allow-other-keys))
+(defgeneric inject-shader-input (shader-input &rest args &key &allow-other-keys)
+  (:method (shader-input &key)
+    (error "Don't know how to inject shader input of type ~A" (type-of shader-input))))
 
 
 (defun next-texture-unit ()
