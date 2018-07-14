@@ -410,5 +410,6 @@
                                      (:file "3d-physics")
                                      (:file "framebuffers/framebuffers")
                                      (:file "ui")
-                                     (:file "text")))
+                                     (:file "text")
+                                     (:file "pbr/pbr")))
                (:file "demo")))
