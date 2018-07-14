@@ -7,7 +7,9 @@
 
 
 (definline acceptable-simple-array-p (data)
-  (and (typep data 'simple-array) (not (typep data 'simple-vector))))
+  (and #+ccl (ccl::ivectorp data)
+       (typep data 'simple-array)
+       (not (typep data 'simple-vector))))
 
 
 (defun cl-type->gl (type)

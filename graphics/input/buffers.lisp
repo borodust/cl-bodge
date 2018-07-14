@@ -4,10 +4,6 @@
 (defgeneric fill-buffer (test-value data &optional type))
 
 
-
-
-
-
 (defun extract-element-info (array)
   (let* ((dimensions (array-dimensions array))
          (element-count (or (second dimensions) 1)))
