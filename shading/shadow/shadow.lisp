@@ -13,11 +13,6 @@
   :fragment depth-shader)
 
 
-(defpipeline (depth-pipeline)
-  :vertex depth-shader
-  :fragment depth-shader)
-
-
 (defun render-with-depth-pipeline (output pipeline mvp-matrix position-buffer
                                    &rest args &key &allow-other-keys)
   (apply #'render output pipeline
