@@ -1,6 +1,7 @@
 (cl:in-package :cl-bodge.utils)
 
 
+;; much like iterator
 (defclass array-slice ()
   ((dimensions :initform nil)
    (slice :initform nil)))
@@ -27,6 +28,7 @@
 
 
 (defun slice (obj)
+  "Current indices"
   (with-slots (slice) obj
     slice))
 
@@ -45,9 +47,10 @@
   (let* ((dimensions (array-dimensions array))
          (slice (make-instance 'array-slice :dimensions dimensions))
          (result (make-array (apply #'* dimensions) :element-type (array-element-type array))))
-    (loop for slice-indexes = (slice slice) then (next-slice slice) while slice-indexes
-       do (setf (aref result (flat-index slice))
-                (apply #'aref array slice-indexes)))
+    (loop for slice-indexes = (slice slice) then (next-slice slice)
+          while slice-indexes
+          do (setf (aref result (flat-index slice))
+                   (apply #'aref array slice-indexes)))
     result))
 
 

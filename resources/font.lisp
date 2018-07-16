@@ -1,38 +1,6 @@
 (cl:in-package :cl-bodge.resources)
 
 ;;;
-;;; SDF font resource
-;;;
-
-(definline sdf-font-resource-name (name item)
-  (fad:merge-pathnames-as-file (fad:pathname-as-directory name) item))
-
-
-(definline sdf-font-atlas-resource-name (name)
-  (sdf-font-resource-name name "image"))
-
-(definline sdf-font-metrics-resource-name (name)
-  (sdf-font-resource-name name "font"))
-
-;;;
-;;; SDF font resource handler
-;;;
-(defgeneric font-container-data (container))
-
-
-(defclass sdf-font-resource-handler (chunk-resource-handler) ()
-  (:default-initargs :chunk-type :font-atlas))
-
-
-(defmacro define-sdf-font (name)
-  `(progn
-     (defresource :image (sdf-font-atlas-resource-name ,name)
-       :type :png)
-     (defresource :font (sdf-font-metrics-resource-name ,name)
-       :type :sdf)))
-
-
-;;;
 ;;; Conventional fonts
 ;;;
 (defclass font-container ()
@@ -49,7 +17,6 @@
 
 (defmethod encode-resource ((this truetype-font-resouce-handler) (value font-container) stream)
   (write-sequence (font-container-data value) stream))
-
 
 ;;;
 ;;; Font contstructor

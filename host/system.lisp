@@ -150,7 +150,7 @@
           (%glfw:set-error-callback (claw:callback 'on-glfw-error))
           (let ((*window* (create-window 640 480 "Scene" major-version minor-version
                                          :visible t)))
-            (when (claw:wrapper-null-p *window*)
+            (unless *window*
               (error "Failed to create main window. Please, check OpenGL version. Requested: ~A.~A"
                      major-version minor-version))
             (unwind-protect

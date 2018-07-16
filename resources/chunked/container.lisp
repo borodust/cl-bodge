@@ -15,11 +15,22 @@
     (setf container (load-container container-path))))
 
 
+(defun ensure-inflated (stream compression)
+  (if compression
+      (let ((format (ecase compression
+                      (:deflate 'chipz:deflate)
+                      (:zlib 'chipz:zlib)
+                      (:gzip 'chipz:zlib))))
+        (chipz:make-decompressing-stream format stream))
+      stream))
+
+
 (defun open-bound-chunk-stream (container path)
   (when-let ((record (find-chunk container (namestring path))))
     (let ((stream (open (path-of container) :element-type '(unsigned-byte 8))))
       (file-position stream (chunk-record-position record))
-      (make-bounded-input-stream stream (chunk-record-size record)))))
+      (make-bounded-input-stream (ensure-inflated stream (chunk-record-compression record))
+                                 (chunk-record-size record)))))
 
 
 (defmethod open-resource-stream ((this container-node) (path null))

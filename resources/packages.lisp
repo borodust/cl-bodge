@@ -24,28 +24,11 @@
 
            mount-container
 
-           ;; generic chunk
-           id-of
-           children-of
-
-           ;; mesh
-           mesh-chunk-arrays
-           mesh-chunk-bones
-           mesh-bone-index
-           mesh-bone-bone
-           mesh-bone-offset
-           mesh-chunk-indexes
-           mesh-chunk-transform
-
            ;; audio
            load-ogg-vorbis-audio
+
+           ;; images
            load-png-image
-
-           ;; animation
-           keyframe-sequence-bone
-
-           ;; skeleton
-           skeleton-bone-transform
 
            ;; SDF font
            define-sdf-font
@@ -60,5 +43,11 @@
            glyph-metrics-advance-width
            glyph-metrics-kernings
 
+           ;; chunk-structure
+           id-of
+           children-of
+
            ;; ttf font
-           font-container-data))
+           font-container-data
+
+           scene-meshes))

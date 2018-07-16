@@ -1,23 +1,18 @@
 (cl:in-package :cl-bodge.resources)
 
 
+(declaim (special *objects*
+                  *resolvers*))
+
+
+(defun push-object (id obj)
+  (setf (gethash id *objects*) obj))
+
+
 (defun %map-value (val mapper)
   (if (listp (first val))
       (mapcar mapper val)
       (funcall mapper val)))
-
-
-(defun %push-resolver (accessor cur-id ref-ids)
-  (flet ((%get-object (ref-id)
-           (if-let ((ref (gethash ref-id *objects*)))
-             ref
-             (log:warn "Cannot resolve reference: object '~a' undefined" ref-id))))
-    (prog1 nil
-      (push (lambda ()
-              (when-let ((refs (remove-if #'null (mapcar #'%get-object (ensure-list ref-ids)))))
-                (funcall accessor (if (listp ref-ids) refs (first refs))
-                         (gethash cur-id *objects*))))
-            *resolvers*))))
 
 
 (defmacro define-chunk-structure (name-and-opts &body slots)
@@ -81,30 +76,29 @@
                                   `(,ctor-name id ,@slot-names))))))))))))))
 
 
+(defgeneric serialize-chunk-structure (chunk))
+(defgeneric parse-chunk-structure (type data))
+
 ;;;
-;;; Chunked resource
+;;; Structured resource
 ;;;
-(defclass chunk-resource-handler ()
+(defclass chunk-structure-resource-handler ()
   ((type :initarg :chunk-type :initform (error ":chunk-type missing") :reader chunk-type-of)))
 
 
-(defgeneric convert-from-chunk (handler chunk)
-  (:method (handler chunk)
-    (declare (ignore handler))
-    chunk))
+(defmethod encode-resource ((this chunk-structure-resource-handler) resource stream)
+  (with-standard-io-syntax
+    (let ((*print-pretty* nil))
+      (prin1 (serialize-chunk-structure resource) stream))))
 
 
-(defgeneric convert-to-chunk (handler resource)
-  (:method (handler resource)
-    (declare (ignore handler))
-    resource))
-
-
-(defmethod encode-resource ((this chunk-resource-handler) resource stream)
+(defmethod decode-resource ((this chunk-structure-resource-handler) stream)
   (with-slots (type) this
-    (write-chunk (convert-to-chunk this resource) stream)))
-
-
-(defmethod decode-resource ((this chunk-resource-handler) stream)
-  (with-slots (type) this
-    (convert-from-chunk this (read-deflated stream type nil))))
+    (let ((stream (flex:make-flexi-stream stream :external-format :utf-8))
+          (*objects* (make-hash-table :test 'equal))
+          (*resolvers* (list)))
+      (with-standard-io-syntax
+        (let ((*read-eval* nil))
+          (prog1 (parse-chunk-structure type (read-preserving-whitespace stream nil nil nil))
+            (dolist (fn *resolvers*)
+              (funcall fn))))))))

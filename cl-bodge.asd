@@ -71,8 +71,8 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (cl-bodge/engine cl-bodge/utils flexi-streams
-               opticl cl-fad chipz log4cl
+  :depends-on (cl-bodge/utils cl-bodge/engine flexi-streams
+               opticl cl-fad chipz log4cl static-vectors
                sndfile-blob bodge-sndfile)
   :pathname "resources/"
   :serial t
@@ -83,19 +83,13 @@
                (:module chunked
                         :serial t
                         :components ((:file "resource")
-                                     (:file "chunk")
-                                     (:file "font")
-                                     (:file "image")
-                                     (:file "mesh")
-                                     (:file "skeleton")
-                                     (:file "animation")
-                                     (:file "container")))
-               (:file "mesh")
-               (:file "skeleton")
-               (:file "animation")
+                                     (:file "container")
+                                     (:file "chunk-structure")
+                                     (:file "font")))
                (:file "audio")
                (:file "image")
-               (:file "font")))
+               (:file "font")
+               (:file "scene")))
 
 
 (asdf:defsystem cl-bodge/host
@@ -401,7 +395,6 @@
   :serial t
   :components ((:file "packages")
                (:file "utils")
-               (:file "resources")
                (:file "scene")
                (:file "case")
                (:module cases
@@ -410,6 +403,6 @@
                                      (:file "3d-physics")
                                      (:file "framebuffers/framebuffers")
                                      (:file "ui")
-                                     (:file "text")
+                                     (:file "text/text")
                                      (:file "pbr/pbr")))
                (:file "demo")))

@@ -1,7 +1,7 @@
 (cl:in-package :cl-bodge.animation)
 
 
-(defun parse-keyframe-animation (chunk)
+#++(defun parse-keyframe-animation (chunk)
   (unless (null chunk)
     (make-keyframe-animation
      (loop for seq in (ge.rsc:children-of chunk)
