@@ -101,6 +101,10 @@
     (%glfw:make-context-current (cffi:null-pointer))))
 
 
+(claw:defcallback on-glfw-error :void ((code :int) (error-string :pointer))
+  (log:error "GLFW error ~A: ~A" code (cffi:foreign-string-to-lisp error-string)))
+
+
 (defun init-callbacks ()
   (%glfw:set-window-close-callback *window* (claw:callback 'on-close))
   (%glfw:set-key-callback *window* (claw:callback 'on-key-action))
@@ -122,6 +126,7 @@
                  major-version minor-version)
       (claw:with-float-traps-masked ()
         (glfw:with-init ()
+          (%glfw:set-error-callback (claw:callback 'on-glfw-error))
           (let ((*window* (create-window 640 480 "Scene" major-version minor-version
                                          :visible t)))
             (when (claw:wrapper-null-p *window*)
