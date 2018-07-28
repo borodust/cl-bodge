@@ -125,7 +125,7 @@
                (video-mode %glfw:vidmode :from (%glfw:get-video-mode monitor)))
     (%glfw:get-monitor-physical-size monitor (mon-width &) (claw:ptr nil))
     (let* ((current-dpi (/ (video-mode :width) (/ mon-width 25.4))))
-      (f (floor (/ current-dpi +expected-dpi+))))))
+      (max (f (floor (/ current-dpi +expected-dpi+))) 1f0))))
 
 
 (defun calc-scale (window)
