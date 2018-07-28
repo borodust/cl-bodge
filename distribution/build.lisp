@@ -99,7 +99,7 @@
                      (*print-pretty* nil)
                      (data (flex:with-output-to-sequence (stream)
                              (ge.rsc:encode-resource handler asset stream))))
-                (prin1 (list :encoded
+                (prin1 (list (ge.rsc:resource-type handler)
                              :name resource-name
                              :size (length data))
                        flexi)

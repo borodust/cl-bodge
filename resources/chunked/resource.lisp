@@ -45,6 +45,22 @@
       (error "Unsupported version: ~a" version))))
 
 
+(defun write-chunk (out type name bytes &key compression (start 0) end)
+  (unless (subtypep (array-element-type bytes) '(unsigned-byte 8))
+    (error "Byte array must be of '(unsigned-byte 8) type"))
+  (let ((out (flex:make-flexi-stream out :external-format :utf-8)))
+    (with-standard-io-syntax
+      (let ((*print-pretty* nil)
+            (*print-readably* t)
+            (length (max (- (or end (length bytes)) start) 0)))
+        (prin1 (nconc (list type :name name
+                                 :size length)
+                      (when compression
+                        (list compression)))
+               out)))
+    (write-sequence bytes out :start start :end end)))
+
+
 (defun load-container (path)
   (with-open-file (in (fad:canonical-pathname path) :element-type '(unsigned-byte 8))
     (let ((char-stream (flexi-streams:make-flexi-stream in :external-format :utf-8)))

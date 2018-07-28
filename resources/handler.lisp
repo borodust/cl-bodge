@@ -12,6 +12,9 @@
   (:method (handler stream)))
 
 
+(defgeneric resource-type (handler))
+
+
 (defgeneric make-resource-handler (type &key &allow-other-keys))
 
 
@@ -36,6 +39,10 @@
 
 (defun make-text-resource-handler (&optional (encoding :utf-8))
   (make-instance 'text-resource-handler :encoding encoding))
+
+
+(defmethod resource-type ((this text-resource-handler))
+  :text)
 
 
 (defmethod make-resource-handler ((type (eql :text)) &key (encoding :utf-8))

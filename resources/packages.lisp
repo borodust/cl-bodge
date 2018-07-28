@@ -1,6 +1,6 @@
 (ge.util:define-package :cl-bodge.resources
   (:nicknames :ge.rsc)
-  (:use :cl :cl-bodge.utils :cl-bodge.engine)
+  (:use :cl :cl-bodge.utils :cl-bodge.engine :static-vectors)
   (:export engine-resource-name
 
            encode-resource
@@ -19,6 +19,7 @@
            unmount-all
 
            defresource
+           resource-type
            make-resource-handler
            make-text-resource-handler
 
@@ -30,7 +31,10 @@
            ;; images
            load-png-image
 
-           ;; SDF font
+           ;; chunked
+           write-chunk
+
+           ;; ttf font
            define-sdf-font
            sdf-font-atlas-resource-name
            sdf-font-metrics-resource-name
@@ -50,4 +54,11 @@
            ;; ttf font
            font-container-data
 
-           scene-meshes))
+           ;; scene
+           make-empty-scene
+           scene-mesh
+           make-mesh
+           mesh-position-array
+           mesh-index-array
+           mesh-normal-array
+           mesh-primitive))

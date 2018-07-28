@@ -94,7 +94,6 @@
                            (%glfw:+doublebuffer+ (if visible %glfw:+true+ %glfw:+false+))
                            (%glfw:+client-api+ %glfw:+opengl-api+)
                            (%glfw:+context-creation-api+ %glfw:+native-context-api+)
-                           (%glfw:+floating+ (if visible %glfw:+true+ %glfw:+false+))
                            (%glfw:+samples+ (or (property '(:host :samples)) 1))
                            (%glfw:+visible+ (if visible %glfw:+true+ %glfw:+false+)))
     (%glfw:create-window width height title (cffi:null-pointer) shared)))

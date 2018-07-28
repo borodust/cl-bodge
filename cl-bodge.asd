@@ -73,23 +73,26 @@
   :license "MIT"
   :depends-on (cl-bodge/utils cl-bodge/engine flexi-streams
                opticl cl-fad chipz log4cl static-vectors
-               sndfile-blob bodge-sndfile)
+               sndfile-blob bodge-sndfile cl-conspack)
   :pathname "resources/"
   :serial t
   :components ((:file "packages")
                (:file "storage")
                (:file "handler")
                (:file "registry")
-               (:module chunked
-                        :serial t
-                        :components ((:file "resource")
-                                     (:file "container")
-                                     (:file "chunk-structure")
-                                     (:file "font")))
+               (:module chunked :serial t
+                :components ((:file "resource")
+                             (:file "container")
+                             (:file "chunk-structure")
+                             (:file "font")))
                (:file "audio")
                (:file "image")
                (:file "font")
-               (:file "scene")))
+               (:module scene :serial t
+                :components ((:file "scene")
+                             (:file "read")
+                             (:file "write")
+                             (:file "handler")))))
 
 
 (asdf:defsystem cl-bodge/host

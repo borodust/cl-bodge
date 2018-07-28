@@ -1,10 +1,13 @@
 (cl:in-package :cl-bodge.resources)
 
+(declaim (special *scene-read-buffer*))
 
 (defparameter *scene-read-buffer-size* (* 64 1024))
 
 
-(declaim (special *scene-read-buffer*))
+(defmacro with-character-stream ((stream &key (external-format :utf-8)) &body body)
+  `(let ((,stream (flexi-streams:make-flexi-stream ,stream :external-format ,external-format)))
+     ,@body))
 
 
 (defun read-descriptor (stream)
@@ -16,7 +19,7 @@
 
 
 (defun for-each-descriptor (stream action)
-  (let ((stream (flex:make-flexi-stream stream :external-format :utf-8)))
+  (with-character-stream (stream)
     (loop for descriptor = (read-descriptor stream)
           while descriptor
           do (destructuring-bind (descriptor-type &rest args &key &allow-other-keys)
@@ -31,27 +34,14 @@
                                       ,@body)))))
 
 
-(defclass scene ()
-  ((meshes :initform nil :accessor %meshes-of)))
-
-
-(defclass mesh ()
-  ((id :initarg :id :initform (error ":id missing"))
-   (primitive :initarg :primitive :initform (error ":primitive missing"))
-   (position-array :initform nil :accessor %position-array-of)
-   (index-array :initform nil :accessor %index-array-of)
-   (normal-array :initform nil :accessor %normal-array-of)))
-
-
-(defun read-buffer (stream &key (count (error ":count missing"))
-                             (element-size 1)
-                             (element-type (error ":element-type missing"))
-                    &allow-other-keys)
+(defun read-array (stream &key (length (error ":count missing"))
+                            ((:type element-type) (error ":element-type missing"))
+                   &allow-other-keys)
   (let* ((type (ecase element-type
                  (:float 'single-float)
                  (:unsigned-int '(unsigned-byte 32))))
-         (byte-length (* count element-size (claw:sizeof element-type)))
-         (array (make-array (* count element-size) :element-type type)))
+         (byte-length (* length (claw:sizeof element-type)))
+         (array (make-array length :element-type type)))
     (with-simple-array-pointer (dst-ptr array)
       (loop with byte-offset = 0
             with dst-addr = (cffi:pointer-address dst-ptr)
@@ -72,36 +62,21 @@
 
 
 (defun read-mesh (stream &key index primitive size)
-  (let ((mesh (make-instance 'mesh :id index :primitive primitive)))
+  (let ((mesh (make-mesh primitive)))
     (do-descriptors ((attribute-type &rest args) (make-bounded-input-stream stream size))
       (ecase attribute-type
-        (:position-array (setf (%position-array-of mesh) (apply #'read-buffer stream args)))
-        (:index-array (setf (%index-array-of mesh) (apply #'read-buffer stream args)))
-        (:normal-array (setf (%normal-array-of mesh) (apply #'read-buffer stream args)))))
-    mesh))
+        (:position-array (setf (mesh-position-array mesh) (apply #'read-array stream args)))
+        (:index-array (setf (mesh-index-array mesh) (apply #'read-array stream args)))
+        (:normal-array (setf (mesh-normal-array mesh) (apply #'read-array stream args)))))
+    (values mesh index)))
 
 
 (defun read-scene (stream)
   (static-vectors:with-static-vector (*scene-read-buffer* *scene-read-buffer-size*)
-    (let ((scene (make-instance 'scene)))
+    (let ((scene (make-empty-scene)))
       (do-descriptors ((type &rest params) stream)
         (ecase type
-          (:mesh (push (apply #'read-mesh stream params) (%meshes-of scene)))))
+          (:mesh (multiple-value-bind (mesh id)
+                     (apply #'read-mesh stream params)
+                   (setf (scene-mesh scene id) mesh)))))
       scene)))
-
-;;;
-;;; Scene resource
-;;;
-(defclass scene-resource-handler () ())
-
-
-(defmethod decode-resource ((this scene-resource-handler) stream)
-  (read-scene stream))
-
-
-(defmethod encode-resource ((this image-resource-handler) resource stream)
-  (error "Unimplemented"))
-
-
-(defmethod make-resource-handler ((type (eql :scene)) &key)
-  (make-instance 'scene-resource-handler))
