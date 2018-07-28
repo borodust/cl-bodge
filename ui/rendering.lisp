@@ -271,13 +271,15 @@
                 (if key
                     (register-keyboard-input key state)
                     (return))))
-        (let ((cursor (last-cursor-position input-source
-                                            (%last-cursor-position-of context))))
+        (let* ((cursor (last-cursor-position input-source
+                                             (%last-cursor-position-of context)))
+               (x (* (scale-of context) (x cursor)))
+               (y (* (scale-of context) (y cursor))))
           (loop (multiple-value-bind (button state) (next-mouse-interaction input-source)
                   (if button
-                      (register-mouse-input (x cursor) (y cursor) button state))
-                      (return)))
-          (register-cursor-position (x cursor) (y cursor)))
+                      (register-mouse-input x y button state)
+                      (return))))
+          (register-cursor-position x y))
         (loop for character = (next-character input-source)
               while character
               do (register-character-input character))

@@ -4,6 +4,7 @@
   (:export defcanvas
            make-canvas
            update-canvas-size
+           update-canvas-pixel-ratio
            flush-canvas
            push-canvas
            pop-canvas

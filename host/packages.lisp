@@ -16,6 +16,7 @@
            fullscreen-viewport-p
            lock-cursor
            unlock-cursor
+           viewport-scale
 
            cursor-position
            keyboard-button-state

@@ -9,6 +9,8 @@
            with-ui-access
            compose-ui
            update-ui-size
+           update-ui-scale
+           update-ui-pixel-ratio
            defwindow
            on-window-close
            add-window

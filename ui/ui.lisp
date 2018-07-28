@@ -28,6 +28,7 @@
 (defclass nuklear-context (foreign-object)
   ((width :initarg :width :reader width-of)
    (height :initarg :height :reader height-of)
+   (scale :initarg :scale :initform 1.0 :reader scale-of)
    (canvas :initarg :canvas :reader canvas-of)
    (compose-tasks :initform (make-task-queue))
    (input-source :initform nil :initarg :input-source :reader %input-source-of)
@@ -55,6 +56,7 @@
 
 
 (defmethod initialize-instance ((this nuklear-context) &rest keys &key width height
+                                                                    scale
                                                                     antialiased
                                                                     pixel-ratio)
   (let* ((canvas (make-canvas 'ui-canvas width height :antialiased antialiased
@@ -65,14 +67,16 @@
            :handle (make-nuklear-context-handle
                     (nuklear:make-context (handle-value-of nk-font)))
            :canvas canvas
+           :scale scale
            :nuklear-font nk-font
            keys)))
 
 
-(definline make-ui (width height &key (antialiased t) (pixel-ratio 1.0) input-source)
+(definline make-ui (width height &key (antialiased t) (pixel-ratio 1.0) (scale 1.0) input-source)
   (make-instance 'nuklear-context
                  :input-source input-source
                  :width width
+                 :scale scale
                  :height height
                  :pixel-ratio pixel-ratio
                  :antialiased antialiased))
@@ -166,10 +170,20 @@
 
 
 (defun update-ui-size (ui width height)
-  (with-slots ((w width) (h height) text-renderer canvas) ui
+  (with-slots ((w width) (h height) canvas) ui
     (update-canvas-size canvas width height)
     (setf w width
           h height)))
+
+
+(defun update-ui-scale (ui scale)
+  (with-slots ((this-scale scale)) ui
+    (setf this-scale scale)))
+
+
+(defun update-ui-pixel-ratio (ui pixel-ratio)
+  (with-slots (canvas) ui
+    (update-canvas-pixel-ratio canvas pixel-ratio)))
 
 
 (defun button-state->nk (state)

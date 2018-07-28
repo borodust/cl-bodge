@@ -64,6 +64,11 @@
           h (floor height))))
 
 
+(defun update-canvas-pixel-ratio (canvas pixel-ratio)
+  (with-slots ((ratio pixel-ratio)) canvas
+    (setf ratio pixel-ratio)))
+
+
 (defmethod initialize-instance :after ((this canvas) &key)
   (with-slots (default-font-id) this
     (let* ((default-font-data (default-font-static-data))
@@ -93,7 +98,7 @@
                       (in-development-mode (list :debug)))))
     (make-instance canvas-class
                    :handle (make-canvas-handle (apply #'nanovg:make-context opts))
-                   :pixel-ratio pixel-ratio
+                   :pixel-ratio (f pixel-ratio)
                    :width (floor width)
                    :height (floor height))))
 

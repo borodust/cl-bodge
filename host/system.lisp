@@ -2,6 +2,10 @@
 
 (declaim (special *window*))
 
+
+(define-constant +expected-dpi+ 96)
+
+
 (defclass host-system (dispatching generic-system)
   ((enabled-p :initform nil)
    (swap-interval :initform 0)
@@ -115,6 +119,23 @@
   (%glfw:set-window-size-callback *window* (claw:callback 'on-viewport-size-change))
   (%glfw:set-char-callback *window* (claw:callback 'on-character-input)))
 
+
+(defun calc-dpi-scale (monitor)
+  (claw:c-let ((mon-width :int)
+               (video-mode %glfw:vidmode :from (%glfw:get-video-mode monitor)))
+    (%glfw:get-monitor-physical-size monitor (mon-width &) (claw:ptr nil))
+    (let* ((current-dpi (/ (video-mode :width) (/ mon-width 25.4))))
+      (f (floor (/ current-dpi +expected-dpi+))))))
+
+
+(defun calc-scale (window)
+  (claw:c-let ((fb-width :int)
+               (win-width :int))
+    (%glfw:get-framebuffer-size window (fb-width &) (claw:ptr nil))
+    (%glfw:get-window-size window (win-width &) (claw:ptr nil))
+    (if (> fb-width win-width)
+        1f0
+        (calc-dpi-scale (%glfw:get-primary-monitor)))))
 
 
 (defun run-main-loop (host-system initialization-latch)
@@ -268,6 +289,11 @@
 (define-system-function unlock-cursor host-system ()
   (with-slots (window) *system*
     (%glfw:set-input-mode window %glfw:+cursor+ %glfw:+cursor-normal+)))
+
+
+(define-system-function viewport-scale host-system ()
+  (with-slots (window) *system*
+    (calc-scale window)))
 
 
 (define-system-function (setf fullscreen-viewport-p) host-system (value)
