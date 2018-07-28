@@ -106,7 +106,7 @@
 
 
 (claw:defcallback on-glfw-error :void ((code :int) (error-string :pointer))
-  (log:error "GLFW error ~A: ~A" code (cffi:foreign-string-to-lisp error-string)))
+  (log:debug "GLFW error ~A: ~A" code (cffi:foreign-string-to-lisp error-string)))
 
 
 (defun init-callbacks ()
