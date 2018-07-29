@@ -62,21 +62,80 @@
 
 
 (defun read-mesh (stream &key index primitive size)
-  (let ((mesh (make-mesh primitive)))
-    (do-descriptors ((attribute-type &rest args) (make-bounded-input-stream stream size))
+  (let ((stream (make-bounded-input-stream stream size))
+        (mesh (make-mesh-resource primitive)))
+    (do-descriptors ((attribute-type &rest args) stream)
       (ecase attribute-type
-        (:position-array (setf (mesh-position-array mesh) (apply #'read-array stream args)))
-        (:index-array (setf (mesh-index-array mesh) (apply #'read-array stream args)))
-        (:normal-array (setf (mesh-normal-array mesh) (apply #'read-array stream args)))))
+        (:position-array (setf (mesh-resource-position-array mesh) (apply #'read-array stream args)))
+        (:index-array (setf (mesh-resource-index-array mesh) (apply #'read-array stream args)))
+        (:normal-array (setf (mesh-resource-normal-array mesh) (apply #'read-array stream args)))))
     (values mesh index)))
+
+
+(defun read-material (stream &key index
+                               name
+                               shininess
+                               diffuse-color
+                               emissive-color
+                               base-color-factor
+                               metallic-factor
+                               roughness-factor
+                               glossiness-factor
+                               alpha-mode
+                               alpha-cutoff
+                               textures &allow-other-keys)
+  (declare (ignore stream))
+  (let ((material (make-material-resource :name name
+                                          :shininess shininess
+                                          :diffuse-color diffuse-color
+                                          :emissive-color emissive-color
+                                          :base-color-factor base-color-factor
+                                          :metallic-factor metallic-factor
+                                          :roughness-factor roughness-factor
+                                          :glossiness-factor glossiness-factor
+                                          :alpha-mode alpha-mode
+                                          :alpha-cutoff alpha-cutoff)))
+    (loop for texture in textures
+          do (destructuring-bind (&key type
+                                    id
+                                    name
+                                    channel
+                                    coord-id
+                                    mapping-id
+                                    mapping-name
+                                    mapping-mode-u
+                                    mapping-mode-v
+                                    mapping-filter-mag
+                                    mapping-filter-min
+                                    scale
+                                    strength
+                                  &allow-other-keys)
+                 texture
+               (setf (material-resource-texture material type id)
+                     (make-texture-resource
+                      :name               name
+                      :channel            channel
+                      :coord-id           coord-id
+                      :mapping-id         mapping-id
+                      :mapping-name       mapping-name
+                      :mapping-mode-u     mapping-mode-u
+                      :mapping-mode-v     mapping-mode-v
+                      :mapping-filter-mag mapping-filter-mag
+                      :mapping-filter-min mapping-filter-min
+                      :scale              scale
+                      :strength           strength))))
+    (values material index)))
 
 
 (defun read-scene (stream)
   (static-vectors:with-static-vector (*scene-read-buffer* *scene-read-buffer-size*)
-    (let ((scene (make-empty-scene)))
+    (let ((scene (make-empty-scene-resource)))
       (do-descriptors ((type &rest params) stream)
         (ecase type
           (:mesh (multiple-value-bind (mesh id)
                      (apply #'read-mesh stream params)
-                   (setf (scene-mesh scene id) mesh)))))
+                   (setf (scene-resource-mesh scene id) mesh)))
+          (:material (multiple-value-bind (material id)
+                         (apply #'read-material stream params)
+                       (setf (scene-resource-material scene id) material)))))
       scene)))

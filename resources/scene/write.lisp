@@ -15,6 +15,11 @@
     (prin1 (nconc (list type) params) stream)))
 
 
+(defun write-struct (stream type &rest params &key &allow-other-keys)
+  (with-character-stream (stream)
+    (prin1 (nconc (list type) params) stream)))
+
+
 (defun array-type-info (source)
   (eswitch ((array-element-type source) :test #'subtypep)
     ('single-float (values :float (claw:sizeof :float)))
@@ -34,16 +39,16 @@
 ;;; MESHES
 ;;;
 (defun write-mesh-attributes (out mesh)
-  (write-array out :position-array (mesh-position-array mesh))
-  (write-array out :index-array (mesh-index-array mesh))
-  (write-array out :normal-array (mesh-normal-array mesh)))
+  (write-array out :position-array (mesh-resource-position-array mesh))
+  (write-array out :index-array (mesh-resource-index-array mesh))
+  (write-array out :normal-array (mesh-resource-normal-array mesh)))
 
 
 (defun write-mesh (out mesh mesh-idx)
   (let ((data (flex:with-output-to-sequence (stream)
                 (write-mesh-attributes stream mesh))))
     (write-descriptor out :mesh :index mesh-idx
-                                :primitive (mesh-primitive mesh)
+                                :primitive (mesh-resource-primitive mesh)
                                 :size (length data))
     (write-sequence data out)))
 
@@ -53,5 +58,39 @@
     (write-mesh out mesh id)))
 
 
+(defun write-materials (stream scene)
+  (do-materials (material id scene)
+    (let (tex-list)
+      (do-textures (tex type id material)
+        (push (list :type type
+                    :id id
+                    :name (texture-resource-name tex)
+                    :channel (texture-resource-channel tex)
+                    :coord-id (texture-resource-coord-id tex)
+                    :mapping-id (texture-resource-mapping-id tex)
+                    :mapping-name (texture-resource-mapping-name tex)
+                    :mapping-mode-u (texture-resource-mapping-mode-u tex)
+                    :mapping-mode-v (texture-resource-mapping-mode-v tex)
+                    :mapping-filter-mag (texture-resource-mapping-filter-mag tex)
+                    :mapping-filter-min (texture-resource-mapping-filter-min tex)
+                    :scale (texture-resource-scale tex)
+                    :strength (texture-resource-strength tex))
+              tex-list))
+      (write-descriptor stream :material
+                        :index id
+                        :name (material-resource-name material)
+                        :shininess (material-resource-shininess material)
+                        :diffuse-color (vec->array (material-resource-diffuse-color material))
+                        :emissive-color (vec->array (material-resource-emissive-color material))
+                        :base-color-factor (vec->array (material-resource-base-color-factor material))
+                        :metallic-factor (material-resource-metallic-factor material)
+                        :roughness-factor (material-resource-roughness-factor material)
+                        :glossiness-factor (material-resource-glossiness-factor material)
+                        :alpha-mode (material-resource-alpha-mode material)
+                        :alpha-cutoff (material-resource-alpha-cutoff material)
+                        :textures tex-list))))
+
+
 (defun write-scene (stream scene)
-  (write-meshes stream scene))
+  (write-meshes stream scene)
+  (write-materials stream scene))

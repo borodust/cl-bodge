@@ -10,7 +10,7 @@
   (read-scene stream))
 
 
-(defmethod encode-resource ((this scene-resource-handler) (resource scene) stream)
+(defmethod encode-resource ((this scene-resource-handler) (resource scene-resource) stream)
   (write-scene stream resource))
 
 

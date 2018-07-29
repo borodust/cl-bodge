@@ -55,10 +55,38 @@
            font-container-data
 
            ;; scene
-           make-empty-scene
-           scene-mesh
-           make-mesh
-           mesh-position-array
-           mesh-index-array
-           mesh-normal-array
-           mesh-primitive))
+           make-empty-scene-resource
+           scene-resource-mesh
+           scene-resource-material
+           ;; mesh
+           make-mesh-resource
+           mesh-resource-position-array
+           mesh-resource-index-array
+           mesh-resource-normal-array
+           mesh-resource-primitive
+           ;; texture
+           make-texture-resource
+           texture-resource-name
+           texture-resource-channel
+           texture-resource-coord-id
+           texture-resource-mapping-id
+           texture-resource-mapping-name
+           texture-resource-mapping-mode-u
+           texture-resource-mapping-mode-v
+           texture-resource-mapping-filter-mag
+           texture-resource-mapping-filter-min
+           texture-resource-scale
+           texture-resource-strength
+           ;; material
+           make-material-resource
+           material-resource-texture
+           material-resource-name
+           material-resource-shininess
+           material-resource-diffuse-color
+           material-resource-emissive-color
+           material-resource-base-color-factor
+           material-resource-metallic-factor
+           material-resource-roughness-factor
+           material-resource-glossiness-factor
+           material-resource-alpha-mode
+           material-resource-alpha-cutoff))
