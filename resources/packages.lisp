@@ -19,7 +19,6 @@
            unmount-all
 
            defresource
-           resource-type
            make-resource-handler
            make-text-resource-handler
 
@@ -56,6 +55,8 @@
 
            ;; scene
            make-empty-scene-resource
+           do-scene-resource-materials
+           do-scene-resource-meshes
            scene-resource-mesh
            scene-resource-material
            ;; mesh
@@ -80,6 +81,7 @@
            ;; material
            make-material-resource
            material-resource-texture
+           do-material-resource-textures
            material-resource-name
            material-resource-shininess
            material-resource-diffuse-color

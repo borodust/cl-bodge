@@ -47,10 +47,19 @@
         (setf resource-entry handler)))))
 
 
-(defun load-resource (name)
+(defun find-registered-resource-handler (resource-name)
+  (with-slots (resource-table) *resource-registry*
+    (with-instance-lock-held (*resource-registry*)
+      (gethash (namestring resource-name) resource-table))))
+
+
+(defun load-resource (name &optional handler)
   (with-slots (resource-table) *resource-registry*
     (log:trace "Resource requested: '~A'" name)
-    (if-let ((handler (gethash (namestring name) resource-table)))
+    (if-let ((handler (or handler
+                          (find-registered-resource-handler name)
+                          (when-let ((type (resource-type *resource-storage* name)))
+                            (make-resource-handler type)))))
       (with-resource-stream (stream name *resource-storage*)
         (decode-resource handler stream))
       (error "Handler for '~A' is not registered" name))))
@@ -58,7 +67,7 @@
 
 (defun resource-flow (&rest resource-names)
   (>> (~> (loop for name in resource-names
-             collecting (instantly () (load-resource name))))
+                collecting (instantly () (load-resource name))))
       (instantly ((result)) result)))
 
 
@@ -68,11 +77,6 @@
       (loop for key being the hash-key of resource-table
          collect key))))
 
-
-(defun find-resource-handler (resource-name)
-  (with-slots (resource-table) *resource-registry*
-    (with-instance-lock-held (*resource-registry*)
-      (gethash (namestring resource-name) resource-table))))
 
 ;;;
 ;;; Define resource

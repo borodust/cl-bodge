@@ -25,8 +25,26 @@
       stream))
 
 
-(defun open-bound-chunk-stream (container path)
+(defun container-resource-type (container path)
   (when-let ((record (find-chunk container (namestring path))))
+    (chunk-record-type record)))
+
+
+(defmethod resource-type ((this container-node) (path null))
+  (with-slots (root-path container) this
+    (container-resource-type container #p"/")))
+
+
+(defmethod resource-type ((this container-node) (path cons))
+  (with-slots (container root-path) this
+    (if-let ((type (call-next-method)))
+      type
+      (let ((name (apply #'fad:merge-pathnames-as-file "/" path)))
+        (container-resource-type container name)))))
+
+
+(defun open-bound-chunk-stream (container path)
+  (when-let ((record (find-chunk container (fad:merge-pathnames-as-file "/" (namestring path)))))
     (let ((stream (open (path-of container) :element-type '(unsigned-byte 8))))
       (file-position stream (chunk-record-position record))
       (make-bounded-input-stream (ensure-inflated stream (chunk-record-compression record))
@@ -42,7 +60,7 @@
   (with-slots (container root-path) this
     (if-let ((stream (call-next-method)))
       stream
-      (let ((name (fad:merge-pathnames-as-file root-path (format nil "~{~A~}" path))))
+      (let ((name (apply #'fad:merge-pathnames-as-file root-path path)))
         (open-bound-chunk-stream container name)))))
 
 

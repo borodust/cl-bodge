@@ -54,17 +54,17 @@
 
 
 (defun write-meshes (out scene)
-  (do-meshes (mesh id scene)
+  (do-scene-resource-meshes (mesh id scene)
     (write-mesh out mesh id)))
 
 
 (defun write-materials (stream scene)
-  (do-materials (material id scene)
+  (do-scene-resource-materials (material id scene)
     (let (tex-list)
-      (do-textures (tex type id material)
+      (do-material-resource-textures (tex type id material)
         (push (list :type type
                     :id id
-                    :name (texture-resource-name tex)
+                    :name (namestring (texture-resource-name tex))
                     :channel (texture-resource-channel tex)
                     :coord-id (texture-resource-coord-id tex)
                     :mapping-id (texture-resource-mapping-id tex)
@@ -78,7 +78,7 @@
               tex-list))
       (write-descriptor stream :material
                         :index id
-                        :name (material-resource-name material)
+                        :name (namestring (material-resource-name material))
                         :shininess (material-resource-shininess material)
                         :diffuse-color (vec->array (material-resource-diffuse-color material))
                         :emissive-color (vec->array (material-resource-emissive-color material))

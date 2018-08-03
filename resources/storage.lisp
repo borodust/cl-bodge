@@ -17,6 +17,9 @@
 ;;;
 (defgeneric mount-resource-node (storage path attachable))
 (defgeneric open-resource-stream (storage path))
+(defgeneric resource-type (storage path)
+  (:method (storage path) nil))
+
 
 (defmacro with-resource-stream ((stream path storage) &body body)
   (once-only (path storage)
@@ -80,6 +83,10 @@
     (open-resource-stream child (rest path))))
 
 
+(defmethod resource-type ((this path-node) (path cons))
+  (when-let ((child (%find-child this (first path))))
+    (resource-type child (rest path))))
+
 ;;;
 ;;; Filesystem node
 ;;;
@@ -96,7 +103,7 @@
   (with-slots (root-path) this
     (if-let ((stream (call-next-method)))
       stream
-      (open (fad:merge-pathnames-as-file root-path (format nil "~{~A~}" path))
+      (open (apply #'fad:merge-pathnames-as-file root-path path)
             :element-type '(unsigned-byte 8)))))
 
 
@@ -116,6 +123,11 @@
 (defmethod open-resource-stream ((this resource-storage) path)
   (with-slots (root-node) this
     (open-resource-stream root-node (decompose-path path))))
+
+
+(defmethod resource-type ((this resource-storage) path)
+  (with-slots (root-node) this
+    (resource-type root-node (decompose-path path))))
 
 
 (defun mount-storage-resource-node (storage path node)

@@ -22,7 +22,7 @@
 
 (defun find-chunk (resource chunk-name)
   (with-slots (chunks) resource
-    (gethash chunk-name chunks)))
+    (gethash (namestring chunk-name) chunks)))
 
 
 (defun list-chunks (resource)
@@ -45,20 +45,20 @@
       (error "Unsupported version: ~a" version))))
 
 
-(defun write-chunk (out type name bytes &key compression (start 0) end)
+(defun write-chunk (stream type name bytes &key compression (start 0) end)
   (unless (subtypep (array-element-type bytes) '(unsigned-byte 8))
     (error "Byte array must be of '(unsigned-byte 8) type"))
-  (let ((out (flex:make-flexi-stream out :external-format :utf-8)))
+  (let ((stream (flex:make-flexi-stream stream :external-format :utf-8)))
     (with-standard-io-syntax
       (let ((*print-pretty* nil)
             (*print-readably* t)
             (length (max (- (or end (length bytes)) start) 0)))
-        (prin1 (nconc (list type :name name
+        (prin1 (nconc (list type :name (namestring name)
                                  :size length)
                       (when compression
-                        (list compression)))
-               out)))
-    (write-sequence bytes out :start start :end end)))
+                        (list :compression compression)))
+               stream)))
+    (write-sequence bytes stream :start start :end end)))
 
 
 (defun load-container (path)
@@ -73,14 +73,14 @@
                 for position = (file-position in)
                 until (null chunk-header)
                 do (destructuring-bind (chunk-type &key name size compression) chunk-header
-                     (with-hash-entries ((chunk name)) chunk-table
-                       (cond
-                         ((null name)
-                          (error "Nameless chunk header of type ~A found" chunk-type))
-                         ((null size)
-                          (error "Size for '~A' chunk is not specified" name))
-                         ((not (null chunk))
-                          (error "Duplicate chunk with name '~A' found" name)))
+                     (cond
+                       ((null name)
+                        (error "Nameless chunk header of type ~A found" chunk-type))
+                       ((null size)
+                        (error "Size for '~A' chunk is not specified" name)))
+                     (with-hash-entries ((chunk (namestring (fad:pathname-as-file name)))) chunk-table
+                       (when chunk
+                         (error "Duplicate chunk with name '~A' found" name))
                        (setf chunk (make-chunk-record :type chunk-type
                                                       :compression compression
                                                       :position position

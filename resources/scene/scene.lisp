@@ -32,12 +32,12 @@
     (setf (gethash id material-table) material)))
 
 
-(defmacro do-meshes ((mesh id scene) &body body)
-  `(maphash (lambda (,id ,mesh) ,@body) (%mesh-table-of ,scene)))
+(defmacro do-scene-resource-meshes ((mesh id scene) &body body)
+  `(maphash (lambda (,id ,mesh) (declare (ignorable ,id)) ,@body) (%mesh-table-of ,scene)))
 
 
-(defmacro do-materials ((material id scene) &body body)
-  `(maphash (lambda (,id ,material) ,@body) (%material-table-of ,scene)))
+(defmacro do-scene-resource-materials ((material id scene) &body body)
+  `(maphash (lambda (,id ,material) (declare (ignorable ,id)) ,@body) (%material-table-of ,scene)))
 
 ;;;
 ;;; MESH
@@ -100,9 +100,10 @@
   (setf (gethash (cons type id) (material-resource-texture-table material)) value))
 
 
-(defmacro do-textures ((texture type id material) &body body)
+(defmacro do-material-resource-textures ((texture type id material) &body body)
   (with-gensyms (key)
     `(maphash (lambda (,key ,texture)
                 (destructuring-bind (,type . ,id) ,key
+                  (declare (ignorable ,type ,id))
                   ,@body))
               (material-resource-texture-table ,material))))

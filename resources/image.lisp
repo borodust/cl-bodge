@@ -80,6 +80,11 @@
     (read-image-from-stream stream :png)))
 
 
+(defun load-jpeg-image (path)
+  (with-open-file (stream path :element-type '(unsigned-byte 8))
+    (read-image-from-stream stream :jpeg)))
+
+
 (defmethod foreign-array-of ((this image))
   (data-of this))
 
