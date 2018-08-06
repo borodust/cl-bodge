@@ -63,7 +63,12 @@
            mesh-resource-position-array
            mesh-resource-index-array
            mesh-resource-normal-array
+           mesh-resource-tangent-array
            mesh-resource-primitive
+           mesh-resource-color-array
+           mesh-resource-tex-coord-array
+           do-mesh-resource-color-arrays
+           do-mesh-resource-tex-coord-arrays
            ;; texture
            make-texture-resource
            texture-resource-name

@@ -26,14 +26,12 @@
     ('(unsigned-byte 32) (values :unsigned-int (claw:sizeof :int)))))
 
 
-(defun write-array (out type array)
+(defun write-array (out type array &rest params &key &allow-other-keys)
   (let ((length (reduce #'* (array-dimensions array))))
     (when (> length 0)
-      (multiple-value-bind (element-type element-size)
-          (array-type-info array)
-        (write-descriptor out type :length length :type element-type)
+      (multiple-value-bind (element-type element-size) (array-type-info array)
+        (apply #'write-descriptor out type :length length :type element-type params)
         (write-sequence-bytes out array element-size)))))
-
 
 ;;;
 ;;; MESHES
@@ -41,7 +39,12 @@
 (defun write-mesh-attributes (out mesh)
   (write-array out :position-array (mesh-resource-position-array mesh))
   (write-array out :index-array (mesh-resource-index-array mesh))
-  (write-array out :normal-array (mesh-resource-normal-array mesh)))
+  (write-array out :normal-array (mesh-resource-normal-array mesh))
+  (write-array out :tangent-array (mesh-resource-tangent-array mesh))
+  (do-mesh-resource-color-arrays (array channel-id mesh)
+    (write-array out :color-array array :channel-id channel-id))
+  (do-mesh-resource-tex-coord-arrays (array channel-id mesh)
+    (write-array out :tex-coord-array array :channel-id channel-id)))
 
 
 (defun write-mesh (out mesh mesh-idx)

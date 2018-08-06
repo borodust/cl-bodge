@@ -47,14 +47,52 @@
   primitive
   position-array
   index-array
-  normal-array)
+  normal-array
+  tangent-array
+  (color-table (make-hash-table))
+  (tex-coord-table (make-hash-table)))
 
 
 (defun make-mesh-resource (primitive)
   (%make-mesh-resource :primitive primitive))
 
 
-;;;
+(defun mesh-resource-color-array (mesh channel-id)
+  (gethash channel-id (mesh-resource-color-table mesh)))
+
+
+(defun (setf mesh-resource-color-array) (color-array mesh channel-id)
+  (setf (gethash channel-id (mesh-resource-color-table mesh)) color-array))
+
+
+(defun mesh-resource-tex-coord-array (mesh channel-id)
+  (gethash channel-id (mesh-resource-tex-coord-table mesh)))
+
+
+(defun (setf mesh-resource-tex-coord-array) (tex-coord-array mesh channel-id)
+  (setf (gethash channel-id (mesh-resource-tex-coord-table mesh)) tex-coord-array))
+
+
+(defun for-each-mesh-resource-color-array (mesh fu)
+  (maphash fu (mesh-resource-color-table mesh)))
+
+
+(defun for-each-mesh-resource-tex-coord-array (mesh fu)
+  (maphash fu (mesh-resource-tex-coord-table mesh)))
+
+
+(defmacro do-mesh-resource-color-arrays ((array channel-id mesh) &body body)
+  `(for-each-mesh-resource-color-array ,mesh (lambda (,channel-id ,array)
+                                               (declare (ignorable ,channel-id))
+                                               ,@body)))
+
+
+(defmacro do-mesh-resource-tex-coord-arrays ((array channel-id mesh) &body body)
+  `(for-each-mesh-resource-tex-coord-array ,mesh (lambda (,channel-id ,array)
+                                                   (declare (ignorable ,channel-id))
+                                                   ,@body)))
+
+;;;p
 ;;; MATERIAL
 ;;;
 (defstruct texture-resource

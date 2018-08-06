@@ -64,11 +64,15 @@
 (defun read-mesh (stream &key index primitive size)
   (let ((stream (make-bounded-input-stream stream size))
         (mesh (make-mesh-resource primitive)))
-    (do-descriptors ((attribute-type &rest args) stream)
+    (do-descriptors ((attribute-type &rest args &key channel-id &allow-other-keys) stream)
       (ecase attribute-type
         (:position-array (setf (mesh-resource-position-array mesh) (apply #'read-array stream args)))
         (:index-array (setf (mesh-resource-index-array mesh) (apply #'read-array stream args)))
-        (:normal-array (setf (mesh-resource-normal-array mesh) (apply #'read-array stream args)))))
+        (:normal-array (setf (mesh-resource-normal-array mesh) (apply #'read-array stream args)))
+        (:tangent-array (setf (mesh-resource-tangent-array mesh) (apply #'read-array stream args)))
+        (:color-array (setf (mesh-resource-color-array mesh channel-id) (apply #'read-array stream args)))
+        (:tex-coord-array
+         (setf (mesh-resource-tex-coord-array mesh channel-id) (apply #'read-array stream args)))))
     (values mesh index)))
 
 
