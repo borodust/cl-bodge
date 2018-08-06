@@ -47,6 +47,7 @@
            f
            epoch-seconds
            real-time-seconds
+           universal-time->epoch
            definline
            ensure-not-null
            bound-symbol-value

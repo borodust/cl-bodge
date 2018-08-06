@@ -19,15 +19,26 @@
 
 (defclass shader ()
   ((header :reader %header-of)
-   (source :reader %source-of)))
+   (source :reader %source-of)
+   (paths)
+   (last-read-time :reader %last-read-time-of)))
+
+
+(defun shader-changed-on-disk-p (shader)
+  (with-slots (last-read-time paths) shader
+    (loop for path in paths
+            thereis (> (universal-time->epoch (cl:file-write-date path))
+                       last-read-time))))
 
 
 (defun %reload-shader-sources (shader header-paths source-paths)
-  (with-slots (header source) shader
+  (with-slots (header source last-read-time paths) shader
     (setf header (when header-paths
                    (format nil "~{~A~&~}" (mapcar #'read-file-into-string header-paths)))
           source (when source-paths
-                   (format nil "~{~A~&~}" (mapcar #'read-file-into-string source-paths))))))
+                   (format nil "~{~A~&~}" (mapcar #'read-file-into-string source-paths)))
+          last-read-time (epoch-seconds)
+          paths (append header-paths source-paths))))
 
 
 (defmethod initialize-instance :after ((this shader) &key)

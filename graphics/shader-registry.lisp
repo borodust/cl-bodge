@@ -92,6 +92,19 @@
           do (reload-shader-sources (shader-library-descriptor library)))))
 
 
+(defun reload-changed-and-mark-dirty ()
+  (with-slots (library-table) *shader-registry*
+    (loop with reloaded
+          for library being the hash-values of library-table
+          for descriptor = (shader-library-descriptor library)
+          for descriptor-class-name = (class-name-of descriptor)
+          when (shader-changed-on-disk-p descriptor)
+            do (reload-shader-sources descriptor)
+               (mark-dirty descriptor-class-name)
+               (push descriptor-class-name reloaded)
+          finally (return reloaded))))
+
+
 (defun register-shader-library (shader-class)
   (with-slots (library-table name-table) *shader-registry*
     (with-hash-entries ((shader-library shader-class)) library-table
