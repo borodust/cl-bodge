@@ -37,18 +37,17 @@
            define-sdf-font
            sdf-font-atlas-resource-name
            sdf-font-metrics-resource-name
-           font-atlas-chunk-ascender
-           font-atlas-chunk-descender
-           font-atlas-chunk-line-gap
-           glyph-metrics-character
-           glyph-metrics-origin
-           glyph-metrics-bounding-box
-           glyph-metrics-advance-width
-           glyph-metrics-kernings
-
-           ;; chunk-structure
-           id-of
-           children-of
+           make-font-atlas-resource
+           font-atlas-resource-ascender
+           font-atlas-resource-descender
+           font-atlas-resource-line-gap
+           font-atlas-resource-glyphs
+           make-glyph-metrics-resource
+           glyph-metrics-resource-character
+           glyph-metrics-resource-origin
+           glyph-metrics-resource-bounding-box
+           glyph-metrics-resource-advance-width
+           glyph-metrics-resource-kernings
 
            ;; ttf font
            font-container-data

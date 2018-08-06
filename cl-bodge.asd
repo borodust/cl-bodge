@@ -83,11 +83,11 @@
                (:module chunked :serial t
                 :components ((:file "resource")
                              (:file "container")
-                             (:file "chunk-structure")
-                             (:file "font")))
+                             (:file "chunk-structure")))
                (:file "audio")
                (:file "image")
                (:file "font")
+               (:file "font-atlas")
                (:module scene :serial t
                 :components ((:file "scene")
                              (:file "read")

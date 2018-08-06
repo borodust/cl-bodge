@@ -16,15 +16,15 @@
         with result = (make-foreign-array (* width height channels)
                                           :element-type '(unsigned-byte 8))
         with array = (simple-array-of result)
-     for i from 0 below height
-     do (loop for j from 0 below width
-           do (if (= channels 1)
-                  (setf (aref array (+ j (* i width)))
-                        (aref data i j))
-                  (loop for k from 0 below channels
-                     do (setf (aref array (+ k (* j channels) (* (- height i 1) width channels)))
-                              (aref data i j k)))))
-     finally (return result)))
+        for i from 0 below height
+        do (loop for j from 0 below width
+                 do (if (= channels 1)
+                        (setf (aref array (+ j (* i width)))
+                              (aref data i j))
+                        (loop for k from 0 below channels
+                              do (setf (aref array (+ k (* j channels) (* (- height i 1) width channels)))
+                                       (aref data i j k)))))
+        finally (return result)))
 
 
 (defun unwind-png-data (image data)
@@ -35,14 +35,14 @@
                             (:grey 1)
                             (:rgb 3)
                             (:rgba 4))
-       for i from 0 below height
-       do (loop for j from 0 below width
-             do (if (= channels 1)
-                    (setf (aref data i j)
-                          (aref array (+ j (* i width))))
-                    (loop for k from 0 below channels do
-                         (setf (aref data i j k)
-                               (aref array (+ k (* j channels) (* (- height i 1) width channels))))))))
+          for i from 0 below height
+          do (loop for j from 0 below width
+                   do (if (= channels 1)
+                          (setf (aref data i j)
+                                (aref array (+ j (* i width))))
+                          (loop for k from 0 below channels do
+                            (setf (aref data i j k)
+                                  (aref array (+ k (* j channels) (* (- height i 1) width channels))))))))
     data))
 
 
@@ -109,3 +109,11 @@
 (defmethod make-resource-handler ((type (eql :image)) &key ((:type image-type)
                                                             (error ":type missing")))
   (make-instance 'image-resource-handler :type image-type))
+
+
+(defmethod make-resource-handler ((type (eql :png-image)) &key)
+  (make-resource-handler :image :type :png))
+
+
+(defmethod make-resource-handler ((type (eql :jpeg-image)) &key)
+  (make-resource-handler :image :type :jpeg))

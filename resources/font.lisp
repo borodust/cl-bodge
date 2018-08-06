@@ -26,3 +26,11 @@
   (eswitch (font-type)
     (:sdf (make-instance 'sdf-font-resource-handler))
     (:ttf (make-instance 'truetype-font-resouce-handler))))
+
+
+(defmethod make-resource-handler ((type (eql :ttf-font)) &key)
+  (make-resource-handler :font :type :ttf))
+
+
+(defmethod make-resource-handler ((type (eql :font-atlas)) &key)
+  (make-resource-handler :font :type :sdf))

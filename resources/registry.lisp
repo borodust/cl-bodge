@@ -62,7 +62,7 @@
                             (make-resource-handler type)))))
       (with-resource-stream (stream name *resource-storage*)
         (decode-resource handler stream))
-      (error "Handler for '~A' is not registered" name))))
+      (error "Failed to determine handler for '~A'" name))))
 
 
 (defun resource-flow (&rest resource-names)
