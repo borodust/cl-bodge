@@ -35,6 +35,7 @@
   ((texture-id :initform (gl:gen-texture) :reader %texture-id-of)
    (target :initarg :target :reader %target-of)
    (format :initarg :internal-format :reader texture-format)
+   (max-level :initform 1000 :accessor %texture-max-level-of)
    (dimensions :initarg :dimensions :initform nil :reader texture-dimensions)))
 
 
@@ -57,6 +58,18 @@
       (gl:bind-texture (%target-of this) (%texture-id-of this)))
     (%gl:uniform-1i location texture-unit)))
 
+
+(defgeneric assign-texture-mipmap-level (image texture level))
+
+
+(defun texture-mipmap-level (texture level)
+  (declare (ignore texture level))
+  (error "Unimplemented"))
+
+
+(defun (setf texture-mipmap-level) (image texture level)
+  (assign-texture-mipmap-level image texture level))
+
 ;;;
 ;;; 2D TEXTURE
 ;;;
@@ -77,18 +90,19 @@
       (gl:tex-image-2d target 0 internal-format width height 0 external-format
                        :unsigned-byte (foreign-pointer-of data) :raw t)
       (gl:tex-parameter target :texture-mag-filter :linear)
+      (gl:tex-parameter target :texture-base-level 0)
       (if generate-mipmaps-p
           (progn
+            (gl:tex-parameter target :texture-max-level (%texture-max-level-of this))
             (gl:generate-mipmap target)
             (gl:tex-parameter target :texture-min-filter :nearest-mipmap-linear))
           (progn
             (gl:tex-parameter target :texture-min-filter :linear)
-            (gl:tex-parameter target :texture-base-level 0)
-            (gl:tex-parameter target :texture-max-level 0))))))
+            (gl:tex-parameter target :texture-max-level (setf (%texture-max-level-of this) 0)))))))
 
 
 (defun %make-2d-texture (class image texture-format &key (generate-mipmaps-p t))
-    (let ((ex-format (%pixel-format->external-format (pixel-format-of image)))
+  (let ((ex-format (%pixel-format->external-format (pixel-format-of image)))
         (in-format (%texture-format->internal-format texture-format))
         (width (width-of image))
         (height (height-of image)))
@@ -106,6 +120,22 @@
   (%make-2d-texture 'texture-2d image texture-format
                     :generate-mipmaps-p generate-mipmaps-p))
 
+
+(defun %assign-texture-mipmap-level (image texture level-target level)
+  (let ((target (%target-of texture))
+        (external-format (%pixel-format->external-format (pixel-format-of image)))
+        (width (width-of image))
+        (height (height-of image))
+        (data (foreign-array-of image)))
+    (with-bound-texture (target (%texture-id-of texture))
+      (gl:tex-image-2d level-target level (texture-format texture) width height 0 external-format
+                       :unsigned-byte (foreign-pointer-of data) :raw t)
+      (when (> level (%texture-max-level-of texture))
+        (gl:tex-parameter target :texture-max-level (setf (%texture-max-level-of texture) level))))))
+
+
+(defmethod assign-texture-mipmap-level (image (texture texture-2d) level)
+  (%assign-texture-mipmap-level image texture (%target-of texture) level))
 
 
 ;;;
@@ -229,6 +259,10 @@
   (make-instance 'cubemap-texture-layer
                  :texture this
                  :layer-id :texture-cube-map-negative-z))
+
+
+(defmethod assign-texture-mipmap-level (image (layer cubemap-texture-layer) level)
+  (%assign-texture-mipmap-level image (%texture-of layer) (%layer-type-of layer) level))
 
 ;;;
 ;;;

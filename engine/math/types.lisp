@@ -3,6 +3,7 @@
 (defgeneric lerp (this that f))
 (defgeneric normalize (this))
 (defgeneric inverse (this))
+(defgeneric transpose (this))
 
 
 (defgeneric multiply (this that))

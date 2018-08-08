@@ -69,6 +69,7 @@
            dot
            normalize
            inverse
+           transpose
 
            transform-of
 

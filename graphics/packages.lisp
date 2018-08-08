@@ -25,6 +25,7 @@
            make-empty-2d-texture
            make-empty-depth-texture
            texture-dimensions
+           texture-mipmap-level
 
            make-cubemap-texture
            make-empty-cubemap-texture

@@ -402,11 +402,16 @@
                (:file "scene")
                (:file "case")
                (:module cases
-                        :serial t
-                        :components ((:file "2d-physics")
-                                     (:file "3d-physics")
-                                     (:file "framebuffers/framebuffers")
-                                     (:file "ui")
-                                     (:file "text/text")
-                                     (:file "pbr/pbr")))
+                :serial t
+                :components ((:file "2d-physics")
+                             (:file "3d-physics")
+                             (:file "framebuffers/framebuffers")
+                             (:file "ui")
+                             (:file "text/text")
+                             (:module pbr
+                              :serial t
+                              :components ((:file "packages")
+                                           (:file "utils")
+                                           (:file "scene")
+                                           (:file "pbr")))))
                (:file "demo")))

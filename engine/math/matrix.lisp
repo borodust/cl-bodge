@@ -51,6 +51,10 @@
   (make-instance 'mat4 :value (m4:inverse (value-of this))))
 
 
+(defmethod transpose ((this mat4))
+  (make-instance 'mat4 :value (m4:transpose (value-of this))))
+
+
 (definline euler-angles->mat4 (vec3)
   (make-instance 'mat4 :value (m4:rotation-from-euler (value-of vec3))))
 
@@ -124,6 +128,14 @@
   (scaling-mat4 (vref vec 0)
                 (vref vec 1)
                 (vref vec 2)))
+
+
+(defmethod inverse ((this mat3))
+  (make-instance 'mat3 :value (m3:affine-inverse (value-of this))))
+
+
+(defmethod transpose ((this mat3))
+  (make-instance 'mat3 :value (m3:transpose (value-of this))))
 
 
 (defun mat3 (m11 m12 m13
