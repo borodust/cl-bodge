@@ -34,6 +34,7 @@
 
            ;; chunked
            write-chunk
+           write-brf-magic
 
            ;; ttf font
            define-sdf-font

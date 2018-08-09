@@ -45,6 +45,12 @@
       (error "Unsupported version: ~a" version))))
 
 
+(defun write-brf-magic (stream version)
+  (let ((stream (flex:make-flexi-stream stream :external-format :utf-8)))
+    (format stream "bodged!"))
+  (write-byte version stream))
+
+
 (defun write-chunk (stream type name bytes &key compression (start 0) end)
   (unless (subtypep (array-element-type bytes) '(unsigned-byte 8))
     (error "Byte array must be of '(unsigned-byte 8) type"))

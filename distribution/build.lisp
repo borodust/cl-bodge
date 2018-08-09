@@ -89,19 +89,18 @@
     (with-open-file (out container-file
                          :direction :output
                          :element-type '(unsigned-byte 8))
-      (let ((flexi (flexi-streams:make-flexi-stream out :external-format :utf-8)))
-        (prin1 '(:brf 1) flexi)
-        (loop for resource-name in (ge.rsc:list-registered-resource-names)
-           when (starts-with-subseq resource-root resource-name)
-           do (let* ((asset (ge.rsc:load-resource resource-name))
-                     (handler (ge.rsc:find-resource-handler resource-name))
-                     (*package* (find-package :cl))
-                     (*print-pretty* nil)
-                     (data (flex:with-output-to-sequence (stream)
-                             (ge.rsc:encode-resource handler asset stream))))
-                (ge.rsc:write-chunk out (ge.rsc:handler-resource-type handler)
-                                    resource-name
-                                    data)))))))
+      (ge.rsc:write-brf-magic out 2)
+      (loop for resource-name in (ge.rsc:list-registered-resource-names)
+            when (starts-with-subseq resource-root resource-name)
+              do (let* ((asset (ge.rsc:load-resource resource-name))
+                        (handler (ge.rsc:find-resource-handler resource-name))
+                        (*package* (find-package :cl))
+                        (*print-pretty* nil)
+                        (data (flex:with-output-to-sequence (stream)
+                                (ge.rsc:encode-resource handler asset stream))))
+                   (ge.rsc:write-chunk out (ge.rsc:handler-resource-type handler)
+                                       resource-name
+                                       data))))))
 
 
 (defun serialize-assets ()
