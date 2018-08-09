@@ -106,6 +106,10 @@
     (write-image-to-stream stream resource type)))
 
 
+(defun make-image-resource-handler (image-type)
+  (make-resource-handler :image :type image-type))
+
+
 (defmethod make-resource-handler ((type (eql :image)) &key ((:type image-type)
                                                             (error ":type missing")))
   (make-instance 'image-resource-handler :type image-type))

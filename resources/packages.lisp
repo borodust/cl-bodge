@@ -21,6 +21,7 @@
            defresource
            make-resource-handler
            make-text-resource-handler
+           make-image-resource-handler
 
            mount-container
 
