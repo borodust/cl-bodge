@@ -40,6 +40,11 @@
      ,@body))
 
 
+(defmacro for-shared-graphics ((&optional arg) &body body)
+  `(-> (graphics) :main-p nil (,@(when arg (list arg)))
+     ,@body))
+
+
 (defmethod enabling-flow ((this graphics-system))
   (with-slots (resource-executor) this
     (>> (call-next-method)

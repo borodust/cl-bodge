@@ -10,6 +10,7 @@
   (:export graphics-system
            graphics
            for-graphics
+           for-shared-graphics
 
            defshader
            defpipeline
