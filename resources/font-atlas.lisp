@@ -42,6 +42,10 @@
                      :resource-type :font-atlas))
 
 
+(defmethod resource-dependencies ((this sdf-font-resource-handler) atlas)
+  (list (font-atlas-resource-image-name atlas)))
+
+
 (defmacro define-sdf-font (name)
   `(progn
      (defresource :font (sdf-font-metrics-resource-name ,name) :type :sdf)))

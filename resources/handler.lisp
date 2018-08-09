@@ -15,6 +15,10 @@
 (defgeneric handler-resource-type (handler))
 
 
+(defgeneric resource-dependencies (handler resource)
+  (:method (handler resource) nil))
+
+
 (defgeneric make-resource-handler (type &key &allow-other-keys))
 
 

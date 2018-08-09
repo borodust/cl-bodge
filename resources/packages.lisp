@@ -6,6 +6,7 @@
            encode-resource
            decode-resource
            handler-resource-type
+           resource-dependencies
 
            register-resource
            load-resource

@@ -1,8 +1,19 @@
 (cl:in-package :cl-bodge.distribution)
 
 
+(declaim (special *serialized-asset-table*))
+
+
 (define-constant +resource-filename+ "bodge.brf"
   :test #'equal)
+
+
+(defun asset-serialized-p (name)
+  (gethash name *serialized-asset-table*))
+
+
+(defun register-serialized-asset (name)
+  (setf (gethash name *serialized-asset-table*) name))
 
 
 (defgeneric configure-system (name)
@@ -84,6 +95,26 @@
             (fad:copy-file lib-path target-file)))))
 
 
+(defun serialize-asset (resource-name stream)
+  (unless (asset-serialized-p resource-name)
+    (let* ((asset (ge.rsc:load-resource resource-name))
+           (handler (ge.rsc:find-resource-handler resource-name))
+           (*package* (find-package :cl))
+           (*print-pretty* nil)
+           (data (flex:with-output-to-sequence (stream)
+                   (ge.rsc:encode-resource handler asset stream))))
+      (ge.rsc:write-chunk stream (ge.rsc:handler-resource-type handler)
+                          resource-name
+                          data)
+      (register-serialized-asset resource-name)
+      (shout "~A added" resource-name)
+      (loop for dependency-name in (ge.rsc:resource-dependencies handler asset)
+            do (serialize-asset (namestring (fad:merge-pathnames-as-file
+                                             (fad:pathname-directory-pathname resource-name)
+                                             dependency-name))
+                                stream)))))
+
+
 (defun serialize-assets-by-root (resource-root container-file)
   (unless (fad:file-exists-p container-file)
     (with-open-file (out container-file
@@ -92,27 +123,20 @@
       (ge.rsc:write-brf-magic out 2)
       (loop for resource-name in (ge.rsc:list-registered-resource-names)
             when (starts-with-subseq resource-root resource-name)
-              do (let* ((asset (ge.rsc:load-resource resource-name))
-                        (handler (ge.rsc:find-resource-handler resource-name))
-                        (*package* (find-package :cl))
-                        (*print-pretty* nil)
-                        (data (flex:with-output-to-sequence (stream)
-                                (ge.rsc:encode-resource handler asset stream))))
-                   (ge.rsc:write-chunk out (ge.rsc:handler-resource-type handler)
-                                       resource-name
-                                       data))))))
+              do (serialize-asset resource-name out)))))
 
 
 (defun serialize-assets ()
-  (let* ((asset-dir (asset-directory-of *distribution*)))
+  (let* ((asset-dir (asset-directory-of *distribution*))
+         (*serialized-asset-table* (make-hash-table :test #'equal)))
     (ensure-directories-exist asset-dir)
     (loop for (resource-root container-path) in (cons (list "/_engine/" +resource-filename+)
                                                       (asset-containers-of *distribution*))
        do (serialize-assets-by-root resource-root (file asset-dir container-path)))))
 
 
-(defun shout (string)
-  (format t "~%~A~%" string)
+(defun shout (string &rest args)
+  (format t "~%~A" (apply #'format nil string args))
   (finish-output))
 
 
@@ -144,5 +168,5 @@
     (when (bundle-run-file-of *distribution*)
       (shout "Creating bundle")
       (make-app-bundle))
-    (format t "~%Done~%")
+    (shout "~%Done~%")
     *distribution*))

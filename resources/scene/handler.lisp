@@ -7,6 +7,14 @@
   (:default-initargs :resource-type :scene))
 
 
+(defmethod resource-dependencies ((this scene-resource-handler) scene) ()
+  (let (texture-names)
+    (do-scene-resource-materials (material id scene)
+      (do-material-resource-textures (texture type id material)
+        (pushnew (texture-resource-name texture) texture-names :test #'equal)))
+    texture-names))
+
+
 (defmethod decode-resource ((this scene-resource-handler) stream)
   (read-scene stream))
 
