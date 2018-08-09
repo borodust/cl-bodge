@@ -99,11 +99,9 @@
                      (*print-pretty* nil)
                      (data (flex:with-output-to-sequence (stream)
                              (ge.rsc:encode-resource handler asset stream))))
-                (prin1 (list (ge.rsc:resource-type handler)
-                             :name resource-name
-                             :size (length data))
-                       flexi)
-                (write-sequence data out)))))))
+                (ge.rsc:write-chunk out (ge.rsc:handler-resource-type handler)
+                                    resource-name
+                                    data)))))))
 
 
 (defun serialize-assets ()

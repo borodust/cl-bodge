@@ -12,14 +12,23 @@
   (:method (handler stream)))
 
 
+(defgeneric handler-resource-type (handler))
+
+
 (defgeneric make-resource-handler (type &key &allow-other-keys))
+
+
+(defclass resource-handler ()
+  ((resource-type :initform (error ":resource-type missing") :initarg :resource-type
+                  :reader handler-resource-type)))
 
 
 ;;;
 ;;; Text resource handler
 ;;;
-(defclass text-resource-handler ()
-  ((encoding :initarg :encoding :initform (error ":encoding missing"))))
+(defclass text-resource-handler (resource-handler)
+  ((encoding :initarg :encoding :initform (error ":encoding missing")))
+  (:default-initargs :resource-type :text))
 
 
 (defmethod decode-resource ((this text-resource-handler) stream)

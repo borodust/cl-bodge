@@ -96,6 +96,13 @@
   ((type :initarg :type :initform (error ":type missing"))))
 
 
+(defmethod handler-resource-type ((this image-resource-handler))
+  (with-slots (type) this
+    (ecase type
+      (:png :png-image)
+      (:jpeg :jpeg-image))))
+
+
 (defmethod decode-resource ((this image-resource-handler) stream)
   (with-slots (type) this
     (read-image-from-stream stream type)))

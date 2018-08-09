@@ -5,6 +5,7 @@
 
            encode-resource
            decode-resource
+           handler-resource-type
 
            register-resource
            load-resource

@@ -35,7 +35,8 @@
 ;;; Audio resource
 ;;;
 
-(defclass audio-resource-handler () ())
+(defclass audio-resource-handler (resource-handler) ()
+  (:default-initargs :resource-type :audio))
 
 
 (defmethod decode-resource ((this audio-resource-handler) stream)

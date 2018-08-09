@@ -7,7 +7,8 @@
   ((data :initarg :data :reader font-container-data)))
 
 
-(defclass truetype-font-resouce-handler () ())
+(defclass truetype-font-resouce-handler (resource-handler) ()
+  (:default-initargs :resource-type :ttf-font))
 
 
 (defmethod decode-resource ((this truetype-font-resouce-handler) stream)

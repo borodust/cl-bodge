@@ -47,7 +47,7 @@
         (setf resource-entry handler)))))
 
 
-(defun find-registered-resource-handler (resource-name)
+(defun find-resource-handler (resource-name)
   (with-slots (resource-table) *resource-registry*
     (with-instance-lock-held (*resource-registry*)
       (gethash (namestring resource-name) resource-table))))
@@ -57,7 +57,7 @@
   (with-slots (resource-table) *resource-registry*
     (log:trace "Resource requested: '~A'" name)
     (if-let ((handler (or handler
-                          (find-registered-resource-handler name)
+                          (find-resource-handler name)
                           (when-let ((type (resource-type *resource-storage* name)))
                             (make-resource-handler type)))))
       (with-resource-stream (stream name *resource-storage*)

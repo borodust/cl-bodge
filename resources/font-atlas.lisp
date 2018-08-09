@@ -27,6 +27,7 @@
 (definline sdf-font-atlas-resource-name (name)
   (sdf-font-resource-name name "image"))
 
+
 (definline sdf-font-metrics-resource-name (name)
   (sdf-font-resource-name name "font"))
 
@@ -37,12 +38,10 @@
 
 
 (defclass sdf-font-resource-handler (chunk-structure-resource-handler) ()
-  (:default-initargs :chunk-type 'font-atlas-resource))
+  (:default-initargs :chunk-type 'font-atlas-resource
+                     :resource-type :font-atlas))
 
 
 (defmacro define-sdf-font (name)
   `(progn
-     (defresource :image (sdf-font-atlas-resource-name ,name)
-       :type :png)
-     (defresource :font (sdf-font-metrics-resource-name ,name)
-       :type :sdf)))
+     (defresource :font (sdf-font-metrics-resource-name ,name) :type :sdf)))

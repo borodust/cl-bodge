@@ -3,7 +3,8 @@
 ;;;
 ;;; Scene resource
 ;;;
-(defclass scene-resource-handler () ())
+(defclass scene-resource-handler (resource-handler) ()
+  (:default-initargs :resource-type :scene))
 
 
 (defmethod decode-resource ((this scene-resource-handler) stream)

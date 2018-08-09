@@ -76,7 +76,7 @@
 ;;;
 ;;; Structured resource
 ;;;
-(defclass chunk-structure-resource-handler ()
+(defclass chunk-structure-resource-handler (resource-handler)
   ((type :initarg :chunk-type :initform (error ":chunk-type missing") :reader chunk-type-of)))
 
 
