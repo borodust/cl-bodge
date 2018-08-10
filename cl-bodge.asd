@@ -413,5 +413,6 @@
                               :components ((:file "packages")
                                            (:file "utils")
                                            (:file "scene")
-                                           (:file "pbr")))))
+                                           (:file "pbr")))
+                             (:file "animation/animation")))
                (:file "demo")))

@@ -63,6 +63,12 @@
   (make-instance 'mat3 :value (m3:rotation-from-euler (value-of vec3))))
 
 
+(definline euler-angle->mat3 (angle)
+  (make-instance 'mat3 :value (m3:make (f (cos angle)) (f (- (sin angle))) 0f0
+                                       (f (sin angle)) (f (cos angle))     0f0
+                                       0f0             0f0                 1f0)))
+
+
 (defun angle->mat2 (angle)
   (let ((val (make-array 4 :element-type 'single-float))
         (sin (sin angle))
@@ -110,6 +116,12 @@
   (make-instance 'mat4 :value (m4:translation (v3:make (f x) (f y) (f z)))))
 
 
+(definline translation-mat3 (x y)
+  (make-instance 'mat3 :value (m3:make 1f0 0f0 (f x)
+                                       0f0 1f0 (f y)
+                                       0f0 0f0 1f0)))
+
+
 (definline sequence->translation-mat4 (sequence)
   (translation-mat4 (elt sequence 0)
                     (elt sequence 1)
@@ -122,6 +134,12 @@
 
 (definline scaling-mat4 (x y z)
   (make-instance 'mat4 :value (m4:scale (v3:make (f x) (f y) (f z)))))
+
+
+(definline scaling-mat3 (x y)
+  (make-instance 'mat3 :value (m3:make (f x) 0f0 0f0
+                                       0f0 (f y) 0f0
+                                       0f0 0f0 1f0)))
 
 
 (definline vec->scaling-mat4 (vec)

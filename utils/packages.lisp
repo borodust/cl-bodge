@@ -77,7 +77,7 @@
            string->mutable
            string->immutable
            mutate-string
-           inhibiting-string-conversion
+           replace-all
            current-file-truename
            translate-name-to-foreign
            translate-name-from-foreign

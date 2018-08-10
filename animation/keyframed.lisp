@@ -3,7 +3,6 @@
 ;;;
 ;;;
 ;;;
-
 (defclass keyframe ()
   ((timestamp :initarg :timestamp :reader timestamp-of)
    (rotation :initarg :rotation :initform (identity-quat) :reader rotation-of)

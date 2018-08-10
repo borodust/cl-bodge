@@ -108,11 +108,14 @@
            angle->mat2
            euler-angles->mat4
            euler-angles->mat3
+           euler-angle->mat3
            rotation-translation->mat4
            translation-mat4
+           translation-mat3
            sequence->translation-mat4
            vec->translation-mat4
            scaling-mat4
+           scaling-mat3
            vec->scaling-mat4
            mat4->mat3
            mat3->mat4
