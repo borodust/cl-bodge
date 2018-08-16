@@ -57,8 +57,8 @@
   (:nicknames :ge.math)
   (:use :cl :cl-bodge.utils)
   (:export +double-infinity+
-           +single-ininity+
-
+           +single-infinity+
+           ;; OPERATIONS
            lerp
            nlerp
            mult
@@ -70,67 +70,80 @@
            normalize
            inverse
            transpose
-
-           transform-of
-
+           ;; VECTORS
            vec
-           vec2
-           vec3
-           vec4
-           vec->array
-           sequence->vec2
-           sequence->vec3
-           sequence->vec4
            vref
-           make-vec3
-           make-vec4
            x
            y
            z
            w
            vector-length
-
+           vec->array
+           vec2
+           vec3
+           vec4
+           sequence->vec2
+           sequence->vec3
+           sequence->vec4
+           value->vec2
+           value->vec3
+           value->vec4
+           ;; MATRICES
            mat
            square-mat
            mat2
            mat3
            mat4
-           square-matrix-size
            mref
            mat->array
-           make-mat3
+           square-matrix-size
+           copy-mat2
+           copy-mat3
+           copy-mat4
+           value->mat2
+           value->mat3
+           value->mat4
+           identity-mat2
            identity-mat3
            identity-mat4
+           sequence->mat2
+           sequence->mat3
            sequence->mat4
-           sequence->rotation-mat4
-           mat->rotation-mat4
-           euler-axis->mat4
-           angle->mat2
-           euler-angles->mat4
+           euler-angle->mat2
+           euler-angle->mat3-homo
            euler-angles->mat3
-           euler-angle->mat3
-           rotation-translation->mat4
-           translation-mat4
+           euler-angles->mat4-homo
+           euler-axis->mat3
+           euler-axis->mat4-homo
+           rotation-translation->mat3-homo
+           rotation-translation->mat4-homo
            translation-mat3
-           sequence->translation-mat4
-           vec->translation-mat4
-           scaling-mat4
+           translation-mat3-homo
+           translation-mat4-homo
+           vec->translation-mat3-homo
+           vec->translation-mat4-homo
            scaling-mat3
-           vec->scaling-mat4
-           mat4->mat3
-           mat3->mat4
+           scaling-mat3-homo
+           scaling-mat4-homo
+           vec->scaling-mat3
+           vec->scaling-mat3-homo
+           vec->scaling-mat4-homo
+           basis->mat2
+           basis->mat3
+           basis->mat3-homo
            basis->mat4
+           basis->mat4-homo
            perspective-projection-mat
            orthographic-projection-mat
-
+           ;; QUATERNIONS
            quat
            identity-quat
            sequence->quat
            euler-axis->quat
            euler-angles->quat
            quat->rotation-mat3
-           quat->rotation-mat4
-           rotate))
+           quat->rotation-mat4-homo
+           rotate-vec3-with-quat))
 
 
 (ge.util:define-package :cl-bodge.engine.resources

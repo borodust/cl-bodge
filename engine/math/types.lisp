@@ -15,7 +15,6 @@
 (defgeneric dot-product (this that))
 (defgeneric cross-product (this that))
 
-(defgeneric transform-of (this))
 
 (macrolet ((defreduced (name generic)
              `(definline ,name (arg0 &rest args)
@@ -121,3 +120,7 @@
 ;;;
 (defclass quat ()
   ((value :initarg :value :initform (q:0!) :type rtg-math.types:quaternion :reader value-of)))
+
+
+(definline make-wrapped (type val)
+  (make-instance type :value val))

@@ -33,31 +33,41 @@
   :serial t
   :components ((:file "packages")
                (:module math
-                        :serial t
-                        :components ((:file "types")
-                                     (:file "scalar")
-                                     (:file "vector")
-                                     (:file "matrix")
-                                     (:file "quaternion")))
+                :serial t
+                :components ((:file "types")
+                             (:file "scalar")
+                             (:module vec
+                              :serial t
+                              :components ((:file "vector")
+                                           (:file "vec2")
+                                           (:file "vec3")
+                                           (:file "vec4")))
+                             (:module mat
+                              :serial t
+                              :components ((:file "matrix")
+                                           (:file "mat2")
+                                           (:file "mat3")
+                                           (:file "mat4")))
+                             (:file "quaternion")))
                (:module memory
-                        :serial t
-                        :components ((:file "disposable")
-                                     (:file "foreign-array")))
+                :serial t
+                :components ((:file "disposable")
+                             (:file "foreign-array")))
                (:module concurrency
-                        :serial t
-                        :components ((:file "dispatch")
-                                     (:file "execution")
-                                     (:file "task-queue")
-                                     (:file "instance-lock")
-                                     (:file "main-thread")))
+                :serial t
+                :components ((:file "dispatch")
+                             (:file "execution")
+                             (:file "task-queue")
+                             (:file "instance-lock")
+                             (:file "main-thread")))
                (:module resources
-                        :components ((:file "audio")
-                                     (:file "graphics")))
+                :components ((:file "audio")
+                             (:file "graphics")))
                (:module events
-                        :components ((:file "event")
-                                     (:file "emitter")
-                                     (:file "listener")
-                                     (:file "hub")))
+                :components ((:file "event")
+                             (:file "emitter")
+                             (:file "listener")
+                             (:file "hub")))
                (:file "properties")
                (:file "engine")
                (:file "handle")

@@ -25,7 +25,7 @@
 (defun update-text-renderer-canvas-size (text-renderer width height)
   (with-slots (proj) text-renderer
     (setf proj (mult (orthographic-projection-mat width height 0.0 1.0)
-                     (translation-mat4 (- (/ width 2)) (- (/ height 2)) 0.0)))))
+                     (translation-mat4-homo (- (/ width 2)) (- (/ height 2)) 0.0)))))
 
 
 (defmethod initialize-instance :after ((this text-renderer) &key font width height line-height)
@@ -63,10 +63,10 @@
   (with-slots (text-cache pipeline proj default-color scale) renderer
     (let* ((text (get-text text-cache string))
            (model-view-mat (if position
-                             (mult proj (translation-mat4 (x position)
-                                                          (y position)
-                                                          0.0))
-                             proj)))
+                               (mult proj (translation-mat4-homo (x position)
+                                                                 (y position)
+                                                                 0.0))
+                               proj)))
       (render-text t pipeline text :scale (f scale)
                                    :base-color (or color default-color)
                                    :mvp-matrix model-view-mat))))

@@ -20,9 +20,9 @@
 
 
 (defmethod transform-of ((this keyframe))
-  (mult (vec->translation-mat4 (translation-of this))
-        (quat->rotation-mat4 (rotation-of this))
-        (vec->scaling-mat4 (scale-of this))))
+  (mult (vec->translation-mat4-homo (translation-of this))
+        (quat->rotation-mat4-homo (rotation-of this))
+        (vec->scaling-mat4-homo (scale-of this))))
 
 
 (defmethod lerp ((this keyframe) (that keyframe) f)

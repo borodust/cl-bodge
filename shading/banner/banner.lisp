@@ -76,8 +76,8 @@
                               :tex-coord-array tex
                               :pipeline (make-shader-pipeline '2d-banner-pipeline)
                               :mvp (mult projection
-                                         (translation-mat4 x y 0)
-                                         (scaling-mat4 w h 1)))))
+                                         (translation-mat4-homo x y 0)
+                                         (scaling-mat4-homo w h 1)))))
 
 
 (defmethod render-banner ((this 2d-banner) texture &key mvp (output t))
@@ -164,8 +164,8 @@
                                    :index-array idx
                                    :tex-coord-array tex
                                    :mvp (mult projection
-                                              (translation-mat4 x y 0)
-                                              (scaling-mat4 w w 1)))))
+                                              (translation-mat4-homo x y 0)
+                                              (scaling-mat4-homo w w 1)))))
 
 
 (defmethod render-banner ((this cubemap-banner) texture &key mvp (output t))
