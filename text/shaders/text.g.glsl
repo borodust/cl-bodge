@@ -1,6 +1,6 @@
 #version 330 core
 
-#include <bodge/text>
+#pragma bodge: include bodge/text
 
 layout (points) in;
 layout (triangle_strip, max_vertices = 4) out;

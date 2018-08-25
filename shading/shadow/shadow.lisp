@@ -2,8 +2,8 @@
 
 
 (defshader (depth-shader
-               (:sources "depth.glsl")
-               (:base-path :system-relative :cl-bodge/shading "shadow/"))
+            (:sources "depth.glsl")
+            (:base-path :system-relative :cl-bodge/shading "shadow/"))
   (depth-position :location 0)
   (depth-mvp :name "MVP"))
 

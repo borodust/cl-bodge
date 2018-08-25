@@ -109,20 +109,39 @@
   (format output "#~A~%#define ~A 1" directive (process-shader-type-name *shader-type*)))
 
 
+(defun %process-include-directive (lib-name output)
+  (let* ((library (find-shader-library-by-name lib-name))
+         (descriptor (shader-library-descriptor library))
+         (header (%header-of descriptor)))
+    (when (null header)
+      (error "Header for library '~A' not found" lib-name))
+    (pushnew (class-name-of descriptor) *shader-dependencies*)
+    (preprocess-source header output)
+    (format output "~%")))
+
+
 (defun process-include-directive (directive output)
   (let ((start (position #\< directive))
         (end (position #\> directive)))
     (when (or (null start) (null end))
       (error "Malformed include: '#~A'" directive))
-    (let* ((lib-name (subseq directive (1+ start) end))
-           (library (find-shader-library-by-name lib-name))
-           (descriptor (shader-library-descriptor library))
-           (header (%header-of descriptor)))
-      (when (null header)
-        (error "Header for library '~A' not found" lib-name))
-      (pushnew (class-name-of descriptor) *shader-dependencies*)
-      (preprocess-source header output)
-      (format output "~%"))))
+    (let ((lib-name (subseq directive (1+ start) end)))
+      (%process-include-directive lib-name output))))
+
+
+(defun process-pragma-directive (directive output)
+  (multiple-value-bind (pragma-start subdirective-start)
+      (ppcre:scan "pragma\\s+bodge\\s*:\\s*" directive)
+    (declare (ignore pragma-start))
+    (if subdirective-start
+        (let* ((subdirective-list (ppcre:split "\\s+" directive :start subdirective-start))
+               (subdirective (first subdirective-list)))
+          (unless subdirective
+            (error "Malformed bodge pragma subdirective"))
+          (eswitch (subdirective :test #'equal)
+            ("include" (%process-include-directive (format nil "~{~A~}" (rest subdirective-list))
+                                                   output))))
+        (format output "~%#~A" directive))))
 
 
 (defun process-directive (directive output)
@@ -130,6 +149,7 @@
                              (starts-with-subseq prefix directive)))
     ("version" (process-version-directive directive output))
     ("include" (process-include-directive directive output))
+    ("pragma" (process-pragma-directive directive output))
     (t (format output "~%#~A" directive))))
 
 
