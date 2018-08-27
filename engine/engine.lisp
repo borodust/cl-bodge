@@ -31,13 +31,14 @@
   *engine*)
 
 
-(defun engine-system (system-name)
+(defun engine-system (system-name &optional (error-if-not-exist t))
   "Return engine's system instance by class name. Throws error if system cannot be found."
   (with-slots (systems) (engine)
     (when-let ((system-map systems))
       (if-let ((system (gethash system-name system-map)))
         system
-        (error (format nil "~a not found" system-name))))))
+        (when error-if-not-exist
+          (error (format nil "~a engine system not found" system-name)))))))
 
 
 (defun after-system-startup (system-name hook)
