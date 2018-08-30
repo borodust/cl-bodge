@@ -2,9 +2,10 @@
 Experimental **bod**acious **g**ame **e**ngine written in **C**ommon **L**isp.
 
 1. [Documentation](#documentation)
-1. [Engine modules](#engine-modules)
+1. [Framework modules](#framework-modules)
+1. [Guides](#guides)
 1. [Installation](#installation)
-1. [Demonstrations](#demonstrations)
+1. [Misc](#misc)
 1. [Help and Support](#help-and-support)
 
 
@@ -96,4 +97,5 @@ Also, check out [trivial-gamekit](https://github.com/borodust/trivial-gamekit) t
 with `cl-bodge` bit by bit.
 
 ## Help and Support
-You can receive those in `#lispgames` IRC channels at `freenode.net`.
+If you have any troubles going through guides or running the demo, feel free to fire an issue
+here or ping me in `#lispgames` IRC channels at `freenode.net`.
