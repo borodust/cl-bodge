@@ -11,8 +11,7 @@ Experimental **bod**acious **g**ame **e**ngine written in **C**ommon **L**isp.
 ## Documentation
 See `cl-bodge` external [documentation](https://borodust.org/projects/cl-bodge/).
 
-
-## Engine modules
+## Framework modules
 
 * ***Foundations***
 
@@ -70,25 +69,28 @@ See `cl-bodge` external [documentation](https://borodust.org/projects/cl-bodge/)
   execution file creation, OS bundles, assets and foreign dependencies packing. See
   `cl-bodge/distribution`.
 
+## Guides
+
+* [Graphics](https://github.com/borodust/hello-bodge-graphics/blob/master/hello-bodge-graphics.org)
+* [Physics](https://github.com/borodust/hello-bodge-physics/blob/master/hello-bodge-physics.org)
 
 ## Installation
 
 ### [Quicklisp](http://quicklisp.org)
 ```lisp
-;; add cl-bodge distribution into quicklisp
+;; Add cl-bodge distribution into quicklisp
 (ql-dist:install-dist "http://bodge.borodust.org/dist/org.borodust.bodge.txt")
 
-;; load the engine
-(ql:quickload :cl-bodge)
+;; Update main dist just in case
+(ql:update-dist "quicklisp")
+
+;; Load the demo
+(ql:quickload :cl-bodge/demo)
+;; And run it!
+(cl-bodge.demo:run)
 ```
 
-
-## Demonstrations
-
-* Chicken mesh loading, rendering and animation:
-  [Chicken](https://www.youtube.com/watch?v=ypZP4SNQOv8)
-* SDF-based text rendering: [Hello text](https://www.youtube.com/watch?v=8q_ssF4eEQQ)
-* GUI and [Text editing](https://vimeo.com/248563459)
+## Misc
 
 Also, check out [trivial-gamekit](https://github.com/borodust/trivial-gamekit) to get started
 with `cl-bodge` bit by bit.
