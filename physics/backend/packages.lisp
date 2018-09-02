@@ -1,4 +1,4 @@
-(ge.util:define-package :cl-bodge.physics.backend
+(bodge-util:define-package :cl-bodge.physics.backend
   (:use :cl)
   (:export #:register-simulation-engine
            #:list-simulation-engines

@@ -82,13 +82,13 @@ file is stored."
 
 (defmacro instantly ((&rest lambda-list) &body body)
   "Execute task in the current thread without dispatching."
-  `(-> nil ,lambda-list
+  `(flow:-> nil ,lambda-list
      ,@body))
 
 
 (defmacro concurrently ((&rest lambda-list) &body body)
   "Push task to engine's pooled executor."
-  `(-> nil :concurrently t ,lambda-list
+  `(flow:-> nil :concurrently t ,lambda-list
      ,@body))
 
 
@@ -111,10 +111,10 @@ flow block after the looped flow."
   (declare (type function test))
   (let (looped)
     (setf looped
-          (->> (value)
+          (flow:->> (value)
             (if (funcall test)
-                (>> flow
-                    looped)
+                (flow:>> flow
+                         looped)
                 (value-flow value))))))
 
 ;;
@@ -140,13 +140,13 @@ flow block after the looped flow."
 ;;
 (defun instantiate-systems (system-class-names &optional sys-alist)
   (loop for class-name in system-class-names
-       with result = sys-alist
-     unless (assoc class-name result)
-     do (let ((system (make-instance (find-class class-name))))
-          (setf result
-                (instantiate-systems (dependencies-of system)
-                                     (acons class-name system result))))
-       finally (return result)))
+        with result = sys-alist
+        unless (assoc class-name result)
+          do (let ((system (make-instance (find-class class-name))))
+               (setf result
+                     (instantiate-systems (dependencies-of system)
+                                          (acons class-name system result))))
+        finally (return result)))
 
 
 (defun enable-system (system-class sys-table &optional order)
@@ -160,20 +160,20 @@ flow block after the looped flow."
               (setf result (enable-system dependency sys-table result)))
             (when (system-enabled-p system)
               (error (format nil "Circular dependency found for '~a'" system-class)))
-            (cons (cons system-class (>> (instantly ()
-                                           (log:debug "Enabling ~a" system-class))
-                                         (enabling-flow system)
-                                         (instantly ()
-                                           (invoke-system-startup-hooks system-class))))
+            (cons (cons system-class (flow:>> (instantly ()
+                                                (log:debug "Enabling ~a" system-class))
+                                              (enabling-flow system)
+                                              (instantly ()
+                                                (invoke-system-startup-hooks system-class))))
                   result))
           result))))
 
 
 (defun requested-systems-enabling-flow (sys-table)
   (loop for system-class being the hash-key in sys-table
-     with order = '() do
-       (setf order (enable-system system-class sys-table order))
-     finally (return (nreverse order))))
+        with order = '() do
+          (setf order (enable-system system-class sys-table order))
+        finally (return (nreverse order))))
 
 
 (defun property (key &optional (default-value nil))
@@ -191,17 +191,17 @@ specified."
     (bodge-blobs-support:close-foreign-libraries)
     (handler-bind ((style-warning #'muffle-warning))
       (loop for lib in (cffi:list-foreign-libraries)
-         when (cffi:foreign-library-loaded-p lib)
-         do (progn
-              (pushnew (cffi:foreign-library-name lib) *unloaded-foreign-libraries*)
-              (cffi:close-foreign-library lib)))))
+            when (cffi:foreign-library-loaded-p lib)
+              do (progn
+                   (pushnew (cffi:foreign-library-name lib) *unloaded-foreign-libraries*)
+                   (cffi:close-foreign-library lib)))))
 
 
   (defun reload-foreign-libraries (library-directory)
     (bodge-blobs-support:register-library-directory (merge-working-pathname library-directory))
     (bodge-blobs-support:load-foreign-libraries)
     (loop for lib-name in *unloaded-foreign-libraries*
-       do (cffi:load-foreign-library lib-name)))
+          do (cffi:load-foreign-library lib-name)))
 
 
   (defun mark-executable ()
@@ -220,9 +220,9 @@ specified."
              (enabling-flows (requested-systems-enabling-flow sys-table)))
         (setf systems sys-table)
         (mt:wait-with-latch (latch)
-          (run (>> (mapcar #'cdr enabling-flows)
-                   (instantly ()
-                     (mt:open-latch latch)))))
+          (run (flow:>> (mapcar #'cdr enabling-flows)
+                        (instantly ()
+                          (mt:open-latch latch)))))
         (setf disabling-order (reverse (mapcar #'car enabling-flows)))))))
 
 
@@ -230,21 +230,21 @@ specified."
   (with-slots (systems disabling-order comatose-p) engine
     (setf comatose-p t)
     (mt:wait-with-latch (latch)
-      (run (>> (loop for system-class in disabling-order
-                  collect (let ((system-class system-class))
-                            (>> (instantly ()
-                                  (log:debug "Disabling ~a" system-class)
-                                  (invoke-system-shutdown-hooks system-class))
-                                (disabling-flow (gethash system-class systems)))))
-               (instantly ()
-                 (mt:open-latch latch)))))))
+      (run (flow:>> (loop for system-class in disabling-order
+                          collect (let ((system-class system-class))
+                                    (flow:>> (instantly ()
+                                               (log:debug "Disabling ~a" system-class)
+                                               (invoke-system-shutdown-hooks system-class))
+                                             (disabling-flow (gethash system-class systems)))))
+                    (instantly ()
+                      (mt:open-latch latch)))))))
 
 
 (defmethod initialize-instance :after ((this bodge-engine)
                                        &key properties working-directory)
   (with-slots (systems (this-properties properties)
-                       (this-working-directory working-directory)
-                       shared-pool shared-executors event-emitter)
+               (this-working-directory working-directory)
+               shared-pool shared-executors event-emitter)
       this
     (setf this-properties (%load-properties properties)
           shared-pool (make-pooled-executor
@@ -253,8 +253,8 @@ specified."
           shared-executors (list (make-single-threaded-executor))
           event-emitter (make-instance 'event-emitting))
     (loop for (event-class-name . handlers) in *predefined-event-callbacks*
-       do (dolist (handler handlers)
-            (ge.eve:subscribe-to event-class-name event-emitter handler)))))
+          do (dolist (handler handlers)
+               (ge.eve:subscribe-to event-class-name event-emitter handler)))))
 
 
 (define-destructor bodge-engine (shared-pool shared-executors)
@@ -282,7 +282,7 @@ directories used by the engine are relative to 'working-directory parameter."
   (log-errors
     (dolist (hook *engine-startup-hooks*)
       (funcall hook)))
-  (in-new-thread-waiting "startup-worker"
+  (in-new-thread-waiting ("startup-worker")
     (enable-systems *engine*))
   (when blocking
     (mt:wait-for-latch (%stop-latch-of *engine*)))
@@ -294,7 +294,7 @@ directories used by the engine are relative to 'working-directory parameter."
 initialized."
   (unless *engine*
     (error "Engine already stopped"))
-  (in-new-thread-waiting "shutdown-worker"
+  (in-new-thread-waiting ("shutdown-worker")
     (disable-systems *engine*))
   (let ((latch (%stop-latch-of *engine*)))
     (dispose *engine*)
@@ -373,9 +373,9 @@ about object returned from the flow are provided.")
 
 
 (defmethod initialization-flow :around (object &key &allow-other-keys)
-  (>> (call-next-method)
-      (instantly ()
-        (initialize-destructor object))))
+  (flow:>> (call-next-method)
+           (instantly ()
+             (initialize-destructor object))))
 
 
 (defun assembly-flow (class &rest initargs &key &allow-other-keys)
@@ -383,8 +383,8 @@ about object returned from the flow are provided.")
 Flow variant of #'make-instance."
   (let* ((*auto-initialize-destructor* nil)
          (instance (apply #'make-instance class :allow-other-keys t initargs)))
-    (>> (apply #'initialization-flow instance initargs)
-        (value-flow instance))))
+    (flow:>> (apply #'initialization-flow instance initargs)
+             (value-flow instance))))
 
 
 (flet ((%dispatch (task invariant &rest opts &key &allow-other-keys)
@@ -430,16 +430,16 @@ Flow variant of #'make-instance."
 
 (defmethod enabling-flow ((this enableable))
   (with-slots (enabled-p) this
-    (>> (call-next-method)
-        (instantly ()
-          (setf enabled-p t)))))
+    (flow:>> (call-next-method)
+             (instantly ()
+               (setf enabled-p t)))))
 
 
 (defmethod disabling-flow ((this enableable))
   (with-slots (enabled-p) this
-    (>> (call-next-method)
-        (instantly ()
-          (setf enabled-p nil)))))
+    (flow:>> (call-next-method)
+             (instantly ()
+               (setf enabled-p nil)))))
 
 ;;;
 ;;;

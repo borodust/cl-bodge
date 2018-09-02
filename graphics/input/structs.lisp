@@ -20,7 +20,7 @@
 (defun make-shader-struct-descriptor (fields)
   (loop for field in fields
         collect (destructuring-bind (symbol-name &key name &allow-other-keys) field
-                  (let ((foreign-name (or name (ge.util:translate-name-to-foreign symbol-name))))
+                  (let ((foreign-name (or name (bodge-util:translate-name-to-foreign symbol-name))))
                     (make-shader-struct-field :name symbol-name
                                               :foreign-name foreign-name)))))
 

@@ -1,12 +1,12 @@
-(ge.util:define-package :cl-bodge.graphics.state
+(bodge-util:define-package :cl-bodge.graphics.state
   (:nicknames :gx.state)
   (:export enable
            disable))
 
 
-(ge.util:define-package :cl-bodge.graphics
+(bodge-util:define-package :cl-bodge.graphics
   (:nicknames :ge.gx)
-  (:use :cl :cl-bodge.engine :cl-bodge.host :cl-bodge.utils)
+  (:use :cl :cl-bodge.engine :cl-bodge.host :bodge-util)
   (:export graphics-system
            graphics
            for-graphics

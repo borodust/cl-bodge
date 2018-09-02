@@ -1,4 +1,4 @@
-(cl:in-package :cl-bodge.host)
+(cl:in-package :bodge-host)
 
 
 (defenum hotkey-state

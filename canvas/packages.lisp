@@ -1,6 +1,6 @@
-(ge.util:define-package :cl-bodge.canvas
+(bodge-util:define-package :cl-bodge.canvas
   (:nicknames :ge.vg)
-  (:use :cl :cl-bodge.engine :cl-bodge.utils :cl-bodge.graphics :claw)
+  (:use :cl :cl-bodge.engine :bodge-util :cl-bodge.graphics :claw)
   (:export defcanvas
            make-canvas
            update-canvas-size

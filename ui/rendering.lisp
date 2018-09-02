@@ -1,290 +1,196 @@
 (cl:in-package :cl-bodge.ui)
 
 
-(defun clamp (r g b a)
-  (flet ((c (v)
-           (min (max (/ v 255.0) 0.0) 1.0)))
-    (vec4 (c r) (c g) (c b) (c a))))
+(defun render-scissor ()
+  (scissors (bodge-ui:scissor-origin) (bodge-ui:scissor-width) (bodge-ui:scissor-height)))
 
 
-(defun bodge-color (nk-color)
-  (c-val ((nk-color (:struct (%nk:color))))
-    (clamp (nk-color :r) (nk-color :g) (nk-color :b) (nk-color :a))))
+(defun render-line ()
+  (draw-line (bodge-ui:line-origin)
+             (bodge-ui:line-end)
+             (bodge-ui:line-color)
+             :thickness (bodge-ui:line-thickness)))
 
 
-(definline %invert (y ctx &optional (h 0.0))
-  (- (height-of ctx) y h))
+(defun render-curve ()
+  (draw-curve (bodge-ui:curve-origin)
+              (bodge-ui:curve-end)
+              (bodge-ui:curve-first-control-point)
+              (bodge-ui:curve-second-control-point)
+              (bodge-ui:curve-color)
+              :thickness (bodge-ui:curve-thickness)))
 
 
-(defmacro as-command ((cmd-var type) &body body)
-  `(claw:c-val ((,cmd-var (:struct (,type))))
-     ,@body))
+(defun render-rect ()
+  (draw-rect (bodge-ui:rect-origin)
+             (bodge-ui:rect-width) (bodge-ui:rect-height)
+             :stroke-paint (bodge-ui:rect-stroke-color)
+             :rounding (bodge-ui:rect-rounding)
+             :thickness (bodge-ui:rect-stroke-thickness)))
 
 
-(defun render-scissor (cmd ui)
-  (as-command (cmd %nk:command-scissor)
-    (scissors (vec2 (cmd :x) (%invert (cmd :y) ui (cmd :h)))
-              (cmd :w) (cmd :h)
-              (canvas-of ui))))
+(defun render-rect-filled ()
+  (draw-rect (bodge-ui:filled-rect-origin)
+             (bodge-ui:filled-rect-width) (bodge-ui:filled-rect-height)
+             :fill-paint (bodge-ui:filled-rect-color)
+             :rounding (bodge-ui:filled-rect-rounding)))
 
 
-(defun render-line (cmd ui)
-  (as-command (cmd %nk:command-line)
-    (let ((x0 (cmd :begin :x))
-          (y0 (cmd :begin :y))
-          (x1 (cmd :end :x))
-          (y1 (cmd :end :y)))
-      (draw-line (vec2 x0 (%invert y0 ui)) (vec2 x1 (%invert y1 ui))
-                 (bodge-color (cmd :color))
-                 :thickness (cmd :line-thickness)
-                 :canvas (canvas-of ui)))))
+(defun render-rect-multi-color ())
 
 
-(defun render-curve (cmd ui)
-  (as-command (cmd %nk:command-curve)
-    (let ((x0 (cmd :begin :x))
-          (y0 (cmd :begin :y))
-          (x1 (cmd :end :x))
-          (y1 (cmd :end :y))
-          (cx0 (cmd :ctrl 0 :x))
-          (cy0 (cmd :ctrl 0 :y))
-          (cx1 (cmd :ctrl 1 :x))
-          (cy1 (cmd :ctrl 1 :y)))
-      (draw-curve (vec2 x0 (%invert y0 ui)) (vec2 x1 (%invert y1 ui))
-                  (vec2 cx0 cy0) (vec2 cx1 cy1)
-                  (bodge-color (cmd :color))
-                  :thickness (cmd :line-thickness)
-                  :canvas (canvas-of ui)))))
+(defun render-circle ()
+  (draw-ellipse (bodge-ui:ellipse-origin)
+                (bodge-ui:ellipse-radius-x) (bodge-ui:ellipse-radius-y)
+                :stroke-paint (bodge-ui:ellipse-stroke-color)
+                :thickness (bodge-ui:ellipse-stroke-thickness)))
 
 
-(defun render-rect (cmd ui)
-  (as-command (cmd %nk:command-rect)
-    (let ((x (cmd :x)) (y (cmd :y))
-          (w (cmd :w)) (h (cmd :h))
-          (thickness (cmd :line-thickness))
-          (rounding (cmd :rounding)))
-      (draw-rect (vec2 x (%invert y ui h)) w h
-                 :stroke-paint (bodge-color (cmd :color))
-                 :rounding rounding
-                 :thickness thickness
-                 :canvas (canvas-of ui)))))
+(defun render-circle-filled ()
+  (draw-ellipse (bodge-ui:filled-ellipse-origin)
+                (bodge-ui:filled-ellipse-radius-x) (bodge-ui:filled-ellipse-radius-y)
+                :fill-paint (bodge-ui:filled-ellipse-color)))
 
 
-(defun render-rect-filled (cmd ui)
-  (as-command (cmd %nk:command-rect-filled)
-    (let ((x (cmd :x))
-          (y (cmd :y))
-          (w (cmd :w))
-          (h (cmd :h))
-          (rounding (cmd :rounding)))
-      (draw-rect (vec2 x (%invert y ui h)) w h
-                 :fill-paint (bodge-color (cmd :color))
-                 :rounding rounding
-                 :canvas (canvas-of ui)))))
+(defun render-arc ()
+  (draw-arc (bodge-ui:arc-origin)
+            (bodge-ui:arc-radius)
+            (bodge-ui:arc-start-angle) (bodge-ui:arc-end-angle)
+            :stroke-paint (bodge-ui:arc-stroke-color)
+            :thickness (bodge-ui:arc-stroke-thickness)))
 
 
-(defun render-rect-multi-color (cmd ui)
-  (declare (ignore cmd ui)))
+(defun render-arc-filled ()
+  (draw-arc (bodge-ui:filled-arc-origin)
+            (bodge-ui:filled-arc-radius)
+            (bodge-ui:filled-arc-start-angle) (bodge-ui:filled-arc-end-angle)
+            :fill-paint (bodge-ui:filled-arc-color)))
 
 
-(defun render-circle (cmd ui)
-  (as-command (cmd %nk:command-circle)
-    (let* ((x (cmd :x))
-           (y (cmd :y))
-           (w (cmd :w))
-           (h (cmd :h))
-           (rx (/ w 2))
-           (ry (/ h 2)))
-      (draw-ellipse (vec2 (+ x rx) (+ (%invert y ui h) ry)) rx ry
-                    :stroke-paint (bodge-color (cmd :color))
-                    :thickness (cmd :line-thickness)
-                    :canvas (canvas-of ui)))))
+(defun render-triangle ()
+  (draw-polygon (list (bodge-ui:triangle-origin)
+                      (bodge-ui:triangle-second-vertex)
+                      (bodge-ui:triangle-third-vertex))
+                :stroke-paint (bodge-ui:triangle-stroke-color)
+                :thickness (bodge-ui:triangle-stroke-thickness)))
 
 
-(defun render-circle-filled (cmd ui)
-  (as-command (cmd %nk:command-circle-filled)
-    (let* ((x (cmd :x))
-           (y (cmd :y))
-           (w (cmd :w))
-           (h (cmd :h))
-           (rx (/ w 2))
-           (ry (/ h 2)))
-      (draw-ellipse (vec2 (+ x rx) (+ (%invert y ui h) ry)) rx ry
-                    :fill-paint (bodge-color (cmd :color))
-                    :canvas (canvas-of ui)))))
+(defun render-triangle-filled ()
+  (draw-polygon (list (bodge-ui:filled-triangle-origin)
+                      (bodge-ui:filled-triangle-second-vertex)
+                      (bodge-ui:filled-triangle-third-vertex))
+                :fill-paint (bodge-ui:filled-triangle-color)))
 
 
-(defun render-arc (cmd ui)
-  (as-command (cmd %nk:command-arc)
-    (let ((x (cmd :cx))
-          (y (cmd :cy))
-          (radius (cmd :r))
-          (a0 (cmd :a 0))
-          (a1 (cmd :a 1)))
-      (draw-arc (vec2 x (%invert y ui)) radius a0 a1
-                :stroke-paint (bodge-color (cmd :color))
-                :thickness (cmd :line-thickness)
-                :canvas (canvas-of ui)))))
+(defun render-polygon ()
+  (draw-polygon (bodge-ui:polygon-vertices)
+                :stroke-paint (bodge-ui:polygon-stroke-color)
+                :thickness (bodge-ui:polygon-stroke-thickness)))
 
 
-(defun render-arc-filled (cmd ui)
-  (as-command (cmd %nk:command-arc-filled)
-    (let ((x (cmd :cx))
-          (y (cmd :cy))
-          (radius (cmd :r))
-          (a0 (cmd :a 0))
-          (a1 (cmd :a 1)))
-      (draw-arc (vec2 x (%invert y ui)) radius a0 a1
-                :fill-paint (bodge-color (cmd :color))
-                :canvas (canvas-of ui)))))
+(defun render-polygon-filled ()
+  (draw-polygon (bodge-ui:filled-polygon-vertices)
+                :fill-paint (bodge-ui:filled-polygon-color)))
 
 
-(defun render-triangle (cmd ui)
-  (as-command (cmd %nk:command-triangle)
-    (let ((x0 (cmd :a :x))
-          (y0 (cmd :a :y))
-          (x1 (cmd :b :x))
-          (y1 (cmd :b :y))
-          (x2 (cmd :c :x))
-          (y2 (cmd :c :y)))
-      (draw-polygon (list (vec2 x0 (%invert y0 ui))
-                          (vec2 x1 (%invert y1 ui))
-                          (vec2 x2 y2))
-                    :stroke-paint (bodge-color (cmd :color))
-                    :thickness (cmd :line-thickness)
-                    :canvas (canvas-of ui)))))
+(defun render-polyline ()
+  (draw-polyline (bodge-ui:polyline-vertices)
+                 (bodge-ui:polyline-color)
+                 :thickness (bodge-ui:polyline-thickness)))
 
 
-(defun render-triangle-filled (cmd ui)
-  (as-command (cmd %nk:command-triangle-filled)
-    (let ((x0 (cmd :a :x))
-          (y0 (cmd :a :y))
-          (x1 (cmd :b :x))
-          (y1 (cmd :b :y))
-          (x2 (cmd :c :x))
-          (y2 (cmd :c :y)))
-      (draw-polygon (list (vec2 x0 (%invert y0 ui))
-                          (vec2 x1 (%invert y1 ui))
-                          (vec2 x2 (%invert y2 ui)))
-                    :fill-paint (bodge-color (cmd :color))
-                    :canvas (canvas-of ui)))))
+(defun render-text ()
+  (let ((origin (bodge-ui:text-box-origin)))
+    (draw-text (vec2 (x origin) (- (y origin) (canvas-font-descender (canvas-font-metrics))))
+               (bodge-ui:text-string)
+               :fill-color (bodge-ui:text-foreground-color))))
 
 
-(defun render-polygon (cmd ui)
-  (as-command (cmd %nk:command-polygon)
-    (let* ((count (cmd :point-count))
-           (vertices (loop for i from 0 below count
-                           collect (vec2 (c-ref cmd (:struct (%nk:command-polygon))
-                                                :points i :x)
-                                         (c-ref cmd (:struct (%nk:command-polygon))
-                                                :points i :y)))))
-      (draw-polygon vertices
-                    :stroke-paint (bodge-color (cmd :color))
-                    :thickness (cmd :line-thickness)
-                    :canvas (canvas-of ui)))))
+(defun render-image ())
 
 
-(defun render-polygon-filled (cmd ui)
-  (as-command (cmd %nk:command-polygon-filled)
-    (let* ((count (cmd :point-count))
-           (vertices (loop for i from 0 below count
-                           collect (vec2 (c-ref cmd (:struct (%nk:command-polygon-filled))
-                                                :points i :x)
-                                         (c-ref cmd (:struct (%nk:command-polygon-filled))
-                                                :points i :y)))))
-      (draw-polygon vertices
-                    :fill-paint (bodge-color (cmd :color))
-                    :canvas (canvas-of ui)))))
+(defcanvas ui-canvas (command-list)
+  (bodge-ui:docommands (command-list)
+    (case (bodge-ui:command-type)
+      (:nop)
+      (:scissor (render-scissor))
+      (:line (render-line))
+      (:curve (render-curve))
+      (:rect (render-rect))
+      (:rect-filled (render-rect-filled))
+      (:rect-multi-color (render-rect-multi-color))
+      (:circle (render-circle))
+      (:circle-filled (render-circle-filled))
+      (:arc (render-arc))
+      (:arc-filled (render-arc-filled))
+      (:triangle (render-triangle))
+      (:triangle-filled (render-triangle-filled))
+      (:polygon (render-polygon))
+      (:polygon-filled (render-polygon-filled))
+      (:polyline (render-polyline))
+      (:text (render-text))
+      (:image (render-image)))))
 
 
-(defun render-polyline (cmd ui)
-  (as-command (cmd %nk:command-polyline)
-    (let* ((count (cmd :point-count))
-           (points (loop for i from 0 below count
-                         collect (vec2 (c-ref cmd (:struct (%nk:command-polyline))
-                                              :points i :x)
-                                       (c-ref cmd (:struct (%nk:command-polyline))
-                                              :points i :y)))))
-      (draw-polyline points (bodge-color (cmd :color))
-                     :thickness (cmd :line-thickness)
-                     :canvas (canvas-of ui)))))
+(defclass ui-font (bodge-ui:custom-font)
+  ((canvas :initarg :canvas)))
 
 
-(defun render-text (cmd ui)
-  (as-command (cmd %nk:command-text)
-    (let* ((x (cmd :x))
-           (y (cmd :y))
-           (lisp-string (cffi:foreign-string-to-lisp (cmd :string &) :count (cmd :length))))
-      (draw-text (vec2 x (%invert y ui (canvas-font-ascender
-                                        (canvas-font-metrics (canvas-of ui)))))
-                 lisp-string
-                 :fill-color (bodge-color (cmd :foreground))))))
+(defmethod bodge-ui:calculate-text-width ((font ui-font) string)
+  (with-slots (canvas) font
+    (canvas-text-advance string canvas)))
 
 
-(defun render-image (cmd ui)
-  (declare (ignore cmd ui)))
+(defmethod bodge-ui:text-line-height ((font ui-font))
+  (with-slots (canvas) font
+    (canvas-font-line-height (canvas-font-metrics canvas))))
 
 
-(defun render-custom (cmd ui)
-  (as-command (cmd %nk:command-custom)
-    (when-let ((widget (context-custom-widget (cffi:pointer-address (cmd :callback-data :ptr)) ui)))
-      (let ((height (cmd :h)))
-        (render-custom-widget widget (vec2 (cmd :x) (%invert (cmd :y) ui height)) (cmd :w) height)))))
+(defclass ui-renderer (disposable)
+  ((font :reader bodge-ui:renderer-default-font)
+   (canvas :reader %canvas-of)))
 
 
-(defun command-type (cmd)
-  (claw:enum-key '(:enum (%nk:command-type)) (c-ref cmd (:struct (%nk:command)) :type)))
+(defmethod initialize-instance :after ((this ui-renderer) &key width height
+                                                            antialiased
+                                                            pixel-ratio)
+  (with-slots (font canvas) this
+    (setf canvas (make-canvas 'ui-canvas width height
+                              :antialiased antialiased
+                              :pixel-ratio pixel-ratio)
+          font (make-instance 'ui-font :canvas canvas))))
 
 
-(defcanvas ui-canvas ()
-  (let ((ui *context*))
-    (nuklear:docommands (cmd (handle-value-of ui))
-      (case (command-type cmd)
-        (:nop)
-        (:scissor (render-scissor cmd ui))
-        (:line (render-line cmd ui))
-        (:curve (render-curve cmd ui))
-        (:rect (render-rect cmd ui))
-        (:rect-filled (render-rect-filled cmd ui))
-        (:rect-multi-color (render-rect-multi-color cmd ui))
-        (:circle (render-circle cmd ui))
-        (:circle-filled (render-circle-filled cmd ui))
-        (:arc (render-arc cmd ui))
-        (:arc-filled (render-arc-filled cmd ui))
-        (:triangle (render-triangle cmd ui))
-        (:triangle-filled (render-triangle-filled cmd ui))
-        (:polygon (render-polygon cmd ui))
-        (:polygon-filled (render-polygon-filled cmd ui))
-        (:polyline (render-polyline cmd ui))
-        (:text (render-text cmd ui))
-        (:image (render-image cmd ui))
-        (:custom (render-custom cmd ui))))))
+(define-destructor ui-renderer (font canvas)
+  (dispose canvas)
+  (dispose font))
 
 
-(define-system-function compose-ui graphics-system (context)
-  (with-ui (context)
-    (clear-ui)
-    (drain-compose-task-queue context)
-    (when-let ((input-source (%input-source-of context)))
-      (with-ui-input (context)
-        (loop (multiple-value-bind (key state) (next-keyboard-interaction input-source)
-                (if key
-                    (register-keyboard-input key state)
-                    (return))))
-        (let* ((cursor (last-cursor-position input-source
-                                             (%last-cursor-position-of context)))
-               (x (* (scale-of context) (x cursor)))
-               (y (* (scale-of context) (y cursor))))
-          (loop (multiple-value-bind (button state) (next-mouse-interaction input-source)
-                  (if button
-                      (register-mouse-input x y button state)
-                      (return))))
-          (register-cursor-position x y))
-        (loop for character = (next-character input-source)
-              while character
-              do (register-character-input character))
-        (let ((scroll (next-scroll input-source (%last-scroll-of context))))
-          (register-scroll-input (x scroll) (y scroll)))))
-    (loop for win in (%windows-of context)
-          do (compose win))
-    (render t (canvas-of context))))
+(define-system-function make-ui-canvas-renderer graphics-system
+    (width height &key (antialiased t) (pixel-ratio 1f0))
+  (make-instance 'ui-renderer :width width :height height
+                              :antialiased antialiased :pixel-ratio pixel-ratio))
+
+
+(defmethod bodge-ui:renderer-canvas-width ((this ui-renderer))
+  (with-slots (canvas) this
+    (width-of canvas)))
+
+
+(defmethod bodge-ui:renderer-canvas-height ((this ui-renderer))
+  (with-slots (canvas) this
+    (height-of canvas)))
+
+
+(defmethod bodge-ui:render-ui ((this ui-renderer) command-list)
+  (render t (%canvas-of this) :command-list command-list))
+
+
+(defun update-renderer-canvas-size (renderer width height)
+  (with-slots (canvas scale) renderer
+    (update-canvas-size canvas width height)))
+
+
+(defun update-renderer-canvas-pixel-ratio (ui pixel-ratio)
+  (with-slots (canvas) ui
+    (update-canvas-pixel-ratio canvas pixel-ratio)))

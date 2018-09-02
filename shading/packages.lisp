@@ -1,6 +1,6 @@
-(ge.util:define-package :cl-bodge.shading
+(bodge-util:define-package :cl-bodge.shading
   (:nicknames :ge.shad)
-  (:use :cl :cl-bodge.engine :cl-bodge.graphics :cl-bodge.utils)
+  (:use :cl :cl-bodge.engine :cl-bodge.graphics :bodge-util)
   (:export phong-shader
 
            make-phong-material

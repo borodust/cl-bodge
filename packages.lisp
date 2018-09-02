@@ -1,4 +1,4 @@
-(ge.util:define-package :cl-bodge
+(bodge-util:define-package :cl-bodge
   (:nicknames :ge)
   (:use-reexport :cl-bodge.animation
                  :cl-bodge.audio

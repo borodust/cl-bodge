@@ -1,22 +1,6 @@
 (cl:in-package :cl-bodge.ui)
 
 
-(defgeneric next-keyboard-interaction (input-source)
-  (:method (input-source) (declare (ignore input-source))))
-
-(defgeneric next-mouse-interaction (input-source)
-  (:method (input-source) (declare (ignore input-source))))
-
-(defgeneric last-cursor-position (input-source &optional result-vec)
-  (:method (input-source &optional result-vec) (declare (ignore input-source result-vec))))
-
-(defgeneric next-character (input-source)
-  (:method (input-source) (declare (ignore input-source))))
-
-(defgeneric next-scroll (input-source &optional result-vec)
-  (:method (input-source &optional result-vec) (declare (ignore input-source result-vec))))
-
-
 (defstruct (bounded-queue
             (:constructor %make-bounded-queue))
   (head-idx 0 :type fixnum)
@@ -147,26 +131,27 @@
   (ge.host:disable-input-map (host-input-source-keymap input-source)))
 
 
-(defmethod next-keyboard-interaction ((input-source host-input-source))
+(defmethod bodge-ui:next-keyboard-interaction ((input-source host-input-source))
   (consume-interaction (host-input-source-key-bag input-source)))
 
 
-(defmethod next-mouse-interaction ((input-source host-input-source))
+(defmethod bodge-ui:next-mouse-interaction ((input-source host-input-source))
   (consume-interaction (host-input-source-button-bag input-source)))
 
 
-(defmethod last-cursor-position ((input-source host-input-source) &optional (result-vec (vec2)))
+(defmethod bodge-ui:last-cursor-position ((input-source host-input-source)
+                                          &optional (result-vec (vec2)))
   (let ((cursor-position (host-input-source-cursor-position input-source)))
     (setf (x result-vec) (x cursor-position)
           (y result-vec) (y cursor-position))
     result-vec))
 
 
-(defmethod next-character ((input-source host-input-source))
+(defmethod bodge-ui:next-character ((input-source host-input-source))
   (pop-value (host-input-source-character-bag input-source)))
 
 
-(defmethod next-scroll ((input-source host-input-source) &optional (result-vec (vec2)))
+(defmethod bodge-ui:next-scroll ((input-source host-input-source) &optional (result-vec (vec2)))
   (let ((offset (host-input-source-scroll-offset input-source)))
     (setf (x result-vec) (x offset)
           (y result-vec) (y offset)

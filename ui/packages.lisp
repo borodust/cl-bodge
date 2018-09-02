@@ -1,59 +1,11 @@
-(ge.util:define-package :cl-bodge.ui
+(bodge-util:define-package :cl-bodge.ui
   (:nicknames :ge.ui)
-  (:use :cl :cl-bodge.engine :cl-bodge.utils :cl-bodge.graphics
+  (:use :cl :cl-bodge.engine :bodge-util :cl-bodge.graphics
         :cl-bodge.canvas :cl-bodge.resources :claw)
-  (:import-from :cl-bodge.host
-                :button-from)
-  (:export make-ui
-           with-ui
-           with-ui-access
-           compose-ui
-           update-ui-size
-           update-ui-scale
-           update-ui-pixel-ratio
-           defwindow
-           on-window-close
-           add-window
-           remove-window
-           remove-all-windows
-
-           vertical-layout
-           horizontal-layout
-           button
-           label
-           combo-box
-           color-box
-           spacing
-           color-picker
-           float-property
-           radio
-           activated
-           radio-group
-           check-box
-           checked
-           notebook
-           tab
-
-           deflayout
-           custom-widget
-           render-custom-widget
-           initialize-custom-layout
-           custom-widget-hovered-p
-           custom-widget-clicked-p
-           custom-widget-pressed-p
-
-           debug-console
-           add-simple-reporter
-
-           next-keyboard-interaction
-           next-mouse-interaction
-           last-cursor-position
-           next-character
-           next-scroll
+  (:export make-ui-canvas-renderer
+           update-renderer-canvas-size
+           update-renderer-canvas-pixel-ratio
 
            make-host-input-source
            attach-host-input-source
-           detach-host-input-source
-
-           source-from
-           button-from))
+           detach-host-input-source))

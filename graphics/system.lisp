@@ -36,18 +36,18 @@
 
 
 (defmacro for-graphics ((&optional arg) &body body)
-  `(-> (graphics) (,@(when arg (list arg)))
+  `(flow:-> (graphics) (,@(when arg (list arg)))
      ,@body))
 
 
 (defmacro for-shared-graphics ((&optional arg) &body body)
-  `(-> (graphics) :main-p nil (,@(when arg (list arg)))
+  `(flow:-> (graphics) :main-p nil (,@(when arg (list arg)))
      ,@body))
 
 
 (defmethod enabling-flow ((this graphics-system))
   (with-slots (resource-executor) this
-    (>> (call-next-method)
+    (flow:>> (call-next-method)
         (for-host ()
           (execute resource-executor
                    (lambda ()
@@ -56,7 +56,7 @@
                      (log:debug "Shared context bound"))
                    :priority :highest :important-p t)
           (framebuffer-size))
-        (-> this (viewport)
+        (flow:-> this (viewport)
           (declare (type vec2 viewport))
           (update-context-framebuffer-size (floor (x viewport))
                                            (floor (y viewport)))))))

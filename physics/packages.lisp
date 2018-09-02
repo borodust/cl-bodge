@@ -1,5 +1,5 @@
-(ge.util:define-package :cl-bodge.physics
-  (:use :cl-bodge.engine :cl :cl-bodge.utils :cl-bodge.physics.backend)
+(bodge-util:define-package :cl-bodge.physics
+  (:use :cl-bodge.engine :cl :bodge-util :cl-bodge.physics.backend)
   (:nicknames :ge.phy)
   (:export physics-system
            physics

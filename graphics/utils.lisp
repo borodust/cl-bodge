@@ -24,5 +24,5 @@
 
 
 (defun dispose-gl-object (object destructor)
-  (run (-> (engine-system 'graphics-system) :disposing t ()
-           (funcall destructor object))))
+  (run (flow:-> (engine-system 'graphics-system) :disposing t ()
+         (funcall destructor object))))

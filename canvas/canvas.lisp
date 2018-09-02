@@ -14,11 +14,11 @@
          (read-file-into-byte-vector
           (system-relative-pathname :cl-bodge/canvas
                                     (format nil "font/~A.ttf" *default-font-name*))))
-       (default-font-data-static (make-guarded-reference nil)))
+       (default-font-data-static (mt:make-guarded-reference nil)))
   (defun default-font-static-data ()
     ;; trick to load static-vectorized data upon first usage
     ;; but dump default-font-data as a plain array into an image
-    (with-guarded-reference (font-data default-font-data-static)
+    (mt:with-guarded-reference (font-data default-font-data-static)
       (unless font-data
         (setf font-data (static-vectors:make-static-vector (length default-font-data)
                                                            :initial-contents default-font-data)

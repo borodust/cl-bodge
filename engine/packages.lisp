@@ -1,154 +1,6 @@
-(ge.util:define-package :cl-bodge.memory
-  (:nicknames :ge.mem)
-  (:use :cl :cl-bodge.utils :trivial-garbage :static-vectors)
-  (:export *auto-initialize-destructor*
-           *explicit-dispose-p*
-
-           define-destructor
-           initialize-destructor
-           dispose
-           disposable
-           disposable-container
-           with-disposable
-
-           make-foreign-array
-           simple-array-of
-           foreign-pointer-of))
-
-
-(ge.util:define-package :cl-bodge.concurrency
-  (:nicknames :ge.mt)
-  (:use :cl-bodge.utils :cl-bodge.memory :cl :bordeaux-threads
-        :cl-muth :cl-flow)
-  (:export make-task-queue
-           push-task
-           push-body-into
-           drain
-           clearup
-
-           make-guarded-reference
-           guarded-value-of
-           with-guarded-reference
-
-           execute
-           alivep
-           make-single-threaded-executor
-           make-pooled-executor
-
-           in-new-thread
-           in-new-thread-waiting
-           with-body-in-main-thread
-           stop-main-runner
-
-           ->
-           >>
-           %>
-           ~>
-           ->>
-           continue-flow
-           interrupt-flow
-           dispatch
-
-           lockable
-           with-instance-lock-held))
-
-
-(ge.util:define-package :cl-bodge.math
-  (:nicknames :ge.math)
-  (:use :cl :cl-bodge.utils)
-  (:export +double-infinity+
-           +single-infinity+
-           ;; OPERATIONS
-           lerp
-           nlerp
-           mult
-           add
-           div
-           subt
-           cross
-           dot
-           normalize
-           inverse
-           transpose
-           ;; VECTORS
-           vec
-           vref
-           x
-           y
-           z
-           w
-           vector-length
-           vec->array
-           vec2
-           vec3
-           vec4
-           sequence->vec2
-           sequence->vec3
-           sequence->vec4
-           value->vec2
-           value->vec3
-           value->vec4
-           ;; MATRICES
-           mat
-           square-mat
-           mat2
-           mat3
-           mat4
-           mref
-           mat->array
-           square-matrix-size
-           copy-mat2
-           copy-mat3
-           copy-mat4
-           value->mat2
-           value->mat3
-           value->mat4
-           identity-mat2
-           identity-mat3
-           identity-mat4
-           sequence->mat2
-           sequence->mat3
-           sequence->mat4
-           euler-angle->mat2
-           euler-angle->mat3-homo
-           euler-angles->mat3
-           euler-angles->mat4-homo
-           euler-axis->mat3
-           euler-axis->mat4-homo
-           rotation-translation->mat3-homo
-           rotation-translation->mat4-homo
-           translation-mat3
-           translation-mat3-homo
-           translation-mat4-homo
-           vec->translation-mat3-homo
-           vec->translation-mat4-homo
-           scaling-mat3
-           scaling-mat3-homo
-           scaling-mat4-homo
-           vec->scaling-mat3
-           vec->scaling-mat3-homo
-           vec->scaling-mat4-homo
-           basis->mat2
-           basis->mat3
-           basis->mat3-homo
-           basis->mat4
-           basis->mat4-homo
-           perspective-projection-mat
-           orthographic-projection-mat
-           ;; QUATERNIONS
-           quat
-           identity-quat
-           sequence->quat
-           euler-axis->quat
-           euler-angles->quat
-           quat->rotation-mat3
-           quat->rotation-mat4-homo
-           rotate-vec3-with-quat))
-
-
-(ge.util:define-package :cl-bodge.engine.resources
+(bodge-util:define-package :cl-bodge.engine.resources
   (:nicknames :ge.ng.rsc)
-  (:use :cl :cl-bodge.utils)
+  (:use :cl :bodge-util)
   (:export pixel-format
            pixel-format-p
 
@@ -167,9 +19,9 @@
            audio-sampling-rate-of))
 
 
-(ge.util:define-package :cl-bodge.events
+(bodge-util:define-package :cl-bodge.events
   (:nicknames :ge.eve)
-  (:use :cl :cl-bodge.utils :cl-bodge.concurrency :cl-bodge.memory)
+  (:use :cl :bodge-util :bodge-concurrency :cl-flow :bodge-memory)
   (:export event
            defevent
            event-emitting
@@ -190,10 +42,10 @@
            disable-hub))
 
 
-(ge.util:define-package :cl-bodge.engine
+(bodge-util:define-package :cl-bodge.engine
   (:nicknames :ge.ng)
-  (:use :cl-bodge.utils :cl :bordeaux-threads :cl-muth :cl-bodge.events)
-  (:use-reexport :cl-bodge.concurrency :cl-bodge.memory :cl-bodge.math
+  (:use :bodge-util :cl :bordeaux-threads :cl-muth :cl-bodge.events)
+  (:use-reexport :bodge-concurrency :bodge-memory :bodge-math
                  :cl-bodge.engine.resources)
   (:export system
            enabling-flow

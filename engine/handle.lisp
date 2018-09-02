@@ -53,7 +53,7 @@ handling of init/dispose lifecycle for such ojects."))
 
 
 (define-destructor system-foreign-object ((handle handle-of) (sys system-of))
-  (run (-> sys :priority :low :important-p t ()
+  (run (flow:-> sys :priority :low :important-p t ()
            (destroy-handle handle))))
 
 
