@@ -109,8 +109,8 @@
 (defun render-image ())
 
 
-(defcanvas ui-canvas (command-list)
-  (bodge-ui:docommands (command-list)
+(defcanvas ui-canvas ()
+  (bodge-ui:docommands ()
     (case (bodge-ui:command-type)
       (:nop)
       (:scissor (render-scissor))
@@ -182,8 +182,8 @@
     (height-of canvas)))
 
 
-(defmethod bodge-ui:render-ui ((this ui-renderer) command-list)
-  (render t (%canvas-of this) :command-list command-list))
+(defmethod bodge-ui:render-ui ((this ui-renderer))
+  (render t (%canvas-of this)))
 
 
 (defun update-renderer-canvas-size (renderer width height)
