@@ -114,7 +114,7 @@
 
 
 (defun begin-canvas (canvas)
-  (%nvg:begin-frame (handle-value-of canvas) (width-of canvas) (height-of canvas)
+  (%nvg:begin-frame (handle-value-of canvas) (f (width-of canvas)) (f (height-of canvas))
                     (pixel-ratio-of canvas))
   (%invert-coordinate-system canvas))
 
