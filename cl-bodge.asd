@@ -115,18 +115,11 @@
   :mailto "dev@borodust.org"
   :license "MIT"
   :depends-on (cl-bodge/engine bodge-utilities cl-bodge/graphics
-                               cl-bodge/resources claw log4cl
-                               static-vectors asdf
-                               nanovg-blob bodge-nanovg)
+                               bodge-canvas cl-bodge/resources)
   :pathname "canvas/"
   :serial t
   :components ((:file "packages")
-               (:file "canvas")
-               (:file "transform")
-               (:file "image")
-               (:file "paint")
-               (:file "primitives")
-               (:file "text")))
+               (:file "canvas")))
 
 
 (asdf:defsystem cl-bodge/animation

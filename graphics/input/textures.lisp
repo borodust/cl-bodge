@@ -87,6 +87,7 @@
   (with-bound-texture ((%target-of this) (%texture-id-of this))
     (let ((target (%target-of this))
           (data (foreign-array-of image)))
+      (gl:pixel-store :unpack-alignment 1)
       (gl:tex-image-2d target 0 internal-format width height 0 external-format
                        :unsigned-byte (foreign-pointer-of data) :raw t)
       (gl:tex-parameter target :texture-mag-filter :linear)

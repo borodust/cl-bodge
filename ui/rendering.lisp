@@ -103,7 +103,7 @@
   (let ((origin (bodge-ui:text-box-origin)))
     (draw-text (vec2 (x origin) (- (y origin) (canvas-font-descender (canvas-font-metrics))))
                (bodge-ui:text-string)
-               :fill-color (bodge-ui:text-foreground-color))))
+               (bodge-ui:text-foreground-color))))
 
 
 (defun render-image ())
@@ -174,12 +174,12 @@
 
 (defmethod bodge-ui:renderer-canvas-width ((this ui-renderer))
   (with-slots (canvas) this
-    (width-of canvas)))
+    (canvas-width canvas)))
 
 
 (defmethod bodge-ui:renderer-canvas-height ((this ui-renderer))
   (with-slots (canvas) this
-    (height-of canvas)))
+    (canvas-height canvas)))
 
 
 (defmethod bodge-ui:render-ui ((this ui-renderer))
