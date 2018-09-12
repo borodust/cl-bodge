@@ -82,13 +82,13 @@ file is stored."
 
 (defmacro instantly ((&rest lambda-list) &body body)
   "Execute task in the current thread without dispatching."
-  `(flow:-> nil ,lambda-list
+  `(ge.ng:-> nil ,lambda-list
      ,@body))
 
 
 (defmacro concurrently ((&rest lambda-list) &body body)
   "Push task to engine's pooled executor."
-  `(flow:-> nil :concurrently t ,lambda-list
+  `(ge.ng:-> nil :concurrently t ,lambda-list
      ,@body))
 
 
@@ -111,9 +111,9 @@ flow block after the looped flow."
   (declare (type function test))
   (let (looped)
     (setf looped
-          (flow:->> (value)
+          (ge.ng:->> (value)
             (if (funcall test)
-                (flow:>> flow
+                (ge.ng:>> flow
                          looped)
                 (value-flow value))))))
 
@@ -160,7 +160,7 @@ flow block after the looped flow."
               (setf result (enable-system dependency sys-table result)))
             (when (system-enabled-p system)
               (error (format nil "Circular dependency found for '~a'" system-class)))
-            (cons (cons system-class (flow:>> (instantly ()
+            (cons (cons system-class (ge.ng:>> (instantly ()
                                                 (log:debug "Enabling ~a" system-class))
                                               (enabling-flow system)
                                               (instantly ()
@@ -220,7 +220,7 @@ specified."
              (enabling-flows (requested-systems-enabling-flow sys-table)))
         (setf systems sys-table)
         (mt:wait-with-latch (latch)
-          (run (flow:>> (mapcar #'cdr enabling-flows)
+          (run (ge.ng:>> (mapcar #'cdr enabling-flows)
                         (instantly ()
                           (mt:open-latch latch)))))
         (setf disabling-order (reverse (mapcar #'car enabling-flows)))))))
@@ -230,9 +230,9 @@ specified."
   (with-slots (systems disabling-order comatose-p) engine
     (setf comatose-p t)
     (mt:wait-with-latch (latch)
-      (run (flow:>> (loop for system-class in disabling-order
+      (run (ge.ng:>> (loop for system-class in disabling-order
                           collect (let ((system-class system-class))
-                                    (flow:>> (instantly ()
+                                    (ge.ng:>> (instantly ()
                                                (log:debug "Disabling ~a" system-class)
                                                (invoke-system-shutdown-hooks system-class))
                                              (disabling-flow (gethash system-class systems)))))
@@ -373,7 +373,7 @@ about object returned from the flow are provided.")
 
 
 (defmethod initialization-flow :around (object &key &allow-other-keys)
-  (flow:>> (call-next-method)
+  (ge.ng:>> (call-next-method)
            (instantly ()
              (initialize-destructor object))))
 
@@ -383,7 +383,7 @@ about object returned from the flow are provided.")
 Flow variant of #'make-instance."
   (let* ((*auto-initialize-destructor* nil)
          (instance (apply #'make-instance class :allow-other-keys t initargs)))
-    (flow:>> (apply #'initialization-flow instance initargs)
+    (ge.ng:>> (apply #'initialization-flow instance initargs)
              (value-flow instance))))
 
 
@@ -391,7 +391,7 @@ Flow variant of #'make-instance."
          (apply #'dispatch (engine) task invariant opts)))
   (defun run (flow)
     "Dispatch flow using engine as a dispatcher."
-    (cl-flow:run #'%dispatch flow)))
+    (flow:run #'%dispatch flow)))
 
 ;;
 (defgeneric system-of (obj)
@@ -430,14 +430,14 @@ Flow variant of #'make-instance."
 
 (defmethod enabling-flow ((this enableable))
   (with-slots (enabled-p) this
-    (flow:>> (call-next-method)
+    (ge.ng:>> (call-next-method)
              (instantly ()
                (setf enabled-p t)))))
 
 
 (defmethod disabling-flow ((this enableable))
   (with-slots (enabled-p) this
-    (flow:>> (call-next-method)
+    (ge.ng:>> (call-next-method)
              (instantly ()
                (setf enabled-p nil)))))
 

@@ -66,9 +66,9 @@
 
 
 (defun resource-flow (&rest resource-names)
-  (flow:>> (flow:~> (loop for name in resource-names
-                          collecting (instantly () (load-resource name))))
-           (instantly ((result)) result)))
+  (>> (~> (loop for name in resource-names
+                     collecting (instantly () (load-resource name))))
+      (instantly ((result)) result)))
 
 
 (defun list-registered-resource-names ()

@@ -32,12 +32,12 @@
 
 
 (defmethod enabling-flow ((this generic-system))
-  (flow:>> (call-next-method)
+  (ge.ng:>> (call-next-method)
            (instantly ()
              (initialize-system this))))
 
 
 (defmethod disabling-flow ((this generic-system))
-  (flow:>> (instantly ()
+  (ge.ng:>> (instantly ()
              (discard-system this))
            (call-next-method)))

@@ -8,7 +8,8 @@
 
 
 (define-destructor canvas (handle)
-  (bodge-canvas:destroy-canvas handle))
+  (run (for-graphics ()
+         (bodge-canvas:destroy-canvas handle))))
 
 
 (defun render-canvas (canvas renderer)

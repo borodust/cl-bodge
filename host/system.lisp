@@ -14,7 +14,7 @@
 
 
 (defmacro for-host ((&optional arg) &body body)
-  `(flow:-> (host) (,@(when arg (list arg)))
+  `(ge.ng:-> (host) (,@(when arg (list arg)))
      ,@body))
 
 
@@ -70,13 +70,13 @@
 
 
 (defmethod enabling-flow ((this host-system))
-  (flow:>> (call-next-method)
+  (ge.ng:>> (call-next-method)
            (instantly ()
              (bodge-host:start-application this))))
 
 
 (defmethod disabling-flow ((this host-system))
-  (flow:>> (instantly ()
+  (ge.ng:>> (instantly ()
              (bodge-host:stop-application this))
            (call-next-method)))
 

@@ -36,18 +36,18 @@
 
 
 (defmacro for-graphics ((&optional arg) &body body)
-  `(flow:-> (graphics) (,@(when arg (list arg)))
+  `(ge.ng:-> (graphics) (,@(when arg (list arg)))
      ,@body))
 
 
 (defmacro for-shared-graphics ((&optional arg) &body body)
-  `(flow:-> (graphics) :main-p nil (,@(when arg (list arg)))
+  `(ge.ng:-> (graphics) :main-p nil (,@(when arg (list arg)))
      ,@body))
 
 
 (defmethod enabling-flow ((this graphics-system))
   (with-slots (resource-executor) this
-    (flow:>> (call-next-method)
+    (ge.ng:>> (call-next-method)
         (for-host ()
           (execute resource-executor
                    (lambda ()
@@ -56,7 +56,7 @@
                      (log:debug "Shared context bound"))
                    :priority :highest :important-p t)
           (framebuffer-size))
-        (flow:-> this (viewport)
+        (ge.ng:-> this (viewport)
           (declare (type vec2 viewport))
           (update-context-framebuffer-size (floor (x viewport))
                                            (floor (y viewport)))))))

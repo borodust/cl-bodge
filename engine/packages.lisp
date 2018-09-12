@@ -45,8 +45,20 @@
 (bodge-util:define-package :cl-bodge.engine
   (:nicknames :ge.ng)
   (:use :bodge-util :cl :bordeaux-threads :cl-muth :cl-bodge.events)
-  (:use-reexport :bodge-concurrency :bodge-memory :bodge-math
-                 :cl-bodge.engine.resources)
+  (:use-reexport
+   :bodge-concurrency
+   :bodge-memory
+   :bodge-math
+   :cl-bodge.engine.resources)
+  (:reexport-from :flow
+                  #:->
+                  #:>>
+                  #:~>
+                  #:->>
+                  #:%>
+
+                  #:continue-flow
+                  #:interrupt-flow)
   (:export system
            enabling-flow
            disabling-flow

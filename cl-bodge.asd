@@ -277,7 +277,8 @@
   :serial t
   :components ((:file "packages")
                (:file "input-source")
-               (:file "rendering")))
+               (:file "rendering")
+               (:file "ui")))
 
 
 (asdf:defsystem cl-bodge/distribution
