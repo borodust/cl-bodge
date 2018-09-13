@@ -1,11 +1,25 @@
 (cl:in-package :cl-bodge.resources)
 
+;;;
+;;;
+;;;
+(defenum pixel-format
+  :grey :rgb :rgba)
+
+;;;
+;;;
+;;;
+(defgeneric image-pixel-format (image))
+(defgeneric image-width (image))
+(defgeneric image-height (image))
+(defgeneric image->foreign-array (image))
+
 
 (defclass image ()
-  ((width :initarg :width :reader width-of)
-   (height :initarg :height :reader height-of)
-   (format :initarg :pixel-format :reader pixel-format-of)
-   (data :initarg :data :reader data-of)))
+  ((width :initarg :width :reader image-width)
+   (height :initarg :height :reader image-height)
+   (format :initarg :pixel-format :reader image-pixel-format)
+   (data :initarg :data :reader image->foreign-array)))
 
 
 (defun prepare-png-data (width height pixel-format data)
@@ -13,8 +27,7 @@
                           (:grey 1)
                           (:rgb 3)
                           (:rgba 4))
-        with result = (make-foreign-array (* width height channels)
-                                          :element-type '(unsigned-byte 8))
+        with result = (make-foreign-array (* width height channels) :element-type '(unsigned-byte 8))
         with array = (simple-array-of result)
         for i from 0 below height
         do (loop for j from 0 below width
@@ -28,9 +41,9 @@
 
 
 (defun unwind-png-data (image data)
-  (let ((width (width-of image))
-        (height (height-of image))
-        (array (simple-array-of (data-of image))))
+  (let ((width (image-width image))
+        (height (image-height image))
+        (array (simple-array-of (image->foreign-array image))))
     (loop with channels = (ecase (pixel-format-of image)
                             (:grey 1)
                             (:rgb 3)
@@ -83,10 +96,6 @@
 (defun load-jpeg-image (path)
   (with-open-file (stream path :element-type '(unsigned-byte 8))
     (read-image-from-stream stream :jpeg)))
-
-
-(defmethod foreign-array-of ((this image))
-  (data-of this))
 
 
 ;;;

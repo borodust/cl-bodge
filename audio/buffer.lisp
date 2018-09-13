@@ -44,7 +44,7 @@
 
 (defun make-audio-buffer (resource)
   (make-instance 'audio-buffer
-                 :channel-format (audio-channel-format-of resource)
-                 :sample-depth (audio-sample-depth-of resource)
-                 :sampling-rate (audio-sampling-rate-of resource)
-                 :pcm-data (pcm-audio-data-of resource)))
+                 :channel-format (ge.rsc:audio-channel-format resource)
+                 :sample-depth (ge.rsc:audio-sample-depth resource)
+                 :sampling-rate (ge.rsc:audio-sampling-rate resource)
+                 :pcm-data (simple-array-of (ge.rsc:audio->foreign-array resource))))

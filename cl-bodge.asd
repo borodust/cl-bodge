@@ -11,9 +11,6 @@
   :pathname "engine/"
   :serial t
   :components ((:file "packages")
-               (:module resources
-                :components ((:file "audio")
-                             (:file "graphics")))
                (:module events
                 :components ((:file "event")
                              (:file "emitter")
@@ -115,7 +112,8 @@
   :mailto "dev@borodust.org"
   :license "MIT"
   :depends-on (cl-bodge/engine bodge-utilities cl-bodge/graphics
-                               bodge-canvas cl-bodge/resources)
+                               bodge-canvas cl-bodge/resources
+                               trivial-garbage)
   :pathname "canvas/"
   :serial t
   :components ((:file "packages")
@@ -144,6 +142,7 @@
   :mailto "dev@borodust.org"
   :license "MIT"
   :depends-on (cl-bodge/engine bodge-utilities cl-bodge/host log4cl
+                               cl-bodge/resources
                                openal-blob bodge-openal)
   :pathname "audio/"
   :serial t

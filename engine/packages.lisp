@@ -1,24 +1,3 @@
-(bodge-util:define-package :cl-bodge.engine.resources
-  (:nicknames :ge.ng.rsc)
-  (:use :cl :bodge-util)
-  (:export pixel-format
-           pixel-format-p
-
-           pixel-format-of
-           foreign-array-of
-           width-of
-           height-of
-
-           pcm-data
-           sample-depth
-           channel-format
-
-           pcm-audio-data-of
-           audio-channel-format-of
-           audio-sample-depth-of
-           audio-sampling-rate-of))
-
-
 (bodge-util:define-package :cl-bodge.events
   (:nicknames :ge.eve)
   (:use :cl :bodge-util :bodge-concurrency :cl-flow :bodge-memory)
@@ -48,8 +27,7 @@
   (:use-reexport
    :bodge-concurrency
    :bodge-memory
-   :bodge-math
-   :cl-bodge.engine.resources)
+   :bodge-math)
   (:reexport-from :flow
                   #:->
                   #:>>

@@ -29,9 +29,19 @@
 
            ;; audio
            load-ogg-vorbis-audio
+           audio-channel-format
+           audio-sample-depth
+           audio-sampling-rate
+           audio->foreign-array
 
            ;; images
            load-png-image
+           image-width
+           image-height
+           pixel-format
+           pixel-format-p
+           image-pixel-format
+           image->foreign-array
 
            ;; chunked
            write-chunk

@@ -1,5 +1,5 @@
 (bodge-util:define-package :cl-bodge.canvas
-    (:nicknames :ge.vg)
+  (:nicknames :ge.vg)
   (:use :cl :cl-bodge.engine :bodge-util :cl-bodge.graphics)
   (:reexport-from :bodge-canvas
                   #:with-retained-canvas
@@ -36,6 +36,9 @@
                   #:scale-canvas
                   #:reset-canvas-transform
 
+                  #:image-paint-width
+                  #:image-paint-height
+
                   #:draw-text
                   #:make-font
                   #:make-default-font
@@ -52,6 +55,9 @@
            #:update-canvas-size
            #:update-canvas-pixel-ratio
 
+           #:make-image-paint
+
+           #:register-font-face
            #:canvas-font-metrics
            #:canvas-text-bounds
            #:canvas-text-advance))
