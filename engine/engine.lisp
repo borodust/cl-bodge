@@ -33,12 +33,13 @@
 
 (defun engine-system (system-name &optional (error-if-not-exist t))
   "Return engine's system instance by class name. Throws error if system cannot be found."
-  (with-slots (systems) (engine)
-    (when-let ((system-map systems))
+  (if-let ((engine (engine)))
+    (when-let (system-map (slot-value engine 'systems))
       (if-let ((system (gethash system-name system-map)))
         system
         (when error-if-not-exist
-          (error (format nil "~a engine system not found" system-name)))))))
+          (error (format nil "~a engine system not found" system-name)))))
+    (warn "Engine offline: system cannot be retrieved")))
 
 
 (defun after-system-startup (system-name hook)
