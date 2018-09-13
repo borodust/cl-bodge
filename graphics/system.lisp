@@ -4,10 +4,10 @@
 (defstruct (graphics-context
              (:conc-name ctx-))
   (state (make-instance 'context-state) :read-only t)
-  (supplementary-framebuffer nil :read-only t)
+  (supplementary-framebuffer nil)
   (framebuffer-width 0 :type fixnum)
   (framebuffer-height 0 :type fixnum)
-  (depth-stencil-renderbuffer nil :read-only t))
+  (depth-stencil-renderbuffer nil))
 
 
 (defclass graphics-system (thread-bound-system)
@@ -105,17 +105,18 @@
              (gl:get* :renderer))
   (glad:init)
   (log:debug "GLAD initialized")
-  (let ((ctx (make-graphics-context :supplementary-framebuffer (gl:gen-framebuffer)
-                                    :depth-stencil-renderbuffer (gl:gen-renderbuffer))))
+  (let ((ctx (make-graphics-context)))
     (with-current-state-slice ((ctx-state ctx))
       (gx.state:enable :blend
                        :cull-face
                        :depth-test
-                       :program-point-size
-                       :texture-cube-map-seamless)
+                       :program-point-size)
+      (unless (featurep :bodge-gl2)
+        (gx.state:enable :texture-cube-map-seamless)
+        (setf (ctx-supplementary-framebuffer ctx) (gl:gen-framebuffer)
+              (ctx-depth-stencil-renderbuffer ctx) (gl:gen-renderbuffer)))
       (gx.state:disable :scissor-test
                         :stencil-test)
-
       (gx.state:cull-face :back)
       (gx.state:front-face :ccw)
       (gx.state:clear-color 1.0 1.0 1.0 1.0)
@@ -129,7 +130,6 @@
       (gx.state:stencil-func :always 0 #xffffffff)
       (gx.state:stencil-op :keep :keep :keep)
       (gx.state:pixel-store :unpack-alignment 1)
-
       ctx)))
 
 

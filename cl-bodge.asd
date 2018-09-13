@@ -78,8 +78,7 @@
   :license "MIT"
   :depends-on (cl-bodge/engine bodge-utilities cl-bodge/host cl-bodge/resources
                                cl-opengl log4cl local-time cffi cl-ppcre
-                               glad-blob bodge-glad
-                               static-vectors)
+                               glad-blob bodge-glad static-vectors)
   :pathname "graphics/"
   :serial t
   :components ((:file "packages")
@@ -250,8 +249,7 @@
   :mailto "dev@borodust.org"
   :license "MIT"
   :depends-on (cl-bodge/engine bodge-utilities cl-bodge/resources
-                               cl-bodge/graphics
-                               log4cl)
+                               cl-bodge/graphics log4cl)
   :pathname "text/"
   :serial t
   :components ((:file "packages")

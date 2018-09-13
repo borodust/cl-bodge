@@ -86,7 +86,7 @@
     (setf dimensions (list width height)))
   (with-bound-texture ((%target-of this) (%texture-id-of this))
     (let ((target (%target-of this))
-          (data (foreign-array-of image)))
+          (data (ge.rsc:image->foreign-array image)))
       (gl:pixel-store :unpack-alignment 1)
       (gl:tex-image-2d target 0 internal-format width height 0 external-format
                        :unsigned-byte (foreign-pointer-of data) :raw t)
@@ -103,10 +103,10 @@
 
 
 (defun %make-2d-texture (class image texture-format &key (generate-mipmaps-p t))
-  (let ((ex-format (%pixel-format->external-format (pixel-format-of image)))
+  (let ((ex-format (%pixel-format->external-format (ge.rsc:image-pixel-format image)))
         (in-format (%texture-format->internal-format texture-format))
-        (width (width-of image))
-        (height (height-of image)))
+        (width (ge.rsc:image-width image))
+        (height (ge.rsc:image-height image)))
     (make-instance class
                    :image image
                    :external-format ex-format
@@ -124,10 +124,10 @@
 
 (defun %assign-texture-mipmap-level (image texture level-target level)
   (let ((target (%target-of texture))
-        (external-format (%pixel-format->external-format (pixel-format-of image)))
-        (width (width-of image))
-        (height (height-of image))
-        (data (foreign-array-of image)))
+        (external-format (%pixel-format->external-format (image-pixel-format image)))
+        (width (image-width image))
+        (height (image-height image))
+        (data (image->foreign-array image)))
     (with-bound-texture (target (%texture-id-of texture))
       (gl:tex-image-2d level-target level (texture-format texture) width height 0 external-format
                        :unsigned-byte (foreign-pointer-of data) :raw t)
@@ -154,10 +154,10 @@
                               negative-y-image
                               negative-z-image
                               texture-format &key (generate-mipmaps-p t))
-  (let ((ex-format (%pixel-format->external-format (pixel-format-of positive-x-image)))
+  (let ((ex-format (%pixel-format->external-format (image-pixel-format positive-x-image)))
         (in-format (%texture-format->internal-format texture-format))
-        (width (width-of positive-x-image))
-        (height (height-of positive-x-image)))
+        (width (image-width positive-x-image))
+        (height (image-height positive-x-image)))
     (unless (= width height)
       (error "Cubemap texture must have same width and height"))
     (make-instance class
@@ -183,8 +183,8 @@
     (setf dimensions (list size size)))
   (with-bound-texture ((%target-of this) (%texture-id-of this))
     (loop for (target image) on images by #'cddr
-          do (let ((data (foreign-array-of image)))
-               (unless (and (= (width-of image) size) (= (height-of image) size))
+          do (let ((data (image->foreign-array image)))
+               (unless (and (= (image-width image) size) (= (image-height image) size))
                  (error "Cubemap images all must have the same edge size"))
                (gl:tex-image-2d target 0 internal-format size size 0 external-format
                                 :unsigned-byte (foreign-pointer-of data) :raw t)))
@@ -269,9 +269,9 @@
 ;;;
 ;;;
 (defclass blank-image ()
-  ((width :initform nil :reader width-of)
-   (height :initform nil :reader height-of)
-   (pixel-format :initform :grey :initarg :pixel-format :reader pixel-format-of)))
+  ((width :initform nil :reader image-width)
+   (height :initform nil :reader image-height)
+   (pixel-format :initform :grey :initarg :pixel-format :reader image-pixel-format)))
 
 
 (defmethod initialize-instance :after ((this blank-image) &key width height)
@@ -284,7 +284,7 @@
   (make-instance 'blank-image :width width :height height :pixel-format format))
 
 
-(defmethod foreign-array-of ((this blank-image))
+(defmethod image->foreign-array ((this blank-image))
   nil)
 
 

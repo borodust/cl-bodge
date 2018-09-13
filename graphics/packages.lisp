@@ -7,6 +7,11 @@
 (bodge-util:define-package :cl-bodge.graphics
   (:nicknames :ge.gx)
   (:use :cl :cl-bodge.engine :cl-bodge.host :bodge-util)
+  (:import-from :cl-bodge.resources
+                #:image-height
+                #:image-width
+                #:image-pixel-format
+                #:image->foreign-array)
   (:export graphics-system
            graphics
            for-graphics
