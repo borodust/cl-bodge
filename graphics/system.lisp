@@ -134,8 +134,9 @@
 
 
 (defmethod destroy-system-context ((this graphics-system) ctx)
-  (gl:delete-framebuffers (list (ctx-supplementary-framebuffer ctx)))
-  (gl:delete-renderbuffers (list (ctx-depth-stencil-renderbuffer ctx)))
+  (unless (featurep :bodge-gl2)
+    (gl:delete-framebuffers (list (ctx-supplementary-framebuffer ctx)
+                                  (ctx-depth-stencil-renderbuffer ctx))))
   (clear-registry-cache)
   (release-rendering-context))
 
