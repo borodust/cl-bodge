@@ -3,7 +3,7 @@
 #pragma bodge: import bodge/phong
 #pragma bodge: import bodge/math
 
-#ifdef FRAGMENT_SHADER
+#ifdef BODGE_FRAGMENT_SHADER
 
 // adapted from https://github.com/stackgl/glsl-lighting-walkthrough
 float attenuation(float r, float f, float d) {

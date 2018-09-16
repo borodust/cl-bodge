@@ -2,7 +2,7 @@
 
 #pragma bodge: import bodge/text
 
-#ifdef FRAGMENT_SHADER
+#ifdef BODGE_FRAGMENT_SHADER
 
 vec4 sdfTest(vec4 baseColor, vec2 sdfCoords, sampler2D atlas) {
   float d = texture(atlas, sdfCoords).r;
@@ -14,10 +14,10 @@ vec4 sdfTest(vec4 baseColor, vec2 sdfCoords, sampler2D atlas) {
   return vec4(baseColor.rgb, a);
 }
 
-#endif // FRAGMENT_SHADER code
+#endif // BODGE_FRAGMENT_SHADER code
 
 
-#ifdef GEOMETRY_SHADER
+#ifdef BODGE_GEOMETRY_SHADER
 
 GlyphVertex[4] makeGlyphVertices (Glyph glyph) {
   return GlyphVertex[4](GlyphVertex(glyph.box.zy,
@@ -30,4 +30,4 @@ GlyphVertex[4] makeGlyphVertices (Glyph glyph) {
                                     glyph.texCoords.sq));
 }
 
-#endif // GEOMETRY_SHADER code
+#endif // BODGE_GEOMETRY_SHADER code

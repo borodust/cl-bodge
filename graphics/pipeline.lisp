@@ -107,13 +107,15 @@
 
 (defun %build-shading-program (this &key vertex fragment geometry)
   (with-slots (defines) this
-    (let (program)
+    (let (program
+          (combined-defines (append defines (%defines-of this))))
       (tagbody start
          (restart-case
-             (setf program (link-shader-libraries :vertex-shader (append vertex defines)
-                                                  :fragment-shader (append fragment defines)
-                                                  :geometry-shader (when geometry
-                                                                     (append geometry defines))))
+             (setf program (link-shader-libraries
+                            :vertex-shader (append vertex combined-defines)
+                            :fragment-shader (append fragment combined-defines)
+                            :geometry-shader (when geometry
+                                               (append geometry combined-defines))))
            (relink ()
              :report "Try relinking the pipeline"
              (go start))
@@ -127,13 +129,15 @@
 
 (defmacro defpipeline (name-and-opts &body shaders)
   (destructuring-bind (name &rest opts) (ensure-list name-and-opts)
-    (destructuring-bind (&key (primitive '(:triangles))) (alist-plist opts)
+    (destructuring-bind (&key defines (primitive '(:triangles))) (alist-plist opts)
       (with-gensyms (this)
         `(progn
            (defclass ,name (pipeline) ())
            (defmethod pipeline-primitive ((,this ,name))
              (declare (ignore ,this))
              ,@primitive)
+           (defmethod %defines-of ((,this ,name))
+             (list ,@defines))
            (defmethod pipeline-shaders ((,this ,name))
              (declare (ignore ,this))
              ',(loop for (nil shader-opts) on shaders by #'cddr

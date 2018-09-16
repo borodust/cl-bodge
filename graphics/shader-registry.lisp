@@ -183,15 +183,17 @@
                          compiled-shader
                          (apply #'refresh-compiled-shader library type shader-opts))))
         (nconc (list shader-id) (loop for dependency in (shader-library-dependencies library)
-                                      nconc (collect-compiled-libraries dependency type)))))))
+                                      nconc (apply #'collect-compiled-libraries
+                                                   dependency type shader-opts)))))))
 
 
 (defun link-shader-libraries (&rest libraries &key &allow-other-keys)
   (let ((shaders (loop for (type (shader-name . shader-opts)) on libraries by #'cddr
-                       when shader-opts
+                       when shader-name
                          append (apply #'collect-compiled-libraries
                                        shader-name type shader-opts)))
         (program (gl:create-program)))
+
     (handler-bind ((serious-condition (lambda (c)
                                         (declare (ignore c))
                                         (gl:delete-program program)
@@ -210,5 +212,6 @@
 
 
 (defun shader-source (shader-library shader-type)
-  (values (preprocess-shader (shader-library-descriptor (find-shader-library shader-library))
-                             shader-type)))
+  (if-let ((library (find-shader-library shader-library)))
+    (preprocess-shader (shader-library-descriptor library) shader-type)
+    (error "Library ~A not found" shader-library)))
