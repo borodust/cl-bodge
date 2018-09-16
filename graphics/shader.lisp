@@ -3,6 +3,7 @@
 
 (declaim (special *shader-type*
                   *shader-dependencies*
+                  *shader-opts*
                   *base-path*))
 
 
@@ -18,10 +19,12 @@
 
 (defgeneric shader-descriptor-parameters (shader))
 
+(defgeneric %base-path-of (shader))
+(defgeneric %defines-of (shader))
+
 (defclass shader ()
   ((header :reader %header-of)
    (source :reader %source-of)
-   (base-path :initarg :base-path :reader %base-path-of)
    (paths)
    (last-read-time :reader %last-read-time-of)))
 
@@ -34,9 +37,9 @@
 
 
 (defun %reload-shader-sources (shader header-paths source-paths)
-  (with-slots (header source last-read-time paths base-path) shader
+  (with-slots (header source last-read-time paths) shader
     (flet ((merge-base-path (pathname)
-             (merge-pathnames pathname base-path)))
+             (merge-pathnames pathname (%base-path-of shader))))
       (let ((full-header-paths (mapcar #'merge-base-path header-paths))
             (full-source-paths (mapcar #'merge-base-path source-paths)))
         (setf header (when full-header-paths
@@ -77,14 +80,18 @@
   (destructuring-bind (name &rest opts) (ensure-list name-and-opts)
     (destructuring-bind (&key headers sources
                            ((:name stringified-name) (list (default-library-name name)))
-                           (base-path (list (current-file-truename))))
+                           (base-path (list (current-file-truename)))
+                           defines)
         (alist-plist opts)
       (with-gensyms (this input-list)
         `(progn
-           (defclass ,name (shader) ()
-             (:default-initargs :base-path ,(expand-base-path base-path)))
+           (defclass ,name (shader) ())
            (defmethod %name-of ((,this ,name))
              ,@stringified-name)
+           (defmethod %base-path-of ((,this ,name))
+             ,(expand-base-path base-path))
+           (defmethod %defines-of ((,this ,name))
+             (list ,@defines))
            (let ((,input-list (list ,@(loop for parameter in input
                                             collect `(list ',(first parameter)
                                                            ,@(rest parameter))))))
@@ -108,9 +115,26 @@
     (:compute-shader "BODGE_COMPUTE_SHADER")))
 
 
+(defun parse-shader-opts (opts)
+  (flet ((%to-foreign (value)
+           (string-upcase (translate-name-to-foreign value))))
+    (loop for (name value) on opts by #'cddr
+          collect (format nil "#define ~A ~A"
+                          (%to-foreign name)
+                          (etypecase value
+                            (integer value)
+                            (real (f value))
+                            (string value)
+                            (symbol (%to-foreign value)))))))
+
+
 (defun process-version-directive (directive output)
-  (format output "#~A~%#define ~A 1~%#define BODGE_SHADER 1"
-          directive (process-shader-type-name *shader-type*)))
+  (format output "#~A
+#define BODGE_SHADER 1
+#define ~A 1~{~&~A~}"
+          directive
+          (process-shader-type-name *shader-type*)
+          (parse-shader-opts *shader-opts*)))
 
 
 (defun %process-import-directive (lib-name output)
@@ -198,9 +222,10 @@
         (t (format output "~%~A" line))))))
 
 
-(defun preprocess-shader (shader type)
+(defun preprocess-shader (shader type &rest opts &key &allow-other-keys)
   (let ((*shader-type* type)
         (*shader-dependencies* nil)
+        (*shader-opts* (append (%defines-of shader) opts))
         (*base-path* (%base-path-of shader))
         (source (%source-of shader)))
     (values

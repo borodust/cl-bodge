@@ -9,7 +9,8 @@
    (vertex-array-id :initform 0)
    (last-updated :initform 0)
    (parameter-table :initform (make-hash-table))
-   (shading-program :initform nil)))
+   (shading-program :initform nil)
+   (defines :initarg :defines :initform nil)))
 
 
 (defgeneric pipeline-primitive (pipeline))
@@ -79,8 +80,8 @@
          vertex-count vertex-offset primitive input))
 
 
-(defun make-shader-pipeline (pipeline-name)
-  (make-instance pipeline-name))
+(defun make-shader-pipeline (pipeline-name &rest defines &key &allow-other-keys)
+  (make-instance pipeline-name :defines defines))
 
 
 (defun program-input-parameters (pipeline variable-name)
@@ -104,22 +105,24 @@
   (error "Unimplemented yet"))
 
 
-(defun %build-shading-program (&key vertex fragment geometry)
-  (let (program)
-    (tagbody start
-       (restart-case
-           (setf program (link-shader-libraries :vertex-shader vertex
-                                                :fragment-shader fragment
-                                                :geometry-shader geometry))
-         (relink ()
-           :report "Try relinking the pipeline"
-           (go start))
-         (clear-cache-and-relink ()
-           :report "Reset whole shader cache and try relinking the pipeline"
-           (clear-registry-cache)
-           (reload-all-shader-sources)
-           (go start))))
-    program))
+(defun %build-shading-program (this &key vertex fragment geometry)
+  (with-slots (defines) this
+    (let (program)
+      (tagbody start
+         (restart-case
+             (setf program (link-shader-libraries :vertex-shader (append vertex defines)
+                                                  :fragment-shader (append fragment defines)
+                                                  :geometry-shader (when geometry
+                                                                     (append geometry defines))))
+           (relink ()
+             :report "Try relinking the pipeline"
+             (go start))
+           (clear-cache-and-relink ()
+             :report "Reset whole shader cache and try relinking the pipeline"
+             (clear-registry-cache)
+             (reload-all-shader-sources)
+             (go start))))
+      program)))
 
 
 (defmacro defpipeline (name-and-opts &body shaders)
@@ -133,12 +136,13 @@
              ,@primitive)
            (defmethod pipeline-shaders ((,this ,name))
              (declare (ignore ,this))
-             ',(loop for (nil shader-name) on shaders by #'cddr
-                     collect shader-name))
+             ',(loop for (nil shader-opts) on shaders by #'cddr
+                     collect (first (ensure-list shader-opts))))
            (defmethod build-shading-program ((,this ,name))
-             (declare (ignore ,this))
-             (%build-shading-program ,@(loop for (type shader-name) on shaders by #'cddr
-                                             append `(,type ',shader-name))))
+             (%build-shading-program ,this
+                                     ,@(loop for (type shader-args) on shaders by #'cddr
+                                             for (shader-name . shader-opts) = (ensure-list shader-args)
+                                             append `(,type (list ',shader-name ,@shader-opts)))))
            (make-instances-obsolete ',name))))))
 
 

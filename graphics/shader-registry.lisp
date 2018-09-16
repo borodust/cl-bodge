@@ -31,9 +31,9 @@
     (find-shader-library (gethash name name-table))))
 
 
-(defun find-compiled-shader (shader-class type)
+(defun find-compiled-shader (shader-class type &rest opts &key &allow-other-keys)
   (when-let ((library (find-shader-library shader-class)))
-    (assoc-value (shader-library-cache library) type)))
+    (assoc-value (shader-library-cache library) (nconc (list type) (sort-opts opts)) :test #'equal)))
 
 
 (defun shader-library-parameters (shader-class)
@@ -148,17 +148,22 @@
     shader))
 
 
-(defun refresh-compiled-shader (library type)
-  (let (shader-id)
+(defun sort-opts (opts)
+  (alist-plist (sort (plist-alist opts) #'string< :key #'car)))
+
+
+(defun refresh-compiled-shader (library type &rest opts &key &allow-other-keys)
+  (let (shader-id
+        (opts (sort-opts opts)))
     (tagbody start
        (restart-case
            (let* ((descriptor (shader-library-descriptor library)))
              (multiple-value-bind (source dependencies)
-                 (preprocess-shader descriptor type)
+                 (apply #'preprocess-shader descriptor type opts)
                (register-dependencies (class-name-of (shader-library-descriptor library)) dependencies)
                (setf (shader-library-dependencies library) dependencies
                      shader-id (compile-shader (%name-of descriptor) source type)
-                     (assoc-value (shader-library-cache library) type) shader-id)))
+                     (assoc-value (shader-library-cache library) (nconc (list type) opts)) shader-id)))
          (recompile ()
            :report "Try recompiling the shader"
            (when-let ((shader (shader-library-descriptor library)))
@@ -167,23 +172,25 @@
     shader-id))
 
 
-(defun collect-compiled-libraries (shader-class type)
-  (when-let ((library (find-shader-library shader-class)))
+(defun collect-compiled-libraries (shader-name type &rest shader-opts &key &allow-other-keys)
+  (when-let ((library (find-shader-library shader-name)))
     (when (clean-if-dirty library)
       (remove-from-dependencies (class-name-of (shader-library-descriptor library))
                                 (shader-library-dependencies library)))
     (when (%source-of (shader-library-descriptor library))
-      (let ((shader-id (if-let ((compiled-shader (find-compiled-shader shader-class type)))
+      (let ((shader-id (if-let ((compiled-shader (apply #'find-compiled-shader
+                                                        shader-name type shader-opts)))
                          compiled-shader
-                         (refresh-compiled-shader library type))))
+                         (apply #'refresh-compiled-shader library type shader-opts))))
         (nconc (list shader-id) (loop for dependency in (shader-library-dependencies library)
                                       nconc (collect-compiled-libraries dependency type)))))))
 
 
 (defun link-shader-libraries (&rest libraries &key &allow-other-keys)
-  (let ((shaders (loop for (type shader-class) on libraries by #'cddr
-                       when shader-class
-                         append (collect-compiled-libraries shader-class type)))
+  (let ((shaders (loop for (type (shader-name . shader-opts)) on libraries by #'cddr
+                       when shader-opts
+                         append (apply #'collect-compiled-libraries
+                                       shader-name type shader-opts)))
         (program (gl:create-program)))
     (handler-bind ((serious-condition (lambda (c)
                                         (declare (ignore c))
