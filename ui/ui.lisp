@@ -12,8 +12,11 @@
          (dispose renderer))))
 
 
-(define-system-function make-ui graphics-system (width height &key (pixel-ratio 1f0) input-source)
-  (let ((renderer (make-ui-canvas-renderer width height :antialiased t :pixel-ratio pixel-ratio)))
+(define-system-function make-ui graphics-system (width height &key (pixel-ratio 1f0)
+                                                       input-source
+                                                       (antialiased t))
+  (let ((renderer (make-ui-canvas-renderer width height :antialiased antialiased
+                                                        :pixel-ratio pixel-ratio)))
     (make-instance 'ui :handle (bodge-ui:make-ui renderer :input-source input-source)
                        :renderer renderer)))
 
@@ -33,6 +36,10 @@
 
 (defun remove-window (ui window)
   (bodge-ui:remove-window (%handle-of ui) window))
+
+
+(defun remove-all-windows (ui)
+  (bodge-ui:remove-all-windows (%handle-of ui)))
 
 
 (defun update-ui-size (ui width height)

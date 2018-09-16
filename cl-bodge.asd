@@ -239,7 +239,8 @@
                (:file "shadow/shadow")
                (:file "phong/phong")
                (:file "banner/banner")
-               (:file "skinning/skinning")))
+               (:file "skinning/skinning")
+               (:file "filament/filament")))
 
 
 (asdf:defsystem cl-bodge/text
@@ -278,6 +279,34 @@
                (:file "ui")))
 
 
+(asdf:defsystem cl-bodge/scene
+  :description "Bodacious Game Engine scene handling"
+  :version "0.4.0"
+  :author "Pavel Korolev"
+  :mailto "dev@borodust.org"
+  :license "MIT"
+  :depends-on (bodge-utilities cl-bodge/engine)
+  :pathname "scene/"
+  :serial t
+  :components ((:file "packages")
+               (:file "scene")))
+
+
+(asdf:defsystem cl-bodge/appkit
+  :description "Simple facade for cl-bodge facilities"
+  :version "1.0.0"
+  :author "Pavel Korolev"
+  :mailto "dev@borodust.org"
+  :license "MIT"
+  :depends-on (log4cl cl-bodge/graphics cl-bodge/audio cl-bodge/host
+                      cl-bodge/resources cl-bodge/canvas cl-bodge/ui
+                      uiop cl-muth cl-fad cl-muth)
+  :pathname "appkit/"
+  :serial t
+  :components ((:file "packages")
+               (:file "appkit")))
+
+
 (asdf:defsystem cl-bodge/distribution
   :description "Bodacious Game Engine distribution helpers"
   :version "0.4.0"
@@ -285,8 +314,8 @@
   :mailto "dev@borodust.org"
   :license "MIT"
   :depends-on (bodge-utilities cl-bodge/resources asdf uiop cl-fad cffi cl-ppcre
-                              bodge-blobs-support inferior-shell split-sequence flexi-streams
-                              trivial-features)
+                               bodge-blobs-support inferior-shell split-sequence flexi-streams
+                               trivial-features)
   :pathname "distribution/"
   :serial t
   :components ((:file "packages")
@@ -294,14 +323,14 @@
                (:file "distribution")
                (:file "registry")
                (:module darwin
-                        :if-feature :darwin
-                        :components ((:file "build")))
+                :if-feature :darwin
+                :components ((:file "build")))
                (:module unix
-                        :if-feature (:and :unix (:not :darwin))
-                        :components ((:file "build")))
+                :if-feature (:and :unix (:not :darwin))
+                :components ((:file "build")))
                (:module windows
-                        :if-feature (:or :windows :win32)
-                        :components ((:file "build")))
+                :if-feature (:or :windows :win32)
+                :components ((:file "build")))
                (:file "build-unknown" :if-feature (:not (:or :darwin :unix :win32 :windows)))
                (:file "build")))
 
@@ -332,34 +361,5 @@
                                cl-bodge/physics cl-bodge/physics/2d cl-bodge/physics/3d
                                cl-bodge/resources cl-bodge/ui cl-bodge/text
                                cl-bodge/canvas cl-bodge/animation
-                               cl-bodge/shading)
+                               cl-bodge/shading cl-bodge/scene cl-bodge/appkit)
   :components ((:file "packages")))
-
-
-(asdf:defsystem cl-bodge/demo
-  :description "cl-bodge demo to check if all systems work as expected"
-  :version "1.0.0"
-  :author "Pavel Korolev"
-  :license "MIT"
-  :depends-on (cl-bodge)
-  :pathname "demo/"
-  :serial t
-  :components ((:file "packages")
-               (:file "utils")
-               (:file "scene")
-               (:file "case")
-               (:module cases
-                :serial t
-                :components ((:file "2d-physics")
-                             (:file "3d-physics")
-                             (:file "framebuffers/framebuffers")
-                             (:file "ui")
-                             (:file "text/text")
-                             (:module pbr
-                              :serial t
-                              :components ((:file "packages")
-                                           (:file "utils")
-                                           (:file "scene")
-                                           (:file "pbr")))
-                             (:file "animation/animation")))
-               (:file "demo")))

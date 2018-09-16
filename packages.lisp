@@ -11,4 +11,5 @@
    :cl-bodge.resources
    :cl-bodge.ui
    :cl-bodge.text
-   :cl-bodge.canvas))
+   :cl-bodge.canvas
+   :cl-bodge.appkit))

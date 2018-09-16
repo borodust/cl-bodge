@@ -2,18 +2,18 @@
 
 
 (defsstruct phong-point-light
-  position
-  color
-  ambient
-  falloff
-  radius)
+  (position :vec3)
+  (color :vec3)
+  (ambient :vec3)
+  (falloff :float)
+  (radius :float))
 
 
 (defsstruct phong-material
-  (specular-scale :name "specularScale")
-  shininess
-  roughness
-  albedo)
+  (specular-scale :float :name "specularScale")
+  (shininess :float)
+  (roughness :float)
+  (albedo :float))
 
 
 (defshader (phong-shader

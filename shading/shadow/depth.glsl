@@ -1,6 +1,6 @@
 #version 330 core
 
-#ifdef VERTEX_SHADER
+#ifdef BODGE_VERTEX_SHADER
 
 layout(location = 0) in vec3 vPosition;
 
@@ -11,7 +11,7 @@ void main () {
 }
 #endif
 
-#ifdef FRAGMENT_SHADER
+#ifdef BODGE_FRAGMENT_SHADER
 
 void main() {
 }

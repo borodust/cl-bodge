@@ -24,6 +24,7 @@
            #:with-ui-access
            #:add-window
            #:remove-window
+           #:remove-all-windows
 
            #:update-ui-size
            #:update-ui-pixel-ratio

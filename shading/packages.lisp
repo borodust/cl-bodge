@@ -30,4 +30,6 @@
            depth-pipeline
            depth-position
            depth-mvp
-           render-with-depth-pipeline))
+           render-with-depth-pipeline
+
+           filament-pipeline))

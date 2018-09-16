@@ -14,14 +14,64 @@
 
 (defstruct shader-struct-field
   (name nil :type symbol :read-only t)
+  (type "float" :type string :read-only t)
+  (count 1 :type fixnum :read-only t)
   (foreign-name "" :type string :read-only t))
+
+
+(defun type->glsl (type)
+  (eswitch (type :test #'equal)
+    (:float "float")
+    (:int "int")
+    (:uint "uint")
+    (:bool "bool")
+
+    (:bool2 "bvec2")
+    (:bool3 "bvec3")
+    (:bool4 "bvec4")
+    (:float2 "vec2")
+    (:float3 "vec3")
+    (:float4 "vec4")
+    (:int2 "ivec2")
+    (:int3 "ivec3")
+    (:int4 "ivec4")
+    (:uint2 "uvec2")
+    (:uint3 "uvec3")
+    (:uint4 "uvec4")
+    (:float3x3 "mat3")
+    (:float4x4 "mat4")
+
+    (:bvec2 "bvec2")
+    (:bvec3 "bvec3")
+    (:bvec4 "bvec4")
+    (:vec2 "vec2")
+    (:vec3 "vec3")
+    (:vec4 "vec4")
+    (:ivec2 "ivec2")
+    (:ivec3 "ivec3")
+    (:ivec4 "ivec4")
+    (:uvec2 "uvec2")
+    (:uvec3 "uvec3")
+    (:uvec4 "uvec4")
+    (:mat3 "mat3")
+    (:mat4 "mat4")
+
+    (:sampler-2d "sampler2D")
+    ('(:sampler-2d :shadow) "sampler2DShadow")
+    ('(:sampler-2d :float) "sampler2D")
+    ('(:sampler-2d :uint) "usampler2D")
+    ('(:sampler-2d :int) "isampler2D")
+    (:sampler-cube "samplerCube")))
 
 
 (defun make-shader-struct-descriptor (fields)
   (loop for field in fields
-        collect (destructuring-bind (symbol-name &key name &allow-other-keys) field
-                  (let ((foreign-name (or name (bodge-util:translate-name-to-foreign symbol-name))))
+        collect (destructuring-bind (symbol-name type &key name (count 1) &allow-other-keys) field
+                  (let ((foreign-name (or name (string-downcase
+                                                (bodge-util:translate-name-to-foreign symbol-name)))))
                     (make-shader-struct-field :name symbol-name
+                                              :type (type->glsl type)
+                                              :count count
                                               :foreign-name foreign-name)))))
 
 
@@ -34,9 +84,9 @@
 
 (defun fields-to-descriptor (fields)
   (let ((expanded-field-descriptors (loop for field in fields
-                                          collect (destructuring-bind (name &rest opts)
+                                          collect (destructuring-bind (name type &rest opts)
                                                       (ensure-list field)
-                                                    `(list ',name ,@opts)))))
+                                                    `(list ',name ',type ,@opts)))))
     `(make-shader-struct-descriptor (list ,@expanded-field-descriptors))))
 
 
@@ -47,8 +97,8 @@
 
 (defun fields-to-slots (class-name fields)
   (loop for field in fields
-        collect (destructuring-bind (symbol-name &rest opts) (ensure-list field)
-                  (declare (ignore opts))
+        collect (destructuring-bind (symbol-name type &rest opts) (ensure-list field)
+                  (declare (ignore type opts))
                   (let ((keyword-name (make-keyword symbol-name)))
                     `(,symbol-name :initform (error ,(with-output-to-string (s)
                                                        (prin1 keyword-name s)
@@ -69,6 +119,40 @@
            (declare (ignore ,@(fields-to-parameters fields)))
            (apply #'make-instance ',name ,initargs))
          (register-shader-struct-descriptor ',name ,(fields-to-descriptor fields))))))
+
+
+(defun full-field-name (field)
+  (let* ((field-type (shader-struct-field-type field))
+         (field-count (shader-struct-field-count field))
+         (foreign-name (shader-struct-field-foreign-name field))
+         (full-foreign-name (cond
+                              ((<= field-count 0)
+                               (format nil "~A[]" foreign-name))
+                              ((> field-count 1)
+                               (format nil "~A[~A]" foreign-name field-count))
+                              (t foreign-name))))
+    (format nil "~A ~A;" field-type full-foreign-name)))
+
+
+(defun serialize-struct-as-interface (struct-type interface-type block-name &optional (output t))
+  (let ((descriptor (find-shader-struct-descriptor struct-type)))
+    (format output "~&layout(std140) ~A ~A_i {
+~{~&  ~A~}
+}"
+            interface-type
+            (translate-name-to-foreign struct-type)
+            (loop for field in (shader-struct-descriptor-fields descriptor)
+                  collect (full-field-name field)))
+    (when block-name
+        (format output " ~A" block-name))
+      (format output ";")))
+
+
+(defun serialize-struct-as-uniforms (struct-type &optional (output t))
+  (let ((descriptor (find-shader-struct-descriptor struct-type)))
+    (loop for field in (shader-struct-descriptor-fields descriptor)
+          do (format output "~&uniform ~A" (full-field-name field)))))
+
 
 
 (defmethod inject-shader-input ((this shader-structure) &key name)

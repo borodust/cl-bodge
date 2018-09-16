@@ -1,6 +1,6 @@
 #version 330 core
 
-#pragma bodge: include bodge/text
+#pragma bodge: import bodge/text
 
 out vec4 fColor;
 

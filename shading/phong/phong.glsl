@@ -1,7 +1,7 @@
 #version 330 core
 
-#pragma bodge: include bodge/phong
-#pragma bodge: include bodge/math
+#pragma bodge: import bodge/phong
+#pragma bodge: import bodge/math
 
 #ifdef FRAGMENT_SHADER
 
