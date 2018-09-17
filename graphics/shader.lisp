@@ -81,7 +81,7 @@
     (destructuring-bind (&key headers sources
                            ((:name stringified-name) (list (default-library-name name)))
                            (base-path (list (current-file-truename)))
-                           defines)
+                           options)
         (alist-plist opts)
       (with-gensyms (this input-list)
         `(progn
@@ -91,7 +91,7 @@
            (defmethod %base-path-of ((,this ,name))
              ,(expand-base-path base-path))
            (defmethod %defines-of ((,this ,name))
-             (list ,@defines))
+             (list ,@options))
            (let ((,input-list (list ,@(loop for parameter in input
                                             collect `(list ',(first parameter)
                                                            ,@(rest parameter))))))
@@ -125,6 +125,7 @@
                             (integer value)
                             (real (f value))
                             (string value)
+                            (boolean (if value 1 0))
                             (symbol (%to-foreign value)))))))
 
 

@@ -10,7 +10,7 @@
    (last-updated :initform 0)
    (parameter-table :initform (make-hash-table))
    (shading-program :initform nil)
-   (defines :initarg :defines :initform nil)))
+   (defines :initarg :options :initform nil)))
 
 
 (defgeneric pipeline-primitive (pipeline))
@@ -80,8 +80,8 @@
          vertex-count vertex-offset primitive input))
 
 
-(defun make-shader-pipeline (pipeline-name &rest defines &key &allow-other-keys)
-  (make-instance pipeline-name :defines defines))
+(defun make-shader-pipeline (pipeline-name &rest options &key &allow-other-keys)
+  (make-instance pipeline-name :options options))
 
 
 (defun program-input-parameters (pipeline variable-name)
@@ -129,7 +129,7 @@
 
 (defmacro defpipeline (name-and-opts &body shaders)
   (destructuring-bind (name &rest opts) (ensure-list name-and-opts)
-    (destructuring-bind (&key defines (primitive '(:triangles))) (alist-plist opts)
+    (destructuring-bind (&key options (primitive '(:triangles))) (alist-plist opts)
       (with-gensyms (this)
         `(progn
            (defclass ,name (pipeline) ())
@@ -137,7 +137,7 @@
              (declare (ignore ,this))
              ,@primitive)
            (defmethod %defines-of ((,this ,name))
-             (list ,@defines))
+             (list ,@options))
            (defmethod pipeline-shaders ((,this ,name))
              (declare (ignore ,this))
              ',(loop for (nil shader-opts) on shaders by #'cddr
