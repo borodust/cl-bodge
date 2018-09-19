@@ -52,7 +52,6 @@
           (execute resource-executor
                    (lambda ()
                      (bind-rendering-context :main nil)
-                     (glad:init)
                      (log:debug "Shared context bound"))
                    :priority :highest :important-p t)
           (framebuffer-size))
