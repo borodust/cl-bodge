@@ -4,7 +4,7 @@
 
 (define-constant +expected-dpi+ 96)
 
-(defclass host-application (bodge-host:application) ())
+(defclass host-application (bodge-host:window) ())
 
 (defclass host-system (enableable dispatching generic-system)
   ((host-application :initform nil)
@@ -70,8 +70,9 @@
 (defun make-host-application ()
   (make-instance 'host-application
                  :opengl-version (property '(:host :opengl-version) '(3 3))
-                 :viewport-resizable (property '(:host :viewport-resizable) nil)
-                 :viewport-decorated (property '(:host :viewport-decorated) t)))
+                 :resizable (property '(:host :viewport-resizable) nil)
+                 :decorated (property '(:host :viewport-decorated) t)
+                 :transparent (property '(:host :viewport-transparent) t)))
 
 
 (defmethod enabling-flow ((this host-system))
@@ -80,14 +81,14 @@
               (instantly ()
                 (setf host-application (make-host-application)
                       shared (bodge-host:make-shared-rendering-context host-application))
-                (bodge-host:start-application (host-application this))
+                (bodge-host:open-window (host-application this))
                 (log:debug "Host system initialized")))))
 
 
 (defmethod disabling-flow ((this host-system))
   (ge.ng:>> (instantly ()
               (bodge-host:destroy-shared-rendering-context (shared-application this))
-              (bodge-host:stop-application (host-application this))
+              (bodge-host:close-window (host-application this))
               (log:debug "Host system offline"))
             (call-next-method)))
 
