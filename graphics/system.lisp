@@ -47,19 +47,19 @@
 
 (defmethod enabling-flow ((this graphics-system))
   (with-slots (resource-executor) this
-    (ge.ng:>> (call-next-method)
-        (for-host ()
-          (execute resource-executor
-                   (lambda ()
-                     (bind-rendering-context :main nil)
-                     (log:debug "Shared context bound"))
-                   :priority :highest :important-p t)
-          (framebuffer-size))
-        (ge.ng:-> this (viewport)
-          (declare (type vec2 viewport))
-          (update-context-framebuffer-size (floor (x viewport))
-                                           (floor (y viewport)))))))
-
+    (ge.ng:>>
+     (call-next-method)
+     (for-host ()
+       (execute resource-executor
+                (lambda ()
+                  (bind-rendering-context :main nil)
+                  (log:debug "Shared context bound"))
+                :priority :highest :important-p t)
+       (framebuffer-size))
+     (ge.ng:-> this (viewport)
+       (declare (type vec2 viewport))
+       (update-context-framebuffer-size (floor (x viewport))
+                                        (floor (y viewport)))))))
 
 
 (defmethod dispatch ((this graphics-system) (task function) invariant &rest args

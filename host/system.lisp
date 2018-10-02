@@ -4,7 +4,8 @@
 
 (define-constant +expected-dpi+ 96)
 
-(defclass host-application (bodge-host:window) ())
+(defclass host-application (bodge-host:window)
+  ((init-continuation :initarg :continuation)))
 
 (defclass host-system (enableable dispatching generic-system)
   ((host-application :initform nil)
@@ -33,6 +34,11 @@
     (let ((*system* this))
       (funcall fn)))
   t)
+
+
+(defmethod bodge-host:on-init ((this host-application))
+  (with-slots (init-continuation) this
+    (funcall init-continuation)))
 
 
 (defmethod bodge-host:on-hide ((this host-application))
@@ -67,8 +73,9 @@
   (post 'character-input-event :character character))
 
 
-(defun make-host-application ()
+(defun make-host-application (cont)
   (make-instance 'host-application
+                 :continuation cont
                  :opengl-version (property '(:host :opengl-version) '(3 3))
                  :resizable (property '(:host :viewport-resizable) nil)
                  :decorated (property '(:host :viewport-decorated) t)
@@ -78,11 +85,12 @@
 (defmethod enabling-flow ((this host-system))
   (with-slots (host-application shared) this
     (ge.ng:>> (call-next-method)
-              (instantly ()
-                (setf host-application (make-host-application)
-                      shared (bodge-host:make-shared-rendering-context host-application))
+              (ge.ng:%> ()
+                (setf host-application (make-host-application #'ge.ng:continue-flow))
                 (bodge-host:open-window (host-application this))
-                (log:debug "Host system initialized")))))
+                (log:debug "Host system initialized"))
+              (instantly ()
+                (setf shared (bodge-host:make-shared-rendering-context host-application))))))
 
 
 (defmethod disabling-flow ((this host-system))
