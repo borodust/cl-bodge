@@ -31,13 +31,11 @@
   (class-name (class-of this)))
 
 
-(defmethod enabling-flow ((this generic-system))
-  (ge.ng:>> (call-next-method)
-           (instantly ()
-             (initialize-system this))))
+(defmethod enabling-flow list ((this generic-system))
+  (instantly ()
+    (initialize-system this)))
 
 
-(defmethod disabling-flow ((this generic-system))
-  (ge.ng:>> (instantly ()
-             (discard-system this))
-           (call-next-method)))
+(defmethod disabling-flow list ((this generic-system))
+  (instantly ()
+    (discard-system this)))

@@ -227,9 +227,8 @@
                  (lambda () (enabledp this))))))
 
 
-(defmethod enabling-flow ((this appkit-system))
-  (>> (call-next-method)
-      (ge.host:for-host ()
+(defmethod enabling-flow list ((this appkit-system))
+  (>> (ge.host:for-host ()
         (viewport-pixel-ratio))
       (ge.gx:for-graphics (pixel-ratio)
         (%initialize-graphics this pixel-ratio))

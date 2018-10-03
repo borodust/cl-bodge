@@ -96,24 +96,22 @@
                  :transparent (property '(:host :viewport-transparent) nil)))
 
 
-(defmethod enabling-flow ((this host-system))
+(defmethod enabling-flow list ((this host-system))
   (with-slots (host-application shared) this
-    (ge.ng:>> (call-next-method)
-              (ge.ng:%> ()
-                (setf host-application (make-host-application #'ge.ng:continue-flow))
-                (bodge-host:open-window (host-application this)))
-              (instantly ()
-                (setf shared (bodge-host:make-shared-rendering-context host-application))
-                (log:debug "Host system initialized")))))
+    (>> (%> ()
+          (setf host-application (make-host-application #'ge.ng:continue-flow))
+          (bodge-host:open-window (host-application this)))
+        (instantly ()
+          (setf shared (bodge-host:make-shared-rendering-context host-application))
+          (log:debug "Host system initialized")))))
 
 
-(defmethod disabling-flow ((this host-system))
+(defmethod disabling-flow list ((this host-system))
   (ge.ng:>>
    (%> ()
      (bodge-host:destroy-shared-rendering-context (shared-application this))
      (set-destroy-continuation (host-application this) #'continue-flow)
      (bodge-host:close-window (host-application this)))
-   (call-next-method)
    (instantly ()
      (log:debug "Host system offline"))))
 

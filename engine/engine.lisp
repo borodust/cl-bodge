@@ -125,12 +125,14 @@ flow block after the looped flow."
 
 
 (defgeneric enabling-flow (system)
-  (:method (system) nil)
+  (:method list (system) nil)
+  (:method-combination list :most-specific-last)
   (:documentation "Enable engine's system asynchronously."))
 
 
 (defgeneric disabling-flow (system)
-  (:method (system) nil)
+  (:method list (system) nil)
+  (:method-combination list :most-specific-first)
   (:documentation "Disable engine's system asynchronously."))
 
 
@@ -162,10 +164,10 @@ flow block after the looped flow."
             (when (system-enabled-p system)
               (error (format nil "Circular dependency found for '~a'" system-class)))
             (cons (cons system-class (ge.ng:>> (instantly ()
-                                                (log:debug "Enabling ~a" system-class))
-                                              (enabling-flow system)
-                                              (instantly ()
-                                                (invoke-system-startup-hooks system-class))))
+                                                 (log:debug "Enabling ~a" system-class))
+                                               (enabling-flow system)
+                                               (instantly ()
+                                                 (invoke-system-startup-hooks system-class))))
                   result))
           result))))
 
@@ -221,9 +223,9 @@ specified."
              (enabling-flows (requested-systems-enabling-flow sys-table)))
         (setf systems sys-table)
         (mt:wait-with-latch (latch)
-          (run (ge.ng:>> (mapcar #'cdr enabling-flows)
-                        (instantly ()
-                          (mt:open-latch latch)))))
+          (run (>> (mapcar #'cdr enabling-flows)
+                   (instantly ()
+                     (mt:open-latch latch)))))
         (setf disabling-order (reverse (mapcar #'car enabling-flows)))))))
 
 
@@ -429,18 +431,16 @@ Flow variant of #'make-instance."
     enabled-p))
 
 
-(defmethod enabling-flow ((this enableable))
+(defmethod enabling-flow list ((this enableable))
   (with-slots (enabled-p) this
-    (ge.ng:>> (call-next-method)
-             (instantly ()
-               (setf enabled-p t)))))
+    (instantly ()
+      (setf enabled-p t))))
 
 
-(defmethod disabling-flow ((this enableable))
+(defmethod disabling-flow list ((this enableable))
   (with-slots (enabled-p) this
-    (ge.ng:>> (call-next-method)
-             (instantly ()
-               (setf enabled-p nil)))))
+    (instantly ()
+      (setf enabled-p nil))))
 
 ;;;
 ;;;

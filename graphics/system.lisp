@@ -20,7 +20,7 @@
     (setf resource-executor (acquire-executor :single-threaded-p t :exclusive-p t))))
 
 
-(defmethod disabling-flow ((this graphics-system))
+(defmethod disabling-flow list ((this graphics-system))
   (with-slots (resource-executor) this
     (>>
      (%> ()
@@ -35,8 +35,7 @@
                     :priority :highest :important-p t)
            (continue-flow)))
      (instantly ()
-       (release-executor resource-executor))
-     (call-next-method))))
+       (release-executor resource-executor)))))
 
 
 (defmacro for-graphics ((&optional arg) &body body)
@@ -49,23 +48,21 @@
      ,@body))
 
 
-(defmethod enabling-flow ((this graphics-system))
+(defmethod enabling-flow list ((this graphics-system))
   (with-slots (resource-executor) this
-    (ge.ng:>>
-     (call-next-method)
-     (%> ()
-       (execute resource-executor
-                (lambda ()
-                  (bind-rendering-context :main nil)
-                  (log:debug "Shared context bound")
-                  (continue-flow))
-                :priority :highest :important-p t))
-     (for-host ()
-       (framebuffer-size))
-     (ge.ng:-> this (viewport)
-       (declare (type vec2 viewport))
-       (update-context-framebuffer-size (floor (x viewport))
-                                        (floor (y viewport)))))))
+    (>> (%> ()
+          (execute resource-executor
+                   (lambda ()
+                     (bind-rendering-context :main nil)
+                     (log:debug "Shared context bound")
+                     (continue-flow))
+                   :priority :highest :important-p t))
+        (for-host ()
+          (framebuffer-size))
+        (-> this (viewport)
+          (declare (type vec2 viewport))
+          (update-context-framebuffer-size (floor (x viewport))
+                                           (floor (y viewport)))))))
 
 
 (defmethod dispatch ((this graphics-system) (task function) invariant &rest args
