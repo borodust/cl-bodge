@@ -5,7 +5,14 @@
 (define-constant +expected-dpi+ 96)
 
 (defclass host-application (bodge-host:window)
-  ((init-continuation :initarg :continuation)))
+  ((init-continuation :initarg :init-continuation)
+   (destroy-continuation :initarg :destroy-continuation)))
+
+
+(defun set-destroy-continuation (host-application cont)
+  (with-slots (destroy-continuation) host-application
+    (setf destroy-continuation cont)))
+
 
 (defclass host-system (enableable dispatching generic-system)
   ((host-application :initform nil)
@@ -38,7 +45,14 @@
 
 (defmethod bodge-host:on-init ((this host-application))
   (with-slots (init-continuation) this
-    (funcall init-continuation)))
+    (run (concurrently ()
+           (funcall init-continuation)))))
+
+
+(defmethod bodge-host:on-destroy ((this host-application))
+  (with-slots (destroy-continuation) this
+    (run (concurrently ()
+           (funcall destroy-continuation)))))
 
 
 (defmethod bodge-host:on-hide ((this host-application))
@@ -75,7 +89,7 @@
 
 (defun make-host-application (cont)
   (make-instance 'host-application
-                 :continuation cont
+                 :init-continuation cont
                  :opengl-version (property '(:host :opengl-version) '(3 3))
                  :resizable (property '(:host :viewport-resizable) nil)
                  :decorated (property '(:host :viewport-decorated) t)
@@ -87,18 +101,21 @@
     (ge.ng:>> (call-next-method)
               (ge.ng:%> ()
                 (setf host-application (make-host-application #'ge.ng:continue-flow))
-                (bodge-host:open-window (host-application this))
-                (log:debug "Host system initialized"))
+                (bodge-host:open-window (host-application this)))
               (instantly ()
-                (setf shared (bodge-host:make-shared-rendering-context host-application))))))
+                (setf shared (bodge-host:make-shared-rendering-context host-application))
+                (log:debug "Host system initialized")))))
 
 
 (defmethod disabling-flow ((this host-system))
-  (ge.ng:>> (instantly ()
-              (bodge-host:destroy-shared-rendering-context (shared-application this))
-              (bodge-host:close-window (host-application this))
-              (log:debug "Host system offline"))
-            (call-next-method)))
+  (ge.ng:>>
+   (%> ()
+     (bodge-host:destroy-shared-rendering-context (shared-application this))
+     (set-destroy-continuation (host-application this) #'continue-flow)
+     (bodge-host:close-window (host-application this)))
+   (call-next-method)
+   (instantly ()
+     (log:debug "Host system offline"))))
 
 
 (defun bind-rendering-context (&key (main t))
