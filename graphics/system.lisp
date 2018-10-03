@@ -20,19 +20,23 @@
     (setf resource-executor (acquire-executor :single-threaded-p t :exclusive-p t))))
 
 
-(defmethod discard-system :before ((this graphics-system))
+(defmethod disabling-flow ((this graphics-system))
   (with-slots (resource-executor) this
-    (when (alivep resource-executor)
-      (mt:wait-with-latch (latch)
-        (execute resource-executor
-                 (lambda ()
-                   (unwind-protect
-                        (progn
-                          (release-rendering-context)
-                          (log:debug "Shared context released"))
-                     (mt:open-latch latch)))
-                 :priority :highest :important-p t)))
-    (release-executor resource-executor)))
+    (>>
+     (%> ()
+       (if (alivep resource-executor)
+           (execute resource-executor
+                    (lambda ()
+                      (unwind-protect
+                           (progn
+                             (release-rendering-context)
+                             (log:debug "Shared context released"))
+                        (continue-flow)))
+                    :priority :highest :important-p t)
+           (continue-flow)))
+     (instantly ()
+       (release-executor resource-executor))
+     (call-next-method))))
 
 
 (defmacro for-graphics ((&optional arg) &body body)
@@ -49,12 +53,14 @@
   (with-slots (resource-executor) this
     (ge.ng:>>
      (call-next-method)
-     (for-host ()
+     (%> ()
        (execute resource-executor
                 (lambda ()
                   (bind-rendering-context :main nil)
-                  (log:debug "Shared context bound"))
-                :priority :highest :important-p t)
+                  (log:debug "Shared context bound")
+                  (continue-flow))
+                :priority :highest :important-p t))
+     (for-host ()
        (framebuffer-size))
      (ge.ng:-> this (viewport)
        (declare (type vec2 viewport))

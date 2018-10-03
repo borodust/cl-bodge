@@ -1,4 +1,4 @@
-(cl:in-package :bodge-host)
+(cl:in-package :cl-bodge.host)
 
 
 (defenum hotkey-state
@@ -7,8 +7,8 @@
 
 
 (defclass hotkey-listener ()
-  ((hotkey-table :initform (make-guarded-reference (make-hash-table :test #'equal)))
-   (current-bag :initform (make-guarded-reference nil))))
+  ((hotkey-table :initform (mt:make-guarded-reference (make-hash-table :test #'equal)))
+   (current-bag :initform (mt:make-guarded-reference nil))))
 
 
 (defun %ensure-correct-hotkey (key-bag)
@@ -21,20 +21,20 @@
 
 (defun register-keyboard-hotkey (hotkey-listener key-bag action)
   (with-slots (hotkey-table) hotkey-listener
-    (with-guarded-reference (hotkey-table)
+    (mt:with-guarded-reference (hotkey-table)
       (setf (gethash (%ensure-correct-hotkey key-bag) hotkey-table) action))))
 
 
 (defun %get-hotkey-action (listener key-bag)
   (with-slots (hotkey-table) listener
-    (with-guarded-reference (hotkey-table)
+    (mt:with-guarded-reference (hotkey-table)
       (gethash key-bag hotkey-table))))
 
 
 (defun hotkey-update-key-state (hotkey-listener key state)
   (with-slots (hotkey-table current-bag) hotkey-listener
     (unless (eq state :repeating)
-      (with-guarded-reference (current-bag)
+      (mt:with-guarded-reference (current-bag)
         (when-let ((prev-hotkey-action (%get-hotkey-action hotkey-listener
                                                            current-bag)))
           (funcall prev-hotkey-action :released))

@@ -79,7 +79,7 @@
                  :opengl-version (property '(:host :opengl-version) '(3 3))
                  :resizable (property '(:host :viewport-resizable) nil)
                  :decorated (property '(:host :viewport-decorated) t)
-                 :transparent (property '(:host :viewport-transparent) t)))
+                 :transparent (property '(:host :viewport-transparent) nil)))
 
 
 (defmethod enabling-flow ((this host-system))
