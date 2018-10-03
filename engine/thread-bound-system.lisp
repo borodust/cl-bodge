@@ -46,33 +46,35 @@
     (release-executor executor)))
 
 
-(defmethod initialize-system :after ((this thread-bound-system))
-  (setf (%executor-of this) (acquire-system-executor this)))
-
-
-(defmethod initialize-system :around ((this thread-bound-system))
-  (call-next-method)
-  (wait-with-latch (latch)
-    (execute (%executor-of this)
-             (lambda ()
-               (log-errors
-                 (with-slots (context) this
+(defmethod enabling-flow list ((this thread-bound-system))
+  (with-slots (context) this
+    (%> ()
+      (setf (%executor-of this) (acquire-system-executor this))
+      (labels ((%fire-error ()
+                 (interrupt-flow "Failed to create a context"))
+               (%continue-async ()
+                 (run (concurrently ()
+                        (continue-flow))))
+               (%create-context ()
+                 (bind-for-serious-condition (#'%fire-error)
                    (setf context (make-system-context this)))
-                 (open-latch latch)))
-             :priority :highest :important-p t)))
+                 (%continue-async)))
+        (execute (%executor-of this) #'%create-context
+                 :priority :highest :important-p t)))))
 
 
-(defmethod discard-system :around ((this thread-bound-system))
-  (when (alivep (%executor-of this))
-    (wait-with-latch (latch)
-      (execute (%executor-of this)
-               (lambda ()
-                 (unwind-protect
-                      (destroy-system-context this (system-context-of this))
-                   (open-latch latch)))
-               :priority :highest :important-p t)))
-  (call-next-method))
-
-
-(defmethod discard-system :before ((this thread-bound-system))
-  (release-system-executor this (%executor-of this)))
+(defmethod disabling-flow list ((this thread-bound-system))
+  (%> ()
+    (flet ((%continue-async ()
+             (run (concurrently ()
+                    (continue-flow)))))
+      (if (alivep (%executor-of this))
+          (execute (%executor-of this)
+                   (lambda ()
+                     (unwind-protect
+                          (destroy-system-context this (system-context-of this))
+                       (%continue-async)))
+                   :priority :highest :important-p t)
+          (%continue-async)))
+    (instantly ()
+      (release-system-executor this (%executor-of this)))))
