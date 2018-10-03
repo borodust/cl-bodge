@@ -15,9 +15,22 @@
   (:default-initargs :depends-on '(host-system)))
 
 
-(defmethod initialize-system :after ((this graphics-system))
+(defmethod enabling-flow list ((this graphics-system))
   (with-slots (resource-executor) this
-    (setf resource-executor (acquire-executor :single-threaded-p t :exclusive-p t))))
+    (>> (%> ()
+          (setf resource-executor (acquire-executor :single-threaded-p t :exclusive-p t))
+          (execute resource-executor
+                   (lambda ()
+                     (bind-rendering-context :main nil)
+                     (log:debug "Shared context bound")
+                     (run (concurrently () (continue-flow))))
+                   :priority :highest :important-p t))
+        (for-host ()
+          (framebuffer-size))
+        (-> this (viewport)
+          (declare (type vec2 viewport))
+          (update-context-framebuffer-size (floor (x viewport))
+                                           (floor (y viewport)))))))
 
 
 (defmethod disabling-flow list ((this graphics-system))
@@ -31,9 +44,9 @@
                            (progn
                              (release-rendering-context)
                              (log:debug "Shared context released"))
-                        (continue-flow)))
+                        (run (concurrently () (continue-flow)))))
                     :priority :highest :important-p t)
-           (continue-flow)))
+           (run (concurrently () (continue-flow)))))
      (instantly ()
        (release-executor resource-executor)))))
 
@@ -46,23 +59,6 @@
 (defmacro for-shared-graphics ((&optional arg) &body body)
   `(ge.ng:-> (graphics) :main-p nil (,@(when arg (list arg)))
      ,@body))
-
-
-(defmethod enabling-flow list ((this graphics-system))
-  (with-slots (resource-executor) this
-    (>> (%> ()
-          (execute resource-executor
-                   (lambda ()
-                     (bind-rendering-context :main nil)
-                     (log:debug "Shared context bound")
-                     (continue-flow))
-                   :priority :highest :important-p t))
-        (for-host ()
-          (framebuffer-size))
-        (-> this (viewport)
-          (declare (type vec2 viewport))
-          (update-context-framebuffer-size (floor (x viewport))
-                                           (floor (y viewport)))))))
 
 
 (defmethod dispatch ((this graphics-system) (task function) invariant &rest args

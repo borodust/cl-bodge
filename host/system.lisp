@@ -107,7 +107,7 @@
 
 
 (defmethod disabling-flow list ((this host-system))
-  (ge.ng:>>
+  (>>
    (%> ()
      (bodge-host:destroy-shared-rendering-context (shared-application this))
      (set-destroy-continuation (host-application this) #'continue-flow)
