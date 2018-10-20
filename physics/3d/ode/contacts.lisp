@@ -64,7 +64,7 @@
 
 
 (defun fill-contact-geom (contact-geom info)
-  (claw:memcpy (claw:ptr contact-geom) (claw:ptr (contact-geom info)) :type '%ode:contact-geom))
+  (claw:memcpy (claw:ptr contact-geom) (claw:ptr (contact-geom info)) 1 '%ode:contact-geom))
 
 
 (defun fill-contact (contact info)

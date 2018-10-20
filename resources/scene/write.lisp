@@ -5,8 +5,7 @@
   (let ((byte-length (* (reduce #'* (array-dimensions source)) element-size)))
     (with-simple-array-pointer (source-ptr source)
       (with-static-vectors ((byte-vec byte-length :element-type '(unsigned-byte 8)))
-        (claw:memcpy (static-vector-pointer byte-vec) source-ptr
-                     :n byte-length :type :unsigned-char)
+        (claw:memcpy (static-vector-pointer byte-vec) source-ptr byte-length)
         (write-sequence byte-vec stream)))))
 
 

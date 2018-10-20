@@ -54,8 +54,7 @@
             while (> bytes-read 0)
             do (claw:memcpy (cffi:make-pointer (+ dst-addr byte-offset))
                             src-ptr
-                            :n bytes-read
-                            :type :char)
+                            bytes-read)
                (incf byte-offset bytes-read)
             finally (unless (= byte-offset byte-length)
                       (error "Premature end of stream: expected ~A, got ~A"
