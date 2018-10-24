@@ -335,3 +335,30 @@
 
 
 (defun contact-depth ())
+
+
+;;;
+;;; Constraints/Joints
+;;;
+(defclass constraint-handle (simulation-handle) ())
+
+
+(defun make-constraint-handle (engine handle)
+  (make-instance 'constraint-handle :engine engine :handle handle))
+
+
+(define-destructor constraint-handle ((engine %engine-of) (handle %handle-of))
+  (simulation-engine-destroy-constraint engine handle))
+
+
+(defun make-damped-string-constraint (universe this-body that-body rest-length stiffness damping
+                                      &key this-anchor that-anchor)
+  (make-constraint-handle (%engine-of universe)
+                          (simulation-engine-make-damped-spring-constraint
+                           (%engine-of universe)
+                           (%handle-of universe)
+                           (%handle-of this-body)
+                           (%handle-of that-body)
+                           rest-length stiffness damping
+                           :this-anchor this-anchor
+                           :that-anchor that-anchor)))

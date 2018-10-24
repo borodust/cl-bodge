@@ -47,14 +47,24 @@
         (%destroy-shape)))))
 
 
+(defun %remove-and-free-constraint (universe constraint-handle)
+  (with-slots (post-step-queue) universe
+    (flet ((%destroy-constraint ()
+             (%cp:space-remove-constraint (handle-value-of universe) (value-of constraint-handle))
+             (destroy-handle constraint-handle)))
+    (if (universe-locked-p universe)
+        (push-task  #'%destroy-constraint post-step-queue)
+        (%destroy-constraint)))))
+
+
 (defun %remove-and-free-body (universe body-handle)
   (with-slots (post-step-queue) universe
     (flet ((%destroy-body ()
              (%cp:space-remove-body (handle-value-of universe) (value-of body-handle))
              (destroy-handle body-handle)))
-    (if (universe-locked-p universe)
-        (push-task  #'%destroy-body post-step-queue)
-        (%destroy-body)))))
+      (if (universe-locked-p universe)
+          (push-task  #'%destroy-body post-step-queue)
+          (%destroy-body)))))
 
 
 (defmacro with-colliding-shapes ((this that) arbiter &body body)

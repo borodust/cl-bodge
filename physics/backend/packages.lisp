@@ -44,4 +44,7 @@
            #:simulation-engine-collision-surface-velocity
            #:simulation-engine-contact-normal
            #:simulation-engine-contact-point
-           #:simulation-engine-contact-depth))
+           #:simulation-engine-contact-depth
+
+           #:simulation-engine-make-damped-spring-constraint
+           #:simulation-engine-destroy-constraint))

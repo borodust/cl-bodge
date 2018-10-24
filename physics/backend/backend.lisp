@@ -98,3 +98,14 @@
 (defgeneric simulation-engine-contact-normal (engine))
 (defgeneric simulation-engine-contact-point (engine))
 (defgeneric simulation-engine-contact-depth (engine))
+
+
+;;;
+;;; Joints, Constraints
+;;;
+(defgeneric simulation-engine-make-damped-spring-constraint (engine universe
+                                                             this-body that-body
+                                                             rest-length stiffness damping
+                                                             &key this-anchor that-anchor))
+
+(defgeneric simulation-engine-destroy-constraint (engine joint))

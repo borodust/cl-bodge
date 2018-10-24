@@ -38,4 +38,6 @@
 
            collision-friction
            collision-elasticity
-           collision-surface-velocity))
+           collision-surface-velocity
+
+           make-damped-string-constraint))

@@ -1,6 +1,9 @@
 (cl:in-package :cl-bodge.physics.chipmunk)
 
 
+(defvar *zero-vec2* (vec2 0 0))
+
+
 (definline cp-float (val)
   (float val 0d0))
 

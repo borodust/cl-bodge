@@ -222,7 +222,8 @@
                (:file "contact")
                (:file "universe")
                (:file "body")
-               (:file "shape")))
+               (:file "shape")
+               (:file "joint")))
 
 
 (asdf:defsystem cl-bodge/shading
