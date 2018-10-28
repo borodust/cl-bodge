@@ -108,4 +108,9 @@
                                                              rest-length stiffness damping
                                                              &key this-anchor that-anchor))
 
+(defgeneric simulation-engine-make-slide-constraint (engine universe
+                                                     this-body that-body
+                                                     min max
+                                                     &key this-anchor that-anchor))
+
 (defgeneric simulation-engine-destroy-constraint (engine joint))

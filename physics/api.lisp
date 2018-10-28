@@ -362,3 +362,16 @@
                            rest-length stiffness damping
                            :this-anchor this-anchor
                            :that-anchor that-anchor)))
+
+
+(defun make-slide-constraint (universe this-body that-body min max
+                              &key this-anchor that-anchor)
+  (make-constraint-handle (%engine-of universe)
+                          (simulation-engine-make-slide-constraint
+                           (%engine-of universe)
+                           (%handle-of universe)
+                           (%handle-of this-body)
+                           (%handle-of that-body)
+                           min max
+                           :this-anchor this-anchor
+                           :that-anchor that-anchor)))

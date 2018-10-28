@@ -40,3 +40,25 @@
                                                                      (cp-float damping))))))
       (%cp:space-add-constraint (handle-value-of universe) (handle-value-of constraint))
       constraint)))
+
+
+
+(defmethod simulation-engine-make-slide-constraint ((this chipmunk-engine)
+                                                    (universe universe)
+                                                    (this-body rigid-body)
+                                                    (that-body rigid-body)
+                                                    (min number)
+                                                    (max number)
+                                                    &key this-anchor that-anchor)
+  (with-cp-vects ((anchor-a (or this-anchor *zero-vec2*))
+                  (anchor-b (or that-anchor *zero-vec2*)))
+    (let ((constraint (make-instance 'chipmunk-constraint
+                                     :universe universe
+                                     :handle (make-constraint-handle
+                                              (%cp:slide-joint-new (handle-value-of this-body)
+                                                                   (handle-value-of that-body)
+                                                                   anchor-a anchor-b
+                                                                   (cp-float min)
+                                                                   (cp-float max))))))
+      (%cp:space-add-constraint (handle-value-of universe) (handle-value-of constraint))
+      constraint)))

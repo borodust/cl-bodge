@@ -47,4 +47,5 @@
            #:simulation-engine-contact-depth
 
            #:simulation-engine-make-damped-spring-constraint
+           #:simulation-engine-make-slide-constraint
            #:simulation-engine-destroy-constraint))
