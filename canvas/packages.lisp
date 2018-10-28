@@ -8,6 +8,7 @@
                   #:fill-path
                   #:stroke-path
                   #:stroke-paint
+                  #:stroke-width
                   #:fill-paint
 
                   #:scissors
