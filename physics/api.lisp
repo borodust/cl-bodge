@@ -375,3 +375,15 @@
                            min max
                            :this-anchor this-anchor
                            :that-anchor that-anchor)))
+
+
+(defun make-pin-constraint (universe this-body that-body
+                            &key this-anchor that-anchor)
+  (make-constraint-handle (%engine-of universe)
+                          (simulation-engine-make-pin-constraint
+                           (%engine-of universe)
+                           (%handle-of universe)
+                           (%handle-of this-body)
+                           (%handle-of that-body)
+                           :this-anchor this-anchor
+                           :that-anchor that-anchor)))

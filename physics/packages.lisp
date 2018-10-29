@@ -41,4 +41,5 @@
            collision-surface-velocity
 
            make-damped-string-constraint
-           make-slide-constraint))
+           make-slide-constraint
+           make-pin-constraint))

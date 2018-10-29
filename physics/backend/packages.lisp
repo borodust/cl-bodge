@@ -48,4 +48,5 @@
 
            #:simulation-engine-make-damped-spring-constraint
            #:simulation-engine-make-slide-constraint
+           #:simulation-engine-make-pin-constraint
            #:simulation-engine-destroy-constraint))

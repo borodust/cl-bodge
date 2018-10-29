@@ -113,4 +113,9 @@
                                                      min max
                                                      &key this-anchor that-anchor))
 
+
+(defgeneric simulation-engine-make-pin-constraint (engine universe
+                                                   this-body that-body
+                                                   &key this-anchor that-anchor))
+
 (defgeneric simulation-engine-destroy-constraint (engine joint))
