@@ -3,7 +3,7 @@
   (:use :cl :cl-bodge.engine :bodge-util :cl-bodge.graphics
         :cl-bodge.canvas :cl-bodge.resources :claw)
   (:reexport-from :bodge-ui
-                  #:defwindow
+                  #:defpanel
                   #:on-window-close
 
                   #:horizontal-layout
