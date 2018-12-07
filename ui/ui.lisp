@@ -30,16 +30,16 @@
      ,@body))
 
 
-(defun add-window (ui window-class &rest initargs &key &allow-other-keys)
-  (apply #'bodge-ui:add-window (%handle-of ui) window-class initargs))
+(defun add-panel (ui window-class &rest initargs &key &allow-other-keys)
+  (apply #'bodge-ui:add-panel (%handle-of ui) window-class initargs))
 
 
-(defun remove-window (ui window)
-  (bodge-ui:remove-window (%handle-of ui) window))
+(defun remove-panel (ui window)
+  (bodge-ui:remove-panel (%handle-of ui) window))
 
 
-(defun remove-all-windows (ui)
-  (bodge-ui:remove-all-windows (%handle-of ui)))
+(defun remove-all-panels (ui)
+  (bodge-ui:remove-all-panels (%handle-of ui)))
 
 
 (defun update-ui-size (ui width height)

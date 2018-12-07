@@ -4,7 +4,7 @@
         :cl-bodge.canvas :cl-bodge.resources :claw)
   (:reexport-from :bodge-ui
                   #:defpanel
-                  #:on-window-close
+                  #:on-panel-close
 
                   #:horizontal-layout
                   #:vertical-layout
@@ -22,9 +22,9 @@
   (:export #:make-ui
            #:compose-ui
            #:with-ui-access
-           #:add-window
-           #:remove-window
-           #:remove-all-windows
+           #:add-panel
+           #:remove-panel
+           #:remove-all-panels
 
            #:update-ui-size
            #:update-ui-pixel-ratio
