@@ -5,17 +5,11 @@
 
 
 (defclass canvas (disposable)
-  ((handle :initarg :handle :reader %handle-of)
-   (image-cache :initform (make-hash-table :test #'eq))))
+  ((handle :initarg :handle :reader %handle-of)))
 
 
-(define-destructor canvas (handle image-cache)
+(define-destructor canvas (handle)
   (run (for-graphics ()
-         (flet ((%destroy-image (image value)
-                  (declare (ignore value))
-                  (when (remhash image image-cache)
-                    (bodge-canvas:destroy-image handle image))))
-           (maphash #'%destroy-image image-cache))
          (bodge-canvas:destroy-canvas handle))))
 
 
@@ -48,20 +42,19 @@
              (render-canvas ,this #'%render)))))))
 
 
-(defun make-canvas-image (canvas image)
-  (with-slots (image-cache) canvas
-    (let ((image (bodge-canvas:make-rgba-image (%handle-of canvas)
-                                               (simple-array-of (ge.rsc:image->foreign-array image))
-                                               (ge.rsc:image-width image)
-                                               (ge.rsc:image-height image))))
-      (setf (gethash image image-cache) image))))
+(define-system-function make-image-paint graphics-system (canvas image)
+  (unless (eq (ge.rsc:image-pixel-format image) :rgba)
+    (error "Only RGBA images supported"))
+  (bodge-canvas:make-rgba-image-paint (%handle-of canvas)
+                                      (simple-array-of
+                                       (ge.rsc:image->foreign-array image))
+                                      (ge.rsc:image-width image)
+                                      (ge.rsc:image-height image)))
 
 
-(defun destroy-canvas-image (canvas image)
-  (with-slots (image-cache) canvas
-    (when (remhash image image-cache)
-      (run (for-graphics ()
-             (bodge-canvas:destroy-image (%handle-of canvas) image))))))
+(defun destroy-image-paint (canvas image)
+  (run (for-graphics ()
+         (bodge-canvas:destroy-image-paint (%handle-of canvas) image))))
 
 
 (defun canvas-width (&optional (canvas *canvas*))
@@ -95,11 +88,3 @@
 
 (defun update-canvas-pixel-ratio (canvas pixel-ratio)
   (bodge-canvas:update-canvas-pixel-ratio (%handle-of canvas) pixel-ratio))
-
-
-(define-system-function make-image-paint graphics-system (canvas image)
-  (let* ((image (make-canvas-image canvas image))
-         (paint (bodge-canvas:make-image-paint image)))
-    (flet ((%destroy-image ()
-             (destroy-canvas-image canvas image)))
-      (trivial-garbage:finalize paint #'%destroy-image))))
