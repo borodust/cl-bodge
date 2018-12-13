@@ -201,7 +201,7 @@
 (defun draw-app (this)
   (with-slots (ui canvas font framebuffer-size) this
     (gl:viewport 0 0 (x framebuffer-size) (y framebuffer-size))
-    (gl:clear :color-buffer :depth-buffer :stencil-buffer)
+    (ge.gx:clear-rendering-output t)
     (let ((*font* font))
       (ge.gx:render t canvas :appkit-instance this)
       (ge.ui:compose-ui ui))
