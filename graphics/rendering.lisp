@@ -17,3 +17,7 @@
                   :primitive primitive
                   input)))
     (run-with-bound-output output #'%render)))
+
+
+(defun finish-rendering-output ()
+  (gl:finish))

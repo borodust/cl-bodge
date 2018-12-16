@@ -48,6 +48,7 @@
            configure-framebuffer
 
            clear-rendering-output
+           finish-rendering-output
            render
            shader-source
 
