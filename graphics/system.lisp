@@ -2,7 +2,8 @@
 
 
 (defstruct (graphics-context
-             (:conc-name ctx-))
+            (:conc-name ctx-)
+            (:constructor %make-graphics-context))
   (state (make-instance 'context-state) :read-only t)
   (supplementary-framebuffer nil)
   (framebuffer-width 0 :type fixnum)
@@ -10,100 +11,8 @@
   (depth-stencil-renderbuffer nil))
 
 
-(defclass graphics-system (thread-bound-system)
-  (resource-executor)
-  (:default-initargs :depends-on '(host-system)))
-
-
-(defmethod enabling-flow list ((this graphics-system))
-  (with-slots (resource-executor) this
-    (>> (%> ()
-          (setf resource-executor (acquire-executor :single-threaded-p t :exclusive-p t))
-          (execute resource-executor
-                   (lambda ()
-                     (bind-rendering-context :main nil)
-                     (log:debug "Shared context bound")
-                     (run (concurrently () (continue-flow))))
-                   :priority :highest :important-p t))
-        (for-host ()
-          (framebuffer-size))
-        (-> this (viewport)
-          (declare (type vec2 viewport))
-          (update-context-framebuffer-size (floor (x viewport))
-                                           (floor (y viewport)))))))
-
-
-(defmethod disabling-flow list ((this graphics-system))
-  (with-slots (resource-executor) this
-    (>>
-     (%> ()
-       (if (alivep resource-executor)
-           (execute resource-executor
-                    (lambda ()
-                      (unwind-protect
-                           (progn
-                             (release-rendering-context)
-                             (log:debug "Shared context released"))
-                        (run (concurrently () (continue-flow)))))
-                    :priority :highest :important-p t)
-           (run (concurrently () (continue-flow)))))
-     (instantly ()
-       (release-executor resource-executor)))))
-
-
-(defmacro for-graphics ((&optional arg) &body body)
-  `(ge.ng:-> (graphics) (,@(when arg (list arg)))
-     ,@body))
-
-
-(defmacro for-shared-graphics ((&optional arg) &body body)
-  `(ge.ng:-> (graphics) :main-p nil (,@(when arg (list arg)))
-     ,@body))
-
-
-(defmethod dispatch ((this graphics-system) (task function) invariant &rest args
-                     &key (main-p t) disposing)
-  (with-slots (resource-executor) this
-    (flet ((run-task ()
-             (let ((*system* this)
-                   (*system-context* (system-context-of this))
-                   (*supplementary-framebuffer*
-                     (ctx-supplementary-framebuffer (system-context-of this)))
-                   (*depth-stencil-renderbuffer*
-                     (ctx-depth-stencil-renderbuffer (system-context-of this))))
-               (funcall task))))
-      (if main-p
-          (if disposing
-              (apply #'call-next-method this #'run-task invariant
-                     :important-p t :priority :highest args)
-              (apply #'call-next-method this #'run-task invariant args))
-          (execute resource-executor #'run-task)))))
-
-
-(define-system-function reset-viewport graphics-system ()
-  (gl:viewport 0 0
-               (ctx-framebuffer-width *system-context*)
-               (ctx-framebuffer-height *system-context*)))
-
-
-(define-system-function viewport-width graphics-system ()
-  (ctx-framebuffer-width *system-context*))
-
-
-(define-system-function viewport-height graphics-system ()
-  (ctx-framebuffer-height *system-context*))
-
-
-(defmethod make-system-context ((this graphics-system))
-  (bind-rendering-context)
-  (log:debug "~%GL version: ~a~%GLSL version: ~a~%GL vendor: ~a~%GL renderer: ~a"
-             (gl:get* :version)
-             (gl:get* :shading-language-version)
-             (gl:get* :vendor)
-             (gl:get* :renderer))
-  (glad:init)
-  (log:debug "GLAD initialized")
-  (let ((ctx (make-graphics-context)))
+(defun make-graphics-context ()
+  (let ((ctx (%make-graphics-context)))
     (with-current-state-slice ((ctx-state ctx))
       (gx.state:enable :blend
                        :cull-face
@@ -131,10 +40,122 @@
       ctx)))
 
 
-(defmethod destroy-system-context ((this graphics-system) ctx)
+(defun destroy-graphics-context (ctx)
   (unless (featurep :bodge-gl2)
     (gl:delete-framebuffers (list (ctx-supplementary-framebuffer ctx)
-                                  (ctx-depth-stencil-renderbuffer ctx))))
+                                  (ctx-depth-stencil-renderbuffer ctx)))))
+
+(defclass graphics-system (thread-bound-system)
+  (resource-executor resource-context)
+  (:default-initargs :depends-on '(host-system)))
+
+
+(defmethod enabling-flow list ((this graphics-system))
+  (with-slots (resource-executor resource-context) this
+    (>> (%> ()
+          (setf resource-executor (acquire-executor :single-threaded-p t :exclusive-p t))
+          (execute resource-executor
+                   (lambda ()
+                     (bind-rendering-context :main nil)
+                     (log:debug "Shared context bound")
+                     (setf resource-context (make-graphics-context))
+                     (run (concurrently () (continue-flow))))
+                   :priority :highest :important-p t))
+        (for-host ()
+          (framebuffer-size))
+        (-> this (viewport)
+          (declare (type vec2 viewport))
+          (update-context-framebuffer-size (floor (x viewport))
+                                           (floor (y viewport)))))))
+
+
+(defmethod disabling-flow list ((this graphics-system))
+  (with-slots (resource-executor resource-context) this
+    (>>
+     (%> ()
+       (if (alivep resource-executor)
+           (execute resource-executor
+                    (lambda ()
+                      (unwind-protect
+                           (progn
+                             (destroy-graphics-context resource-context)
+                             (release-rendering-context)
+                             (log:debug "Shared context released"))
+                        (run (concurrently () (continue-flow)))))
+                    :priority :highest :important-p t)
+           (run (concurrently () (continue-flow)))))
+     (instantly ()
+       (release-executor resource-executor)))))
+
+
+(defmacro for-graphics ((&optional arg) &body body)
+  `(ge.ng:-> (graphics) (,@(when arg (list arg)))
+     ,@body))
+
+
+(defmacro for-shared-graphics ((&optional arg) &body body)
+  `(ge.ng:-> (graphics) :main-p nil (,@(when arg (list arg)))
+     ,@body))
+
+
+(defmethod dispatch ((this graphics-system) (task function) invariant &rest args
+                     &key (main-p t) disposing)
+  (with-slots (resource-executor resource-context) this
+    (labels ((run-task ()
+               (let ((*system* this)
+                     (*system-context* (system-context-of this)))
+                 (funcall task)))
+             (run-main-task ()
+               (let ((*supplementary-framebuffer*
+                       (ctx-supplementary-framebuffer (system-context-of this)))
+                     (*depth-stencil-renderbuffer*
+                       (ctx-depth-stencil-renderbuffer (system-context-of this))))
+                 (run-task)))
+             (run-resource-task ()
+               (let ((*supplementary-framebuffer*
+                       (ctx-supplementary-framebuffer resource-context))
+                     (*depth-stencil-renderbuffer*
+                       (ctx-depth-stencil-renderbuffer resource-context)))
+                 (run-task)))
+             (dispatch-resource (&rest args)
+               (apply #'execute resource-executor #'run-resource-task :invariant invariant args))
+             (dispatch-main (&rest args)
+               (apply #'call-next-method this #'run-main-task invariant args))
+             (%dispatch (dispatcher)
+               (if disposing
+                   (apply dispatcher :important-p t :priority :highest args)
+                   (apply dispatcher args))))
+      (%dispatch (if main-p #'dispatch-main #'dispatch-resource)))))
+
+
+(define-system-function reset-viewport graphics-system ()
+  (gl:viewport 0 0
+               (ctx-framebuffer-width *system-context*)
+               (ctx-framebuffer-height *system-context*)))
+
+
+(define-system-function viewport-width graphics-system ()
+  (ctx-framebuffer-width *system-context*))
+
+
+(define-system-function viewport-height graphics-system ()
+  (ctx-framebuffer-height *system-context*))
+
+
+(defmethod make-system-context ((this graphics-system))
+  (bind-rendering-context)
+  (log:debug "~%GL version: ~a~%GLSL version: ~a~%GL vendor: ~a~%GL renderer: ~a"
+             (gl:get* :version)
+             (gl:get* :shading-language-version)
+             (gl:get* :vendor)
+             (gl:get* :renderer))
+  (glad:init)
+  (log:debug "GLAD initialized")
+  (make-graphics-context))
+
+
+(defmethod destroy-system-context ((this graphics-system) ctx)
+  (destroy-graphics-context ctx)
   (clear-registry-cache)
   (release-rendering-context))
 
