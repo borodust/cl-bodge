@@ -53,4 +53,9 @@
            shader-source
 
            preserving-state
-           reset-state))
+           reset-state
+
+           make-ping-pong-pair
+           ping-pong-swap
+           with-ping-pong-front
+           with-ping-pong-back))

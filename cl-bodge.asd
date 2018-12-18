@@ -84,6 +84,7 @@
   :components ((:file "packages")
                (:file "utils")
                (:file "state")
+               (:file "sync")
                (:module "input" :components ((:file "common")
                                              (:file "buffers")
                                              (:file "array-buffer")

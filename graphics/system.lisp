@@ -71,21 +71,17 @@
 
 (defmethod disabling-flow list ((this graphics-system))
   (with-slots (resource-executor resource-context) this
-    (>>
-     (%> ()
-       (if (alivep resource-executor)
-           (execute resource-executor
-                    (lambda ()
-                      (unwind-protect
-                           (progn
-                             (destroy-graphics-context resource-context)
-                             (release-rendering-context)
-                             (log:debug "Shared context released"))
-                        (run (concurrently () (continue-flow)))))
-                    :priority :highest :important-p t)
-           (run (concurrently () (continue-flow)))))
-     (instantly ()
-       (release-executor resource-executor)))))
+    (%> ()
+      (execute resource-executor
+               (lambda ()
+                 (unwind-protect
+                      (progn
+                        (destroy-graphics-context resource-context)
+                        (release-rendering-context)
+                        (log:debug "Shared context released")
+                        (release-executor resource-executor))
+                   (run (concurrently () (continue-flow)))))
+               :priority :highest :important-p t))))
 
 
 (defmacro for-graphics ((&optional arg) &body body)
