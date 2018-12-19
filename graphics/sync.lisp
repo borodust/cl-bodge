@@ -1,6 +1,8 @@
 (cl:in-package :cl-bodge.graphics)
 
 
+(define-constant +default-fence-timeout+ (* 60 60 1000000))
+
 (defclass ping-pong-side ()
   ((object :initform nil :initarg :object :reader ping-pong-side-object)
    (fence :initform nil)
@@ -20,7 +22,7 @@
   (with-slots (fence lock) side
     (let ((fence (bt:with-recursive-lock-held (lock) fence)))
       (when fence
-        (%gl:client-wait-sync fence :sync-flush-commands 1000000)))))
+        (%gl:client-wait-sync fence :sync-flush-commands +default-fence-timeout+)))))
 
 
 (defun refresh-side-fence (side)
@@ -49,10 +51,10 @@
 
 (defun ping-pong-swap (object)
   (with-slots (front back) object
-    (with-side-locked (front)
-      (with-side-locked (back)
+    (with-side-locked (back)
+      (wait-for-side back)
+     (with-side-locked (front)
         (wait-for-side front)
-        (wait-for-side back)
         (let ((tmp front))
           (setf front back
                 back tmp))))))
