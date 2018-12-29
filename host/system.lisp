@@ -15,16 +15,11 @@
 
 
 (defclass host-system (enableable dispatching generic-system)
-  ((host-application :initform nil)
-   (shared :initform nil)))
+  ((host-application :initform nil)))
 
 
 (definline host-application (&optional (system *system*))
   (slot-value system 'host-application))
-
-
-(definline shared-application (&optional (system *system*))
-  (slot-value system 'shared))
 
 
 (definline host ()
@@ -98,30 +93,41 @@
 
 
 (defmethod enabling-flow list ((this host-system))
-  (with-slots (host-application shared) this
+  (with-slots (host-application) this
     (>> (%> ()
           (setf host-application (make-host-application #'ge.ng:continue-flow))
           (bodge-host:open-window (host-application this)))
         (instantly ()
-          (setf shared (bodge-host:make-shared-rendering-context host-application))
           (log:debug "Host system initialized")))))
 
 
 (defmethod disabling-flow list ((this host-system))
   (>>
    (%> ()
-     (bodge-host:destroy-shared-rendering-context (shared-application this))
      (set-destroy-continuation (host-application this) #'continue-flow)
      (bodge-host:close-window (host-application this)))
    (instantly ()
      (log:debug "Host system offline"))))
 
 
-(defun bind-rendering-context (&key (main t))
-  (let ((host (host)))
-    (if main
-        (bodge-host:bind-main-rendering-context (host-application host))
-        (bodge-host:bind-shared-rendering-context (shared-application host)))))
+(defclass shared-context (disposable)
+  ((handle :initarg :handle :reader %handle-of)))
+
+
+(define-destructor shared-context (handle)
+  (run (for-host ()
+         (bodge-host:destroy-shared-rendering-context handle))))
+
+
+(define-system-function make-shared-rendering-context host-system ()
+  (make-instance 'shared-context
+                 :handle (bodge-host:make-shared-rendering-context (host-application (host)))))
+
+
+(defun bind-rendering-context (&optional context)
+  (if context
+      (bodge-host:bind-shared-rendering-context (%handle-of context))
+      (bodge-host:bind-main-rendering-context (host-application (host)))))
 
 
 (defun release-rendering-context ()

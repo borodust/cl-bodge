@@ -1,3 +1,4 @@
+
 (bodge-util:define-package :cl-bodge.host
   (:nicknames :ge.host)
   (:use :cl-bodge.engine :bodge-util :cl :bordeaux-threads :cl-muth)
@@ -5,6 +6,7 @@
            host
            for-host
 
+           make-shared-rendering-context
            bind-rendering-context
            release-rendering-context
            swap-buffers

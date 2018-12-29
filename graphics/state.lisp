@@ -84,10 +84,10 @@
   (gl:bind-buffer :uniform-buffer 0))
 
 
-(defun reset-context-state (state)
+(defun reset-all-context-state (state)
   (with-slots (mutating-stack) state
     (loop for slice in (reverse mutating-stack)
-       do (apply-slice-mutators slice))
+          do (apply-slice-mutators slice))
     (%reset-managed-state)))
 
 

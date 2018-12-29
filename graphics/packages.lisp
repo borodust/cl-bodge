@@ -14,8 +14,8 @@
                 #:image->foreign-array)
   (:export graphics-system
            graphics
+           graphics-context-assembly-flow
            for-graphics
-           for-shared-graphics
 
            defshader
            defpipeline

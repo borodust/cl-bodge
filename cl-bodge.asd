@@ -102,6 +102,7 @@
                (:file "shader")
                (:file "pipeline")
                (:file "rendering")
+               (:file "context")
                (:file "system")))
 
 

@@ -377,8 +377,8 @@ about object returned from the flow are provided.")
 
 (defmethod initialization-flow :around (object &key &allow-other-keys)
   (ge.ng:>> (call-next-method)
-           (instantly ()
-             (initialize-destructor object))))
+            (instantly ()
+              (initialize-destructor object))))
 
 
 (defun assembly-flow (class &rest initargs &key &allow-other-keys)

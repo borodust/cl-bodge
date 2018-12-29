@@ -23,7 +23,9 @@
    (ui :initform nil :reader ui-of)
    (input-source :initform nil)
    (action-queue :initform (make-task-queue))
-   (injected-flows :initform nil))
+   (injected-flows :initform nil)
+   (disabled-p :initform nil)
+   (sweep-continuation :initform nil))
   (:default-initargs :depends-on '(ge.host:host-system ge.gx:graphics-system)))
 
 
@@ -209,22 +211,24 @@
 
 
 (defun %app-loop (this)
-  (with-slots (action-queue ui canvas font updated-p injected-flows) this
+  (with-slots (action-queue ui canvas font updated-p injected-flows disabled-p sweep-continuation) this
     (labels ((%act ()
                (drain action-queue)
                (act this)))
-      (loop-flow (>> (->> ()
-                       (when updated-p
-                         (setf updated-p nil)
-                         (>> (sweeping-flow this)
-                             (%app-configuration-flow this))))
-                     (->> ()
-                       (when injected-flows
-                         (prog1 (nreverse injected-flows)
-                           (setf injected-flows nil))))
-                     (instantly () (%act))
-                     (ge.gx:for-graphics () (draw-app this)))
-                 (lambda () (enabledp this))))))
+      (>> (loop-flow (>> (->> ()
+                           (when updated-p
+                             (setf updated-p nil)
+                             (>> (sweeping-flow this)
+                                 (%app-configuration-flow this))))
+                         (->> ()
+                           (when injected-flows
+                             (prog1 (nreverse injected-flows)
+                               (setf injected-flows nil))))
+                         (instantly () (%act))
+                         (ge.gx:for-graphics () (draw-app this)))
+                     (lambda () (not disabled-p)))
+          (instantly ()
+            (funcall sweep-continuation))))))
 
 
 (defmethod enabling-flow list ((this appkit-system))
@@ -234,8 +238,16 @@
         (%initialize-graphics this pixel-ratio))
       (%app-configuration-flow this)
       (instantly ()
-        (run (>> (%app-loop this)
-                 (->> () (sweeping-flow this)))))))
+        (run (%app-loop this)))))
+
+
+(defmethod disabling-flow list ((this appkit-system))
+  (with-slots (sweep-continuation disabled-p) this
+    (>> (%> ()
+          (setf disabled-p t
+                sweep-continuation #'continue-flow))
+        (->> ()
+          (sweeping-flow this)))))
 
 ;;;
 ;;; Startup routines
