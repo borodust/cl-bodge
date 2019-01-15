@@ -26,12 +26,12 @@
                        :program-point-size)
       (if (featurep :bodge-gl2)
           (progn
+            (setf supplementary-framebuffer t
+                  depth-stencil-renderbuffer t))
+          (progn
             (gx.state:enable :texture-cube-map-seamless)
             (setf supplementary-framebuffer (gl:gen-framebuffer)
-                  depth-stencil-renderbuffer (gl:gen-renderbuffer)))
-          (progn
-            (setf supplementary-framebuffer t
-                  depth-stencil-renderbuffer t)))
+                  depth-stencil-renderbuffer (gl:gen-renderbuffer))))
       (gx.state:disable :scissor-test
                         :stencil-test)
       (gx.state:cull-face :back)
