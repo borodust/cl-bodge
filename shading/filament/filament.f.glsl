@@ -6,10 +6,10 @@
 
 #pragma bodge: include "src/variables.fs"
 
-#pragma bodge: use struct ge.shad::filament-frame-uniforms as uniform block frameUniforms
-#pragma bodge: use struct ge.shad::filament-lights-uniforms as uniform block lightsUniforms
+#pragma bodge: use amalgam ge.shad::filament-frame-uniforms as uniform block frameUniforms
+#pragma bodge: use amalgam ge.shad::filament-lights-uniforms as uniform block lightsUniforms
 
-#pragma bodge: use struct ge.shad::filament-light as uniform list
+#pragma bodge: use amalgam ge.shad::filament-light as uniform list
 
 #pragma bodge: include "src/common_math.fs"
 #pragma bodge: include "src/common_graphics.fs"

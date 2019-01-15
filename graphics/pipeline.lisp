@@ -105,26 +105,26 @@
   (error "Unimplemented yet"))
 
 
-(defun %build-shading-program (this &key vertex fragment geometry)
+(defun %%build-shading-program (this vertex fragment geometry)
   (with-slots (defines) this
-    (let (program
-          (combined-defines (append defines (%defines-of this))))
-      (tagbody start
-         (restart-case
-             (setf program (link-shader-libraries
-                            :vertex-shader (append vertex combined-defines)
-                            :fragment-shader (append fragment combined-defines)
-                            :geometry-shader (when geometry
-                                               (append geometry combined-defines))))
-           (relink ()
-             :report "Try relinking the pipeline"
-             (go start))
-           (clear-cache-and-relink ()
-             :report "Reset whole shader cache and try relinking the pipeline"
-             (clear-registry-cache)
-             (reload-all-shader-sources)
-             (go start))))
-      program)))
+    (let ((combined-defines (append defines (%defines-of this))))
+      (link-shader-libraries :vertex-shader (append vertex combined-defines)
+                             :fragment-shader (append fragment combined-defines)
+                             :geometry-shader (when geometry
+                                                (append geometry combined-defines))))))
+
+
+(defun %build-shading-program (this &key vertex fragment geometry)
+  (restart-case
+      (%%build-shading-program this vertex fragment geometry)
+    (rebuild ()
+      :report "Try rebuilding the pipeline"
+      (build-shading-program this))
+    (clear-cache-and-rebuild ()
+      :report "Reset whole shader cache and try rebuilding the pipeline"
+      (clear-registry-cache)
+      (reload-all-shader-sources)
+      (build-shading-program this))))
 
 
 (defmacro defpipeline (name-and-opts &body shaders)

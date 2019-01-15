@@ -372,7 +372,8 @@ task is dispatched to the object provided under this key."
   (:documentation "Return flow that initializes an object.
 Flow variant of #'initialize-instance, although no guarantees
 about object returned from the flow are provided.")
-  (:method (object &key &allow-other-keys)))
+  (:method-combination list)
+  (:method list (object &key &allow-other-keys)))
 
 
 (defmethod initialization-flow :around (object &key &allow-other-keys)

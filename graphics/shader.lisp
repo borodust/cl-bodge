@@ -167,22 +167,22 @@
       (format output "~%~A" (read-file-into-string (merge-pathnames pathname *base-path*))))))
 
 
-(defun process-struct-use (commands output)
-  (destructuring-bind (struct-type-name as qualifier type &optional block-name) commands
+(defun process-amalgam-use (commands output)
+  (destructuring-bind (amalgam-name as qualifier type &optional block-name) commands
     (let ((struct-type (with-standard-io-syntax
-                         (with-input-from-string (in struct-type-name)
+                         (with-input-from-string (in amalgam-name)
                            (let ((*read-eval* nil))
                              (read in))))))
       (unless (equal "as" as)
         (error "Invalid use struct syntax: 'as' expected, but got ~A" as))
       (eswitch (type :test #'equal)
-        ("block" (serialize-struct-as-interface struct-type qualifier block-name output))
-        ("list" (serialize-struct-as-uniforms struct-type output))))))
+        ("block" (print-amalgam-as-interface struct-type qualifier block-name output))
+        ("list" (print-amalgam-as-uniforms struct-type output))))))
 
 
 (defun process-use-directive (commands output)
   (eswitch ((first commands) :test #'equal)
-    ("struct" (process-struct-use (rest commands) output))))
+    ("amalgam" (process-amalgam-use (rest commands) output))))
 
 
 (defun process-pragma-directive (directive output)

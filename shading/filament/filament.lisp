@@ -19,7 +19,7 @@
             (:base-path :system-relative :cl-bodge/shading "filament/")))
 
 
-(defsstruct filament-frame-uniforms
+(defamalgam filament-frame-uniforms
   (view-from-world-matrix :mat4 :name "viewFromWorldMatrix")
   (world-from-view-matrix :mat4 :name "worldFromViewMatrix")
   (clip-from-view-matrix :mat4 :name "clipFromViewMatrix")
@@ -30,7 +30,7 @@
   (camera-position :vec3 :name "cameraPosition")
   (time :float :name "time")
   (light-color-intensity :vec4 :name "lightColorIntensity")
-  (sun :vec4  :name "sun")
+  (sun :vec4 :name "sun")
   (light-direction :vec3 :name "lightDirection")
   (f-params-x :uint :name "fParamsX")
   (shadow-bias :vec3 :name "shadowBias")
@@ -45,19 +45,19 @@
   (ibl-sh :vec3 :name "iblSH" :count 9))
 
 
-(defsstruct filament-object-uniforms
+(defamalgam filament-object-uniforms
   (world-from-model-matrix :mat4 :name "worldFromModelMatrix")
   (world-from-model-normal-matrix :mat3 :name "worldFromModelNormalMatrix"))
 
 
-(defsstruct filament-lights-uniforms
+(defamalgam filament-lights-uniforms
   (lights :mat4 :name "lights" :count +max-light-count+))
 
 
-(defsstruct filament-material-params)
+(defamalgam filament-material-params)
 
 
-(defsstruct filament-light
+(defamalgam filament-light
   (shadowMap (:sampler-2d :shadow) :name "light_shadowMap")
   (records (:sampler-2d :uint) :name "light_records")
   (froxels (:sampler-2d :uint) :name "light_froxels")

@@ -8,8 +8,8 @@ invariant gl_Position;
 
 #pragma bodge: include "src/variables.vs"
 
-#pragma bodge: use struct ge.shad::filament-frame-uniforms as uniform block frameUniforms
-#pragma bodge: use struct ge.shad::filament-object-uniforms as uniform block objectUniforms
+#pragma bodge: use amalgam ge.shad::filament-frame-uniforms as uniform block frameUniforms
+#pragma bodge: use amalgam ge.shad::filament-object-uniforms as uniform block objectUniforms
 
 #pragma bodge: include "src/common_math.fs"
 #pragma bodge: include "src/common_getters.fs"

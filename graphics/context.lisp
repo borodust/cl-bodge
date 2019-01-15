@@ -24,10 +24,14 @@
                        :cull-face
                        :depth-test
                        :program-point-size)
-      (unless (featurep :bodge-gl2)
-        (gx.state:enable :texture-cube-map-seamless)
-        (setf supplementary-framebuffer (gl:gen-framebuffer)
-              depth-stencil-renderbuffer (gl:gen-renderbuffer)))
+      (if (featurep :bodge-gl2)
+          (progn
+            (gx.state:enable :texture-cube-map-seamless)
+            (setf supplementary-framebuffer (gl:gen-framebuffer)
+                  depth-stencil-renderbuffer (gl:gen-renderbuffer)))
+          (progn
+            (setf supplementary-framebuffer t
+                  depth-stencil-renderbuffer t)))
       (gx.state:disable :scissor-test
                         :stencil-test)
       (gx.state:cull-face :back)
@@ -54,10 +58,9 @@
 (defun ~rendering-context-initialization (context &optional (main t))
   (with-slots (rendering-context) context
     (for-host ()
-      (unwind-protect
-           (setf rendering-context (if main
-                                       t
-                                       (make-shared-rendering-context)))))))
+      (setf rendering-context (if main
+                                  t
+                                  (make-shared-rendering-context))))))
 
 
 (defun ~shared-context-initialization (context)
@@ -70,10 +73,9 @@
       (bind-rendering-context))))
 
 
-(defmethod initialization-flow ((this graphics-context) &key main)
+(defmethod initialization-flow list ((this graphics-context) &key main)
   (with-slots (rendering-context) this
-    (>> (call-next-method)
-        (->> ()
+    (>> (->> ()
           (if main
               (~rendering-context-initialization this)
               (~shared-context-initialization this)))

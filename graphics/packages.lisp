@@ -19,7 +19,7 @@
 
            defshader
            defpipeline
-           defsstruct
+           defamalgam
 
            make-shader-pipeline
 
