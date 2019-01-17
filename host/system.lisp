@@ -89,7 +89,8 @@
                  :resizable (property '(:host :viewport-resizable) nil)
                  :decorated (property '(:host :viewport-decorated) t)
                  :transparent (property '(:host :viewport-transparent) nil)
-                 :samples (property '(:host :samples) nil)))
+                 :samples (property '(:host :samples) nil)
+                 :autoscaled (property '(:host :autoscaled) t)))
 
 
 (defmethod enabling-flow list ((this host-system))
