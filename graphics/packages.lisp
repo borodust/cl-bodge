@@ -16,6 +16,7 @@
            graphics
            graphics-context-assembly-flow
            for-graphics
+           reset-viewport
 
            defshader
            defpipeline

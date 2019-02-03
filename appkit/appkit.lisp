@@ -5,22 +5,24 @@
 
 (defvar +origin+ (vec2 0.0 0.0))
 (defvar *black* (vec4 0 0 0 1))
-(defvar *window-class-list* (mt:make-guarded-reference nil))
+(defvar *panel-class-list* (mt:make-guarded-reference nil))
 (defvar *appkit-instance-class* nil)
 
-(defvar *default-viewport-width* 640)
-(defvar *default-viewport-height* 480)
-(defvar *default-viewport-title* "Bodge Appkit")
+(defparameter *default-viewport-width* 800)
+(defparameter *default-viewport-height* 600)
+(defparameter *default-viewport-title* "Bodge Appkit")
 
 
 (defclass appkit-system (enableable generic-system)
-  ((framebuffer-size :initform (vec2 640 480) :accessor %framebuffer-size-of)
+  ((framebuffer-size :initform (vec2 *default-viewport-width*
+                                     *default-viewport-height*)
+                     :accessor %framebuffer-size-of)
    (viewport-width :initform *default-viewport-width*)
    (viewport-height :initform *default-viewport-height*)
    (updated-p :initform nil)
-   (canvas :initform nil :reader canvas-of)
-   (font :initform nil :reader font-of)
-   (ui :initform nil :reader ui-of)
+   (canvas :initform nil :reader app-canvas)
+   (font :initform nil :reader app-font)
+   (ui :initform nil :reader app-ui)
    (input-source :initform nil)
    (action-queue :initform (make-task-queue))
    (injected-flows :initform nil)
@@ -41,6 +43,10 @@
   (:method ((this appkit-system)) (declare (ignore this))))
 
 
+(defgeneric acting-flow (appkit)
+  (:method ((this appkit-system)) (declare (ignore this))))
+
+
 (defmethod update-instance-for-redefined-class :after ((this appkit-system)
                                                        added-slots
                                                        discarded-slots
@@ -57,7 +63,7 @@
                                  :viewport-height
                                  :viewport-title
                                  :fullscreen-p
-                                 :windows))
+                                 :panels))
           collect opt into extended
         else
           collect opt into std
@@ -81,20 +87,19 @@
                                    (* viewport-height pixel-ratio))))))
 
 
-(defun update-graphics (this viewport-width viewport-height window-classes)
+(defun update-graphics (this viewport-width viewport-height panel-classes)
   (with-slots (canvas ui) this
     (ge.vg:update-canvas-size canvas viewport-width viewport-height)
     (ge.ui:update-ui-size ui viewport-width viewport-height)
     (ge.ui:with-ui-access (ui)
       (ge.ui:remove-all-panels ui)
-      (dolist (window-class window-classes)
-        (ge.ui:add-panel ui window-class)))
-      (initialize-user-interface this)
+      (dolist (panel-class panel-classes)
+        (ge.ui:add-panel ui panel-class)))
     (ge.ui:compose-ui ui)))
 
 
 (defun %app-update-flow (app viewport-title viewport-width viewport-height
-                         fullscreen-p window-classes)
+                         fullscreen-p panel-classes)
   (let ((width (or viewport-width *default-viewport-width*))
         (height (or viewport-height *default-viewport-height*)))
     (>> (ge.host:for-host ()
@@ -102,7 +107,7 @@
                            (or viewport-title *default-viewport-title*)
                            width height fullscreen-p))
         (ge.gx:for-graphics ()
-          (update-graphics app width height window-classes))
+          (update-graphics app width height panel-classes))
         (configuration-flow app))))
 
 
@@ -116,7 +121,7 @@
                             (viewport-height :viewport-height)
                             (viewport-title :viewport-title)
                             (fullscreen-p :fullscreen-p)
-                            (windows :windows))
+                            (panels :panels))
             (alist-hash-table extended)
           `(defmethod %app-configuration-flow ((this ,name))
              (%app-update-flow this
@@ -124,7 +129,7 @@
                                ,(first viewport-width)
                                ,(first viewport-height)
                                ,(first fullscreen-p)
-                               (list ,@windows))))
+                               (list ,@panels))))
        (make-instances-obsolete ',name))))
 
 
@@ -187,8 +192,8 @@
 
 (defun %initialize-graphics (this pixel-ratio)
   (with-slots (viewport-width viewport-height canvas font ui input-source) this
-    (setf canvas (ge.vg:make-canvas 'appkit-canvas viewport-width
-                                    viewport-height
+    (setf canvas (ge.vg:make-canvas 'appkit-canvas
+                                    viewport-width viewport-height
                                     :pixel-ratio pixel-ratio
                                     :antialiased nil)
           font (ge.vg:make-default-font)
@@ -202,7 +207,7 @@
 
 (defun draw-app (this)
   (with-slots (ui canvas font framebuffer-size) this
-    (gl:viewport 0 0 (x framebuffer-size) (y framebuffer-size))
+    (ge.gx:reset-viewport)
     (ge.gx:clear-rendering-output t)
     (let ((*font* font))
       (ge.gx:render t canvas :appkit-instance this)
@@ -225,7 +230,10 @@
                              (prog1 (nreverse injected-flows)
                                (setf injected-flows nil))))
                          (instantly () (%act))
-                         (ge.gx:for-graphics () (draw-app this)))
+                         (->> ()
+                           (acting-flow this))
+                         (ge.gx:for-graphics ()
+                           (draw-app this)))
                      (lambda () (not disabled-p)))
           (instantly ()
             (funcall sweep-continuation))))))
@@ -233,7 +241,7 @@
 
 (defmethod enabling-flow list ((this appkit-system))
   (>> (ge.host:for-host ()
-        (viewport-pixel-ratio))
+        (* (viewport-pixel-ratio) (ge.host:viewport-scale)))
       (ge.gx:for-graphics (pixel-ratio)
         (%initialize-graphics this pixel-ratio))
       (%app-configuration-flow this)
