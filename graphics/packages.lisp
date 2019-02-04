@@ -28,6 +28,8 @@
            update-array-buffer
            make-index-buffer
 
+           make-shader-structure
+
            make-2d-texture
            make-empty-2d-texture
            make-empty-depth-texture
