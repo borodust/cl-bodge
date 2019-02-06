@@ -26,19 +26,22 @@
                               (gl:get* :renderer))
                    (glad:init)
                    (log:debug "GLAD initialized")))
-            (execute-with-context context #'init-glad))))))
+            (execute-with-context context #'init-glad))
+          (subscribe 'framebuffer-size-change-event 'on-framebuffer-size-update)))))
 
 
 (defmethod disabling-flow list ((this graphics-system))
   (with-slots (main-context shared-contexts) this
-    (>> (-> this ()
+    (>> (instantly ()
+          (unsubscribe 'framebuffer-size-change-event 'on-framebuffer-size-update))
+        (-> this ()
           (clear-registry-cache))
         (loop for ctx in (append (list main-context) shared-contexts)
               collect (graphics-context-destructuring-flow ctx)))))
 
 
 (defmacro for-graphics (&body arguments-and-body)
-  "(for-graphics :context (&optional arg) &body body)"
+  "(for-graphics :context nil (&optional arg) &body body)"
   (multiple-value-bind (initargs arg-and-body)
       (parse-initargs-and-list arguments-and-body)
     (destructuring-bind (&key context) initargs
@@ -46,16 +49,22 @@
          ,@(rest arg-and-body)))))
 
 
+(defun on-framebuffer-size-update (event)
+  (run (for-graphics ()
+         (update-context-framebuffer-size (width-from event)
+                                          (height-from event)))))
+
+
 (defmethod dispatch ((this graphics-system) (task function) invariant &rest args
                      &key context disposing)
   (with-slots (main-context) this
     (let ((context (if context context main-context)))
-      (labels ((run-task ()
-                 (let ((*system* this)
-                       (*graphics-context* context)
-                       (*supplementary-framebuffer* (%supplementary-framebuffer-of context))
-                       (*depth-stencil-renderbuffer* (%depth-stencil-renderbuffer-of context)))
-                   (funcall task))))
+      (flet ((run-task ()
+               (let ((*system* this)
+                     (*graphics-context* context)
+                     (*supplementary-framebuffer* (%supplementary-framebuffer-of context))
+                     (*depth-stencil-renderbuffer* (%depth-stencil-renderbuffer-of context)))
+                 (funcall task))))
         (if disposing
             (apply #'execute-with-context context #'run-task :important-p t :priority :highest args)
             (apply #'execute-with-context context #'run-task args))))))
@@ -87,10 +96,6 @@
 
 (definline graphics ()
   (engine-system 'graphics-system))
-
-
-(define-event-handler on-framebuffer-size-change ((ev framebuffer-size-change-event) width height)
-  (run (for-graphics () (update-context-framebuffer-size width height))))
 
 
 (define-system-function reset-state graphics-system ()
