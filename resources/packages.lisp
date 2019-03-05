@@ -10,7 +10,6 @@
 
            register-resource
            load-resource
-           resource-flow
            list-registered-resource-names
            find-resource-handler
 

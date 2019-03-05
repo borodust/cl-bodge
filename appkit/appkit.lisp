@@ -32,19 +32,19 @@
 
 
 (defgeneric %app-configuration-flow (appkit)
-  (:method ((this appkit-system)) (declare (ignore this))))
+  (:method (this) (declare (ignore this))))
 
 
 (defgeneric configuration-flow (appkit)
-  (:method ((this appkit-system)) (declare (ignore this))))
+  (:method (this) (declare (ignore this))))
 
 
 (defgeneric sweeping-flow (appkit)
-  (:method ((this appkit-system)) (declare (ignore this))))
+  (:method (this) (declare (ignore this))))
 
 
 (defgeneric acting-flow (appkit)
-  (:method ((this appkit-system)) (declare (ignore this))))
+  (:method (this) (declare (ignore this))))
 
 
 (defmethod update-instance-for-redefined-class :after ((this appkit-system)
@@ -144,16 +144,8 @@
     (ge.ng:engine-system *appkit-instance-class*)))
 
 
-(defgeneric act (system)
-  (:method ((system appkit-system)) (declare (ignore system))))
-
-
 (defgeneric draw (system)
-  (:method ((system appkit-system)) (declare (ignore system))))
-
-
-(defgeneric initialize-user-interface (system)
-  (:method ((system appkit-system)) (declare (ignore system))))
+  (:method (system) (declare (ignore system))))
 
 
 (defmacro when-app ((appkit-var) &body body)
@@ -192,16 +184,17 @@
 
 (defun %initialize-graphics (this pixel-ratio)
   (with-slots (viewport-width viewport-height canvas font ui input-source) this
-    (setf canvas (ge.vg:make-canvas 'appkit-canvas
-                                    viewport-width viewport-height
-                                    :pixel-ratio pixel-ratio
-                                    :antialiased nil)
-          font (ge.vg:make-default-font)
-          input-source (ge.ui:make-host-input-source)
-          ui (ge.ui:make-ui viewport-width viewport-height :pixel-ratio pixel-ratio
-                                                           :input-source input-source
-                                                           :antialiased nil)
-          (ge.host:swap-interval) 1)
+    (let ((antialised-p (property '(:appkit :antialised) nil)))
+      (setf canvas (ge.vg:make-canvas 'appkit-canvas
+                                      viewport-width viewport-height
+                                      :pixel-ratio pixel-ratio
+                                      :antialiased antialised-p)
+            font (ge.vg:make-default-font)
+            input-source (ge.ui:make-host-input-source)
+            ui (ge.ui:make-ui viewport-width viewport-height :pixel-ratio pixel-ratio
+                                                             :input-source input-source
+                                                             :antialiased antialised-p)
+            (ge.host:swap-interval) 1))
     (ge.ui:attach-host-input-source input-source)))
 
 
@@ -218,8 +211,7 @@
 (defun %app-loop (this)
   (with-slots (action-queue ui canvas font updated-p injected-flows disabled-p sweep-continuation) this
     (labels ((%act ()
-               (drain action-queue)
-               (act this)))
+               (drain action-queue)))
       (>> (loop-flow (>> (->> ()
                            (when updated-p
                              (setf updated-p nil)
@@ -257,15 +249,29 @@
         (->> ()
           (sweeping-flow this)))))
 
+
 ;;;
 ;;; Startup routines
 ;;;
-(defun start (classname &key (log-level :info) (opengl-version '(3 3)) blocking)
+(defun start (classname &key (log-level :info)
+                          (opengl-version '(3 3))
+                          samples
+                          blocking
+                          viewport-resizable
+                          (viewport-decorated t)
+                          (autoscaled t)
+                          properties)
   (when *appkit-instance-class*
     (error "Only one active system of type 'appkit-system is allowed"))
   (setf *appkit-instance-class* classname)
-  (startup `(:engine (:systems (,classname) :log-level ,log-level)
-             :host (:opengl-version ,opengl-version))
+  (startup (append properties
+                   `(:engine (:systems (,classname) :log-level ,log-level)
+                     :host (:opengl-version ,opengl-version
+                            :samples ,samples
+                            :viewport-resizable ,viewport-resizable
+                            :viewport-decorated ,viewport-decorated
+                            :autoscaled ,autoscaled)
+                     :appkit (:antialiased ,(not samples))))
            :blocking blocking))
 
 

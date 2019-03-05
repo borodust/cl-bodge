@@ -65,12 +65,6 @@
       (error "Failed to determine handler for '~A'" name))))
 
 
-(defun resource-flow (&rest resource-names)
-  (>> (~> (loop for name in resource-names
-                     collecting (instantly () (load-resource name))))
-      (instantly ((result)) result)))
-
-
 (defun list-registered-resource-names ()
   (with-instance-lock-held (*resource-registry*)
     (with-slots (resource-table) *resource-registry*
