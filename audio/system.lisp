@@ -29,7 +29,7 @@
 
 
 (defun print-openal-info ()
-  (log:debug "~%OpenAL version: ~A~%OpenAL vendor: ~A~%OpenAL renderer: ~A"
+  (log/debug "~%OpenAL version: ~A~%OpenAL vendor: ~A~%OpenAL renderer: ~A"
              (cffi:foreign-string-to-lisp
               (%al:get-string %al:+version+))
              (cffi:foreign-string-to-lisp
@@ -39,15 +39,15 @@
 
 
 (defun print-available-devices-info ()
-  (log:debug "Available playback devices:~%~A" (device-name (cffi:null-pointer)))
-  (log:debug "Available capture devices:~%~A"
+  (log/debug "Available playback devices:~%~A" (device-name (cffi:null-pointer)))
+  (log/debug "Available capture devices:~%~A"
              (cffi:foreign-string-to-lisp
               (%alc:get-string (cffi:null-pointer) %alc:+capture-device-specifier+))))
 
 
 (defun print-device-info (device)
   (claw:c-with ((value %alc:int))
-    (log:debug "Selected device: ~A~%ALC version: ~A.~A"
+    (log/debug "Selected device: ~A~%ALC version: ~A.~A"
                (device-name device)
                (progn
                  (%alc:get-integerv device %alc:+major-version+ 1 (value &))
@@ -66,7 +66,7 @@
         (let ((ctx (%alc:create-context dev (cffi:null-pointer))))
           (%alc:make-context-current ctx)
           (print-openal-info)
-          (log:debug "Audio context assigned")
+          (log/debug "Audio context assigned")
           (%make-audio-context ctx dev)))
       (error "Couldn't open sound device"))))
 

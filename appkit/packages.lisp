@@ -1,6 +1,6 @@
-(bodge-util:define-package :cl-bodge.appkit
+(ge.util:define-package :cl-bodge.appkit
   (:nicknames :ge.app)
-  (:use :cl :cl-bodge.engine :bodge-util :cl-bodge.resources)
+  (:use :cl :cl-bodge.engine :cl-bodge.utils :cl-bodge.resources)
   (:export start
            stop
 

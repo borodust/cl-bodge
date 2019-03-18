@@ -55,7 +55,7 @@
 
 (defun load-resource (name &optional handler)
   (with-slots (resource-table) *resource-registry*
-    (log:trace "Resource requested: '~A'" name)
+    (log/trace "Resource requested: '~A'" name)
     (if-let ((handler (or handler
                           (find-resource-handler name)
                           (when-let ((type (resource-type *resource-storage* name)))

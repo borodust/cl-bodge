@@ -1,6 +1,6 @@
-(bodge-util:define-package :cl-bodge.animation
+(ge.util:define-package :cl-bodge.animation
   (:nicknames :ge.ani)
-  (:use :cl :bodge-util :cl-bodge.engine :cl-bodge.graphics)
+  (:use :cl :cl-bodge.utils :cl-bodge.engine :cl-bodge.graphics)
   (:export make-keyframe
            make-keyframe-sequence
            duration-of

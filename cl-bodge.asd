@@ -1,13 +1,25 @@
+(asdf:defsystem cl-bodge/utils
+  :description "Various utilities for cl-bodge"
+  :version "0.4.0"
+  :author "Pavel Korolev"
+  :mailto "dev@borodust.org"
+  :license "MIT"
+  :depends-on (bodge-utilities)
+  :pathname "utils/"
+  :serial t
+  :components ((:file "utils")))
+
+
 (asdf:defsystem cl-bodge/engine
   :description "Bodacious Game Engine foundation library"
   :version "0.4.0"
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (bodge-utilities bodge-memory bodge-math bodge-concurrency
-                               bodge-blobs-support claw claw
-                               log4cl local-time cffi cl-flow uiop
-                               simple-flow-dispatcher)
+  :depends-on (cl-bodge/utils bodge-memory bodge-math bodge-concurrency
+                              bodge-blobs-support claw claw
+                              log4cl local-time cffi cl-flow uiop
+                              simple-flow-dispatcher)
   :pathname "engine/"
   :serial t
   :components ((:file "packages")
@@ -30,7 +42,7 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (bodge-utilities cl-bodge/engine flexi-streams
+  :depends-on (cl-bodge/utils cl-bodge/engine flexi-streams
                opticl cl-fad chipz log4cl static-vectors
                sndfile-blob bodge-sndfile cl-conspack)
   :pathname "resources/"
@@ -60,7 +72,7 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (cl-bodge/engine bodge-host bodge-utilities log4cl cl-muth)
+  :depends-on (cl-bodge/engine bodge-host cl-bodge/utils log4cl cl-muth)
   :pathname "host/"
   :serial t
   :components ((:file "packages")
@@ -76,7 +88,7 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (cl-bodge/engine bodge-utilities cl-bodge/host cl-bodge/resources
+  :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/host cl-bodge/resources
                                cl-opengl log4cl local-time cffi cl-ppcre
                                glad-blob bodge-glad static-vectors)
   :pathname "graphics/"
@@ -114,7 +126,7 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (cl-bodge/engine bodge-utilities cl-bodge/graphics
+  :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/graphics
                                bodge-canvas cl-bodge/resources
                                trivial-garbage)
   :pathname "canvas/"
@@ -131,7 +143,7 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (cl-bodge/engine bodge-utilities cl-bodge/resources cl-bodge/graphics)
+  :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/resources cl-bodge/graphics)
   :pathname "animation/"
   :serial t
   :components ((:file "packages")
@@ -146,7 +158,7 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (cl-bodge/engine bodge-utilities cl-bodge/host log4cl
+  :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/host log4cl
                                cl-bodge/resources
                                openal-blob bodge-openal)
   :pathname "audio/"
@@ -176,7 +188,7 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (bodge-utilities cl-bodge/engine cl-bodge/physics/backend)
+  :depends-on (cl-bodge/utils cl-bodge/engine cl-bodge/physics/backend)
   :pathname "physics/"
   :serial t
   :components ((:file "packages")
@@ -190,7 +202,7 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (bodge-utilities cl-bodge/engine cl-bodge/physics/backend
+  :depends-on (cl-bodge/utils cl-bodge/engine cl-bodge/physics/backend
                               ode-blob bodge-ode log4cl claw local-time)
   :pathname "physics/3d/"
   :serial t
@@ -217,7 +229,7 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (bodge-utilities cl-bodge/engine cl-bodge/physics/backend
+  :depends-on (cl-bodge/utils cl-bodge/engine cl-bodge/physics/backend
                               chipmunk-blob bodge-chipmunk log4cl claw
                               trivial-garbage cffi)
   :pathname "physics/2d/"
@@ -238,7 +250,7 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (cl-bodge/engine bodge-utilities cl-bodge/graphics)
+  :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/graphics)
   :pathname "shading/"
   :serial t
   :components ((:file "packages")
@@ -256,7 +268,7 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (cl-bodge/engine bodge-utilities cl-bodge/resources
+  :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/resources
                                cl-bodge/graphics log4cl)
   :pathname "text/"
   :serial t
@@ -276,7 +288,7 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (cl-bodge/engine bodge-utilities bodge-ui cl-bodge/graphics cl-bodge/canvas
+  :depends-on (cl-bodge/engine cl-bodge/utils bodge-ui cl-bodge/graphics cl-bodge/canvas
                                cl-bodge/host claw)
   :pathname "ui/"
   :serial t
@@ -292,7 +304,7 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (bodge-utilities cl-bodge/engine)
+  :depends-on (cl-bodge/utils cl-bodge/engine)
   :pathname "scene/"
   :serial t
   :components ((:file "packages")
@@ -320,7 +332,7 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (bodge-utilities cl-bodge/resources asdf uiop cl-fad cffi cl-ppcre
+  :depends-on (cl-bodge/utils cl-bodge/resources asdf uiop cl-fad cffi cl-ppcre
                                bodge-blobs-support inferior-shell split-sequence flexi-streams
                                trivial-features)
   :pathname "distribution/"
@@ -348,7 +360,7 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (bodge-utilities cl-bodge/text flexi-streams fiveam)
+  :depends-on (cl-bodge/utils cl-bodge/text flexi-streams fiveam)
   :pathname "t/"
   :serial t
   :components ((:file "packages")
@@ -364,8 +376,10 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (cl-bodge/engine bodge-utilities cl-bodge/host cl-bodge/graphics cl-bodge/audio
-                               cl-bodge/physics cl-bodge/physics/2d cl-bodge/physics/3d
+  :depends-on (cl-bodge/engine cl-bodge/utils
+                               cl-bodge/host cl-bodge/graphics cl-bodge/audio
+                               cl-bodge/physics
+                               cl-bodge/physics/2d cl-bodge/physics/3d
                                cl-bodge/resources cl-bodge/ui cl-bodge/text
                                cl-bodge/canvas cl-bodge/animation
                                cl-bodge/shading cl-bodge/scene cl-bodge/appkit)

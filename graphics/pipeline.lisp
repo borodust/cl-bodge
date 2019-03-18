@@ -38,7 +38,7 @@
 (defun ensure-clean-pipeline (pipeline)
   (with-slots (dirty-p last-updated shading-program parameter-table) pipeline
     (when (or dirty-p (pipeline-shaders-outdated-p pipeline))
-      (log:debug "Refresing pipeline ~A" pipeline)
+      (log/debug "Refresing pipeline ~A" pipeline)
       (when shading-program
         (gl:delete-program shading-program))
       (refresh-parameter-table parameter-table (pipeline-shaders pipeline))

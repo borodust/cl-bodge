@@ -19,13 +19,13 @@
                                            (floor (y viewport))
                                            context)
           (flet ((init-glad ()
-                   (log:debug "~%GL version: ~a~%GLSL version: ~a~%GL vendor: ~a~%GL renderer: ~a"
+                   (log/debug "~%GL version: ~a~%GLSL version: ~a~%GL vendor: ~a~%GL renderer: ~a"
                               (gl:get* :version)
                               (gl:get* :shading-language-version)
                               (gl:get* :vendor)
                               (gl:get* :renderer))
                    (glad:init)
-                   (log:debug "GLAD initialized")))
+                   (log/debug "GLAD initialized")))
             (execute-with-context context #'init-glad))
           (subscribe 'framebuffer-size-change-event 'on-framebuffer-size-update)))))
 

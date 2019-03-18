@@ -1,6 +1,6 @@
-(bodge-util:define-package :cl-bodge.canvas
+(ge.util:define-package :cl-bodge.canvas
   (:nicknames :ge.vg)
-  (:use :cl :cl-bodge.engine :bodge-util :cl-bodge.graphics)
+  (:use :cl :cl-bodge.utils :cl-bodge.engine :cl-bodge.graphics)
   (:reexport-from :bodge-canvas
                   #:with-retained-canvas
 

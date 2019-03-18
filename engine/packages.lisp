@@ -1,6 +1,6 @@
-(bodge-util:define-package :cl-bodge.events
+(ge.util:define-package :cl-bodge.events
   (:nicknames :ge.eve)
-  (:use :cl :bodge-util :bodge-concurrency :cl-flow :bodge-memory)
+  (:use :cl :ge.util :bodge-concurrency :cl-flow :bodge-memory)
   (:export event
            defevent
            event-emitting
@@ -21,9 +21,9 @@
            disable-hub))
 
 
-(bodge-util:define-package :cl-bodge.engine
+(ge.util:define-package :cl-bodge.engine
   (:nicknames :ge.ng)
-  (:use :bodge-util :cl :bordeaux-threads :cl-muth :cl-bodge.events)
+  (:use :cl-bodge.utils :cl :bordeaux-threads :cl-muth :cl-bodge.events)
   (:use-reexport
    :bodge-concurrency
    :bodge-memory

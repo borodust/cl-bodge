@@ -23,7 +23,7 @@
   (loop for field in fields
         collect (destructuring-bind (symbol-name type &key name (count 1) &allow-other-keys) field
                   (let ((foreign-name (or name (string-downcase
-                                                (bodge-util:translate-name-to-foreign symbol-name)))))
+                                                (ge.util:translate-name-to-foreign symbol-name)))))
                     (make-amalgam-field :name symbol-name
                                               :type (make-instance (type->glsl type))
                                               :count count

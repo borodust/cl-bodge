@@ -1,6 +1,6 @@
-(bodge-util:define-package :cl-bodge.text
+(ge.util:define-package :cl-bodge.text
   (:nicknames :ge.text)
-  (:use :cl :bodge-util :cl-bodge.engine :cl-bodge.graphics :cl-bodge.resources)
+  (:use :cl :cl-bodge.utils :cl-bodge.engine :cl-bodge.graphics :cl-bodge.resources)
   (:export make-glyph
            build-sdf-font
 

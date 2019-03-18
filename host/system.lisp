@@ -99,7 +99,7 @@
           (setf host-application (make-host-application #'ge.ng:continue-flow))
           (bodge-host:open-window (host-application this)))
         (instantly ()
-          (log:debug "Host system initialized")))))
+          (log/debug "Host system initialized")))))
 
 
 (defmethod disabling-flow list ((this host-system))
@@ -108,7 +108,7 @@
      (set-destroy-continuation (host-application this) #'continue-flow)
      (bodge-host:close-window (host-application this)))
    (instantly ()
-     (log:debug "Host system offline"))))
+     (log/debug "Host system offline"))))
 
 
 (defclass shared-context (disposable)

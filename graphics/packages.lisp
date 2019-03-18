@@ -1,12 +1,12 @@
-(bodge-util:define-package :cl-bodge.graphics.state
+(ge.util:define-package :cl-bodge.graphics.state
   (:nicknames :gx.state)
   (:export enable
            disable))
 
 
-(bodge-util:define-package :cl-bodge.graphics
+(ge.util:define-package :cl-bodge.graphics
   (:nicknames :ge.gx)
-  (:use :cl :cl-bodge.engine :cl-bodge.host :bodge-util)
+  (:use :cl :cl-bodge.utils :cl-bodge.engine :cl-bodge.host)
   (:import-from :cl-bodge.resources
                 #:image-height
                 #:image-width

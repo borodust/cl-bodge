@@ -1,3 +1,3 @@
-(bodge-util:define-package :cl-bodge.scene
-  (:use :cl :bodge-util :cl-bodge.engine)
+(ge.util:define-package :cl-bodge.scene
+  (:use :cl :cl-bodge.utils :cl-bodge.engine)
   (:export))

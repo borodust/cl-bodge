@@ -164,7 +164,7 @@ flow block after the looped flow."
             (when (system-enabled-p system)
               (error (format nil "Circular dependency found for '~a'" system-class)))
             (cons (cons system-class (ge.ng:>> (instantly ()
-                                                 (log:debug "Enabling ~a" system-class))
+                                                 (log/debug "Enabling ~a" system-class))
                                                (enabling-flow system)
                                                (instantly ()
                                                  (invoke-system-startup-hooks system-class))))
@@ -236,7 +236,7 @@ specified."
       (run (ge.ng:>> (loop for system-class in disabling-order
                           collect (let ((system-class system-class))
                                     (ge.ng:>> (instantly ()
-                                               (log:debug "Disabling ~a" system-class)
+                                               (log/debug "Disabling ~a" system-class)
                                                (invoke-system-shutdown-hooks system-class))
                                              (disabling-flow (gethash system-class systems)))))
                     (instantly ()
@@ -280,7 +280,7 @@ directories used by the engine are relative to 'working-directory parameter."
                                 :properties properties
                                 :working-directory working-directory))
   (log:config :sane2)
-  (log:config (property '(:engine :log-level) :info))
+  (log/level (property '(:engine :log-level) :info))
   (reload-foreign-libraries (property '(:engine :library-directory) "lib/"))
   (log-errors
     (dolist (hook *engine-startup-hooks*)
@@ -341,7 +341,7 @@ initialized."
 
 
 (defmethod dispatch ((this null) (task function) invariant &rest keys &key)
-  (log:warn "~A with invariant ~A and keys ~A ignored" task invariant keys))
+  (log/error "~A with invariant ~A and keys ~A ignored" task invariant keys))
 
 
 (defmethod dispatch ((this bodge-engine) (task function) invariant &rest keys
@@ -354,7 +354,7 @@ task is dispatched to the object provided under this key."
     (handler-bind ((t (lambda (e)
                         (when comatose-p
                           (when-let ((continue-handler (find-restart 'continue)))
-                            (log:error "Error encountered while engine is in coma, ignoring: ~A" e)
+                            (log/error "Error encountered while engine is in coma, ignoring: ~A" e)
                             (invoke-restart continue-handler))))))
       (flet ((traps-masking-task ()
                (claw:with-float-traps-masked ()

@@ -1,6 +1,6 @@
-(bodge-util:define-package :cl-bodge.resources
+(ge.util:define-package :cl-bodge.resources
   (:nicknames :ge.rsc)
-  (:use :cl :bodge-util :cl-bodge.engine :static-vectors)
+  (:use :cl :cl-bodge.utils :cl-bodge.engine :static-vectors)
   (:export engine-resource-name
 
            encode-resource

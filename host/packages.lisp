@@ -1,7 +1,7 @@
 
-(bodge-util:define-package :cl-bodge.host
+(ge.util:define-package :cl-bodge.host
   (:nicknames :ge.host)
-  (:use :cl-bodge.engine :bodge-util :cl :bordeaux-threads :cl-muth)
+  (:use :cl-bodge.engine :cl-bodge.utils :cl :bordeaux-threads :cl-muth)
   (:export host-system
            host
            for-host

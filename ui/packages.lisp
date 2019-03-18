@@ -1,6 +1,6 @@
-(bodge-util:define-package :cl-bodge.ui
+(ge.util:define-package :cl-bodge.ui
   (:nicknames :ge.ui)
-  (:use :cl :cl-bodge.engine :bodge-util :cl-bodge.graphics
+  (:use :cl :cl-bodge.engine :cl-bodge.utils :cl-bodge.graphics
         :cl-bodge.canvas :cl-bodge.resources :claw)
   (:reexport-from :bodge-ui
                   #:defpanel
