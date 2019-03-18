@@ -5,7 +5,6 @@
 
 (defvar +origin+ (vec2 0.0 0.0))
 (defvar *black* (vec4 0 0 0 1))
-(defvar *panel-class-list* (mt:make-guarded-reference nil))
 (defvar *appkit-instance-class* nil)
 
 (defparameter *default-viewport-width* 800)

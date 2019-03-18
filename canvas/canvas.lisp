@@ -4,6 +4,12 @@
 (declaim (special *canvas*))
 
 
+(defvar *black* (vec4 0 0 0 1))
+
+
+(defgeneric %handle-of (object))
+
+
 (defclass canvas (disposable)
   ((handle :initarg :handle :reader %handle-of)))
 
@@ -40,21 +46,6 @@
            (flet ((%render ()
                     ,@body))
              (render-canvas ,this #'%render)))))))
-
-
-(define-system-function make-image-paint graphics-system (canvas image)
-  (unless (eq (ge.rsc:image-pixel-format image) :rgba)
-    (error "Only RGBA images supported"))
-  (bodge-canvas:make-rgba-image-paint (%handle-of canvas)
-                                      (simple-array-of
-                                       (ge.rsc:image->foreign-array image))
-                                      (ge.rsc:image-width image)
-                                      (ge.rsc:image-height image)))
-
-
-(defun destroy-image-paint (canvas image)
-  (run (for-graphics ()
-         (bodge-canvas:destroy-image-paint (%handle-of canvas) image))))
 
 
 (defun canvas-width (&optional (canvas *canvas*))

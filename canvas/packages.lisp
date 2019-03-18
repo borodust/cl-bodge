@@ -7,9 +7,7 @@
                   #:path
                   #:fill-path
                   #:stroke-path
-                  #:stroke-paint
                   #:stroke-width
-                  #:fill-paint
 
                   #:scissors
                   #:move-to
@@ -22,14 +20,6 @@
                   #:text
 
                   #:apply-scissors
-                  #:draw-line
-                  #:draw-curve
-                  #:draw-rect
-                  #:draw-circle
-                  #:draw-ellipse
-                  #:draw-arc
-                  #:draw-polygon
-                  #:draw-polyline
 
                   #:translate-canvas
                   #:rotate-canvas
@@ -37,10 +27,6 @@
                   #:scale-canvas
                   #:reset-canvas-transform
 
-                  #:image-paint-width
-                  #:image-paint-height
-
-                  #:draw-text
                   #:make-font
                   #:make-default-font
                   #:with-font
@@ -57,6 +43,22 @@
            #:update-canvas-pixel-ratio
 
            #:make-image-paint
+           #:image-paint-width
+           #:image-paint-height
+
+           #:fill-paint
+           #:stroke-paint
+
+           #:draw-line
+           #:draw-curve
+           #:draw-rect
+           #:draw-circle
+           #:draw-ellipse
+           #:draw-arc
+           #:draw-polygon
+           #:draw-polyline
+           #:draw-text
+           #:draw-image
 
            #:register-font-face
            #:canvas-font-metrics

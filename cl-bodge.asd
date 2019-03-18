@@ -120,7 +120,9 @@
   :pathname "canvas/"
   :serial t
   :components ((:file "packages")
-               (:file "canvas")))
+               (:file "canvas")
+               (:file "paint")
+               (:file "drawing")))
 
 
 (asdf:defsystem cl-bodge/animation
