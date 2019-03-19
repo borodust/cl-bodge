@@ -279,7 +279,6 @@ directories used by the engine are relative to 'working-directory parameter."
   (setf *engine* (make-instance 'bodge-engine
                                 :properties properties
                                 :working-directory working-directory))
-  (log:config :sane2)
   (log/level (property '(:engine :log-level) :info))
   (reload-foreign-libraries (property '(:engine :library-directory) "lib/"))
   (log-errors
