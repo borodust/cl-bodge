@@ -18,16 +18,21 @@
           (update-context-framebuffer-size (floor (x viewport))
                                            (floor (y viewport))
                                            context)
+          (subscribe 'framebuffer-size-change-event 'on-framebuffer-size-update)
+          context)
+        (%> (context)
           (flet ((init-glad ()
-                   (log/debug "~%GL version: ~a~%GLSL version: ~a~%GL vendor: ~a~%GL renderer: ~a"
-                              (gl:get* :version)
-                              (gl:get* :shading-language-version)
-                              (gl:get* :vendor)
-                              (gl:get* :renderer))
-                   (glad:init)
-                   (log/debug "GLAD initialized")))
-            (execute-with-context context #'init-glad))
-          (subscribe 'framebuffer-size-change-event 'on-framebuffer-size-update)))))
+                   (unwind-protect
+                        (progn
+                          (log/debug "~%GL version: ~a~%GLSL version: ~a~%GL vendor: ~a~%GL renderer: ~a"
+                                     (gl:get* :version)
+                                     (gl:get* :shading-language-version)
+                                     (gl:get* :vendor)
+                                     (gl:get* :renderer))
+                          (glad:init)
+                          (log/debug "GLAD initialized"))
+                     (run (concurrently () (continue-flow))))))
+            (execute-with-context context #'init-glad))))))
 
 
 (defmethod disabling-flow list ((this graphics-system))
@@ -44,9 +49,8 @@
   "(for-graphics :context nil (&optional arg) &body body)"
   (multiple-value-bind (initargs arg-and-body)
       (parse-initargs-and-list arguments-and-body)
-    (destructuring-bind (&key context) initargs
-      `(-> (graphics) :context ,context ,(first arg-and-body)
-         ,@(rest arg-and-body)))))
+    `(-> (graphics) ,@initargs ,(first arg-and-body)
+       ,@(rest arg-and-body))))
 
 
 (defun on-framebuffer-size-update (event)

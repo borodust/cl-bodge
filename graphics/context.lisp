@@ -112,7 +112,10 @@
                depth-stencil-renderbuffer
                executor)
       context
-    (%graphics-context-destructuring-flow rendering-context supplementary-framebuffer depth-stencil-renderbuffer executor)))
+    (%graphics-context-destructuring-flow rendering-context
+                                          supplementary-framebuffer
+                                          depth-stencil-renderbuffer
+                                          executor)))
 
 
 (define-destructor graphics-context (rendering-context

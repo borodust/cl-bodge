@@ -39,7 +39,9 @@
         system
         (when error-if-not-exist
           (error (format nil "~a engine system not found" system-name)))))
-    (warn "Engine offline: system cannot be retrieved")))
+    (progn
+      (break)
+      (warn "Engine offline: system cannot be retrieved"))))
 
 
 (defun after-system-startup (system-name hook)

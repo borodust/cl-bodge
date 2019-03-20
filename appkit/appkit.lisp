@@ -241,13 +241,15 @@
 
 
 (defmethod disabling-flow list ((this appkit-system))
-  (with-slots (sweep-continuation disabled-p) this
+  (with-slots (sweep-continuation disabled-p canvas ui) this
     (>> (%> ()
           (setf disabled-p t
                 sweep-continuation #'continue-flow))
         (->> ()
-          (sweeping-flow this)))))
-
+          (sweeping-flow this))
+        (instantly ()
+          (dispose ui)
+          (dispose canvas)))))
 
 ;;;
 ;;; Startup routines

@@ -8,7 +8,7 @@
 
 (define-destructor ui (renderer handle)
   (dispose handle)
-  (run (for-graphics ()
+  (run (for-graphics :disposing t ()
          (dispose renderer))))
 
 

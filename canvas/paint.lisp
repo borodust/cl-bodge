@@ -18,7 +18,7 @@
 
 
 (define-destructor image-paint (canvas handle)
-  (run (for-graphics ()
+  (run (for-graphics :disposing t ()
          (bodge-canvas:destroy-image-paint (%handle-of canvas) handle))))
 
 

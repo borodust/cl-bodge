@@ -26,9 +26,11 @@
   (engine-system 'host-system))
 
 
-(defmacro for-host ((&optional arg) &body body)
-  `(ge.ng:-> (host) (,@(when arg (list arg)))
-     ,@body))
+(defmacro for-host (&body arguments-and-body)
+  (multiple-value-bind (initargs arg-and-body)
+      (parse-initargs-and-list arguments-and-body)
+    `(-> (host) ,@initargs ,(first arg-and-body)
+       ,@(rest arg-and-body))))
 
 
 (defmethod dispatch ((this host-system) (fn function) invariant &key)
@@ -116,7 +118,7 @@
 
 
 (define-destructor shared-context (handle)
-  (run (for-host ()
+  (run (for-host :disposing t ()
          (bodge-host:destroy-shared-rendering-context handle))))
 
 
