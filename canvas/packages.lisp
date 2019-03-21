@@ -18,6 +18,9 @@
                   #:ellipse
                   #:arc
                   #:text
+                  #:wind-path
+                  #:line-cap
+                  #:line-join
 
                   #:apply-scissors
 
