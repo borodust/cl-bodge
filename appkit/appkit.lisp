@@ -183,16 +183,16 @@
 
 (defun %initialize-graphics (this pixel-ratio)
   (with-slots (viewport-width viewport-height canvas font ui input-source) this
-    (let ((antialised-p (property '(:appkit :antialised) nil)))
+    (let ((antialiased-p (property '(:appkit :antialiased) nil)))
       (setf canvas (ge.vg:make-canvas 'appkit-canvas
                                       viewport-width viewport-height
                                       :pixel-ratio pixel-ratio
-                                      :antialiased antialised-p)
+                                      :antialiased antialiased-p)
             font (ge.vg:make-default-font)
             input-source (ge.ui:make-host-input-source)
             ui (ge.ui:make-ui viewport-width viewport-height :pixel-ratio pixel-ratio
                                                              :input-source input-source
-                                                             :antialiased antialised-p)
+                                                             :antialiased antialiased-p)
             (ge.host:swap-interval) 1))
     (ge.ui:attach-host-input-source input-source)))
 
