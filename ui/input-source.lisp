@@ -16,7 +16,7 @@
 
 (defun %next-array-index (array current-index)
   (let ((size (length (bounded-queue-values array))))
-    (if (= current-index size) 0 (1+ current-index))))
+    (if (= current-index (1- size)) 0 (1+ current-index))))
 
 
 (defun %next-array-head (bag)
