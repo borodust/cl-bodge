@@ -8,7 +8,8 @@
 (defvar *predefined-event-callbacks* nil)
 (defvar *executable-p* nil)
 
-(declaim (special *system*))
+(declaim (special *system*
+                  *recursive-flow*))
 
 (define-constant +engine-resource-path+ "/bodge/"
   :test #'equal)
@@ -39,9 +40,7 @@
         system
         (when error-if-not-exist
           (error (format nil "~a engine system not found" system-name)))))
-    (progn
-      (break)
-      (warn "Engine offline: system cannot be retrieved"))))
+    (warn "Engine offline: system cannot be retrieved")))
 
 
 (defun after-system-startup (system-name hook)
@@ -85,13 +84,13 @@ file is stored."
 
 (defmacro instantly ((&rest lambda-list) &body body)
   "Execute task in the current thread without dispatching."
-  `(ge.ng:-> nil ,lambda-list
+  `(-> nil ,lambda-list
      ,@body))
 
 
 (defmacro concurrently ((&rest lambda-list) &body body)
   "Push task to engine's pooled executor."
-  `(ge.ng:-> nil :concurrently t ,lambda-list
+  `(-> nil :concurrently t ,lambda-list
      ,@body))
 
 
@@ -107,18 +106,24 @@ file is stored."
 
 (defun always-true () t)
 
+
 (defun loop-flow (flow &optional (test #'always-true))
   "Turns passed flow into a loop. Flow will be repeated while test function returns `t`.
 Test happens before each flow execution. Result of the last flow iteration is passed to the next
 flow block after the looped flow."
   (declare (type function test))
   (let (looped)
-    (setf looped
-          (ge.ng:->> (value)
-            (if (funcall test)
-                (ge.ng:>> flow
-                         looped)
-                (value-flow value))))))
+    (setf looped (>> flow
+                     (->> (value)
+                       (if (funcall test)
+                           (progn
+                             (when (eq *recursive-flow* flow)
+                               ;; notify our dispatcher to run
+                               ;; same repeatedly
+                               (throw *recursive-flow* t))
+                             (setf *recursive-flow* flow)
+                             looped)
+                           (value-flow value)))))))
 
 ;;
 (defclass system ()
@@ -165,7 +170,7 @@ flow block after the looped flow."
               (setf result (enable-system dependency sys-table result)))
             (when (system-enabled-p system)
               (error (format nil "Circular dependency found for '~a'" system-class)))
-            (cons (cons system-class (ge.ng:>> (instantly ()
+            (cons (cons system-class (>> (instantly ()
                                                  (log/debug "Enabling ~a" system-class))
                                                (enabling-flow system)
                                                (instantly ()
@@ -235,9 +240,9 @@ specified."
   (with-slots (systems disabling-order comatose-p) engine
     (setf comatose-p t)
     (mt:wait-with-latch (latch)
-      (run (ge.ng:>> (loop for system-class in disabling-order
+      (run (>> (loop for system-class in disabling-order
                           collect (let ((system-class system-class))
-                                    (ge.ng:>> (instantly ()
+                                    (>> (instantly ()
                                                (log/debug "Disabling ~a" system-class)
                                                (invoke-system-shutdown-hooks system-class))
                                              (disabling-flow (gethash system-class systems)))))
@@ -359,7 +364,11 @@ task is dispatched to the object provided under this key."
                             (invoke-restart continue-handler))))))
       (flet ((traps-masking-task ()
                (claw:with-float-traps-masked ()
-                 (funcall task))))
+                 ;; defense against infinitely recursive flows
+                 (let ((*recursive-flow* (bound-symbol-value *recursive-flow*)))
+                   (loop while (catch *recursive-flow*
+                                 (funcall task)
+                                 nil))))))
         (etypecase invariant
           (null (if concurrently
                     (execute shared-pool #'traps-masking-task :priority priority)
@@ -378,9 +387,9 @@ about object returned from the flow are provided.")
 
 
 (defmethod initialization-flow :around (object &key &allow-other-keys)
-  (ge.ng:>> (call-next-method)
-            (instantly ()
-              (initialize-destructor object))))
+  (>> (call-next-method)
+      (instantly ()
+        (initialize-destructor object))))
 
 
 (defun assembly-flow (class &rest initargs &key &allow-other-keys)
@@ -388,8 +397,8 @@ about object returned from the flow are provided.")
 Flow variant of #'make-instance."
   (let* ((*auto-initialize-destructor* nil)
          (instance (apply #'make-instance class :allow-other-keys t initargs)))
-    (ge.ng:>> (apply #'initialization-flow instance initargs)
-             (value-flow instance))))
+    (>> (apply #'initialization-flow instance initargs)
+        (value-flow instance))))
 
 
 (flet ((%dispatch (task invariant &rest opts &key &allow-other-keys)

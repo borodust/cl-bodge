@@ -102,10 +102,12 @@
   (let ((width (or viewport-width *default-viewport-width*))
         (height (or viewport-height *default-viewport-height*)))
     (>> (ge.host:for-host ()
+          (log/debug "Updating appkit host configuration")
           (update-viewport app
                            (or viewport-title *default-viewport-title*)
                            width height fullscreen-p))
         (ge.gx:for-graphics ()
+          (log/debug "Updating appkit graphics configuration")
           (update-graphics app width height panel-classes))
         (configuration-flow app))))
 
@@ -209,45 +211,51 @@
 
 (defun %app-loop (this)
   (with-slots (action-queue ui canvas font updated-p injected-flows disabled-p sweep-continuation) this
-    (labels ((%act ()
-               (drain action-queue)))
-      (>> (loop-flow (>> (->> ()
-                           (when updated-p
-                             (setf updated-p nil)
-                             (>> (sweeping-flow this)
-                                 (%app-configuration-flow this))))
-                         (->> ()
-                           (when injected-flows
-                             (prog1 (nreverse injected-flows)
-                               (setf injected-flows nil))))
-                         (instantly () (%act))
-                         (->> ()
-                           (acting-flow this))
-                         (ge.gx:for-graphics ()
-                           (draw-app this)))
-                     (lambda () (not disabled-p)))
-          (instantly ()
-            (funcall sweep-continuation))))))
+    (>> (loop-flow (>> (->> ()
+                         (when updated-p
+                           (setf updated-p nil)
+                           (>> (sweeping-flow this)
+                               (%app-configuration-flow this))))
+                       (->> ()
+                         (when injected-flows
+                           (prog1 (nreverse injected-flows)
+                             (setf injected-flows nil))))
+                       (instantly ()
+                         (drain action-queue))
+                       (->> ()
+                         (acting-flow this))
+                       (ge.gx:for-graphics ()
+                         (draw-app this)))
+                   (lambda () (not disabled-p)))
+        (instantly ()
+          (log/debug "Appkit loop interrupted")
+          (funcall sweep-continuation)))))
 
 
 (defmethod enabling-flow list ((this appkit-system))
   (>> (ge.host:for-host ()
+        (log/debug "Configuring host for appkit")
         (* (viewport-pixel-ratio) (ge.host:viewport-scale)))
       (ge.gx:for-graphics (pixel-ratio)
+        (log/debug "Configuring graphics for appkit")
         (%initialize-graphics this pixel-ratio))
       (%app-configuration-flow this)
       (instantly ()
+        (log/debug "Starting appkit loop")
         (run (%app-loop this)))))
 
 
 (defmethod disabling-flow list ((this appkit-system))
   (with-slots (sweep-continuation disabled-p canvas ui) this
     (>> (%> ()
+          (log/debug "Stopping appkit loop")
           (setf disabled-p t
                 sweep-continuation #'continue-flow))
         (->> ()
+          (log/debug "Starting sweeping")
           (sweeping-flow this))
         (instantly ()
+          (log/debug "Releasing appkit resources")
           (dispose ui)
           (dispose canvas)))))
 
