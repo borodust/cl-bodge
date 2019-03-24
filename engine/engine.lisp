@@ -120,7 +120,6 @@ flow block after the looped flow."
   (declare (type function test))
   (let (looped recurred-result recurred-p)
     (setf looped (->> (value)
-                   (capture-loop flow)
                    (unless recurred-p
                      (setf recurred-result value))
                    (if (funcall test)
@@ -128,6 +127,7 @@ flow block after the looped flow."
                              recurred-result)
                            flow
                            (instantly (value)
+                             (capture-loop flow)
                              (setf recurred-result value)
                              (unless recurred-p
                                (setf recurred-p t)))
@@ -395,6 +395,7 @@ task is dispatched to the object provided under this key."
                               (setf *recursive-flow* nil
                                     *recursive-task* nil)
                               (go start))
+                            ;; unwind stack until we hit needed task
                             (throw 'recursive-task recursive-task))))))
                (traps-masking-task ()
                  (claw:with-float-traps-masked ()
