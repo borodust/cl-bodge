@@ -9,7 +9,13 @@
 (defvar *executable-p* nil)
 
 (declaim (special *system*
-                  *recursive-flow*))
+                  *recursive-flow*
+                  *recursive-task*
+                  *current-task*))
+
+
+(defvar *recursive-flow* nil)
+(defvar *recursive-task* nil)
 
 (define-constant +engine-resource-path+ "/bodge/"
   :test #'equal)
@@ -112,18 +118,22 @@ file is stored."
 Test happens before each flow execution. Result of the last flow iteration is passed to the next
 flow block after the looped flow."
   (declare (type function test))
-  (let (looped)
-    (setf looped (>> flow
-                     (->> (value)
-                       (if (funcall test)
-                           (progn
-                             (when (eq *recursive-flow* flow)
-                               ;; notify our dispatcher to run
-                               ;; same repeatedly
-                               (throw *recursive-flow* t))
-                             (setf *recursive-flow* flow)
-                             looped)
-                           (value-flow value)))))))
+  (let (looped recurred-result recurred-p)
+    (setf looped (->> (value)
+                   (capture-loop flow)
+                   (unless recurred-p
+                     (setf recurred-result value))
+                   (if (funcall test)
+                       (>> (instantly ()
+                             recurred-result)
+                           flow
+                           (instantly (value)
+                             (setf recurred-result value)
+                             (unless recurred-p
+                               (setf recurred-p t)))
+                           looped)
+                       (instantly ()
+                         recurred-result))))))
 
 ;;
 (defclass system ()
@@ -171,10 +181,10 @@ flow block after the looped flow."
             (when (system-enabled-p system)
               (error (format nil "Circular dependency found for '~a'" system-class)))
             (cons (cons system-class (>> (instantly ()
-                                                 (log/debug "Enabling ~a" system-class))
-                                               (enabling-flow system)
-                                               (instantly ()
-                                                 (invoke-system-startup-hooks system-class))))
+                                           (log/debug "Enabling ~a" system-class))
+                                         (enabling-flow system)
+                                         (instantly ()
+                                           (invoke-system-startup-hooks system-class))))
                   result))
           result))))
 
@@ -241,13 +251,13 @@ specified."
     (setf comatose-p t)
     (mt:wait-with-latch (latch)
       (run (>> (loop for system-class in disabling-order
-                          collect (let ((system-class system-class))
-                                    (>> (instantly ()
-                                               (log/debug "Disabling ~a" system-class)
-                                               (invoke-system-shutdown-hooks system-class))
-                                             (disabling-flow (gethash system-class systems)))))
-                    (instantly ()
-                      (mt:open-latch latch)))))))
+                     collect (let ((system-class system-class))
+                               (>> (instantly ()
+                                     (log/debug "Disabling ~a" system-class)
+                                     (invoke-system-shutdown-hooks system-class))
+                                   (disabling-flow (gethash system-class systems)))))
+               (instantly ()
+                 (mt:open-latch latch)))))))
 
 
 (defmethod initialize-instance :after ((this bodge-engine)
@@ -350,6 +360,15 @@ initialized."
   (log/error "~A with invariant ~A and keys ~A ignored" task invariant keys))
 
 
+(defun capture-loop (looped-flow)
+  (if (eq *recursive-flow* looped-flow)
+      (progn
+        (setf *current-task* nil)
+        (throw 'recursive-task *recursive-task*))
+      (setf *recursive-flow* looped-flow
+            *recursive-task* *current-task*)))
+
+
 (defmethod dispatch ((this bodge-engine) (task function) invariant &rest keys
                      &key (priority :medium) concurrently)
   "Use engine instance as a dispatcher. If :invariant and :concurrently-p are both nil task is
@@ -362,13 +381,24 @@ task is dispatched to the object provided under this key."
                           (when-let ((continue-handler (find-restart 'continue)))
                             (log/error "Error encountered while engine is in coma, ignoring: ~A" e)
                             (invoke-restart continue-handler))))))
-      (flet ((traps-masking-task ()
-               (claw:with-float-traps-masked ()
-                 ;; defense against infinitely recursive flows
-                 (let ((*recursive-flow* (bound-symbol-value *recursive-flow*)))
-                   (loop while (catch *recursive-flow*
-                                 (funcall task)
-                                 nil))))))
+      (labels ((invoke-with-looping (task)
+                 ;; Infinite recursion prevention mechanism
+                 (let ((*current-task* task)
+                       (*recursive-flow* *recursive-flow*)
+                       (*recursive-task* *recursive-task*))
+                   (tagbody start
+                      (when-let ((recursive-task (catch 'recursive-task
+                                                   (funcall task)
+                                                   nil)))
+                        (if (eq *current-task* recursive-task)
+                            (progn
+                              (setf *recursive-flow* nil
+                                    *recursive-task* nil)
+                              (go start))
+                            (throw 'recursive-task recursive-task))))))
+               (traps-masking-task ()
+                 (claw:with-float-traps-masked ()
+                   (invoke-with-looping task))))
         (etypecase invariant
           (null (if concurrently
                     (execute shared-pool #'traps-masking-task :priority priority)

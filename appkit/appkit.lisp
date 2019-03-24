@@ -209,23 +209,28 @@
     (ge.host:swap-buffers)))
 
 
+(defun %looped-flow (this)
+  (with-slots (action-queue ui canvas font updated-p injected-flows) this
+    (>> (->> ()
+          (when updated-p
+            (setf updated-p nil)
+            (>> (sweeping-flow this)
+                (%app-configuration-flow this))))
+        (->> ()
+          (when injected-flows
+            (prog1 (nreverse injected-flows)
+              (setf injected-flows nil))))
+        (instantly ()
+          (drain action-queue))
+        (->> ()
+          (acting-flow this))
+        (ge.gx:for-graphics ()
+          (draw-app this)))))
+
+
 (defun %app-loop (this)
-  (with-slots (action-queue ui canvas font updated-p injected-flows disabled-p sweep-continuation) this
-    (>> (loop-flow (>> (->> ()
-                         (when updated-p
-                           (setf updated-p nil)
-                           (>> (sweeping-flow this)
-                               (%app-configuration-flow this))))
-                       (->> ()
-                         (when injected-flows
-                           (prog1 (nreverse injected-flows)
-                             (setf injected-flows nil))))
-                       (instantly ()
-                         (drain action-queue))
-                       (->> ()
-                         (acting-flow this))
-                       (ge.gx:for-graphics ()
-                         (draw-app this)))
+  (with-slots (disabled-p sweep-continuation) this
+    (>> (loop-flow (%looped-flow this)
                    (lambda () (not disabled-p)))
         (instantly ()
           (log/debug "Appkit loop interrupted")
