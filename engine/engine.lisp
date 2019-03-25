@@ -118,19 +118,16 @@ file is stored."
 Test happens before each flow execution. Result of the last flow iteration is passed to the next
 flow block after the looped flow."
   (declare (type function test))
-  (let (looped recurred-result recurred-p)
+  (let (looped recurred-result)
     (setf looped (->> (value)
-                   (unless recurred-p
-                     (setf recurred-result value))
+                   (setf recurred-result value)
                    (if (funcall test)
                        (>> (instantly ()
+                             ;; prevent infinite recursion
+                             (capture-loop flow)
+                             ;; feed result from the previous loop iteration
                              recurred-result)
                            flow
-                           (instantly (value)
-                             (capture-loop flow)
-                             (setf recurred-result value)
-                             (unless recurred-p
-                               (setf recurred-p t)))
                            looped)
                        (instantly ()
                          recurred-result))))))
