@@ -9,13 +9,11 @@
 (defvar *executable-p* nil)
 
 (declaim (special *system*
-                  *recursive-flow*
-                  *recursive-task*
-                  *current-task*))
+                  *recursive-flow*))
 
 
 (defvar *recursive-flow* nil)
-(defvar *recursive-task* nil)
+
 
 (define-constant +engine-resource-path+ "/bodge/"
   :test #'equal)
@@ -359,11 +357,8 @@ initialized."
 
 (defun capture-loop (looped-flow)
   (if (eq *recursive-flow* looped-flow)
-      (progn
-        (setf *current-task* nil)
-        (throw 'recursive-task *recursive-task*))
-      (setf *recursive-flow* looped-flow
-            *recursive-task* *current-task*)))
+      (throw 'recursive-task t)
+      (setf *recursive-flow* looped-flow)))
 
 
 (defmethod dispatch ((this bodge-engine) (task function) invariant &rest keys
@@ -380,20 +375,14 @@ task is dispatched to the object provided under this key."
                             (invoke-restart continue-handler))))))
       (labels ((invoke-with-looping (task)
                  ;; Infinite recursion prevention mechanism
-                 (let ((*current-task* task)
-                       (*recursive-flow* *recursive-flow*)
-                       (*recursive-task* *recursive-task*))
-                   (tagbody start
-                      (when-let ((recursive-task (catch 'recursive-task
-                                                   (funcall task)
-                                                   nil)))
-                        (if (eq *current-task* recursive-task)
-                            (progn
-                              (setf *recursive-flow* nil
-                                    *recursive-task* nil)
-                              (go start))
-                            ;; unwind stack until we hit needed task
-                            (throw 'recursive-task recursive-task))))))
+                 (tagbody start
+                    (let ((*recursive-flow* *recursive-flow*))
+                      (if *recursive-flow*
+                          (funcall task)
+                          (when (catch 'recursive-task
+                                  (funcall task)
+                                  nil)
+                            (go start))))))
                (traps-masking-task ()
                  (claw:with-float-traps-masked ()
                    (invoke-with-looping task))))
