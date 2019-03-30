@@ -8,11 +8,7 @@
 (defvar *predefined-event-callbacks* nil)
 (defvar *executable-p* nil)
 
-(declaim (special *system*
-                  *recursive-flow*))
-
-
-(defvar *recursive-flow* nil)
+(declaim (special *system*))
 
 
 (define-constant +engine-resource-path+ "/bodge/"
@@ -115,20 +111,7 @@ file is stored."
   "Turns passed flow into a loop. Flow will be repeated while test function returns `t`.
 Test happens before each flow execution. Result of the last flow iteration is passed to the next
 flow block after the looped flow."
-  (declare (type function test))
-  (let (looped recurred-result)
-    (setf looped (->> (value)
-                   (setf recurred-result value)
-                   (if (funcall test)
-                       (>> (instantly ()
-                             ;; prevent infinite recursion
-                             (capture-loop flow)
-                             ;; feed result from the previous loop iteration
-                             recurred-result)
-                           flow
-                           looped)
-                       (instantly ()
-                         recurred-result))))))
+  (flow:repeatedly (funcall test) flow))
 
 ;;
 (defclass system ()
@@ -355,12 +338,6 @@ initialized."
   (log/error "~A with invariant ~A and keys ~A ignored" task invariant keys))
 
 
-(defun capture-loop (looped-flow)
-  (if (eq *recursive-flow* looped-flow)
-      (throw 'recursive-task t)
-      (setf *recursive-flow* looped-flow)))
-
-
 (defmethod dispatch ((this bodge-engine) (task function) invariant &rest keys
                      &key (priority :medium) concurrently)
   "Use engine instance as a dispatcher. If :invariant and :concurrently-p are both nil task is
@@ -373,19 +350,9 @@ task is dispatched to the object provided under this key."
                           (when-let ((continue-handler (find-restart 'continue)))
                             (log/error "Error encountered while engine is in coma, ignoring: ~A" e)
                             (invoke-restart continue-handler))))))
-      (labels ((invoke-with-looping (task)
-                 ;; Infinite recursion prevention mechanism
-                 (tagbody start
-                    (let ((*recursive-flow* *recursive-flow*))
-                      (if *recursive-flow*
-                          (funcall task)
-                          (when (catch 'recursive-task
-                                  (funcall task)
-                                  nil)
-                            (go start))))))
-               (traps-masking-task ()
+      (labels ((traps-masking-task ()
                  (claw:with-float-traps-masked ()
-                   (invoke-with-looping task))))
+                   (funcall task))))
         (etypecase invariant
           (null (if concurrently
                     (execute shared-pool #'traps-masking-task :priority priority)
