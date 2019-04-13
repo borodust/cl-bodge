@@ -4,11 +4,11 @@
   (:use :cl-bodge.engine :cl-bodge.utils :cl :bordeaux-threads :cl-muth)
   (:reexport-from :bodge-host
                   #:controller-name
-                  #:controller-axis-count
+                  #:controller-axes
                   #:controller-axis-value
-                  #:controller-button-count
+                  #:controller-buttons
                   #:controller-button-pressed-p
-                  #:controller-hat-count
+                  #:controller-hats
                   #:controller-hat-state)
   (:export #:host-system
            #:host
