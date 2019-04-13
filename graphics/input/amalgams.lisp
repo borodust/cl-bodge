@@ -94,8 +94,8 @@
             (loop for field in (amalgam-descriptor-fields descriptor)
                   collect (full-field-name field)))
     (when block-name
-        (format output " ~A" block-name))
-      (format output ";")))
+      (format output " ~A" block-name))
+    (format output ";")))
 
 
 (defun print-amalgam-as-uniforms (amalgam-type &optional (output t))

@@ -33,3 +33,11 @@
 
 
 (defevent viewport-hiding-event () ())
+
+
+(defevent controller-connected-event ()
+  (controller))
+
+
+(defevent controller-disconnected-event ()
+  (controller))

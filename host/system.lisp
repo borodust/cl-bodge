@@ -40,10 +40,18 @@
   t)
 
 
+(defmethod bodge-host:on-controller-connect ((this host-system) controller)
+  (post 'controller-connected-event :controller controller))
+
+
+(defmethod bodge-host:on-controller-disconnect ((this host-system) controller)
+  (post 'controller-disconnected-event :controller controller))
+
+
 (defmethod bodge-host:on-init ((this host-application))
   (with-slots (init-continuation) this
     (run (concurrently ()
-           (funcall init-continuation)))))
+                       (funcall init-continuation)))))
 
 
 (defmethod bodge-host:on-destroy ((this host-application))
@@ -104,13 +112,18 @@
           (log/debug "Host system initialized")))))
 
 
+(defmethod enabling-flow :around ((this host-system))
+  (>> (call-next-method)
+      (for-host ()
+        (bodge-host:register-controller-listener this))))
+
+
 (defmethod disabling-flow list ((this host-system))
-  (>>
-   (%> ()
-     (set-destroy-continuation (host-application this) #'continue-flow)
-     (bodge-host:close-window (host-application this)))
-   (instantly ()
-     (log/debug "Host system offline"))))
+  (>> (%> ()
+        (set-destroy-continuation (host-application this) #'continue-flow)
+        (bodge-host:close-window (host-application this)))
+      (instantly ()
+        (log/debug "Host system offline"))))
 
 
 (defclass shared-context (disposable)
