@@ -338,28 +338,51 @@ initialized."
   (log/error "~A with invariant ~A and keys ~A ignored" task invariant keys))
 
 
+(definline invoke-safely (engine task)
+  (with-slots (comatose-p) engine
+    (block ignorable
+      (flet ((handle-comatose (e)
+               (when comatose-p
+                 (log/error "Error encountered while engine is in coma, ignoring: ~A" e)
+                 (when-let ((continue-handler (find-restart 'continue)))
+                   (invoke-restart continue-handler))))
+             (handle-continue ()
+               (if (find-restart 'flow:skip-flow-block)
+                   (flow:skip-flow-block)
+                   (return-from ignorable)))
+             (report-continue (stream)
+               (format stream "Ignore error by skipping current flow block"))
+             (handle-abort ()
+               (log/debug "Abort restart invoked. Trying to shutdown engine gracefully")
+               (if (find-restart 'flow:inject-flow)
+                   (flow:inject-flow (>> (instantly () (setf comatose-p t))
+                                         (concurrently () (shutdown))))
+                   (return-from ignorable)))
+             (report-abort (stream)
+               (format stream "Shutdown cl-bodge engine")))
+        (handler-bind ((t #'handle-comatose))
+          (restart-bind ((continue #'handle-continue :report-function #'report-continue)
+                         (abort #'handle-abort :report-function #'report-abort))
+            (claw:with-float-traps-masked ()
+              (funcall task))))))))
+
+
 (defmethod dispatch ((this bodge-engine) (task function) invariant &rest keys
                      &key (priority :medium) concurrently)
   "Use engine instance as a dispatcher. If :invariant and :concurrently-p are both nil task is
 not dispatched and just executed in the current thread. If :invariant is nil but :concurrently-p
 is t, task is dispatched to the engine's default pooled executor. If :invariant is specified,
 task is dispatched to the object provided under this key."
-  (with-slots (shared-pool comatose-p) this
-    (handler-bind ((t (lambda (e)
-                        (when comatose-p
-                          (when-let ((continue-handler (find-restart 'continue)))
-                            (log/error "Error encountered while engine is in coma, ignoring: ~A" e)
-                            (invoke-restart continue-handler))))))
-      (labels ((traps-masking-task ()
-                 (claw:with-float-traps-masked ()
-                   (funcall task))))
-        (etypecase invariant
-          (null (if concurrently
-                    (execute shared-pool #'traps-masking-task :priority priority)
-                    (traps-masking-task)))
-          (symbol (execute shared-pool #'traps-masking-task :invariant invariant :priority priority))
-          (dispatching (apply #'dispatch invariant #'traps-masking-task nil keys)))
-        t))))
+  (with-slots (shared-pool) this
+    (labels ((traps-masking-task ()
+               (invoke-safely this task)))
+      (etypecase invariant
+        (null (if concurrently
+                  (execute shared-pool #'traps-masking-task :priority priority)
+                  (traps-masking-task)))
+        (symbol (execute shared-pool #'traps-masking-task :invariant invariant :priority priority))
+        (dispatching (apply #'dispatch invariant #'traps-masking-task nil keys)))
+      t)))
 
 
 (defgeneric initialization-flow (object &key &allow-other-keys)
@@ -436,6 +459,7 @@ Flow variant of #'make-instance."
   (with-slots (enabled-p) this
     (instantly ()
       (setf enabled-p nil))))
+
 
 ;;;
 ;;;

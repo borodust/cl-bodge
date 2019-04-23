@@ -253,6 +253,7 @@
 (defmethod disabling-flow list ((this appkit-system))
   (with-slots (sweep-continuation disabled-p canvas ui) this
     (>> (%> ()
+          (setf *appkit-instance-class* nil)
           (log/debug "Stopping appkit loop")
           (setf disabled-p t
                 sweep-continuation #'continue-flow))
@@ -263,6 +264,7 @@
           (log/debug "Releasing appkit resources")
           (dispose ui)
           (dispose canvas)))))
+
 
 ;;;
 ;;; Startup routines
@@ -289,19 +291,12 @@
            :blocking blocking))
 
 
-(defun %stop ()
-  (when *appkit-instance-class*
-    (unwind-protect
-         (shutdown)
-      (setf *appkit-instance-class* nil))))
-
-
 (defun stop (&key blocking)
   (if blocking
-      (%stop)
+      (shutdown)
       (in-new-thread ("exit-thread")
-        (%stop))))
+        (shutdown))))
 
 
 (define-event-handler on-exit ((ev ge.host:viewport-hiding-event))
-  (%stop))
+  (shutdown))
