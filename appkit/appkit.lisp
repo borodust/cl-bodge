@@ -195,7 +195,7 @@
             ui (ge.ui:make-ui viewport-width viewport-height :pixel-ratio pixel-ratio
                                                              :input-source input-source
                                                              :antialiased antialiased-p)
-            (ge.host:swap-interval) 1))
+            (ge.host:swap-interval) (property '(:appkit :swap-interval) 1)))
     (ge.ui:attach-host-input-source input-source)))
 
 
@@ -276,6 +276,7 @@
                           viewport-resizable
                           (viewport-decorated t)
                           (autoscaled t)
+                          (swap-interval 1)
                           properties)
   (when *appkit-instance-class*
     (error "Only one active system of type 'appkit-system is allowed"))
@@ -287,7 +288,8 @@
                             :viewport-resizable ,viewport-resizable
                             :viewport-decorated ,viewport-decorated
                             :autoscaled ,autoscaled)
-                     :appkit (:antialiased ,(not samples))))
+                     :appkit (:antialiased ,(not samples)
+                              :swap-interval ,swap-interval)))
            :blocking blocking))
 
 
