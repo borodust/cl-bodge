@@ -86,9 +86,9 @@ See `cl-bodge` external [documentation](https://borodust.org/projects/cl-bodge/)
 (ql:update-dist "quicklisp")
 
 ;; Load the demo
-(ql:quickload :cl-bodge/demo)
+(ql:quickload :bodge-demo)
 ;; And run it!
-(cl-bodge.demo:run)
+(bodge-demo:run)
 ```
 
 ## Misc
