@@ -123,14 +123,15 @@
 
 
 (defmethod simulation-engine-body-rotation ((engine chipmunk-engine) (body rigid-body))
-  (with-cp-vect (vect)
-    (%cp:body-get-rotation vect (handle-value-of body))
-    (init-bodge-vec (vec2) vect)))
+  (euler-angle->mat2 (%cp:body-get-angle (handle-value-of body))))
 
 
-(defmethod (setf simulation-engine-body-rotation) ((value vec2) (engine chipmunk-engine)
+(defmethod (setf simulation-engine-body-rotation) ((value mat2)
+                                                   (engine chipmunk-engine)
                                                    (body rigid-body))
-  (%cp:body-set-angle (handle-value-of body) (cp-float (atan (y value) (x value)))))
+  (%cp:body-set-angle (handle-value-of body) (cp-float (atan (mref value 1 0)
+                                                             (mref value 0 0))))
+  value)
 
 
 (defmethod simulation-engine-body-angular-velocity ((engine chipmunk-engine) (body rigid-body))
