@@ -21,6 +21,7 @@
            #:swap-interval
            #:viewport-title
            #:viewport-size
+           #:with-viewport-dimensions
            #:framebuffer-size
            #:hotkey-state
            #:fullscreen-viewport-p

@@ -22,7 +22,8 @@
          (bodge-canvas:destroy-image-paint (%handle-of canvas) handle))))
 
 
-(define-system-function make-image-paint graphics-system (canvas image)
+(define-system-function make-image-paint graphics-system
+    (canvas image &key flip-vertically use-nearest-interpolation)
   (unless (eq (ge.rsc:image-pixel-format image) :rgba)
     (error "Only RGBA images supported"))
   (make-instance 'image-paint
@@ -32,7 +33,9 @@
                           (simple-array-of
                            (ge.rsc:image->foreign-array image))
                           (ge.rsc:image-width image)
-                          (ge.rsc:image-height image))))
+                          (ge.rsc:image-height image)
+                          :flip-vertically flip-vertically
+                          :use-nearest-interpolation use-nearest-interpolation)))
 
 
 (defun image-paint-height (paint)

@@ -16,8 +16,6 @@
   ((framebuffer-size :initform (vec2 *default-viewport-width*
                                      *default-viewport-height*)
                      :accessor %framebuffer-size-of)
-   (viewport-width :initform *default-viewport-width*)
-   (viewport-height :initform *default-viewport-height*)
    (updated-p :initform nil)
    (canvas :initform nil :reader app-canvas)
    (font :initform nil :reader app-font)
@@ -184,17 +182,20 @@
 
 
 (defun %initialize-graphics (this pixel-ratio)
-  (with-slots (viewport-width viewport-height canvas font ui input-source) this
+  (with-slots (canvas font ui input-source) this
     (let ((antialiased-p (property '(:appkit :antialiased) nil)))
       (setf canvas (ge.vg:make-canvas 'appkit-canvas
-                                      viewport-width viewport-height
+                                      *default-viewport-width*
+                                      *default-viewport-height*
                                       :pixel-ratio pixel-ratio
                                       :antialiased antialiased-p)
             font (ge.vg:make-default-font)
             input-source (ge.ui:make-host-input-source)
-            ui (ge.ui:make-ui viewport-width viewport-height :pixel-ratio pixel-ratio
-                                                             :input-source input-source
-                                                             :antialiased antialiased-p)
+            ui (ge.ui:make-ui *default-viewport-width*
+                              *default-viewport-height*
+                              :pixel-ratio pixel-ratio
+                              :input-source input-source
+                              :antialiased antialiased-p)
             (ge.host:swap-interval) (property '(:appkit :swap-interval) 1)))
     (ge.ui:attach-host-input-source input-source)))
 
