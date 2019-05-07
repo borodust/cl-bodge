@@ -16,13 +16,6 @@
            phong-point-light-falloff
            phong-point-light-radius
 
-           make-2d-banner-pipeline
-           cubemap-banner-pipeline
-           banner-position
-           banner-tex-coord
-           banner-mvp
-           banner-texture
-
            make-2d-banner
            make-cubemap-banner
            render-banner

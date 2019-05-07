@@ -24,8 +24,7 @@
    (action-queue :initform (make-task-queue))
    (injected-flows :initform nil)
    (disabled-p :initform nil)
-   (sweep-continuation :initform nil))
-  (:default-initargs :depends-on '(ge.host:host-system ge.gx:graphics-system)))
+   (sweep-continuation :initform nil)))
 
 
 (defgeneric %app-configuration-flow (appkit)
@@ -60,7 +59,9 @@
                                  :viewport-height
                                  :viewport-title
                                  :fullscreen-p
-                                 :panels))
+                                 :panels
+                                 :depends-on
+                                 :default-initargs))
           collect opt into extended
         else
           collect opt into std
@@ -112,30 +113,42 @@
 
 (defmacro defapp (name (&rest classes) &body ((&rest slots) &rest opts))
   (multiple-value-bind (std-opts extended) (split-opts opts)
-    `(progn
-       (defclass ,name (appkit-system ,@classes)
-         ,slots
-         ,@std-opts)
-       ,(with-hash-entries ((viewport-width :viewport-width)
-                            (viewport-height :viewport-height)
-                            (viewport-title :viewport-title)
-                            (fullscreen-p :fullscreen-p)
-                            (panels :panels))
-            (alist-hash-table extended)
-          `(defmethod %app-configuration-flow ((this ,name))
-             (%app-update-flow this
-                               ,(first viewport-title)
-                               ,(first viewport-width)
-                               ,(first viewport-height)
-                               ,(first fullscreen-p)
-                               (list ,@panels))))
-       (make-instances-obsolete ',name))))
+    (with-hash-entries ((viewport-width :viewport-width)
+                        (viewport-height :viewport-height)
+                        (viewport-title :viewport-title)
+                        (fullscreen-p :fullscreen-p)
+                        (panels :panels)
+                        (depends-on :depends-on)
+                        (default-initargs :default-initargs))
+                       (alist-hash-table extended)
+      `(progn
+         (defclass ,name (appkit-system ,@classes)
+           ,slots
+           (:default-initargs ,@(append `(:%appkit-depends-on ,depends-on)
+                                        default-initargs))
+           ,@std-opts)
+         (defmethod %app-configuration-flow ((this ,name))
+           (%app-update-flow this
+                             ,(first viewport-title)
+                             ,(first viewport-width)
+                             ,(first viewport-height)
+                             ,(first fullscreen-p)
+                             (list ,@panels)))
+         (make-instances-obsolete ',name)))))
 
 
 (defmethod initialize-instance :around ((this appkit-system) &key)
   (when (null *appkit-instance-class*)
     (error "Manual appkit instance creation forbidden. Use #'appkit:start"))
   (call-next-method))
+
+
+(defmethod initialize-instance ((this appkit-system) &rest initargs
+                                &key %appkit-depends-on depends-on)
+  (apply #'call-next-method this
+         :depends-on (union (union depends-on %appkit-depends-on)
+                            '(ge.host:host-system ge.gx:graphics-system))
+         initargs))
 
 
 (defun app ()
