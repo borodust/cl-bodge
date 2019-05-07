@@ -81,7 +81,9 @@
 (defmethod initialize-instance :after ((this texture-2d)
                                        &key image external-format
                                          internal-format width height
-                                         generate-mipmaps-p)
+                                         generate-mipmaps-p
+                                         (magnification-filter :linear)
+                                         (minification-filter :linear))
   (with-slots (dimensions) this
     (setf dimensions (list width height)))
   (with-bound-texture ((%target-of this) (%texture-id-of this))
@@ -90,7 +92,7 @@
       (gl:pixel-store :unpack-alignment 1)
       (gl:tex-image-2d target 0 internal-format width height 0 external-format
                        :unsigned-byte (foreign-pointer-of data) :raw t)
-      (gl:tex-parameter target :texture-mag-filter :linear)
+      (gl:tex-parameter target :texture-mag-filter magnification-filter)
       (gl:tex-parameter target :texture-base-level 0)
       (if generate-mipmaps-p
           (progn
@@ -98,11 +100,13 @@
             (gl:generate-mipmap target)
             (gl:tex-parameter target :texture-min-filter :nearest-mipmap-linear))
           (progn
-            (gl:tex-parameter target :texture-min-filter :linear)
+            (gl:tex-parameter target :texture-min-filter minification-filter)
             (gl:tex-parameter target :texture-max-level (setf (%texture-max-level-of this) 0)))))))
 
 
-(defun %make-2d-texture (class image texture-format &key (generate-mipmaps-p t))
+(defun %make-2d-texture (class image texture-format &key (generate-mipmaps-p t)
+                                                      (magnification-filter :linear)
+                                                      (minification-filter :linear))
   (let ((ex-format (%pixel-format->external-format (ge.rsc:image-pixel-format image)))
         (in-format (%texture-format->internal-format texture-format))
         (width (ge.rsc:image-width image))
@@ -113,13 +117,20 @@
                    :internal-format in-format
                    :generate-mipmaps-p generate-mipmaps-p
                    :width width
-                   :height height)))
+                   :height height
+                   :magnification-filter magnification-filter
+                   :minification-filter minification-filter)))
 
 
 (define-system-function make-2d-texture graphics-system
-    (image texture-format &key (generate-mipmaps-p t))
+    (image texture-format &key
+           (generate-mipmaps-p t)
+           (magnification-filter :linear)
+           (minification-filter :linear))
   (%make-2d-texture 'texture-2d image texture-format
-                    :generate-mipmaps-p generate-mipmaps-p))
+                    :generate-mipmaps-p generate-mipmaps-p
+                    :magnification-filter magnification-filter
+                    :minification-filter minification-filter))
 
 
 (defun %assign-texture-mipmap-level (image texture level-target level)
@@ -288,8 +299,14 @@
   nil)
 
 
-(define-system-function make-empty-2d-texture graphics-system (width height texture-format)
-  (make-2d-texture (make-blank-image width height) texture-format :generate-mipmaps-p nil))
+(define-system-function make-empty-2d-texture graphics-system
+    (width height texture-format &key
+           (magnification-filter :linear)
+           (minification-filter :linear))
+  (make-2d-texture (make-blank-image width height) texture-format
+                   :generate-mipmaps-p nil
+                   :magnification-filter magnification-filter
+                   :minification-filter minification-filter))
 
 
 (define-system-function make-empty-cubemap-texture graphics-system (width texture-format)
