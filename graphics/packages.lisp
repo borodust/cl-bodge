@@ -1,5 +1,5 @@
 (ge.util:define-package :cl-bodge.graphics.state
-  (:nicknames :gx.state)
+  (:nicknames :ge.gx.state)
   (:export enable
            disable))
 

@@ -24,13 +24,13 @@
 (defun apply-slice-mutators (state-slice)
   (with-slots (evolution-list) state-slice
     (loop for mutator in (reverse evolution-list)
-       do (funcall mutator))))
+          do (funcall mutator))))
 
 
 (defun mutator-id-list (state-slice)
   (with-slots (mutation-table) state-slice
     (loop for k being the hash-key of mutation-table
-       collect k)))
+          collect k)))
 
 
 (defmacro with-state-slice ((slice) &body body)
@@ -48,7 +48,7 @@
 (defun find-state-mutator (state mutator-id)
   (with-slots (mutating-stack) state
     (loop for slice in mutating-stack
-       thereis (find-mutator slice mutator-id))))
+            thereis (find-mutator slice mutator-id))))
 
 
 (defun preserve-state (state)
@@ -62,8 +62,8 @@
   (with-slots (mutating-stack) state
     (let ((state-slice (pop mutating-stack)))
       (loop for mutator-id in (mutator-id-list state-slice)
-         do (when-let ((mutator (find-state-mutator state mutator-id)))
-              (funcall mutator))))))
+            do (when-let ((mutator (find-state-mutator state mutator-id)))
+                 (funcall mutator))))))
 
 
 (defun current-state-slice (state)
@@ -97,7 +97,7 @@
 
 
 (defmacro export-mutator (name (&rest parameters))
-  (let* ((mutator-name (format-symbol :gx.state "~A" name))
+  (let* ((mutator-name (format-symbol :ge.gx.state "~A" name))
          (arg-list (apply-argument-list parameters)))
     (with-gensyms (mutator)
       `(progn
@@ -105,21 +105,21 @@
            (flet ((,mutator () (apply #',name ,@arg-list)))
              (,mutator)
              (push-mutator *state-slice* ',name #',mutator)))
-         (export ',mutator-name :gx.state)))))
+         (export ',mutator-name :ge.gx.state)))))
 
 
-(defun gx.state::enable (&rest features)
+(defun ge.gx.state::enable (&rest features)
   (apply #'gl:enable features)
   (loop for feature in features
-     do (let ((feature feature))
-          (push-mutator *state-slice* feature (lambda () (gl:enable feature))))))
+        do (let ((feature feature))
+             (push-mutator *state-slice* feature (lambda () (gl:enable feature))))))
 
 
-(defun gx.state::disable (&rest features)
+(defun ge.gx.state::disable (&rest features)
   (apply #'gl:disable features)
   (loop for feature in features
-     do (let ((feature feature))
-          (push-mutator *state-slice* feature (lambda () (gl:disable feature))))))
+        do (let ((feature feature))
+             (push-mutator *state-slice* feature (lambda () (gl:disable feature))))))
 
 
 ;;;

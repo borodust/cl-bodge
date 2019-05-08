@@ -179,6 +179,11 @@
   (bodge-host:framebuffer-size (host-application)))
 
 
+(defmacro with-framebuffer-dimensions ((width height) &body body)
+  `(bodge-host:with-framebuffer-dimensions (,width ,height) (host-application)
+     ,@body))
+
+
 (define-system-function (setf viewport-size) host-system (value)
   (setf (bodge-host:viewport-size (host-application)) value))
 

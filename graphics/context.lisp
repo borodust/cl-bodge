@@ -6,7 +6,7 @@
 
 (defclass graphics-context (dispatching disposable)
   ((rendering-context :initform nil)
-   (state :initform (make-instance 'context-state))
+   (state :initform (make-instance 'context-state) :reader %context-state)
    (supplementary-framebuffer :initform nil :reader %supplementary-framebuffer-of)
    (depth-stencil-renderbuffer :initform nil :reader %depth-stencil-renderbuffer-of)
    (framebuffer-width :initform 0 :reader %framebuffer-width-of)
@@ -20,33 +20,33 @@
                                 nil
                                 rendering-context))
     (with-current-state-slice (state)
-      (gx.state:enable :blend
-                       :cull-face
-                       :depth-test
-                       :program-point-size)
+      (ge.gx.state:enable :blend
+                          :cull-face
+                          :depth-test
+                          :program-point-size)
       (if (featurep :bodge-gl2)
           (progn
             (setf supplementary-framebuffer t
                   depth-stencil-renderbuffer t))
           (progn
-            (gx.state:enable :texture-cube-map-seamless)
+            (ge.gx.state:enable :texture-cube-map-seamless)
             (setf supplementary-framebuffer (gl:gen-framebuffer)
                   depth-stencil-renderbuffer (gl:gen-renderbuffer))))
-      (gx.state:disable :scissor-test
-                        :stencil-test)
-      (gx.state:cull-face :back)
-      (gx.state:front-face :ccw)
-      (gx.state:clear-color 1.0 1.0 1.0 1.0)
-      (gx.state:color-mask t t t t)
-      (gx.state:clear-depth 1.0)
-      (gx.state:blend-func :src-alpha :one-minus-src-alpha)
-      (gx.state:blend-func-separate :src-alpha :one-minus-src-alpha
-                                    :one :zero)
-      (gx.state:clear-stencil 0)
-      (gx.state:stencil-mask #xffffffff)
-      (gx.state:stencil-func :always 0 #xffffffff)
-      (gx.state:stencil-op :keep :keep :keep)
-      (gx.state:pixel-store :unpack-alignment 1)
+      (ge.gx.state:disable :scissor-test
+                           :stencil-test)
+      (ge.gx.state:cull-face :back)
+      (ge.gx.state:front-face :ccw)
+      (ge.gx.state:clear-color 1.0 1.0 1.0 1.0)
+      (ge.gx.state:color-mask t t t t)
+      (ge.gx.state:clear-depth 1.0)
+      (ge.gx.state:blend-func :src-alpha :one-minus-src-alpha)
+      (ge.gx.state:blend-func-separate :src-alpha :one-minus-src-alpha
+                                       :one :zero)
+      (ge.gx.state:clear-stencil 0)
+      (ge.gx.state:stencil-mask #xffffffff)
+      (ge.gx.state:stencil-func :always 0 #xffffffff)
+      (ge.gx.state:stencil-op :keep :keep :keep)
+      (ge.gx.state:pixel-store :unpack-alignment 1)
       this)))
 
 

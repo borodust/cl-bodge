@@ -107,10 +107,10 @@
 
 
 (defmacro preserving-state (&body body)
-  `(with-state-slice ((preserve-state (ctx-state *graphics-context*)))
+  `(with-state-slice ((preserve-state (%context-state *graphics-context*)))
      (unwind-protect
           (progn ,@body)
-       (restore-state (ctx-state *graphics-context*)))))
+       (restore-state (%context-state *graphics-context*)))))
 
 
 (defmacro in-wireframe-mode (&body body)

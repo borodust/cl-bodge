@@ -23,6 +23,7 @@
            #:viewport-size
            #:with-viewport-dimensions
            #:framebuffer-size
+           #:with-framebuffer-dimensions
            #:hotkey-state
            #:fullscreen-viewport-p
            #:lock-cursor

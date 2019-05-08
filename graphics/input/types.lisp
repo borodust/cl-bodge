@@ -144,7 +144,6 @@
   (:default-initargs :name "samplerCube"))
 
 
-
 (defun type->glsl (type)
   (eswitch (type :test #'equal)
     (:float 'glsl-float)
@@ -188,3 +187,11 @@
     ('(:sampler-2d :uint) 'glsl-usampler-2d)
     ('(:sampler-2d :int) 'glsl-isampler-2d)
     (:sampler-cube 'glsl-sampler-cube)))
+
+
+(defmethod inject-shader-input (shader-input &key type name)
+  (case type
+    (:bool (let ((location (gl:get-uniform-location *active-shading-program* name)))
+             (gl:uniformi location (if shader-input 1 0))))
+    (t (error "Don't know how to inject shader input of type ~A (provided GLSL type: ~A)"
+              (type-of shader-input) type))))

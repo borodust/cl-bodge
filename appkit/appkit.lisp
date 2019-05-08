@@ -298,7 +298,6 @@
 (defmethod disabling-flow list ((this appkit-system))
   (with-slots (sweep-continuation disabled-p canvas ui) this
     (>> (%> ()
-          (setf *appkit-instance-class* nil)
           (log/debug "Stopping appkit loop")
           (setf disabled-p t
                 sweep-continuation #'continue-flow))
@@ -308,7 +307,8 @@
         (instantly ()
           (log/debug "Releasing appkit resources")
           (dispose ui)
-          (dispose canvas)))))
+          (dispose canvas)
+          (setf *appkit-instance-class* nil)))))
 
 
 ;;;

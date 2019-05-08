@@ -159,7 +159,6 @@
         (gl:bind-vertex-array vertex-array-id)
         (gl:bind-buffer :element-array-buffer 0)
         (loop for (name value) on input by #'cddr
-              when value
               do (multiple-value-bind (parameters exist-p)
                      (program-input-parameters pipeline name)
                    (when exist-p
