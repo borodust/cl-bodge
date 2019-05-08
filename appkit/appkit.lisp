@@ -24,7 +24,9 @@
    (action-queue :initform (make-task-queue))
    (injected-flows :initform nil)
    (disabled-p :initform nil)
-   (sweep-continuation :initform nil)))
+   (sweep-continuation :initform nil)
+   (canvas-width :initform nil)
+   (canvas-height :initform nil)))
 
 
 (defgeneric %app-configuration-flow (appkit)
@@ -61,7 +63,9 @@
                                  :fullscreen-p
                                  :panels
                                  :depends-on
-                                 :default-initargs))
+                                 :default-initargs
+                                 :canvas-width
+                                 :canvas-height))
           collect opt into extended
         else
           collect opt into std
@@ -85,9 +89,17 @@
                                    (* viewport-height pixel-ratio))))))
 
 
-(defun update-graphics (this viewport-width viewport-height panel-classes)
-  (with-slots (canvas ui) this
-    (ge.vg:update-canvas-size canvas viewport-width viewport-height)
+(defun update-graphics (this viewport-width viewport-height
+                        canvas-width canvas-height panel-classes)
+  (with-slots (canvas ui
+               (this-canvas-width canvas-width)
+               (this-canvas-height canvas-height))
+      this
+    (setf this-canvas-width canvas-width
+          this-canvas-height canvas-height)
+    (ge.vg:update-canvas-size canvas
+                              (or this-canvas-width viewport-width)
+                              (or this-canvas-height viewport-height))
     (ge.ui:update-ui-size ui viewport-width viewport-height)
     (ge.ui:with-ui-access (ui)
       (ge.ui:remove-all-panels ui)
@@ -97,7 +109,7 @@
 
 
 (defun %app-update-flow (app viewport-title viewport-width viewport-height
-                         fullscreen-p panel-classes)
+                         fullscreen-p canvas-width canvas-height panel-classes)
   (let ((width (or viewport-width *default-viewport-width*))
         (height (or viewport-height *default-viewport-height*)))
     (>> (ge.host:for-host ()
@@ -107,7 +119,7 @@
                            width height fullscreen-p))
         (ge.gx:for-graphics ()
           (log/debug "Updating appkit graphics configuration")
-          (update-graphics app width height panel-classes))
+          (update-graphics app width height canvas-width canvas-height panel-classes))
         (configuration-flow app))))
 
 
@@ -119,7 +131,9 @@
                         (fullscreen-p :fullscreen-p)
                         (panels :panels)
                         (depends-on :depends-on)
-                        (default-initargs :default-initargs))
+                        (default-initargs :default-initargs)
+                        (canvas-width :canvas-width)
+                        (canvas-height :canvas-height))
                        (alist-hash-table extended)
       `(progn
          (defclass ,name (appkit-system ,@classes)
@@ -133,6 +147,8 @@
                              ,(first viewport-width)
                              ,(first viewport-height)
                              ,(first fullscreen-p)
+                             ,(first canvas-width)
+                             ,(first canvas-height)
                              (list ,@panels)))
          (make-instances-obsolete ',name)))))
 
@@ -215,11 +231,11 @@
 
 
 (defun %initialize-graphics (this pixel-ratio)
-  (with-slots (canvas font ui input-source) this
+  (with-slots (canvas font ui input-source canvas-width canvas-height) this
     (let ((antialiased-p (property '(:appkit :antialiased) nil)))
       (setf canvas (ge.vg:make-canvas 'appkit-canvas
-                                      *default-viewport-width*
-                                      *default-viewport-height*
+                                      (or canvas-width *default-viewport-width*)
+                                      (or canvas-height *default-viewport-height*)
                                       :pixel-ratio pixel-ratio
                                       :antialiased antialiased-p)
             font (ge.vg:make-default-font)
