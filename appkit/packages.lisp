@@ -5,9 +5,13 @@
            stop
 
            defapp
+           when-app
            app
            app-ui
            app-canvas
+
+           handle-drawing
+           render-app-canvas
 
            configuration-flow
            sweeping-flow

@@ -17,9 +17,9 @@
                                      *default-viewport-height*)
                      :accessor %framebuffer-size-of)
    (updated-p :initform nil)
-   (canvas :initform nil :reader app-canvas)
-   (font :initform nil :reader app-font)
-   (ui :initform nil :reader app-ui)
+   (canvas :initform nil)
+   (font :initform nil)
+   (ui :initform nil)
    (input-source :initform nil)
    (action-queue :initform (make-task-queue))
    (injected-flows :initform nil)
@@ -160,9 +160,29 @@
   (:method (system) (declare (ignore system))))
 
 
+(defmethod draw :around ((this appkit-system))
+  (let ((*font* (slot-value this 'font)))
+    (call-next-method)))
+
+
 (defmacro when-app ((appkit-var) &body body)
   `(when-let ((,appkit-var (app)))
      ,@body))
+
+
+(defun app-canvas ()
+  (when-app (app)
+    (slot-value app 'canvas)))
+
+
+(defun app-ui ()
+  (when-app (app)
+    (slot-value app 'ui)))
+
+
+(defun app-font ()
+  (when-app (app)
+    (slot-value app 'font)))
 
 
 (defun push-action (app action)
@@ -213,12 +233,23 @@
     (ge.ui:attach-host-input-source input-source)))
 
 
+(defgeneric handle-drawing (system canvas ui)
+  (:method (system canvas ui)
+    (declare (ignore system canvas ui))
+    nil))
+
+
+(defun render-app-canvas (app &optional (rendering-output t))
+  (with-slots (canvas) app
+    (ge.gx:render rendering-output canvas :appkit-instance app)))
+
+
 (defun draw-app (this)
-  (with-slots (ui canvas font framebuffer-size) this
+  (with-slots (ui canvas) this
     (ge.gx:reset-viewport)
-    (ge.gx:clear-rendering-output t)
-    (let ((*font* font))
-      (ge.gx:render t canvas :appkit-instance this)
+    (unless (handle-drawing this canvas ui)
+      (ge.gx:clear-rendering-output t)
+      (render-app-canvas this)
       (ge.ui:compose-ui ui))
     (ge.host:swap-buffers)))
 

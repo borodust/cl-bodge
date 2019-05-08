@@ -1,6 +1,8 @@
 (cl:in-package :cl-bodge.ui)
 
 
+(declaim (special *rendering-output*))
+
 (defclass ui (disposable)
   ((renderer :initarg :renderer :reader %renderer-of)
    (handle :initarg :handle :reader %handle-of)))
@@ -21,8 +23,9 @@
                        :renderer renderer)))
 
 
-(defun compose-ui (ui)
-  (bodge-ui:compose-ui (%handle-of ui)))
+(defun compose-ui (ui &optional (rendering-output t))
+  (let ((*rendering-output* rendering-output))
+   (bodge-ui:compose-ui (%handle-of ui))))
 
 
 (defmacro with-ui-access ((ui) &body body)

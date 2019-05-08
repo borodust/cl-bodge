@@ -183,7 +183,7 @@
 
 
 (defmethod bodge-ui:render-ui ((this ui-renderer))
-  (render t (%canvas-of this)))
+  (render *rendering-output* (%canvas-of this)))
 
 
 (defun update-renderer-canvas-size (renderer width height)
