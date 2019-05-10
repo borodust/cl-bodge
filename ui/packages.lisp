@@ -4,7 +4,11 @@
         :cl-bodge.canvas :cl-bodge.resources :claw)
   (:reexport-from :bodge-ui
                   #:defpanel
+                  #:hiddenp
+                  #:minimizedp
                   #:on-close
+                  #:on-minimize
+                  #:on-restore
 
                   #:horizontal-layout
                   #:vertical-layout
