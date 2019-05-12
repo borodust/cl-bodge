@@ -23,7 +23,7 @@
 
 (ge.util:define-package :cl-bodge.engine
   (:nicknames :ge.ng)
-  (:use :cl-bodge.utils :cl :bordeaux-threads :cl-muth :cl-bodge.events)
+  (:use :cl-bodge.utils :cl :bordeaux-threads :cl-bodge.events)
   (:use-reexport
    :bodge-concurrency
    :bodge-memory

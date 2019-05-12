@@ -419,13 +419,13 @@ Flow variant of #'make-instance."
     (flow:run #'%dispatch flow)))
 
 
-(defun schedule (flow wait-sec &key interval unschedule-test)
+(defun schedule (flow &key (wait 0) interval unschedule-test)
   (with-slots (scheduler) (engine)
     (flet ((%run ()
              (if (and interval unschedule-test (funcall unschedule-test))
                  (muth:unschedule)
                  (run flow))))
-      (muth:schedule scheduler #'%run wait-sec interval))))
+      (muth:schedule scheduler #'%run wait interval))))
 
 ;;
 (defgeneric system-of (obj)

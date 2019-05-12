@@ -1,5 +1,5 @@
 (ge.util:define-package :cl-bodge.audio
-  (:use :cl :cl-bodge.engine :cl-bodge.utils :cl-muth)
+  (:use :cl :cl-bodge.engine :cl-bodge.utils)
   (:nicknames :ge.snd)
   (:export audio-system
            audio

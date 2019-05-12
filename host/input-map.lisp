@@ -2,10 +2,10 @@
 
 
 (defclass input-map (subscribing)
-  ((cursor-action :initform (make-guarded-reference nil))
-   (scroll-action :initform (make-guarded-reference nil))
-   (key-table :initform (make-guarded-reference (make-hash-table :test 'eq)))
-   (button-table :initform (make-guarded-reference (make-hash-table :test 'eq)))
+  ((cursor-action :initform (mt:make-guarded-reference nil))
+   (scroll-action :initform (mt:make-guarded-reference nil))
+   (key-table :initform (mt:make-guarded-reference (make-hash-table :test 'eq)))
+   (button-table :initform (mt:make-guarded-reference (make-hash-table :test 'eq)))
    (key-action :initform nil)
    (character-action :initform nil)
    (button-action :initform nil)
@@ -24,20 +24,20 @@
                                         (key-from ev) (state-from ev)))
              (when key-action
                (funcall key-action (key-from ev) (state-from ev)))
-             (when-let ((action (with-guarded-reference (key-table)
+             (when-let ((action (mt:with-guarded-reference (key-table)
                                   (gethash (key-from ev) key-table))))
                (funcall action (state-from ev))))
            (process-button-event (ev)
              (when button-action
                (funcall button-action (button-from ev) (state-from ev)))
-             (when-let ((action (with-guarded-reference (button-table)
+             (when-let ((action (mt:with-guarded-reference (button-table)
                                   (gethash (button-from ev) button-table))))
                (funcall action (state-from ev))))
            (process-cursor-event (ev)
-             (when-let ((action (guarded-value-of cursor-action)))
+             (when-let ((action (mt:guarded-value-of cursor-action)))
                (funcall action (x-from ev) (y-from ev))))
            (process-scroll-event (ev)
-             (when-let ((action (guarded-value-of scroll-action)))
+             (when-let ((action (mt:guarded-value-of scroll-action)))
                (funcall action (x-offset-from ev) (y-offset-from ev))))
            (process-character-event (ev)
              (when character-action
@@ -70,13 +70,13 @@
 
 (defun bind-mouse-button (input-map button action)
   (with-slots (button-table) input-map
-    (with-guarded-reference (button-table)
+    (mt:with-guarded-reference (button-table)
       (setf (gethash button button-table) action))))
 
 
 (defun bind-keyboard-button (input-map key action)
   (with-slots (key-table) input-map
-    (with-guarded-reference (key-table)
+    (mt:with-guarded-reference (key-table)
       (setf (gethash key key-table) action))))
 
 
@@ -102,11 +102,11 @@
 
 (defun bind-cursor (input-map action)
   (with-slots (cursor-action) input-map
-    (with-guarded-reference (cursor-action)
+    (mt:with-guarded-reference (cursor-action)
       (setf cursor-action action))))
 
 
 (defun bind-scroll (input-map action)
   (with-slots (scroll-action) input-map
-    (with-guarded-reference (scroll-action)
+    (mt:with-guarded-reference (scroll-action)
       (setf scroll-action action))))

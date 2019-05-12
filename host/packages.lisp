@@ -1,7 +1,7 @@
 
 (ge.util:define-package :cl-bodge.host
   (:nicknames :ge.host)
-  (:use :cl-bodge.engine :cl-bodge.utils :cl :bordeaux-threads :cl-muth)
+  (:use :cl-bodge.engine :cl-bodge.utils :cl :bordeaux-threads)
   (:reexport-from :bodge-host
                   #:controller-name
                   #:controller-axes
