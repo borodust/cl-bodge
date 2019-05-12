@@ -422,7 +422,7 @@ Flow variant of #'make-instance."
 (defun schedule (flow &key (wait 0) interval unschedule-test)
   (with-slots (scheduler) (engine)
     (flet ((%run ()
-             (if (and interval unschedule-test (funcall unschedule-test))
+             (if (and unschedule-test (funcall unschedule-test))
                  (muth:unschedule)
                  (run flow))))
       (muth:schedule scheduler #'%run wait interval))))
