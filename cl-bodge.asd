@@ -19,7 +19,7 @@
   :depends-on (cl-bodge/utils bodge-memory bodge-math bodge-concurrency
                               bodge-blobs-support claw claw
                               log4cl local-time cffi cl-flow uiop
-                              simple-flow-dispatcher)
+                              simple-flow-dispatcher cl-muth)
   :pathname "engine/"
   :serial t
   :components ((:file "packages")

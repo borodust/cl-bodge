@@ -55,6 +55,7 @@
            assembly-flow
            initialization-flow
            run
+           schedule
 
            system-object
            system-of

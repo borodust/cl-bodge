@@ -24,7 +24,8 @@
    (shared-pool :initform nil)
    (comatose-p :initform nil)
    (stop-latch :initform (mt:make-latch) :reader %stop-latch-of)
-   (disabling-order :initform '())))
+   (disabling-order :initform '())
+   (scheduler :initform nil)))
 
 
 (definline engine ()
@@ -242,23 +243,26 @@ specified."
                                        &key properties working-directory)
   (with-slots (systems (this-properties properties)
                (this-working-directory working-directory)
-               shared-pool shared-executors event-emitter)
+               shared-pool shared-executors event-emitter
+               scheduler)
       this
     (setf this-properties (%load-properties properties)
           shared-pool (make-pooled-executor
                        (%get-property '(:engine :shared-pool-size) this-properties 2))
           this-working-directory working-directory
           shared-executors (list (make-single-threaded-executor))
-          event-emitter (make-instance 'event-emitting))
+          event-emitter (make-instance 'event-emitting)
+          scheduler (muth:start-scheduler (muth:make-scheduler)))
     (loop for (event-class-name . handlers) in *predefined-event-callbacks*
           do (dolist (handler handlers)
                (ge.eve:subscribe-to event-class-name event-emitter handler)))))
 
 
-(define-destructor bodge-engine (shared-pool shared-executors)
+(define-destructor bodge-engine (shared-pool shared-executors scheduler)
   (dispose shared-pool)
   (dolist (ex shared-executors)
-    (dispose ex)))
+    (dispose ex))
+    (muth:stop-scheduler scheduler))
 
 
 (defun startup (properties &key (working-directory (directory-namestring
@@ -413,6 +417,15 @@ Flow variant of #'make-instance."
   (defun run (flow)
     "Dispatch flow using engine as a dispatcher."
     (flow:run #'%dispatch flow)))
+
+
+(defun schedule (flow wait-sec &key interval unschedule-test)
+  (with-slots (scheduler) (engine)
+    (flet ((%run ()
+             (if (and interval unschedule-test (funcall unschedule-test))
+                 (muth:unschedule)
+                 (run flow))))
+      (muth:schedule scheduler #'%run wait-sec interval))))
 
 ;;
 (defgeneric system-of (obj)
