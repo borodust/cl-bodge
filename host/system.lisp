@@ -40,12 +40,20 @@
   t)
 
 
-(defmethod bodge-host:on-controller-connect ((this host-system) controller)
+(defmethod bodge-host:on-controller-connect ((this host-application) controller)
   (post 'controller-connected-event :controller controller))
 
 
-(defmethod bodge-host:on-controller-disconnect ((this host-system) controller)
+(defmethod bodge-host:on-controller-disconnect ((this host-application) controller)
   (post 'controller-disconnected-event :controller controller))
+
+
+(defmethod bodge-host:on-gamepad-connect ((this host-application) gamepad)
+  (post 'gamepad-connected-event :gamepad gamepad))
+
+
+(defmethod bodge-host:on-gamepad-disconnect ((this host-application) gamepad)
+  (post 'gamepad-disconnected-event :gamepad gamepad))
 
 
 (defmethod bodge-host:on-init ((this host-application))
@@ -110,12 +118,6 @@
           (bodge-host:open-window (host-application this)))
         (instantly ()
           (log/debug "Host system initialized")))))
-
-
-(defmethod enabling-flow :around ((this host-system))
-  (>> (call-next-method)
-      (for-host ()
-        (bodge-host:register-controller-listener this))))
 
 
 (defmethod disabling-flow list ((this host-system))

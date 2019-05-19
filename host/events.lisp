@@ -41,3 +41,11 @@
 
 (defevent controller-disconnected-event ()
   (controller))
+
+
+(defevent gamepad-connected-event ()
+  (gamepad))
+
+
+(defevent gamepad-disconnected-event ()
+  (gamepad))

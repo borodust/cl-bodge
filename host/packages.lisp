@@ -3,13 +3,24 @@
   (:nicknames :ge.host)
   (:use :cl-bodge.engine :cl-bodge.utils :cl :bordeaux-threads)
   (:reexport-from :bodge-host
+                  #:list-controllers
                   #:controller-name
                   #:controller-axes
                   #:controller-axis-value
                   #:controller-buttons
                   #:controller-button-pressed-p
                   #:controller-hats
-                  #:controller-hat-state)
+                  #:controller-hat-state
+
+                  #:list-gamepads
+                  #:gamepad-name
+                  #:gamepad-state
+                  #:gamepad-state-button-pressed-p
+                  #:gamepad-state-dpad
+                  #:gamepad-state-left-stick
+                  #:gamepad-state-right-stick
+                  #:gamepad-state-left-trigger
+                  #:gamepad-state-right-trigger)
   (:export #:host-system
            #:host
            #:for-host
