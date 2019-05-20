@@ -5,6 +5,7 @@
   (:reexport-from :bodge-host
                   #:list-controllers
                   #:controller-name
+                  #:controller-guid
                   #:controller-axes
                   #:controller-axis-value
                   #:controller-buttons
@@ -14,6 +15,7 @@
 
                   #:list-gamepads
                   #:gamepad-name
+                  #:gamepad-guid
                   #:gamepad-state
                   #:gamepad-state-button-pressed-p
                   #:gamepad-state-dpad
