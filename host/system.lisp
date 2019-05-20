@@ -56,10 +56,38 @@
   (post 'gamepad-disconnected-event :gamepad gamepad))
 
 
+(defmethod bodge-host:on-gamepad-action ((this host-application) gamepad button state)
+  (post 'gamepad-button-event :gamepad gamepad :button button :state state))
+
+
+(defmethod bodge-host:on-left-stick-movement ((this host-application)
+                                              gamepad
+                                              x y)
+  (post 'gamepad-left-stick-event :gamepad gamepad :x x :y y))
+
+
+(defmethod bodge-host:on-right-stick-movement ((this host-application)
+                                              gamepad
+                                              x y)
+  (post 'gamepad-right-stick-event :gamepad gamepad :x x :y y))
+
+
+(defmethod bodge-host:on-left-trigger ((this host-application)
+                                              gamepad
+                                              value)
+  (post 'gamepad-left-trigger-event :gamepad gamepad :value value))
+
+
+(defmethod bodge-host:on-right-trigger ((this host-application)
+                                        gamepad
+                                        value)
+  (post 'gamepad-left-trigger-event :gamepad gamepad :value value))
+
+
 (defmethod bodge-host:on-init ((this host-application))
   (with-slots (init-continuation) this
     (run (concurrently ()
-                       (funcall init-continuation)))))
+           (funcall init-continuation)))))
 
 
 (defmethod bodge-host:on-destroy ((this host-application))

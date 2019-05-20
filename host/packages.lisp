@@ -45,28 +45,38 @@
            #:keyboard-button-state
            #:mouse-button-state
 
+           #:value-from
            #:state-from
-           #:keyboard-event
-           #:key-from
-           #:character-input-event
-           #:character-from
-           #:mouse-event
-           #:button-from
-           #:cursor-event
-           #:x-from
-           #:y-from
-           #:scroll-event
-           #:x-offset-from
-           #:y-offset-from
-           #:viewport-size-change-event
-           #:framebuffer-size-change-event
            #:width-from
            #:height-from
+           #:x-from
+           #:y-from
+           #:x-offset-from
+           #:y-offset-from
+           #:key-from
+           #:character-from
+           #:button-from
+           #:controller-from
+           #:gamepad-from
+
+           #:keyboard-event
+           #:character-input-event
+           #:mouse-event
+           #:cursor-event
+           #:scroll-event
+           #:viewport-size-change-event
+           #:framebuffer-size-change-event
            #:viewport-hiding-event
 
            #:controller-connected-event
            #:controller-disconnected-event
-           #:controller-from
+           #:gamepad-connected-event
+           #:gamepad-disconnected-event
+           #:gamepad-button-event
+           #:gamepad-left-stick-event
+           #:gamepad-right-stick-event
+           #:gamepad-left-trigger-event
+           #:gamepad-right-trigger-event
 
            #:make-input-map
            #:enable-input-map

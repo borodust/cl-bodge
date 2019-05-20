@@ -49,3 +49,31 @@
 
 (defevent gamepad-disconnected-event ()
   (gamepad))
+
+
+(defevent gamepad-event (input-event)
+  (gamepad))
+
+
+(defevent gamepad-button-event (gamepad-event)
+  (button state))
+
+
+(defevent gamepad-stick-event (gamepad-event)
+  (x y))
+
+
+(defevent gamepad-left-stick-event (gamepad-stick-event) ())
+
+
+(defevent gamepad-right-stick-event (gamepad-stick-event) ())
+
+
+(defevent gamepad-trigger-event (gamepad-event)
+  (value))
+
+
+(defevent gamepad-left-trigger-event (gamepad-trigger-event) ())
+
+
+(defevent gamepad-right-trigger-event (gamepad-trigger-event) ())
