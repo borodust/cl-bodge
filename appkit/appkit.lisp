@@ -3,9 +3,14 @@
 
 (declaim (special *font*))
 
+(define-constant +default-frame-rate+ 60)
 (defvar +origin+ (vec2 0.0 0.0))
-(defvar *black* (vec4 0 0 0 1))
+(defvar +black+ (vec4 0 0 0 1))
+
 (defvar *appkit-instance-class* nil)
+
+(define-constant +double-float-drift-time-correction+ 0.0000001d0
+  :test #'=)
 
 (defparameter *default-viewport-width* 800)
 (defparameter *default-viewport-height* 600)
@@ -26,7 +31,8 @@
    (disabled-p :initform nil)
    (sweep-continuation :initform nil)
    (canvas-width :initform nil)
-   (canvas-height :initform nil)))
+   (canvas-height :initform nil)
+   (frame-queue :initform nil)))
 
 
 (defgeneric %app-configuration-flow (appkit)
@@ -65,7 +71,9 @@
                                  :depends-on
                                  :default-initargs
                                  :canvas-width
-                                 :canvas-height))
+                                 :canvas-height
+                                 :draw-rate
+                                 :act-rate))
           collect opt into extended
         else
           collect opt into std
@@ -89,6 +97,20 @@
                                    (* viewport-height pixel-ratio))))))
 
 
+(defun update-frame-queue (app draw-rate act-rate)
+  (with-slots (frame-queue) app
+    (setf frame-queue (muth:make-blocking-timed-queue))
+    (let* ((current-time (real-time-seconds))
+           (draw-item (cons (%draw-flow app)
+                            (cons current-time
+                                  (/ 1 (or draw-rate +default-frame-rate+)))))
+           (act-item (cons (%act-flow app)
+                           (cons current-time
+                                 (/ 1 (or act-rate +default-frame-rate+))))))
+      (%reschedule-flow frame-queue draw-item)
+      (%reschedule-flow frame-queue act-item))))
+
+
 (defun update-graphics (this viewport-width viewport-height
                         canvas-width canvas-height panel-classes)
   (with-slots (canvas ui
@@ -109,10 +131,14 @@
 
 
 (defun %app-update-flow (app viewport-title viewport-width viewport-height
-                         fullscreen-p canvas-width canvas-height panel-classes)
+                         fullscreen-p canvas-width canvas-height panel-classes
+                         act-rate draw-rate)
   (let ((width (or viewport-width *default-viewport-width*))
         (height (or viewport-height *default-viewport-height*)))
-    (>> (ge.host:for-host ()
+    (>> (instantly ()
+          (log/debug "Updating appkit instance")
+          (update-frame-queue app draw-rate act-rate))
+        (ge.host:for-host ()
           (log/debug "Updating appkit host configuration")
           (update-viewport app
                            (or viewport-title *default-viewport-title*)
@@ -133,7 +159,9 @@
                         (depends-on :depends-on)
                         (default-initargs :default-initargs)
                         (canvas-width :canvas-width)
-                        (canvas-height :canvas-height))
+                        (canvas-height :canvas-height)
+                        (draw-rate :draw-rate)
+                        (act-rate :act-rate))
                        (alist-hash-table extended)
       `(progn
          (defclass ,name (appkit-system ,@classes)
@@ -149,7 +177,9 @@
                              ,(first fullscreen-p)
                              ,(first canvas-width)
                              ,(first canvas-height)
-                             (list ,@panels)))
+                             (list ,@panels)
+                             ,(first draw-rate)
+                             ,(first act-rate)))
          (make-instances-obsolete ',name)))))
 
 
@@ -270,7 +300,43 @@
     (ge.host:swap-buffers)))
 
 
+(defun %reschedule-flow (queue item)
+  (destructuring-bind (expected-time . interval) (cdr item)
+    (let* ((current-time (real-time-seconds))
+           (adjusted-interval (- interval
+                                 (- current-time expected-time
+                                    +double-float-drift-time-correction+)))
+           (rescheduled-wait (if (< adjusted-interval 0)
+                                 (mod adjusted-interval interval)
+                                 adjusted-interval))
+           (new-expected-time (+ current-time rescheduled-wait)))
+      (setf (cadr item) new-expected-time)
+      (muth:blocking-timed-queue-push queue item rescheduled-wait))))
+
+
 (defun %looped-flow (this)
+  (with-slots (frame-queue) this
+    (->> ()
+      (let ((item (muth:blocking-timed-queue-pop frame-queue)))
+        (prog1 (car item)
+          (%reschedule-flow frame-queue item))))))
+
+
+(defun %app-loop (this)
+  (with-slots (disabled-p sweep-continuation) this
+    (>> (loop-flow (%looped-flow this)
+                   (lambda () (not disabled-p)))
+        (instantly ()
+          (log/debug "Appkit loop interrupted")
+          (funcall sweep-continuation)))))
+
+
+(defun %draw-flow (this)
+  (>> (ge.gx:for-graphics ()
+        (draw-app this))))
+
+
+(defun %act-flow (this)
   (with-slots (action-queue ui canvas font updated-p injected-flows) this
     (>> (->> ()
           (when updated-p
@@ -284,18 +350,7 @@
         (instantly ()
           (drain action-queue))
         (->> ()
-          (acting-flow this))
-        (ge.gx:for-graphics ()
-          (draw-app this)))))
-
-
-(defun %app-loop (this)
-  (with-slots (disabled-p sweep-continuation) this
-    (>> (loop-flow (%looped-flow this)
-                   (lambda () (not disabled-p)))
-        (instantly ()
-          (log/debug "Appkit loop interrupted")
-          (funcall sweep-continuation)))))
+          (acting-flow this)))))
 
 
 (defmethod enabling-flow list ((this appkit-system))
