@@ -275,7 +275,7 @@
                               :pixel-ratio pixel-ratio
                               :input-source input-source
                               :antialiased antialiased-p)
-            (ge.host:swap-interval) (property '(:appkit :swap-interval) 1)))
+            (ge.host:swap-interval) (or (property '(:appkit :swap-interval)) 0)))
     (ge.ui:attach-host-input-source input-source)))
 
 
@@ -392,7 +392,7 @@
                           viewport-resizable
                           (viewport-decorated t)
                           (autoscaled t)
-                          (swap-interval 1)
+                          swap-interval
                           properties)
   (when *appkit-instance-class*
     (error "Only one active system of type 'appkit-system is allowed"))
