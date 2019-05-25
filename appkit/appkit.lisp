@@ -132,7 +132,7 @@
 
 (defun %app-update-flow (app viewport-title viewport-width viewport-height
                          fullscreen-p canvas-width canvas-height panel-classes
-                         act-rate draw-rate)
+                         draw-rate act-rate)
   (let ((width (or viewport-width *default-viewport-width*))
         (height (or viewport-height *default-viewport-height*)))
     (>> (ge.host:for-host ()
