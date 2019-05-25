@@ -88,10 +88,10 @@
 
 (defun update-viewport (app viewport-title viewport-width viewport-height fullscreen-p)
   (with-slots (framebuffer-size) app
-      (setf (ge.host:viewport-title) viewport-title
-            (ge.host:fullscreen-viewport-p) fullscreen-p
-            (ge.host:viewport-title) viewport-title
-            (ge.host:viewport-size) (vec2 viewport-width viewport-height))
+    (setf (ge.host:viewport-title) viewport-title
+          (ge.host:fullscreen-viewport-p) fullscreen-p
+          (ge.host:viewport-title) viewport-title
+          (ge.host:viewport-size) (vec2 viewport-width viewport-height))
     (let ((pixel-ratio (viewport-pixel-ratio)))
       (setf framebuffer-size (vec2 (* viewport-width pixel-ratio)
                                    (* viewport-height pixel-ratio))))))
@@ -135,10 +135,7 @@
                          act-rate draw-rate)
   (let ((width (or viewport-width *default-viewport-width*))
         (height (or viewport-height *default-viewport-height*)))
-    (>> (instantly ()
-          (log/debug "Updating appkit instance")
-          (update-frame-queue app draw-rate act-rate))
-        (ge.host:for-host ()
+    (>> (ge.host:for-host ()
           (log/debug "Updating appkit host configuration")
           (update-viewport app
                            (or viewport-title *default-viewport-title*)
@@ -146,6 +143,10 @@
         (ge.gx:for-graphics ()
           (log/debug "Updating appkit graphics configuration")
           (update-graphics app width height canvas-width canvas-height panel-classes))
+        (instantly ()
+          (log/debug "Updating framerate")
+          (ge.host:swap-buffers)
+          (update-frame-queue app draw-rate act-rate))
         (configuration-flow app))))
 
 
