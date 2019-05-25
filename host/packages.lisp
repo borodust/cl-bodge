@@ -42,6 +42,7 @@
            #:lock-cursor
            #:unlock-cursor
            #:viewport-scale
+           #:refresh-rate
 
            #:cursor-position
            #:keyboard-button-state

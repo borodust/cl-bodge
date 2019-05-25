@@ -248,3 +248,9 @@
 
 (define-system-function (setf fullscreen-viewport-p) host-system (value)
   (setf (bodge-host:fullscreen-viewport-p (host-application)) value))
+
+
+(define-system-function refresh-rate host-system ()
+  (let* ((monitor (bodge-host:window-monitor (host-application)))
+         (video-mode (bodge-host:monitor-video-mode monitor)))
+    (bodge-host:video-mode-refresh-rate video-mode)))
