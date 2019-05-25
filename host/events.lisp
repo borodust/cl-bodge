@@ -59,6 +59,10 @@
   (button state))
 
 
+(defevent gamepad-dpad-event (gamepad-event)
+  (state))
+
+
 (defevent gamepad-stick-event (gamepad-event)
   (x y))
 

@@ -75,6 +75,7 @@
            #:gamepad-connected-event
            #:gamepad-disconnected-event
            #:gamepad-button-event
+           #:gamepad-dpad-event
            #:gamepad-left-stick-event
            #:gamepad-right-stick-event
            #:gamepad-left-trigger-event

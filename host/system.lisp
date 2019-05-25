@@ -60,6 +60,10 @@
   (post 'gamepad-button-event :gamepad gamepad :button button :state state))
 
 
+(defmethod bodge-host:on-dpad-action ((this host-application) gamepad state)
+  (post 'gamepad-dpad-event :gamepad gamepad :state state))
+
+
 (defmethod bodge-host:on-left-stick-movement ((this host-application)
                                               gamepad
                                               x y)
@@ -81,7 +85,7 @@
 (defmethod bodge-host:on-right-trigger ((this host-application)
                                         gamepad
                                         value)
-  (post 'gamepad-left-trigger-event :gamepad gamepad :value value))
+  (post 'gamepad-right-trigger-event :gamepad gamepad :value value))
 
 
 (defmethod bodge-host:on-init ((this host-application))
