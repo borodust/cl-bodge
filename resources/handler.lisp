@@ -47,9 +47,32 @@
       (write-sequence resource string-stream))))
 
 
-(defun make-text-resource-handler (&optional (encoding :utf-8))
-  (make-instance 'text-resource-handler :encoding encoding))
+(defun make-text-resource-handler (&optional encoding)
+  (make-instance 'text-resource-handler :encoding (or encoding :utf-8)))
 
 
 (defmethod make-resource-handler ((type (eql :text)) &key (encoding :utf-8))
   (make-text-resource-handler encoding))
+
+
+;;;
+;;; Binary resource handler
+;;;
+(defclass binary-resource-handler (resource-handler) ()
+  (:default-initargs :resource-type :binary))
+
+
+(defmethod decode-resource ((this binary-resource-handler) stream)
+  (bodge-util:read-stream-content-into-byte-vector stream))
+
+
+(defmethod encode-resource ((this binary-resource-handler) resource stream)
+  (write-sequence resource stream))
+
+
+(defun make-binary-resource-handler ()
+  (make-instance 'binary-resource-handler))
+
+
+(defmethod make-resource-handler ((type (eql :binary)) &key)
+  (make-binary-resource-handler))
