@@ -2,6 +2,11 @@
 
 (declaim (special *window*))
 
+(defvar *gamepad-mappings*
+  (bodge-util:read-file-into-string
+   (asdf:system-relative-pathname :cl-bodge/host "host/gamecontrollerdb.txt")))
+
+
 (define-constant +expected-dpi+ 96)
 
 (defclass host-application (bodge-host:window)
@@ -90,6 +95,7 @@
 
 (defmethod bodge-host:on-init ((this host-application))
   (with-slots (init-continuation) this
+    (bodge-host:update-gamepad-mappings *gamepad-mappings*)
     (run (concurrently ()
            (funcall init-continuation)))))
 
