@@ -38,7 +38,11 @@
 
 (defun shader-library-parameters (shader-class)
   (when-let ((library (find-shader-library shader-class)))
-    (shader-descriptor-parameters (shader-library-descriptor library))))
+    (let ((dependency-parameters (reduce #'append
+                                         (mapcar #'shader-library-parameters
+                                                 (shader-library-dependencies library)))))
+      (append (shader-descriptor-parameters (shader-library-descriptor library))
+              dependency-parameters))))
 
 
 (defun clear-shader-library-cache (shader-library)

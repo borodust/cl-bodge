@@ -41,10 +41,10 @@
       (log/debug "Refresing pipeline ~A" pipeline)
       (when shading-program
         (gl:delete-program shading-program))
-      (refresh-parameter-table parameter-table (pipeline-shaders pipeline))
       (setf shading-program (build-shading-program pipeline)
             last-updated (real-time-seconds)
-            dirty-p nil))))
+            dirty-p nil)
+      (refresh-parameter-table parameter-table (pipeline-shaders pipeline)))))
 
 
 (defmethod initialize-instance :after ((this pipeline) &key)
