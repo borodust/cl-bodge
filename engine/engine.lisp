@@ -148,30 +148,31 @@ flow block after the looped flow."
         finally (return result)))
 
 
-(defun enable-system (system-class sys-table &optional order)
+(defun enable-system (system-class sys-alist sys-table &optional order)
   (flet ((system-enabled-p (system-class)
            (assoc-value order system-class)))
-    (let ((system (gethash system-class sys-table))
+    (let ((system (assoc-value sys-alist system-class))
           (result order))
       (if (not (system-enabled-p system-class))
           (progn
             (dolist (dependency (dependencies-of system))
-              (setf result (enable-system dependency sys-table result)))
+              (setf result (enable-system dependency sys-alist sys-table result)))
             (when (system-enabled-p system)
               (error (format nil "Circular dependency found for '~a'" system-class)))
             (cons (cons system-class (>> (instantly ()
                                            (log/debug "Enabling ~a" system-class))
                                          (enabling-flow system)
                                          (instantly ()
+                                           (setf (gethash system-class sys-table) system)
                                            (invoke-system-startup-hooks system-class))))
                   result))
           result))))
 
 
-(defun requested-systems-enabling-flow (sys-table)
-  (loop for system-class being the hash-key in sys-table
-        with order = '() do
-          (setf order (enable-system system-class sys-table order))
+(defun requested-systems-enabling-flow (sys-alist sys-table)
+  (loop for (system-class) in sys-alist
+        with order = (list) do
+          (setf order (enable-system system-class sys-alist sys-table order))
         finally (return (nreverse order))))
 
 
@@ -215,8 +216,9 @@ specified."
     (let ((system-class-names (property '(:engine :systems))))
       (when (null system-class-names)
         (warn "(:engine :systems) property is empty. No systems are going to be enabled."))
-      (let* ((sys-table (alist-hash-table (instantiate-systems system-class-names)))
-             (enabling-flows (requested-systems-enabling-flow sys-table)))
+      (let* ((sys-table (make-hash-table))
+             (sys-alist (instantiate-systems system-class-names))
+             (enabling-flows (requested-systems-enabling-flow sys-alist sys-table)))
         (setf systems sys-table)
         (mt:wait-with-latch (latch)
           (run (>> (mapcar #'cdr enabling-flows)

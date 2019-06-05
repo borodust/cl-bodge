@@ -8,6 +8,7 @@
 (defvar +black+ (vec4 0 0 0 1))
 
 (defvar *appkit-instance-class* nil)
+(defvar *appkit-instance* nil)
 
 (define-constant +double-float-drift-time-correction+ 0.0000001d0
   :test #'=)
@@ -199,8 +200,7 @@
 
 
 (defun app ()
-  (when *appkit-instance-class*
-    (ge.ng:engine-system *appkit-instance-class*)))
+  *appkit-instance*)
 
 
 (defgeneric draw (system)
@@ -355,7 +355,9 @@
 
 
 (defmethod enabling-flow list ((this appkit-system))
-  (>> (ge.host:for-host ()
+  (>> (instantly ()
+        (setf *appkit-instance* this))
+      (ge.host:for-host ()
         (log/debug "Configuring host for appkit")
         (* (viewport-pixel-ratio) (ge.host:viewport-scale)))
       (ge.gx:for-graphics (pixel-ratio)
@@ -380,7 +382,8 @@
           (log/debug "Releasing appkit resources")
           (dispose ui)
           (dispose canvas)
-          (setf *appkit-instance-class* nil)))))
+          (setf *appkit-instance-class* nil
+                *appkit-instance* nil)))))
 
 
 ;;;
