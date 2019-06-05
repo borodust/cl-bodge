@@ -168,8 +168,7 @@
       `(progn
          (defclass ,name (appkit-system ,@classes)
            ,slots
-           (:default-initargs ,@(append `(:%appkit-depends-on ,depends-on)
-                                        default-initargs))
+           (:default-initargs :%appkit-depends-on ',depends-on ,@default-initargs)
            ,@std-opts)
          (defmethod %app-configuration-flow ((this ,name))
            (%app-update-flow this
@@ -243,11 +242,12 @@
 
 
 (defun inject-flow (flow)
-  (when-let ((app-instance (app)))
-    (flet ((%inject-flow ()
-             (with-slots (injected-flows) app-instance
-               (push flow injected-flows))))
-      (push-action app-instance #'%inject-flow))))
+  (unless *appkit-instance*
+    (error "Cannot inject a flow: appkit system is not started yet"))
+  (flet ((%inject-flow ()
+           (with-slots (injected-flows) *appkit-instance*
+             (push flow injected-flows))))
+    (push-action *appkit-instance* #'%inject-flow)))
 
 
 (define-event-handler on-framebuffer-change ((ev ge.host:framebuffer-size-change-event) width height)
@@ -355,14 +355,14 @@
 
 
 (defmethod enabling-flow list ((this appkit-system))
-  (>> (instantly ()
-        (setf *appkit-instance* this))
-      (ge.host:for-host ()
+  (>> (ge.host:for-host ()
         (log/debug "Configuring host for appkit")
         (* (viewport-pixel-ratio) (ge.host:viewport-scale)))
       (ge.gx:for-graphics (pixel-ratio)
         (log/debug "Configuring graphics for appkit")
         (%initialize-graphics this pixel-ratio))
+      (instantly ()
+        (setf *appkit-instance* this))
       (%app-configuration-flow this)
       (instantly ()
         (log/debug "Starting appkit loop")
