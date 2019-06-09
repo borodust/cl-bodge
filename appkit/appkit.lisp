@@ -106,7 +106,7 @@
                             (cons current-time
                                   (/ 1 (or draw-rate +default-frame-rate+)))))
            (act-item (cons (%act-flow app)
-                           (cons current-time
+                           (cons (- current-time single-float-epsilon)
                                  (/ 1 (or act-rate +default-frame-rate+))))))
       (%reschedule-flow frame-queue draw-item)
       (%reschedule-flow frame-queue act-item))))
