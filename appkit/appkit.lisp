@@ -414,6 +414,7 @@
 
 
 (defun stop (&key blocking)
+  (setf *appkit-instance-class* nil)
   (if blocking
       (shutdown)
       (in-new-thread ("exit-thread")
