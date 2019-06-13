@@ -219,12 +219,12 @@ specified."
       (let* ((sys-table (make-hash-table))
              (sys-alist (instantiate-systems system-class-names))
              (enabling-flows (requested-systems-enabling-flow sys-alist sys-table)))
-        (setf systems sys-table)
+        (setf systems sys-table
+              disabling-order (reverse (mapcar #'car enabling-flows)))
         (mt:wait-with-latch (latch)
           (run (>> (mapcar #'cdr enabling-flows)
                    (instantly ()
-                     (mt:open-latch latch)))))
-        (setf disabling-order (reverse (mapcar #'car enabling-flows)))))))
+                     (mt:open-latch latch)))))))))
 
 
 (defun disable-systems (engine)
@@ -236,7 +236,8 @@ specified."
                                (>> (instantly ()
                                      (log/debug "Disabling ~a" system-class)
                                      (invoke-system-shutdown-hooks system-class))
-                                   (disabling-flow (gethash system-class systems)))))
+                                   (when-let ((system (gethash system-class systems)))
+                                     (disabling-flow system)))))
                (instantly ()
                  (mt:open-latch latch)))))))
 
