@@ -138,6 +138,10 @@
         (height (or viewport-height *default-viewport-height*)))
     (>> (ge.host:for-host ()
           (log/debug "Updating appkit host configuration")
+          (when fullscreen-p
+            (ge.host:with-viewport-dimensions (actual-width actual-height)
+              (setf width actual-width
+                    height actual-height)))
           (update-viewport app
                            (or viewport-title *default-viewport-title*)
                            width height fullscreen-p))
