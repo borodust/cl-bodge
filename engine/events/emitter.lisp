@@ -70,7 +70,7 @@
                                                binding
                                                (list binding (symbolicate binding '-from)))
                      collect `(,name (,(format-symbol accessor-package "~A" accessor) ,event-var)))))
-    `(symbol-macrolet ,bindings
+    `(let ,bindings
        ,@body)))
 
 

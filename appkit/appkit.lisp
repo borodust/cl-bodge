@@ -19,10 +19,7 @@
 
 
 (defclass appkit-system (enableable generic-system)
-  ((framebuffer-size :initform (vec2 *default-viewport-width*
-                                     *default-viewport-height*)
-                     :accessor %framebuffer-size-of)
-   (updated-p :initform nil)
+  ((updated-p :initform nil)
    (canvas :initform nil)
    (font :initform nil)
    (ui :initform nil)
@@ -62,6 +59,15 @@
     (setf updated-p t)))
 
 
+(defun app ()
+  *appkit-instance*)
+
+
+(defmacro when-app ((appkit-var) &body body)
+  `(when-let ((,appkit-var (app)))
+     ,@body))
+
+
 (defun split-opts (opts)
   (loop for opt in opts
         if (member (first opt) '(:viewport-width
@@ -81,22 +87,10 @@
         finally (return (values std extended))))
 
 
-(defun viewport-pixel-ratio ()
-  (let* ((vp-size (ge.host:viewport-size))
-         (fb-size (ge.host:framebuffer-size)))
-    (/ (x fb-size) (x vp-size))))
-
-
-(defun update-viewport (app viewport-title viewport-width viewport-height fullscreen-p)
-  (with-slots (framebuffer-size) app
-    (setf (ge.host:viewport-title) viewport-title
-          (ge.host:fullscreen-viewport-p) fullscreen-p
-          (ge.host:viewport-size) (vec2 viewport-width viewport-height))
-    (ge.host:with-viewport-dimensions (actual-width actual-height)
-      (let ((pixel-ratio (viewport-pixel-ratio)))
-        (setf framebuffer-size (vec2 (* actual-width pixel-ratio)
-                                     (* actual-height pixel-ratio))))
-      (values actual-width actual-height))))
+(defun update-viewport (viewport-title viewport-width viewport-height fullscreen-p)
+  (setf (ge.host:viewport-title) viewport-title
+        (ge.host:fullscreen-viewport-p) fullscreen-p
+        (ge.host:viewport-size) (vec2 viewport-width viewport-height)))
 
 
 (defun update-frame-queue (app draw-rate act-rate)
@@ -113,6 +107,17 @@
       (%reschedule-flow frame-queue act-item))))
 
 
+(defun %update-canvas-and-ui-dimensions (this viewport-width viewport-height)
+  (with-slots (canvas ui
+               (this-canvas-width canvas-width)
+               (this-canvas-height canvas-height))
+      this
+    (ge.vg:update-canvas-size canvas
+                              (or this-canvas-width viewport-width)
+                              (or this-canvas-height viewport-height))
+    (ge.ui:update-ui-size ui viewport-width viewport-height)))
+
+
 (defun update-graphics (this viewport-width viewport-height
                         canvas-width canvas-height panel-classes)
   (with-slots (canvas ui
@@ -121,10 +126,7 @@
       this
     (setf this-canvas-width canvas-width
           this-canvas-height canvas-height)
-    (ge.vg:update-canvas-size canvas
-                              (or this-canvas-width viewport-width)
-                              (or this-canvas-height viewport-height))
-    (ge.ui:update-ui-size ui viewport-width viewport-height)
+    (%update-canvas-and-ui-dimensions this viewport-width viewport-height)
     (ge.ui:with-ui-access (ui)
       (ge.ui:remove-all-panels ui)
       (dolist (panel-class panel-classes)
@@ -139,10 +141,9 @@
         (height (or viewport-height *default-viewport-height*)))
     (>> (ge.host:for-host ()
           (log/debug "Updating appkit host configuration")
-          (multiple-value-bind (actual-width actual-height)
-              (update-viewport app
-                               (or viewport-title *default-viewport-title*)
-                               width height fullscreen-p)
+          (update-viewport (or viewport-title *default-viewport-title*)
+                           width height fullscreen-p)
+          (ge.host:with-viewport-dimensions (actual-width actual-height)
             (list actual-width actual-height)))
         (ge.gx:for-graphics ((actual-width actual-height))
           (log/debug "Updating appkit graphics configuration")
@@ -154,6 +155,13 @@
           (ge.host:swap-buffers)
           (update-frame-queue app draw-rate act-rate))
         (configuration-flow app))))
+
+
+(define-event-handler on-viewport-update ((ev ge.host:viewport-size-change-event)
+                                          width height)
+  (when-app (app)
+    (inject-flow (ge.gx:for-graphics ()
+                   (%update-canvas-and-ui-dimensions app width height)))))
 
 
 (defmacro defapp (name (&rest classes) &body ((&rest slots) &rest opts))
@@ -203,10 +211,6 @@
          initargs))
 
 
-(defun app ()
-  *appkit-instance*)
-
-
 (defgeneric draw (system)
   (:method (system) (declare (ignore system))))
 
@@ -214,11 +218,6 @@
 (defmethod draw :around ((this appkit-system))
   (let ((*font* (slot-value this 'font)))
     (call-next-method)))
-
-
-(defmacro when-app ((appkit-var) &body body)
-  `(when-let ((,appkit-var (app)))
-     ,@body))
 
 
 (defun app-canvas ()
@@ -253,13 +252,6 @@
            (with-slots (injected-flows) *appkit-instance*
              (push flow injected-flows))))
     (push-action *appkit-instance* #'%inject-flow)))
-
-
-(define-event-handler on-framebuffer-change ((ev ge.host:framebuffer-size-change-event) width height)
-  (when-let ((appkit (app)))
-    (flet ((update-framebuffer ()
-             (setf (%framebuffer-size-of appkit) (vec2 width height))))
-      (push-action appkit #'update-framebuffer))))
 
 
 (ge.vg:defcanvas appkit-canvas (appkit-instance)
