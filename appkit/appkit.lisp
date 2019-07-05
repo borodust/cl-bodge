@@ -91,11 +91,12 @@
   (with-slots (framebuffer-size) app
     (setf (ge.host:viewport-title) viewport-title
           (ge.host:fullscreen-viewport-p) fullscreen-p
-          (ge.host:viewport-title) viewport-title
           (ge.host:viewport-size) (vec2 viewport-width viewport-height))
-    (let ((pixel-ratio (viewport-pixel-ratio)))
-      (setf framebuffer-size (vec2 (* viewport-width pixel-ratio)
-                                   (* viewport-height pixel-ratio))))))
+    (ge.host:with-viewport-dimensions (actual-width actual-height)
+      (let ((pixel-ratio (viewport-pixel-ratio)))
+        (setf framebuffer-size (vec2 (* actual-width pixel-ratio)
+                                     (* actual-height pixel-ratio))))
+      (values actual-width actual-height))))
 
 
 (defun update-frame-queue (app draw-rate act-rate)
@@ -138,16 +139,16 @@
         (height (or viewport-height *default-viewport-height*)))
     (>> (ge.host:for-host ()
           (log/debug "Updating appkit host configuration")
-          (when fullscreen-p
-            (ge.host:with-viewport-dimensions (actual-width actual-height)
-              (setf width actual-width
-                    height actual-height)))
-          (update-viewport app
-                           (or viewport-title *default-viewport-title*)
-                           width height fullscreen-p))
-        (ge.gx:for-graphics ()
+          (multiple-value-bind (actual-width actual-height)
+              (update-viewport app
+                               (or viewport-title *default-viewport-title*)
+                               width height fullscreen-p)
+            (list actual-width actual-height)))
+        (ge.gx:for-graphics ((actual-width actual-height))
           (log/debug "Updating appkit graphics configuration")
-          (update-graphics app width height canvas-width canvas-height panel-classes))
+          (update-graphics app actual-width actual-height
+                           canvas-width canvas-height
+                           panel-classes))
         (instantly ()
           (log/debug "Updating framerate")
           (ge.host:swap-buffers)
@@ -361,7 +362,7 @@
 (defmethod enabling-flow list ((this appkit-system))
   (>> (ge.host:for-host ()
         (log/debug "Configuring host for appkit")
-        (* (viewport-pixel-ratio) (ge.host:viewport-scale)))
+        (ge.host:viewport-scale))
       (ge.gx:for-graphics (pixel-ratio)
         (log/debug "Configuring graphics for appkit")
         (%initialize-graphics this pixel-ratio))
