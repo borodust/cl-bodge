@@ -47,5 +47,4 @@
 
 
 (defmacro define-sdf-font (name)
-  `(progn
-     (defresource :font (sdf-font-metrics-resource-name ,name) :type :sdf)))
+  `(defresource (sdf-font-metrics-resource-name ,name) :font :type :sdf))
