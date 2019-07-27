@@ -66,4 +66,8 @@
            #:register-font-face
            #:canvas-font-metrics
            #:canvas-text-bounds
-           #:canvas-text-advance))
+           #:canvas-text-advance
+
+           #:with-composite-operation
+           #:with-blend-factors
+           #:with-alpha))

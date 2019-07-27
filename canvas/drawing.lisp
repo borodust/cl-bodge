@@ -1,7 +1,6 @@
 (cl:in-package :cl-bodge.canvas)
 
 
-
 (defun draw-line (origin end paint &key (thickness 1.0))
   (bodge-canvas:draw-line origin end (%paint-handle-of paint)
                           :thickness thickness))

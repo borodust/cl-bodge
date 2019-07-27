@@ -79,3 +79,25 @@
 
 (defun update-canvas-pixel-ratio (canvas pixel-ratio)
   (bodge-canvas:update-canvas-pixel-ratio (%handle-of canvas) pixel-ratio))
+
+
+(defmacro with-blend-factors ((source-factor destination-factor
+                               &optional source-alpha-factor destination-alpha-factor)
+                              &body body)
+  `(bodge-canvas::with-blend-factors (,source-factor ,destination-factor
+                                                       :source-alpha-factor
+                                                       ,source-alpha-factor
+                                                       :destination-alpha-factor
+                                                       ,destination-alpha-factor
+                                                       :canvas (%handle-of *canvas*))
+     ,@body))
+
+
+(defmacro with-composite-operation ((operation) &body body)
+  `(bodge-canvas:with-composite-operation (,operation (%handle-of *canvas*))
+     ,@body))
+
+
+(defmacro with-alpha ((value) &body body)
+  `(bodge-canvas:with-alpha (,value (%handle-of *canvas*))
+     ,@body))
