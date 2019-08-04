@@ -39,7 +39,7 @@
 
 (defgeneric directory-of (distribution)
   (:method ((this distribution))
-    (let ((dist-name (format nil "~(~a~)" (name-of this))))
+    (let ((dist-name (name-of this)))
       (dir (build-directory-of this) dist-name))))
 
 
@@ -140,12 +140,14 @@
          (build-directory (or build-directory  #p"build/"))
          (library-directory (or library-directory #p"lib/"))
          (asset-directory (or asset-directory #p"assets/"))
+         (stringified-name (string-downcase
+                            (ppcre:regex-replace-all "/" (string name) "-")))
          (dist (make-instance 'distribution
-                              :name name
+                              :name stringified-name
                               :base-directory base-directory
                               :target-system (or target-system name)
                               :entry-function (parse-entry-function entry-function)
-                              :executable-name (or executable-name (format nil "~(~a~)" name))
+                              :executable-name (or executable-name stringified-name)
                               :compressed-p compressed-p
                               :build-directory build-directory
                               :library-directory library-directory
