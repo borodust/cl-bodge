@@ -21,6 +21,7 @@
                   #:wind-path
                   #:line-cap
                   #:line-join
+                  #:antialias-shapes
 
                   #:apply-scissors
 
