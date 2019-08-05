@@ -98,6 +98,6 @@
      ,@body))
 
 
-(defmacro with-alpha ((value) &body body)
-  `(bodge-canvas:with-alpha (,value (%handle-of *canvas*))
+(defmacro with-alpha ((value &key override) &body body)
+  `(bodge-canvas:with-alpha (,value :override ,override :canvas (%handle-of *canvas*))
      ,@body))
