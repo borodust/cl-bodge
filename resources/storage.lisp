@@ -114,6 +114,30 @@
 
 
 ;;;
+;;; Blob node
+;;;
+(defclass binary-resource-node (path-node)
+  ((data :initarg :data :initform (error ":data missing"))))
+
+
+(defmethod open-resource-stream ((this binary-resource-node) (path null))
+  (with-slots (data) this
+    (flex:make-in-memory-input-stream data)))
+
+
+(defmethod open-resource-stream ((this binary-resource-node) (path cons))
+  (error "Binary resource node has no children"))
+
+
+(defun make-binary-resource-provider (byte-array)
+  (assert (or (typep byte-array '(array (unsigned-byte 8)))
+              (typep byte-array '(array (signed-byte 8)))))
+  (lambda (node-name)
+    (make-instance 'binary-resource-node :name node-name :data byte-array)))
+
+
+
+;;;
 ;;; Resource storage
 ;;;
 (defclass resource-storage (lockable)

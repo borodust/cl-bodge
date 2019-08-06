@@ -17,6 +17,7 @@
            open-resource-stream
            mount-resource-provider
            mount-filesystem
+           mount-binary-resource
            unmount-all
 
            defresource

@@ -27,6 +27,13 @@
                            (make-filesystem-resource-provider filesystem-path)))
 
 
+(defun mount-binary-resource (resource-path byte-array)
+  (when (fad:directory-pathname-p resource-path)
+    (error "Binary resource cannot be a directory"))
+  (mount-resource-provider resource-path
+                           (make-binary-resource-provider byte-array)))
+
+
 (defun unmount-all ()
   (remount-root-node *resource-storage*))
 
