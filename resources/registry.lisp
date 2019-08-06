@@ -50,18 +50,20 @@
 (defclass resource-registry (lockable)
   ((resource-table :initform (make-hash-table :test 'equal))))
 
+
 (defvar *resource-registry* (make-instance 'resource-registry))
 
 
-(defun register-resource (name handler)
+(defun register-resource (name type &rest handler-opts &key &allow-other-keys)
   (with-instance-lock-held (*resource-registry*)
     (with-slots (resource-table) *resource-registry*
       (with-hash-entries ((resource-entry (resource-name->string name))) resource-table
-        (let ((entry resource-entry))
+        (let ((entry resource-entry)
+              (handler (apply #'make-resource-handler type handler-opts)))
           (when (and entry (not (eq entry handler)))
             (warn "Resource redefinition: handler ~A for '~A' was registered earlier"
-                  handler name)))
-        (setf resource-entry handler)))))
+                  handler name))
+          (setf resource-entry handler))))))
 
 
 (defun find-resource-handler (resource-name)
@@ -95,6 +97,6 @@
 ;;;
 (defmacro defresource (resource-name type &body opts &key path &allow-other-keys)
   `(progn
-     (register-resource ',resource-name (make-resource-handler ,type ,@opts))
+     (register-resource ',resource-name ,type ,@opts)
      ,@(when path
          `((mount-filesystem ',resource-name ,path)))))
