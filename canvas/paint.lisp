@@ -24,14 +24,12 @@
 
 (define-system-function make-image-paint graphics-system
     (canvas image &key flip-vertically use-nearest-interpolation)
-  (unless (eq (ge.rsc:image-pixel-format image) :rgba)
-    (error "Only RGBA images supported"))
   (make-instance 'image-paint
                  :canvas canvas
                  :handle (bodge-canvas:make-rgba-image-paint
                           (%handle-of canvas)
                           (simple-array-of
-                           (ge.rsc:image->foreign-array image))
+                           (ge.rsc:image->foreign-array (ge.rsc:convert-to-rgba image)))
                           (ge.rsc:image-width image)
                           (ge.rsc:image-height image)
                           :flip-vertically flip-vertically

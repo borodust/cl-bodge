@@ -22,11 +22,15 @@
    (data :initarg :data :reader image->foreign-array)))
 
 
+(defun pixel-format->channels (pixel-format)
+  (ecase pixel-format
+    (:grey 1)
+    (:rgb 3)
+    (:rgba 4)))
+
+
 (defun prepare-png-data (width height pixel-format data)
-  (loop with channels = (ecase pixel-format
-                          (:grey 1)
-                          (:rgb 3)
-                          (:rgba 4))
+  (loop with channels = (pixel-format->channels pixel-format)
         with result = (make-foreign-array (* width height channels) :element-type '(unsigned-byte 8))
         with array = (simple-array-of result)
         for i from 0 below height
@@ -44,10 +48,7 @@
   (let ((width (image-width image))
         (height (image-height image))
         (array (simple-array-of (image->foreign-array image))))
-    (loop with channels = (ecase (image-pixel-format image)
-                            (:grey 1)
-                            (:rgb 3)
-                            (:rgba 4))
+    (loop with channels = (pixel-format->channels (image-pixel-format image))
           for i from 0 below height
           do (loop for j from 0 below width
                    do (if (= channels 1)
@@ -57,6 +58,8 @@
                             (setf (aref data i j k)
                                   (aref array (+ k (* j channels) (* (- height i 1) width channels))))))))
     data))
+
+
 
 
 (defun read-image-from-stream (stream type)
@@ -88,6 +91,45 @@
                                (image-width image))))
     (unwind-png-data image opticl-data)
     (funcall writer stream opticl-data)))
+
+
+(defun convert-to-rgba (image &optional (alpha 1f0))
+  (let ((alpha (the (unsigned-byte 8)
+                    (round (alexandria:clamp (* alpha 255) 0 255)))))
+    (labels ((%expand-grey (src dst src-idx dst-idx)
+               (let ((color (aref src src-idx)))
+                 (setf (aref dst (+ dst-idx 0)) color
+                       (aref dst (+ dst-idx 1)) color
+                       (aref dst (+ dst-idx 2)) color
+                       (aref dst (+ dst-idx 3)) alpha)))
+             (%expand-rgb (src dst src-idx dst-idx)
+               (setf (aref dst (+ dst-idx 0)) (aref src (+ src-idx 0))
+                     (aref dst (+ dst-idx 1)) (aref src (+ src-idx 1))
+                     (aref dst (+ dst-idx 2)) (aref src (+ src-idx 2))
+                     (aref dst (+ dst-idx 3)) alpha))
+             (%convert (image)
+               (let* ((source (simple-array-of (image->foreign-array image)))
+                      (width (image-width image))
+                      (height (image-height image))
+                      (pixel-format (image-pixel-format image))
+                      (channels (pixel-format->channels pixel-format))
+                      (expander (ecase (image-pixel-format image)
+                                  (:grey #'%expand-grey)
+                                  (:rgb #'%expand-rgb)))
+                      (target (make-foreign-array (* width height 4))))
+                 (loop with destination = (simple-array-of target)
+                       for i from 0 below (* width height)
+                       do (funcall expander
+                                   source destination
+                                   (* i channels) (* i 4))
+                       finally (return target)))))
+      (if (eq (image-pixel-format image) :rgba)
+          image
+          (make-instance 'image
+                         :data (%convert image)
+                         :width (image-width image)
+                         :height (image-height image)
+                         :pixel-format :rgba)))))
 
 
 (defun load-png-image (path)

@@ -43,6 +43,7 @@
            pixel-format-p
            image-pixel-format
            image->foreign-array
+           convert-to-rgba
 
            ;; chunked
            write-chunk
