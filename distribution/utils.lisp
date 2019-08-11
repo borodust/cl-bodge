@@ -6,8 +6,12 @@
 (defun wrap-executable-name (name)
   (format nil "~A~A" name #+windows ".exe" #-windows ""))
 
+(defun zip (relative-directory archive-name &optional (executable "zip"))
+  (list (wrap-executable-name executable) "-v" "-r" archive-name relative-directory))
+
+
 (defvar *lisp* (first (uiop:raw-command-line-arguments)))
-(defvar *zip* (wrap-executable-name "zip"))
+(defvar *zip* #'relative-directory)
 
 
 (defun distribution-system-path ()
@@ -99,14 +103,18 @@
          (last-path-el (enough-namestring (fad:canonical-pathname path) parent-path))
          (name (or name (file last-path-el))))
     (multiple-value-bind (output error-output code)
-        (inferior-shell:run/nil (list (wrap-executable-name "sh")
-                                      "-c" (inferior-shell:token-string
-                                            (list "cd " (namestring parent-path) " && "
-                                                  *zip* " -v -r " name ".zip "
-                                                  last-path-el)))
-                                :output :string
-                                :error-output :string
-                                :show t
-                                :on-error nil)
+        (uiop:with-current-directory ((namestring parent-path))
+          (inferior-shell:run/nil (if (functionp *zip*)
+                                      (funcall *zip* last-path-el
+                                               (inferior-shell:token-string
+                                                (list name ".zip")))
+                                      (zip last-path-el
+                                           (inferior-shell:token-string
+                                            (list name ".zip"))
+                                           *zip*))
+                                  :output :string
+                                  :error-output :string
+                                  :show t
+                                  :on-error nil))
       (unless (= code 0)
         (error "~A~&~A" output error-output)))))
