@@ -11,11 +11,26 @@
    (depth-stencil-renderbuffer :initform nil :reader %depth-stencil-renderbuffer-of)
    (framebuffer-width :initform 0 :reader %framebuffer-width-of)
    (framebuffer-height :initform 0 :reader %framebuffer-height-of)
-   (executor :initform (acquire-executor :single-threaded-p t :exclusive-p t) :reader %executor-of)))
+   (executor :initform nil :reader %executor-of)))
+
+
+(defmethod initialize-instance :after ((this graphics-context) &key system)
+  (with-slots (executor) this
+    (flet ((%invoke (task)
+             (let ((*system* system)
+                   (*graphics-context* this)
+                   (*supplementary-framebuffer* (%supplementary-framebuffer-of this))
+                   (*depth-stencil-renderbuffer* (%depth-stencil-renderbuffer-of this)))
+               (funcall task))))
+      (setf executor (acquire-executor :single-threaded-p t
+                                       :exclusive-p t
+                                       :invoker #'%invoke)))))
 
 
 (defun initialize-graphics-context (this)
-  (with-slots (rendering-context state supplementary-framebuffer depth-stencil-renderbuffer) this
+  (with-slots (rendering-context state
+               supplementary-framebuffer depth-stencil-renderbuffer)
+      this
     (bind-rendering-context (if (eq rendering-context t)
                                 nil
                                 rendering-context))

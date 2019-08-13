@@ -11,7 +11,7 @@
   (with-slots (main-context) this
     (>> (~> (for-host ()
               (framebuffer-size))
-            (assembly-flow 'graphics-context :main t))
+            (assembly-flow 'graphics-context :main t :system this))
         (instantly ((viewport context))
           (declare (type vec2 viewport))
           (setf main-context context)
@@ -63,15 +63,11 @@
                      &key context disposing)
   (with-slots (main-context) this
     (let ((context (if context context main-context)))
-      (flet ((run-task ()
-               (let ((*system* this)
-                     (*graphics-context* context)
-                     (*supplementary-framebuffer* (%supplementary-framebuffer-of context))
-                     (*depth-stencil-renderbuffer* (%depth-stencil-renderbuffer-of context)))
-                 (funcall task))))
-        (if disposing
-            (apply #'execute-with-context context #'run-task :important-p t :priority :highest args)
-            (apply #'execute-with-context context #'run-task args))))))
+      (if disposing
+          (apply #'execute-with-context context task :important-p t
+                                                     :priority :highest
+                                                     args)
+          (apply #'execute-with-context context task args)))))
 
 
 (defun register-shared-context (shared-context)
@@ -81,7 +77,7 @@
 
 
 (defun graphics-context-assembly-flow ()
-  (>> (assembly-flow 'graphics-context)
+  (>> (assembly-flow 'graphics-context :system (graphics))
       (for-graphics (instance)
         (register-shared-context instance))))
 

@@ -308,7 +308,8 @@ initialized."
 
 
 (defun acquire-executor (&rest args &key (single-threaded-p nil) (exclusive-p nil)
-                                      (special-variables nil))
+                                      (special-variables nil)
+                                      (invoker nil))
   "Acquire executor from the engine, properties of which correspond to provided options:
 :single-threaded-p - if t, executor will be single-threaded, otherwise it can be pooled one
 :exclusive-p - if t, this executor cannot be acquired by other requester and :special-variables
@@ -316,11 +317,18 @@ initialized."
                requesters."
   (with-slots (shared-pool shared-executors) *engine*
     (cond
-      ((and (not exclusive-p) (not single-threaded-p) (not special-variables))
+      ((and (not exclusive-p)
+            (not single-threaded-p)
+            (not special-variables)
+            (not invoker))
        shared-pool)
       ((and exclusive-p single-threaded-p)
-       (make-single-threaded-executor :special-variables special-variables))
-      ((and single-threaded-p (not exclusive-p) (not special-variables))
+       (make-single-threaded-executor :special-variables special-variables
+                                      :invoker invoker))
+      ((and single-threaded-p
+            (not exclusive-p)
+            (not special-variables)
+            (not invoker))
        (first shared-executors))
       (t (error "Cannot provide executor for combination of requirements: ~a" args)))))
 
