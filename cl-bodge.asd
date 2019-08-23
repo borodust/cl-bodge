@@ -160,13 +160,15 @@
   :license "MIT"
   :depends-on (cl-bodge/engine cl-bodge/utils cl-bodge/host log4cl
                                cl-bodge/resources
-                               openal-blob bodge-openal)
+                               openal-blob bodge-openal
+                               trivial-gray-streams)
   :pathname "audio/"
   :serial t
   :components ((:file "packages")
                (:file "al")
                (:file "buffer")
                (:file "source")
+               (:file "streaming")
                (:file "system")))
 
 

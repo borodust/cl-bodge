@@ -23,6 +23,10 @@
   (%al:sourcei (handle-value-of source) %al:+buffer+ (handle-value-of buffer)))
 
 
+(defun release-audio-buffer (source)
+  (%al:sourcei (handle-value-of source) %al:+buffer+ 0))
+
+
 (declaim (ftype (function (audio-source) *) play-audio)
          (inline play-audio))
 (defun play-audio (source)

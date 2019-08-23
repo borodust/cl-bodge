@@ -13,33 +13,31 @@
   (:default-initargs :handle (make-audio-buffer-handle)))
 
 
-(defgeneric select-pcm-format (channel-format sample-depth)
-  (:method (c s) (error "Unsupported PCM format")))
-
-(defmethod select-pcm-format ((channel-format (eql :stereo)) (sample-depth (eql 16)))
-  %al:+format-stereo16+)
-
-(defmethod select-pcm-format ((channel-format (eql :stereo)) (sample-depth (eql 8)))
-  %al:+format-stereo8+)
-
-(defmethod select-pcm-format ((channel-format (eql :mono)) (sample-depth (eql 8)))
-  %al:+format-mono8+)
-
-(defmethod select-pcm-format ((channel-format (eql :mono)) (sample-depth (eql 16)))
-  %al:+format-mono16+)
+(defun select-pcm-format (channel-format sample-depth)
+  (cond
+    ((and (eq channel-format :stereo) (= sample-depth 16)) %al:+format-stereo16+)
+    ((and (eq channel-format :stero) (= sample-depth 8)) %al:+format-stereo8+)
+    ((and (eq channel-format :mono) (= sample-depth 16)) %al:+format-mono16+)
+    ((and (eq channel-format :mono) (= sample-depth 8)) %al:+format-mono8+)
+    (t (error "Unsupported PCM format"))))
 
 
 (defmethod initialize-instance :after ((this audio-buffer)
                                        &key channel-format sampling-rate sample-depth pcm-data)
-  (let ((foreign-type (ecase sample-depth
-                        (8 :uint8)
-                        (16 :int16)))
-        (foreign-size (* (/ sample-depth 8) (length pcm-data))))
-    ;; fixme: remove :: hax
-    (cffi::with-foreign-array (raw-data pcm-data (list :array foreign-type (length pcm-data)))
-      (%al:buffer-data (handle-value-of this)
-                       (select-pcm-format channel-format sample-depth)
-                       raw-data foreign-size sampling-rate))))
+  (when pcm-data
+   (assert (or
+            (and (= sample-depth 8)
+                 (or (subtypep (type-of pcm-data) '(simple-array (unsigned-byte 8)))
+                     (subtypep (type-of pcm-data) '(simple-array (signed-byte 8)))))
+            (and (= sample-depth 16)
+                 (or (subtypep (type-of pcm-data) '(simple-array (unsigned-byte 16)))
+                     (subtypep (type-of pcm-data) '(simple-array (signed-byte 16)))))))
+   (let ((foreign-size (* (/ sample-depth 8) (length pcm-data))))
+
+     (with-simple-array-pointer (ptr pcm-data)
+       (%al:buffer-data (handle-value-of this)
+                        (select-pcm-format channel-format sample-depth)
+                        ptr foreign-size sampling-rate)))))
 
 
 (defun make-audio-buffer (resource)
@@ -48,3 +46,12 @@
                  :sample-depth (ge.rsc:audio-sample-depth resource)
                  :sampling-rate (ge.rsc:audio-sampling-rate resource)
                  :pcm-data (simple-array-of (ge.rsc:audio->foreign-array resource))))
+
+
+(defun make-empty-audio-buffer (&key (channel-format +default-channel-format+)
+                                  (sample-depth +default-sample-depth+)
+                                  (sampling-rate +default-sampling-rate+))
+  (make-instance 'audio-buffer
+                 :channel-format channel-format
+                 :sample-depth sample-depth
+                 :sampling-rate sampling-rate))
