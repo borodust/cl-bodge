@@ -16,10 +16,10 @@
   :author "Pavel Korolev"
   :mailto "dev@borodust.org"
   :license "MIT"
-  :depends-on (cl-bodge/utils bodge-memory bodge-math bodge-concurrency
-                              bodge-blobs-support claw claw
-                              log4cl local-time cffi cl-flow uiop
-                              simple-flow-dispatcher cl-muth)
+  :depends-on (:cl-bodge/utils :bodge-memory :bodge-math :bodge-concurrency
+               :bodge-blobs-support :claw :claw-utils :log4cl
+               :local-time :cffi :cl-flow :uiop :simple-flow-dispatcher
+               :cl-muth :float-features :bodge-libc-essentials)
   :pathname "engine/"
   :serial t
   :components ((:file "packages")

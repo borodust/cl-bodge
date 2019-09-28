@@ -5,7 +5,7 @@
 
 
 (defhandle universe-handle
-  :initform (claw:with-float-traps-masked ()
+  :initform (float-features:with-float-traps-masked t
               (%cp:space-new))
   :closeform (%cp:space-free *handle-value*))
 
@@ -14,13 +14,13 @@
   ((shape-registry :initform (trivial-garbage:make-weak-hash-table :weakness :value :test 'eql))
    (on-pre-solve :initform nil :initarg :on-pre-solve)
    (on-post-solve :initform nil :initarg :on-post-solve)
-   (ptr-store :initform (claw:alloc :pointer 2))
+   (ptr-store :initform (cffi:foreign-alloc :pointer :count 2))
    (post-step-queue :initform (make-task-queue)))
   (:default-initargs :handle (make-universe-handle)))
 
 
 (define-destructor universe (ptr-store)
-  (claw:free ptr-store))
+  (cffi:foreign-free ptr-store))
 
 
 (defun register-shape (universe id shape)
@@ -71,14 +71,16 @@
   (with-gensyms (store vec)
     (once-only (arbiter)
       `(with-slots ((,store ptr-store)) *active-universe*
-         (claw:c-let ((,vec :pointer :ptr ,store))
+         (c-let ((,vec :pointer :from ,store))
            (%cp:arbiter-get-shapes ,arbiter (,vec 0 &) (,vec 1 &))
            (let ((,this (find-shape *active-universe* (cffi:pointer-address (,vec 0))))
                  (,that (find-shape *active-universe* (cffi:pointer-address (,vec 1)))))
              ,@body))))))
 
 
-(claw:defcallback pre-solve-callback :int ((arbiter :pointer) (space :pointer) (data :pointer))
+(cffi:defcallback pre-solve-callback :int ((arbiter :pointer)
+                                           (space :pointer)
+                                           (data :pointer))
   (declare (ignore space data))
   (with-slots (on-pre-solve ptr-store) *active-universe*
     (if-let (pre-solve-fu on-pre-solve)
@@ -88,7 +90,9 @@
       %cp:+true+)))
 
 
-(claw:defcallback post-solve-callback :void ((arbiter :pointer) (space :pointer) (data :pointer))
+(cffi:defcallback post-solve-callback :void ((arbiter :pointer)
+                                             (space :pointer)
+                                             (data :pointer))
   (declare (ignore space data))
   (with-slots (on-post-solve) *active-universe*
     (when-let (post-solve-fu on-post-solve)
@@ -98,11 +102,11 @@
 
 
 (defmethod initialize-instance :after ((this universe) &key)
-  (claw:c-let ((collision-handler %cp:collision-handler
-                                  :from (%cp:space-add-default-collision-handler
-                                         (handle-value-of this))))
-    (setf (collision-handler :pre-solve-func) (claw:callback 'pre-solve-callback)
-          (collision-handler :post-solve-func) (claw:callback 'post-solve-callback))))
+  (c-let ((collision-handler %cp:collision-handler
+                             :from (%cp:space-add-default-collision-handler
+                                    (handle-value-of this))))
+    (setf (collision-handler :pre-solve-func) (cffi:callback pre-solve-callback)
+          (collision-handler :post-solve-func) (cffi:callback post-solve-callback))))
 
 
 (defmethod simulation-engine-make-universe ((this chipmunk-engine)
@@ -133,6 +137,6 @@
 (defmethod simulation-engine-observe-universe ((engine chipmunk-engine) (universe universe) time-step)
   (with-slots (post-step-queue) universe
     (let ((*active-universe* universe))
-      (claw:with-float-traps-masked ()
+      (float-features:with-float-traps-masked t
         (%cp:space-step (handle-value-of universe) (cp-float time-step))
         (drain post-step-queue)))))

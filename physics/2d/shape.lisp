@@ -20,7 +20,7 @@
 
 
 (defmethod initialize-instance :after ((this chipmunk-shape) &key universe)
-  (register-shape universe (cffi:pointer-address (claw:ptr (handle-value-of this))) this))
+  (register-shape universe (cffi:pointer-address (handle-value-of this)) this))
 
 
 (defmethod simulation-engine-destroy-shape ((this chipmunk-engine) (shape chipmunk-shape))
@@ -51,10 +51,10 @@
 
 (defmethod initialize-instance ((this segment-shape) &rest args
                                 &key start end body universe)
-  (claw:c-with ((a %cp:vect)
-                (b %cp:vect))
-    (init-cp-vect a start)
-    (init-cp-vect b end)
+  (c-with ((a %cp:vect)
+           (b %cp:vect))
+    (init-cp-vect (a &) start)
+    (init-cp-vect (b &) end)
     (apply #'call-next-method this
            :handle (make-shape-handle
                     (%cp:segment-shape-new (body-handle-or-static universe body) a b (cp-float 0.0)))
@@ -160,8 +160,8 @@
 (defmethod initialize-instance ((this polygon-shape) &rest args
                                 &key points body universe)
   (let ((point-count (length points)))
-    (claw:c-with ((f-points %cp:vect :count point-count)
-                  (f-transform %cp:transform))
+    (c-with ((f-points %cp:vect :count point-count)
+             (f-transform %cp:transform))
       (setf (f-transform :a) (cp-float 1)
             (f-transform :b) (cp-float 0)
             (f-transform :c) (cp-float 0)
@@ -173,11 +173,11 @@
             do (setf (f-points i :x) (cp-float (x point))
                      (f-points i :y) (cp-float (y point))))
       (apply #'call-next-method this
-             :handle (make-shape-handle (claw:with-float-traps-masked ()
+             :handle (make-shape-handle (float-features:with-float-traps-masked t
                                           (%cp:poly-shape-new (body-handle-or-static universe body)
                                                               point-count
-                                                              f-points
-                                                              f-transform
+                                                              (f-points &)
+                                                              (f-transform &)
                                                               (cp-float 0.0001))))
              args))))
 

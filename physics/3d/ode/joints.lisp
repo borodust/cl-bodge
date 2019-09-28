@@ -23,7 +23,7 @@
        (declaim (inline ,class-ctor-name))
        (defun ,class-ctor-name (universe this-body &optional that-body)
          (make-joint (lambda (world)
-                       (claw:c-fun ,joint-ctor-name world 0))
+                       (,joint-ctor-name world 0))
                      ',class-name universe this-body that-body)))))
 
 

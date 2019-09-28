@@ -5,7 +5,7 @@
   (let ((byte-length (* (reduce #'* (array-dimensions source)) element-size)))
     (with-simple-array-pointer (source-ptr source)
       (with-static-vectors ((byte-vec byte-length :element-type '(unsigned-byte 8)))
-        (claw:memcpy (static-vector-pointer byte-vec) source-ptr byte-length)
+        (%libc.es:memcpy (static-vector-pointer byte-vec) source-ptr byte-length)
         (write-sequence byte-vec stream)))))
 
 
@@ -21,9 +21,9 @@
 
 (defun array-type-info (source)
   (eswitch ((array-element-type source) :test #'subtypep)
-    ('single-float (values :float (claw:sizeof :float)))
-    ('(unsigned-byte 32) (values :unsigned-int (claw:sizeof :unsigned-int)))
-    ('(signed-byte 32) (values :int (claw:sizeof :int)))))
+    ('single-float (values :float (cffi:foreign-type-size :float)))
+    ('(unsigned-byte 32) (values :unsigned-int (cffi:foreign-type-size :unsigned-int)))
+    ('(signed-byte 32) (values :int (cffi:foreign-type-size :int)))))
 
 
 (defun write-array (out type array &rest params &key &allow-other-keys)

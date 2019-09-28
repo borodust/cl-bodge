@@ -2,10 +2,11 @@
 
 
 (defhandle audio-buffer-handle
-  :initform (claw:c-with ((buffer-id %al:uint))
+  :initform (c-with ((buffer-id %al:uint))
               (%al:gen-buffers 1 (buffer-id &))
               buffer-id)
-  :closeform (claw:c-with ((buffer-id %al:uint :value *handle-value*))
+  :closeform (c-with ((buffer-id %al:uint))
+               (setf buffer-id *handle-value*)
                (%al:delete-buffers 1 (buffer-id &))))
 
 

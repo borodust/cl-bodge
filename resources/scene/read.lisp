@@ -37,12 +37,12 @@
 
 (defun read-array (stream &key (length (error ":length missing"))
                             ((:type element-type) (error ":element-type missing"))
-                   &allow-other-keys)
+                            &allow-other-keys)
   (let* ((type (ecase element-type
                  (:float 'single-float)
                  (:unsigned-int '(unsigned-byte 32))
                  (:int '(signed-byte 32))))
-         (byte-length (* length (claw:sizeof element-type)))
+         (byte-length (* length (cffi:foreign-type-size element-type)))
          (array (make-array length :element-type type)))
     (with-simple-array-pointer (dst-ptr array)
       (loop with byte-offset = 0
@@ -52,9 +52,9 @@
                                             :end (min (- byte-length byte-offset)
                                                       *scene-read-buffer-size*))
             while (> bytes-read 0)
-            do (claw:memcpy (cffi:make-pointer (+ dst-addr byte-offset))
-                            src-ptr
-                            bytes-read)
+            do (%libc.es:memcpy (cffi:make-pointer (+ dst-addr byte-offset))
+                                src-ptr
+                                bytes-read)
                (incf byte-offset bytes-read)
             finally (unless (= byte-offset byte-length)
                       (error "Premature end of stream: expected ~A, got ~A"

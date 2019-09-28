@@ -15,17 +15,17 @@
 
 
 (defun contact-position (info)
-  (claw:c-let ((geom %ode:contact-geom :from (contact-geom info)))
+  (c-let ((geom %ode:contact-geom :from (contact-geom info)))
     (vec3 (geom :pos 0) (geom :pos 1) (geom :pos 2))))
 
 
 (defun contact-normal (info)
-  (claw:c-let ((geom %ode:contact-geom :from (contact-geom info)))
+  (c-let ((geom %ode:contact-geom :from (contact-geom info)))
     (vec3 (geom :normal 0) (geom :normal 1) (geom :normal 2))))
 
 
 (defun contact-depth (info)
-  (claw:c-ref (contact-geom info) %ode:contact-geom :depth))
+  (c-ref (contact-geom info) %ode:contact-geom :depth))
 
 
 (defun surface-friction (info)
@@ -64,12 +64,17 @@
 
 
 (defun fill-contact-geom (contact-geom info)
-  (claw:memcpy (claw:ptr contact-geom) (claw:ptr (contact-geom info)) 1 '%ode:contact-geom))
+  (%libc.es:memcpy contact-geom
+                   (contact-geom info)
+                   (cffi:foreign-type-size '%ode:contact-geom)))
 
 
 (defun fill-contact (contact info)
-  (claw:c-val ((contact %ode:contact))
-    (setf (contact :surface :mode) (claw:mask 'ode:contact-flags :approx1 :bounce :motion1)
+  (c-val ((contact %ode:contact))
+    (setf (contact :surface :mode) (cffi:foreign-bitfield-value 'ode:contact-flags
+                                                                '(:approx1
+                                                                  :bounce
+                                                                  :motion1))
           (contact :surface :mu) (ode-real (surface-friction info))
           (contact :surface :bounce) (ode-real (surface-bounciness info))
           (contact :surface :motion1) (surface-velocity info))

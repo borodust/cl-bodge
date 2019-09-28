@@ -20,7 +20,7 @@
 
 (defun %register-geom (universe geom)
   (with-slots (geoms) universe
-    (let ((ptr-addr (cffi:pointer-address (claw:ptr (handle-value-of geom)))))
+    (let ((ptr-addr (cffi:pointer-address (handle-value-of geom))))
       (setf (gethash ptr-addr geoms) geom))))
 
 
@@ -45,7 +45,7 @@
 
 (defun %filter-contacts (contact-count contact-geoms)
   (loop for i from 0 below contact-count
-        collect (make-contact (claw:c-ref contact-geoms %ode:contact-geom i)
+        collect (make-contact (c-ref contact-geoms %ode:contact-geom i)
                               (collision-friction *collision*)
                               (collision-elasticity *collision*)
                               (collision-surface-velocity *collision*))))
@@ -60,8 +60,8 @@
 (ode:define-collision-callback fill-joint-group (in this that)
   (destructuring-bind (universe joint-group) in
     (let* ((geoms (geoms-of universe))
-           (this-geom (gethash (cffi:pointer-address (claw:ptr this)) geoms))
-           (that-geom (gethash (cffi:pointer-address (claw:ptr that)) geoms))
+           (this-geom (gethash (cffi:pointer-address this) geoms))
+           (that-geom (gethash (cffi:pointer-address that) geoms))
            (contacts-per-collision *contact-points-per-collision*)
            (world (world-of universe))
            (*collision* (make-collision))
@@ -70,24 +70,25 @@
                                t)))
       (when pre-solve-result
         ;; todo: move allocation into universe/world/space object
-        (claw:c-with ((contact-geoms %ode:contact-geom :count contacts-per-collision))
+        (c-with ((contact-geoms %ode:contact-geom :count contacts-per-collision))
           (let ((contact-count (%ode:collide this that
                                              contacts-per-collision
                                              contact-geoms
-                                             (claw:sizeof '%ode:contact-geom))))
+                                             (cffi:foreign-type-size
+                                              '%ode:contact-geom))))
             (when (> contact-count 0)
               ;; todo: move allocation into universe/world/space object
-              (claw:c-with ((contact %ode:contact :calloc t))
+              (c-with ((contact %ode:contact :clear t))
                 (let ((contacts (%filter-contacts contact-count contact-geoms)))
                   (when-let ((post-solve (post-solve-of universe)))
                     (funcall post-solve this-geom that-geom))
                   (loop for contact-info in contacts do
-                       (let* ((contact (fill-contact contact contact-info))
-                              (joint (%ode:joint-create-contact world
-                                                                joint-group contact))
-                              (this-body (%ode:geom-get-body this))
-                              (that-body (%ode:geom-get-body that)))
-                         (%ode:joint-attach joint this-body that-body))))))))))))
+                    (let* ((contact (fill-contact contact contact-info))
+                           (joint (%ode:joint-create-contact world
+                                                             joint-group contact))
+                           (this-body (%ode:geom-get-body this))
+                           (that-body (%ode:geom-get-body that)))
+                      (%ode:joint-attach joint this-body that-body))))))))))))
 
 
 (defun detect-collisions (universe joint-group)
@@ -114,7 +115,7 @@
 
 
 (defun gravity (universe)
-  (claw:c-with ((vec %ode:vector3))
+  (c-with ((vec %ode:vector3))
     (%ode:world-get-gravity (world-of universe) vec)
     (vec3 (vec 0) (vec 1) (vec 2))))
 

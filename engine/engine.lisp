@@ -378,7 +378,7 @@ initialized."
         (handler-bind ((t #'handle-comatose))
           (restart-bind ((continue #'handle-continue :report-function #'report-continue)
                          (abort #'handle-abort :report-function #'report-abort))
-            (claw:with-float-traps-masked ()
+            (float-features:with-float-traps-masked t
               (funcall task))))))))
 
 

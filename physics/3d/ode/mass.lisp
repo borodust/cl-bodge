@@ -2,11 +2,11 @@
 
 
 (defclass mass (disposable)
-  ((value :initform (claw:calloc '%ode:mass) :reader value-of)))
+  ((value :initform (cffi:foreign-alloc '%ode:mass) :reader value-of)))
 
 
 (define-destructor mass (value)
-  (claw:free value))
+  (cffi:foreign-free value))
 
 
 (defun make-box-mass (total x y z &optional offset)

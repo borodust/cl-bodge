@@ -46,7 +46,7 @@
 
 
 (defun print-device-info (device)
-  (claw:c-with ((value %alc:int))
+  (c-with ((value %alc:int))
     (log/debug "Selected device: ~A~%ALC version: ~A.~A"
                (device-name device)
                (progn
@@ -58,7 +58,7 @@
 
 
 (defun make-audio-context ()
-  (claw:with-float-traps-masked ()
+  (float-features:with-float-traps-masked t
     (print-available-devices-info)
     (if-let ((dev (%alc:open-device (cffi:null-pointer))))
       (progn
@@ -88,7 +88,7 @@
 
 
 (defun listener-gain ()
-  (claw:c-with ((value %al:float))
+  (c-with ((value %al:float))
     (%al:get-listeneri %al:+gain+ (value &))
     value))
 
