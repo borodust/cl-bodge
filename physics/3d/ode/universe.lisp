@@ -3,11 +3,11 @@
 
 (defparameter *world-quick-step-iterations* 40)
 (defparameter *auto-disable-bodies-p* t)
-(defparameter *error-reduction-parameter* 0.1) ;; 0.1 ~ 0.8 recommended
-(defparameter *constant-force-mixing* 0d000001)   ;; 10e-9 ~ 1.0 recommended
+(defparameter *error-reduction-parameter* 0.1f0) ;; 0.1 ~ 0.8 recommended
+(defparameter *constant-force-mixing* 0.00001f0)   ;; 10e-9 ~ 1.0 recommended
 (defparameter *contact-points-per-collision* 3)
 ;; https://en.wikipedia.org/wiki/Successive_over-relaxation
-(defparameter *world-over-relaxation* 1.3d0)
+(defparameter *world-over-relaxation* 1.3f0)
 
 
 (defclass universe ()

@@ -5,7 +5,7 @@
 
 
 (definline cp-float (val)
-  (float val 0d0))
+  (float val 0f0))
 
 
 (definline init-cp-vect (vect bodge-vec)

@@ -1,7 +1,7 @@
 (cl:in-package :cl-bodge.physics.ode)
 
 
-(define-constant +precision+ 0d0)
+(define-constant +precision+ 0f0)
 
 
 (defclass ode-object (foreign-object) ())

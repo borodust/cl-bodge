@@ -3,9 +3,9 @@
 
 (defstruct (contact-surface
              (:constructor make-contact-surface))
-  (friction 0.05d0)
-  (bounciness 0.4d0)
-  (velocity 0d0))
+  (friction 0.05f0)
+  (bounciness 0.4f0)
+  (velocity 0f0))
 
 
 (defstruct (contact

@@ -4,8 +4,8 @@
 ;;; MASS
 ;;;
 (defstruct mass
-  (value 0d0 :type double-float :read-only t)
-  (inertia 0d0 :type double-float :read-only t))
+  (value 0f0 :type single-float :read-only t)
+  (inertia 0f0 :type single-float :read-only t))
 
 
 (defmethod simulation-engine-make-mass-for-circle ((engine chipmunk-engine) (mass number)
@@ -60,7 +60,7 @@
 
 (defmethod simulation-engine-make-rigid-body ((engine chipmunk-engine) (universe universe)
                                               &key mass kinematic)
-  (let ((body (make-instance 'rigid-body :mass (or mass (and (not kinematic) (make-mass :value 1d0 :inertia 1d0)))
+  (let ((body (make-instance 'rigid-body :mass (or mass (and (not kinematic) (make-mass :value 1f0 :inertia 1f0)))
                                          :universe universe
                                          :kinematic kinematic)))
     (%cp:space-add-body (handle-value-of universe) (handle-value-of body))
