@@ -11,7 +11,7 @@
 
 
 (defvar *lisp* (first (uiop:raw-command-line-arguments)))
-(defvar *zip* #'relative-directory)
+(defvar *zip* #'zip)
 
 
 (defun distribution-system-path ()
