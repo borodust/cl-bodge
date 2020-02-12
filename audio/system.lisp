@@ -17,7 +17,8 @@
 
 
 (defun device-enumerable-p (device)
-  (%alc:is-extension-present device "ALC_ENUMERATE_ALL_EXT"))
+  (cffi:with-foreign-string (string "ALC_ENUMERATE_ALL_EXT")
+    (%alc:is-extension-present device string)))
 
 
 (defun device-name (device)
