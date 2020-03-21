@@ -15,11 +15,12 @@
                                (stroke-paint nil)
                                (thickness 1.0)
                                (rounding 0.0))
-  (bodge-canvas:draw-rect origin w h
-                          :fill-paint (%paint-handle-of fill-paint)
-                          :stroke-paint (%paint-handle-of stroke-paint)
-                          :thickness thickness
-                          :rounding rounding))
+  (unless (or (zerop w) (zerop h))
+    (bodge-canvas:draw-rect origin w h
+                            :fill-paint (%paint-handle-of fill-paint)
+                            :stroke-paint (%paint-handle-of stroke-paint)
+                            :thickness thickness
+                            :rounding rounding)))
 
 
 (defun draw-image (origin w h image-paint &key (stroke-paint nil)
@@ -30,15 +31,16 @@
                                             (translate-x 0.0)
                                             (translate-y 0.0)
                                             (rotate 0.0))
-  (bodge-canvas:draw-image origin w h (%paint-handle-of image-paint)
-                           :stroke-paint (%paint-handle-of stroke-paint)
-                           :thickness thickness
-                           :rounding rounding
-                           :scale-x scale-x
-                           :scale-y scale-y
-                           :translate-x translate-x
-                           :translate-y translate-y
-                           :rotate rotate))
+  (unless (or (zerop w) (zerop h))
+    (bodge-canvas:draw-image origin w h (%paint-handle-of image-paint)
+                             :stroke-paint (%paint-handle-of stroke-paint)
+                             :thickness thickness
+                             :rounding rounding
+                             :scale-x scale-x
+                             :scale-y scale-y
+                             :translate-x translate-x
+                             :translate-y translate-y
+                             :rotate rotate)))
 
 
 (defun draw-circle (center radius &key (fill-paint nil)
@@ -53,10 +55,11 @@
 (defun draw-ellipse (center x-radius y-radius &key (fill-paint nil)
                                                 (stroke-paint nil)
                                                 (thickness 1.0))
-  (bodge-canvas:draw-ellipse center x-radius y-radius
-                             :fill-paint (%paint-handle-of fill-paint)
-                             :stroke-paint (%paint-handle-of stroke-paint)
-                             :thickness thickness))
+  (unless (or (zerop x-radius) (zerop y-radius))
+    (bodge-canvas:draw-ellipse center x-radius y-radius
+                               :fill-paint (%paint-handle-of fill-paint)
+                               :stroke-paint (%paint-handle-of stroke-paint)
+                               :thickness thickness)))
 
 
 (defun draw-arc (center radius a0 a1 &key (fill-paint nil)
