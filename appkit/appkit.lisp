@@ -107,18 +107,21 @@
       (%reschedule-flow frame-queue act-item))))
 
 
-(defun %update-canvas-and-ui-dimensions (this viewport-width viewport-height)
+(defun %update-canvas-and-ui-dimensions (this viewport-width viewport-height pixel-ratio)
   (with-slots (canvas ui
                (this-canvas-width canvas-width)
                (this-canvas-height canvas-height))
       this
-    (ge.vg:update-canvas-size canvas
-                              (or this-canvas-width viewport-width)
-                              (or this-canvas-height viewport-height))
-    (ge.ui:update-ui-size ui viewport-width viewport-height)))
+    (let* ((canvas-width (or this-canvas-width viewport-width))
+           (canvas-height (or this-canvas-height viewport-height))
+           (canvas-aspect (/ viewport-width canvas-width)))
+      (ge.vg:update-canvas-size canvas canvas-width canvas-height)
+      (ge.vg:update-canvas-pixel-ratio canvas (* pixel-ratio canvas-aspect)))
+    (ge.ui:update-ui-size ui viewport-width viewport-height)
+    (ge.ui:update-ui-pixel-ratio ui pixel-ratio)))
 
 
-(defun update-graphics (this viewport-width viewport-height
+(defun update-graphics (this viewport-width viewport-height pixel-ratio
                         canvas-width canvas-height panel-classes)
   (with-slots (canvas ui
                (this-canvas-width canvas-width)
@@ -126,7 +129,7 @@
       this
     (setf this-canvas-width canvas-width
           this-canvas-height canvas-height)
-    (%update-canvas-and-ui-dimensions this viewport-width viewport-height)
+    (%update-canvas-and-ui-dimensions this viewport-width viewport-height pixel-ratio)
     (ge.ui:with-ui-access (ui)
       (ge.ui:remove-all-panels ui)
       (dolist (panel-class panel-classes)
@@ -144,10 +147,10 @@
           (update-viewport (or viewport-title *default-viewport-title*)
                            width height fullscreen-p)
           (ge.host:with-viewport-dimensions (actual-width actual-height)
-            (list actual-width actual-height)))
-        (ge.gx:for-graphics ((actual-width actual-height))
+            (list actual-width actual-height (ge.host:viewport-scale))))
+        (ge.gx:for-graphics ((actual-width actual-height pixel-ratio))
           (log/debug "Updating appkit graphics configuration")
-          (update-graphics app actual-width actual-height
+          (update-graphics app actual-width actual-height pixel-ratio
                            canvas-width canvas-height
                            panel-classes))
         (instantly ()
@@ -160,8 +163,10 @@
 (define-event-handler on-viewport-update ((ev ge.host:viewport-size-change-event)
                                           width height)
   (when-app (app)
-    (inject-flow (ge.gx:for-graphics ()
-                   (%update-canvas-and-ui-dimensions app width height)))))
+    (inject-flow (>> (ge.host:for-host ()
+                       (ge.host:viewport-scale))
+                     (ge.gx:for-graphics (pixel-ratio)
+                       (%update-canvas-and-ui-dimensions app width height pixel-ratio))))))
 
 
 (defmacro defapp (name (&rest classes) &body ((&rest slots) &rest opts))
