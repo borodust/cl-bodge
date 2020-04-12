@@ -346,12 +346,12 @@
             (setf updated-p nil)
             (>> (sweeping-flow this)
                 (%app-configuration-flow this))))
+        (instantly ()
+          (drain action-queue))
         (->> ()
           (when injected-flows
             (prog1 (nreverse injected-flows)
               (setf injected-flows nil))))
-        (instantly ()
-          (drain action-queue))
         (->> ()
           (acting-flow this)))))
 
