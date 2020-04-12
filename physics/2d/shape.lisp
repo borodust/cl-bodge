@@ -211,20 +211,19 @@
 (defmethod simulation-engine-make-box-shape ((engine chipmunk-engine) (universe universe)
                                              (width number) (height number) &key body offset substance)
   (if offset
-      (flet ((offset (point)
-               (add point offset)))
+      (let ((ox (+ (- (/ width 2)) (x offset)))
+            (oy (+ (- (/ height 2)) (y offset))))
         (simulation-engine-make-polygon-shape engine universe
-                                              (mapcar #'offset (list (vec2 0 0)
-                                                                     (vec2 0 height)
-                                                                     (vec2 width height)
-                                                                     (vec2 width 0)))
+                                              (list (vec2 ox oy)
+                                                    (vec2 ox (+ oy height))
+                                                    (vec2 (+ ox width) (+ oy height))
+                                                    (vec2 (+ ox width) oy))
                                               :body body))
       (let ((shape (make-instance 'box-shape
                                   :universe universe
                                   :substance substance
                                   :width width
                                   :height height
-                                  :ofsset offset
                                   :body body)))
         (%cp:space-add-shape (handle-value-of universe) (handle-value-of shape))
         shape)))
