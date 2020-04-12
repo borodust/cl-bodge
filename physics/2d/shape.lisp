@@ -218,7 +218,8 @@
                                                     (vec2 ox (+ oy height))
                                                     (vec2 (+ ox width) (+ oy height))
                                                     (vec2 (+ ox width) oy))
-                                              :body body))
+                                              :body body
+                                              :substance substance))
       (let ((shape (make-instance 'box-shape
                                   :universe universe
                                   :substance substance
