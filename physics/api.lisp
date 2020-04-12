@@ -322,6 +322,10 @@
   (setf (simulation-engine-collision-surface-velocity *engine*) value))
 
 
+(defun collision-surface-velocity ()
+  (simulation-engine-collision-surface-velocity *engine*))
+
+
 (defun has-next-shape-contact ())
 
 

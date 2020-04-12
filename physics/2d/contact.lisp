@@ -16,6 +16,11 @@
     (%cp:arbiter-set-surface-velocity *arbiter* vec))
   value)
 
+(defmethod simulation-engine-collision-surface-velocity ((engine chipmunk-engine))
+  (with-cp-vect (vec)
+    (%cp:arbiter-get-surface-velocity vec *arbiter*)
+    (init-bodge-vec (vec2) vec)))
+
 (defmethod simulation-engine-contact-normal ((engine chipmunk-engine))
   (declare (ignore engine)))
 (defmethod simulation-engine-contact-point ((engine chipmunk-engine))

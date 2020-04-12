@@ -94,6 +94,7 @@
 (defgeneric (setf simulation-engine-collision-friction) (value engine))
 (defgeneric (setf simulation-engine-collision-elasticity) (value engine))
 (defgeneric (setf simulation-engine-collision-surface-velocity) (value engine))
+(defgeneric simulation-engine-collision-surface-velocity (engine))
 
 (defgeneric simulation-engine-contact-normal (engine))
 (defgeneric simulation-engine-contact-point (engine))
