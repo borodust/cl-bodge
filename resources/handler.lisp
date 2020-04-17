@@ -37,8 +37,15 @@
 
 (defmethod decode-resource ((this text-resource-handler) stream)
   (with-slots (encoding) this
-    (let ((string-stream (flex:make-flexi-stream stream :external-format encoding)))
-      (read-stream-content-into-string string-stream))))
+    ;; FIXME: this is suboptimal, but flexi stream doesn't seem to handle
+    ;; buffered read very well and throws errors like
+    ;;   `Unexpected value #x89 at start of UTF-8 sequence.`
+    ;; if you try to read from it in chunks
+    ;;
+    ;; Need to somehow get back to buffered reading with
+    ;;   (flex:make-flexi-stream stream :external-format encoding)
+    (flexi-streams:octets-to-string (read-stream-content-into-byte-vector stream)
+                                    :external-format encoding)))
 
 
 (defmethod encode-resource ((this text-resource-handler) (resource string) stream)
