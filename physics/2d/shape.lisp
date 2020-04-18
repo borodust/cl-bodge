@@ -43,6 +43,12 @@
       (handle-value-of body)))
 
 
+(defun add-space-shape (universe shape)
+  (flet ((%add ()
+           (%cp:space-add-shape (handle-value-of universe) (handle-value-of shape))))
+    (invoke-between-observations #'%add)))
+
+
 ;;;
 ;;; SEGMENT
 ;;;
@@ -69,7 +75,7 @@
                               :end end
                               :substance substance
                               :body body)))
-    (%cp:space-add-shape (handle-value-of universe) (handle-value-of shape))
+    (add-space-shape universe shape)
     shape))
 
 
@@ -147,7 +153,7 @@
                               :radius radius
                               :substance substance
                               :body body)))
-    (%cp:space-add-shape (handle-value-of universe) (handle-value-of shape))
+    (add-space-shape universe shape)
     shape))
 
 
@@ -189,7 +195,7 @@
                               :points points
                               :substance substance
                               :body body)))
-    (%cp:space-add-shape (handle-value-of universe) (handle-value-of shape))
+    (add-space-shape universe shape)
     shape))
 
 ;;;
@@ -226,5 +232,5 @@
                                   :width width
                                   :height height
                                   :body body)))
-        (%cp:space-add-shape (handle-value-of universe) (handle-value-of shape))
+        (add-space-shape universe shape)
         shape)))

@@ -136,7 +136,11 @@
 
 (defmethod simulation-engine-observe-universe ((engine chipmunk-engine) (universe universe) time-step)
   (with-slots (post-step-queue) universe
-    (let ((*active-universe* universe))
+    (let ((*active-universe* universe)
+          (*observing-p* t)
+          (*post-observation-hooks* nil))
       (float-features:with-float-traps-masked t
         (%cp:space-step (handle-value-of universe) (cp-float time-step))
-        (drain post-step-queue)))))
+        (drain post-step-queue))
+      (loop for hook in *post-observation-hooks*
+            do (funcall hook)))))

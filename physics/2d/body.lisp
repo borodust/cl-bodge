@@ -63,7 +63,9 @@
   (let ((body (make-instance 'rigid-body :mass (or mass (and (not kinematic) (make-mass :value 1f0 :inertia 1f0)))
                                          :universe universe
                                          :kinematic kinematic)))
-    (%cp:space-add-body (handle-value-of universe) (handle-value-of body))
+    (flet ((%space-add-body ()
+             (%cp:space-add-body (handle-value-of universe) (handle-value-of body))))
+      (invoke-between-observations #'%space-add-body))
     body))
 
 
