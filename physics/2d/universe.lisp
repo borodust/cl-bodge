@@ -14,8 +14,7 @@
   ((shape-registry :initform (trivial-garbage:make-weak-hash-table :weakness :value :test 'eql))
    (on-pre-solve :initform nil :initarg :on-pre-solve)
    (on-post-solve :initform nil :initarg :on-post-solve)
-   (ptr-store :initform (cffi:foreign-alloc :pointer :count 2))
-   (post-step-queue :initform (make-task-queue)))
+   (ptr-store :initform (cffi:foreign-alloc :pointer :count 2)))
   (:default-initargs :handle (make-universe-handle)))
 
 
@@ -38,33 +37,24 @@
 
 
 (defun %remove-and-free-shape (universe shape-handle)
-  (with-slots (post-step-queue) universe
-    (flet ((%destroy-shape ()
-             (%cp:space-remove-shape (handle-value-of universe) (value-of shape-handle))
-             (destroy-handle shape-handle)))
-    (if (universe-locked-p universe)
-        (push-task  #'%destroy-shape post-step-queue)
-        (%destroy-shape)))))
+  (flet ((%destroy-shape ()
+           (%cp:space-remove-shape (handle-value-of universe) (value-of shape-handle))
+           (destroy-handle shape-handle)))
+    (invoke-between-observations #'%destroy-shape)))
 
 
 (defun %remove-and-free-constraint (universe constraint-handle)
-  (with-slots (post-step-queue) universe
-    (flet ((%destroy-constraint ()
-             (%cp:space-remove-constraint (handle-value-of universe) (value-of constraint-handle))
-             (destroy-handle constraint-handle)))
-    (if (universe-locked-p universe)
-        (push-task  #'%destroy-constraint post-step-queue)
-        (%destroy-constraint)))))
+  (flet ((%destroy-constraint ()
+           (%cp:space-remove-constraint (handle-value-of universe) (value-of constraint-handle))
+           (destroy-handle constraint-handle)))
+    (invoke-between-observations #'%destroy-constraint)))
 
 
 (defun %remove-and-free-body (universe body-handle)
-  (with-slots (post-step-queue) universe
-    (flet ((%destroy-body ()
-             (%cp:space-remove-body (handle-value-of universe) (value-of body-handle))
-             (destroy-handle body-handle)))
-      (if (universe-locked-p universe)
-          (push-task  #'%destroy-body post-step-queue)
-          (%destroy-body)))))
+  (flet ((%destroy-body ()
+           (%cp:space-remove-body (handle-value-of universe) (value-of body-handle))
+           (destroy-handle body-handle)))
+    (invoke-between-observations #'%destroy-body)))
 
 
 (defmacro with-colliding-shapes ((this that) arbiter &body body)
@@ -135,12 +125,10 @@
 
 
 (defmethod simulation-engine-observe-universe ((engine chipmunk-engine) (universe universe) time-step)
-  (with-slots (post-step-queue) universe
-    (let ((*active-universe* universe)
-          (*observing-p* t)
-          (*post-observation-hooks* nil))
-      (float-features:with-float-traps-masked t
-        (%cp:space-step (handle-value-of universe) (cp-float time-step))
-        (drain post-step-queue))
+  (let ((*active-universe* universe)
+        (*observing-p* t)
+        (*post-observation-hooks* nil))
+    (float-features:with-float-traps-masked t
+      (%cp:space-step (handle-value-of universe) (cp-float time-step))
       (loop for hook in *post-observation-hooks*
             do (funcall hook)))))
