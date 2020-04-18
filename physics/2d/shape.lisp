@@ -136,10 +136,11 @@
 (defclass circular-shape (chipmunk-shape) ())
 
 
-(defmethod initialize-instance ((this circular-shape) &rest args &key radius body universe)
+(defmethod initialize-instance ((this circular-shape) &rest args
+                                &key radius body universe offset)
   (with-cp-vect (zero-vect)
-    (setf (zero-vect :x) (cp-float 0)
-          (zero-vect :y) (cp-float 0))
+    (setf (zero-vect :x) (cp-float (if offset (x offset) 0))
+          (zero-vect :y) (cp-float (if offset (y offset) 0)))
     (apply #'call-next-method this
            :handle (make-shape-handle (%cp:circle-shape-new (body-handle-or-static universe body)
                                                             (cp-float radius) zero-vect))
@@ -147,11 +148,12 @@
 
 
 (defmethod simulation-engine-make-circle-shape ((engine chipmunk-engine) (universe universe)
-                                                (radius number) &key body substance)
+                                                (radius number) &key body substance offset)
   (let ((shape (make-instance 'circular-shape
                               :universe universe
                               :radius radius
                               :substance substance
+                              :offset offset
                               :body body)))
     (add-space-shape universe shape)
     shape))
@@ -164,7 +166,7 @@
 
 
 (defmethod initialize-instance ((this polygon-shape) &rest args
-                                &key points body universe)
+                                &key points body universe radius)
   (let ((point-count (length points)))
     (c-with ((f-points %cp:vect :count point-count)
              (f-transform %cp:transform))
@@ -184,17 +186,18 @@
                                                               point-count
                                                               (f-points &)
                                                               (f-transform &)
-                                                              (cp-float 0.0001))))
+                                                              (cp-float (or radius 0.0001)))))
              args))))
 
 
 (defmethod simulation-engine-make-polygon-shape ((engine chipmunk-engine) (universe universe)
-                                                 points &key body substance)
+                                                 points &key body substance radius)
   (let ((shape (make-instance 'polygon-shape
                               :universe universe
                               :points points
                               :substance substance
-                              :body body)))
+                              :body body
+                              :radius radius)))
     (add-space-shape universe shape)
     shape))
 
@@ -205,17 +208,18 @@
 
 
 (defmethod initialize-instance ((this box-shape) &rest args
-                                &key width height body universe &allow-other-keys)
+                                &key width height body universe radius &allow-other-keys)
   (apply #'call-next-method this
          :handle (make-shape-handle (%cp:box-shape-new (body-handle-or-static universe body)
                                                        (cp-float width)
                                                        (cp-float height)
-                                                       (cp-float 0)))
+                                                       (cp-float (or radius 0))))
          args))
 
 
 (defmethod simulation-engine-make-box-shape ((engine chipmunk-engine) (universe universe)
-                                             (width number) (height number) &key body offset substance)
+                                             (width number) (height number)
+                                             &key body offset substance radius)
   (if offset
       (let ((ox (+ (- (/ width 2)) (x offset)))
             (oy (+ (- (/ height 2)) (y offset))))
@@ -225,12 +229,14 @@
                                                     (vec2 (+ ox width) (+ oy height))
                                                     (vec2 (+ ox width) oy))
                                               :body body
-                                              :substance substance))
+                                              :substance substance
+                                              :radius radius))
       (let ((shape (make-instance 'box-shape
                                   :universe universe
                                   :substance substance
                                   :width width
                                   :height height
+                                  :radius radius
                                   :body body)))
         (add-space-shape universe shape)
         shape)))

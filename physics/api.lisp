@@ -282,7 +282,7 @@
                                                              :substance prepared-substance))))
 
 
-(defun make-box-shape (universe width height &key offset body substance)
+(defun make-box-shape (universe width height &key offset body substance radius)
   (make-shape-handle (%engine-of universe)
                      body
                      substance
@@ -292,10 +292,11 @@
                                                          width height
                                                          :body (%handle-of body)
                                                          :offset offset
+                                                         :radius radius
                                                          :substance prepared-substance))))
 
 
-(defun make-circle-shape (universe radius &key body substance)
+(defun make-circle-shape (universe radius &key body substance offset)
   (make-shape-handle (%engine-of universe)
                      body
                      substance
@@ -304,6 +305,7 @@
                                                             (%handle-of universe)
                                                             radius
                                                             :body (%handle-of body)
+                                                            :offset offset
                                                             :substance prepared-substance))))
 
 

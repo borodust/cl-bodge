@@ -83,9 +83,11 @@
 
 (defgeneric simulation-engine-make-segment-shape (engine universe start end &key body substance))
 (defgeneric simulation-engine-make-polyline-shape (engine universe points &key body substance))
-(defgeneric simulation-engine-make-polygon-shape (engine universe points &key body substance))
-(defgeneric simulation-engine-make-box-shape (engine universe width height &key offset body substance))
-(defgeneric simulation-engine-make-circle-shape (engine universe radius &key body substance))
+(defgeneric simulation-engine-make-polygon-shape (engine universe points
+                                                  &key body substance radius))
+(defgeneric simulation-engine-make-box-shape (engine universe width height
+                                              &key offset body substance radius))
+(defgeneric simulation-engine-make-circle-shape (engine universe radius &key body substance offset))
 
 
 ;;;
