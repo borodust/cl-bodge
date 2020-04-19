@@ -23,3 +23,7 @@
   (if *observing-p*
       (push hook *post-observation-hooks*)
       (funcall hook)))
+
+
+(defmacro between-observations (&body body)
+  `(invoke-between-observations (lambda () ,@body)))

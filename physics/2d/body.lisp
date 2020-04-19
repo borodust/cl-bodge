@@ -92,9 +92,10 @@
 
 (defmethod (setf simulation-engine-body-mass) ((value mass) (engine chipmunk-engine)
                                                (body rigid-body))
-  (let ((handle (handle-value-of body)))
-    (%cp:body-set-mass handle (cp-float (mass-value value)))
-    (%cp:body-set-moment handle (cp-float (mass-inertia value))))
+  (between-observations
+    (let ((handle (handle-value-of body)))
+      (%cp:body-set-mass handle (cp-float (mass-value value)))
+      (%cp:body-set-moment handle (cp-float (mass-inertia value)))))
   value)
 
 
@@ -106,8 +107,9 @@
 
 (defmethod (setf simulation-engine-body-position) ((value vec2) (engine chipmunk-engine)
                                                    (body rigid-body))
-  (with-cp-vect (vect value)
-    (%cp:body-set-position (handle-value-of body) vect))
+  (between-observations
+    (with-cp-vect (vect value)
+      (%cp:body-set-position (handle-value-of body) vect)))
   value)
 
 
@@ -119,8 +121,9 @@
 
 (defmethod (setf simulation-engine-body-linear-velocity) ((value vec2) (engine chipmunk-engine)
                                                           (body rigid-body))
-  (with-cp-vect (vect value)
-    (%cp:body-set-velocity (handle-value-of body) vect))
+  (between-observations
+    (with-cp-vect (vect value)
+      (%cp:body-set-velocity (handle-value-of body) vect)))
   value)
 
 
@@ -131,8 +134,9 @@
 (defmethod (setf simulation-engine-body-rotation) ((value mat2)
                                                    (engine chipmunk-engine)
                                                    (body rigid-body))
-  (%cp:body-set-angle (handle-value-of body) (cp-float (atan (mref value 1 0)
-                                                             (mref value 0 0))))
+  (between-observations
+    (%cp:body-set-angle (handle-value-of body) (cp-float (atan (mref value 1 0)
+                                                               (mref value 0 0)))))
   value)
 
 
@@ -142,7 +146,8 @@
 
 (defmethod (setf simulation-engine-body-angular-velocity) ((value number) (engine chipmunk-engine)
                                                            (body rigid-body))
-  (%cp:body-set-angular-velocity (handle-value-of body) (cp-float value)))
+  (between-observations
+    (%cp:body-set-angular-velocity (handle-value-of body) (cp-float value))))
 
 
 (defmethod simulation-engine-destroy-rigid-body ((engine chipmunk-engine) (body rigid-body))
