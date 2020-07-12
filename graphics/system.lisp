@@ -77,7 +77,8 @@
 
 
 (defun graphics-context-assembly-flow ()
-  (>> (assembly-flow 'graphics-context :system (graphics))
+  (>> (->> ()
+        (assembly-flow 'graphics-context :system (graphics)))
       (for-graphics (instance)
         (register-shared-context instance))))
 

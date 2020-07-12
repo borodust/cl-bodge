@@ -16,6 +16,8 @@
 
 (defmethod initialize-instance :after ((this graphics-context) &key system)
   (with-slots (executor) this
+    (unless system
+      (error ":system missing"))
     (flet ((%invoke (task)
              (let ((*system* system)
                    (*graphics-context* this)
