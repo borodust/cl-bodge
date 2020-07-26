@@ -114,9 +114,9 @@
       this
     (let* ((canvas-width (or this-canvas-width viewport-width))
            (canvas-height (or this-canvas-height viewport-height))
-           (canvas-aspect (/ viewport-width canvas-width)))
+           (canvas-aspect (if (zerop canvas-width) 0 (/ viewport-width canvas-width))))
       (ge.vg:update-canvas-size canvas canvas-width canvas-height)
-      (ge.vg:update-canvas-pixel-ratio canvas (* pixel-ratio canvas-aspect)))
+      (ge.vg:update-canvas-pixel-ratio canvas (* pixel-ratio (if (zerop canvas-aspect) 1 canvas-aspect))))
     (ge.ui:update-ui-size ui viewport-width viewport-height)
     (ge.ui:update-ui-pixel-ratio ui pixel-ratio)))
 
