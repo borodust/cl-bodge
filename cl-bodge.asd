@@ -17,7 +17,7 @@
   :mailto "dev@borodust.org"
   :license "MIT"
   :depends-on (:cl-bodge/utils :bodge-memory :bodge-math :bodge-concurrency
-               :bodge-blobs-support :claw :claw-utils :log4cl
+               :bodge-blobs-support :claw :claw-utils :log4cl :cl-fad
                :local-time :cffi :cl-flow :uiop :simple-flow-dispatcher
                :cl-muth :float-features :bodge-libc-essentials)
   :pathname "engine/"
