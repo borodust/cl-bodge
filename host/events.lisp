@@ -5,15 +5,15 @@
 
 
 (defevent keyboard-event (input-event)
-  (key state))
+  (key state modifiers))
 
 
 (defevent character-input-event (input-event)
-  (character))
+  (character modifiers))
 
 
 (defevent mouse-event (input-event)
-  (button state))
+  (button state modifiers))
 
 
 (defevent cursor-event (input-event)

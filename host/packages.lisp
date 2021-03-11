@@ -59,6 +59,7 @@
            #:key-from
            #:character-from
            #:button-from
+           #:modifiers-from
            #:controller-from
            #:gamepad-from
 

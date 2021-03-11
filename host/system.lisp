@@ -110,12 +110,18 @@
   (post 'viewport-hiding-event))
 
 
+(defun collect-modifiers (app)
+  (loop for mod in '(:shift :control :alt :super :caps-lock :num-lock)
+        when (bodge-host:modifiers-engaged-p app mod)
+          collect mod))
+
+
 (defmethod bodge-host:on-key-action ((this host-application) key state)
-  (post 'keyboard-event :key key :state state))
+  (post 'keyboard-event :key key :state state :modifiers (collect-modifiers this)))
 
 
 (defmethod bodge-host:on-mouse-action ((this host-application) button state)
-  (post 'mouse-event :button button :state state))
+  (post 'mouse-event :button button :state state :modifiers (collect-modifiers this)))
 
 
 (defmethod bodge-host:on-cursor-movement ((this host-application) x y)
@@ -135,7 +141,7 @@
 
 
 (defmethod bodge-host:on-character-input ((this host-application) character)
-  (post 'character-input-event :character character))
+  (post 'character-input-event :character character :modifiers (collect-modifiers this)))
 
 
 (defun make-host-application (cont)

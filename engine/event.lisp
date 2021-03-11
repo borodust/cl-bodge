@@ -3,7 +3,6 @@
 ;;;
 ;;; Events
 ;;;
-
 (defun post (event-or-class &rest initargs &key &allow-other-keys)
   (let ((event (etypecase event-or-class
                  ((or symbol standard-class) (apply #'make-instance event-or-class initargs))
