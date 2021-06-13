@@ -9,28 +9,28 @@
 
 
 (definline init-cp-vect (vect bodge-vec)
-  (c-val ((vect %cp:vect))
+  (c-val ((vect %chipmunk:vect))
     (setf (vect :x) (cp-float (x bodge-vec))
           (vect :y) (cp-float (y bodge-vec))))
   vect)
 
 
 (definline set-cp-vect (vect x y)
-  (c-val ((vect %cp:vect))
+  (c-val ((vect %chipmunk:vect))
     (setf (vect :x) (cp-float x)
           (vect :y) (cp-float y)))
   vect)
 
 
 (definline init-bodge-vec (bodge-vec cp-vect)
-  (c-val ((cp-vect %cp:vect))
+  (c-val ((cp-vect %chipmunk:vect))
     (setf (x bodge-vec) (cp-vect :x)
           (y bodge-vec) (cp-vect :y)))
   bodge-vec)
 
 
 (defmacro with-cp-vect ((vect &optional bodge-vec) &body body)
-  `(c-with ((,vect %cp:vect))
+  `(c-with ((,vect %chipmunk:vect))
      ,@(when bodge-vec
          `((init-cp-vect ,vect ,bodge-vec)))
      ,@body))

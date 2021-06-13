@@ -2,7 +2,7 @@
 
 
 (defhandle constraint-handle
-  :closeform (%cp:constraint-free *handle-value*))
+  :closeform (%chipmunk:constraint-free *handle-value*))
 
 
 (defclass chipmunk-constraint (disposable)
@@ -32,13 +32,13 @@
     (let ((constraint (make-instance 'chipmunk-constraint
                                      :universe universe
                                      :handle (make-constraint-handle
-                                              (%cp:damped-spring-new (handle-value-of this-body)
+                                              (%chipmunk:damped-spring-new (handle-value-of this-body)
                                                                      (handle-value-of that-body)
                                                                      anchor-a anchor-b
                                                                      (cp-float rest-length)
                                                                      (cp-float stiffness)
                                                                      (cp-float damping))))))
-      (%cp:space-add-constraint (handle-value-of universe) (handle-value-of constraint))
+      (%chipmunk:space-add-constraint (handle-value-of universe) (handle-value-of constraint))
       constraint)))
 
 
@@ -55,12 +55,12 @@
     (let ((constraint (make-instance 'chipmunk-constraint
                                      :universe universe
                                      :handle (make-constraint-handle
-                                              (%cp:slide-joint-new (handle-value-of this-body)
+                                              (%chipmunk:slide-joint-new (handle-value-of this-body)
                                                                    (handle-value-of that-body)
                                                                    anchor-a anchor-b
                                                                    (cp-float min)
                                                                    (cp-float max))))))
-      (%cp:space-add-constraint (handle-value-of universe) (handle-value-of constraint))
+      (%chipmunk:space-add-constraint (handle-value-of universe) (handle-value-of constraint))
       constraint)))
 
 
@@ -75,9 +75,9 @@
     (let ((constraint (make-instance 'chipmunk-constraint
                                      :universe universe
                                      :handle (make-constraint-handle
-                                              (%cp:pin-joint-new (handle-value-of this-body)
+                                              (%chipmunk:pin-joint-new (handle-value-of this-body)
                                                                  (or (and that-body (handle-value-of that-body))
-                                                                     (%cp:space-get-static-body (handle-value-of universe)))
+                                                                     (%chipmunk:space-get-static-body (handle-value-of universe)))
                                                                  anchor-a anchor-b)))))
-      (%cp:space-add-constraint (handle-value-of universe) (handle-value-of constraint))
+      (%chipmunk:space-add-constraint (handle-value-of universe) (handle-value-of constraint))
       constraint)))

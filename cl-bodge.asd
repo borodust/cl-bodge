@@ -17,7 +17,7 @@
   :mailto "dev@borodust.org"
   :license "MIT"
   :depends-on (:cl-bodge/utils :bodge-memory :bodge-math :bodge-concurrency
-               :bodge-blobs-support :claw :claw-utils :log4cl :cl-fad
+               :bodge-blobs-support :log4cl :cl-fad
                :local-time :cffi :cl-flow :uiop :simple-flow-dispatcher
                :cl-muth :float-features :bodge-libc-essentials)
   :pathname "engine/"
@@ -203,7 +203,7 @@
   :mailto "dev@borodust.org"
   :license "MIT"
   :depends-on (cl-bodge/utils cl-bodge/engine cl-bodge/physics/backend
-                              ode-blob bodge-ode log4cl claw local-time)
+                              ode-blob bodge-ode log4cl local-time)
   :pathname "physics/3d/"
   :serial t
   :components ((:file "packages")
@@ -230,7 +230,7 @@
   :mailto "dev@borodust.org"
   :license "MIT"
   :depends-on (cl-bodge/utils cl-bodge/engine cl-bodge/physics/backend
-                              chipmunk-blob bodge-chipmunk log4cl claw
+                              chipmunk-blob bodge-chipmunk log4cl
                               trivial-garbage cffi)
   :pathname "physics/2d/"
   :serial t
@@ -289,7 +289,7 @@
   :mailto "dev@borodust.org"
   :license "MIT"
   :depends-on (cl-bodge/engine cl-bodge/utils bodge-ui cl-bodge/graphics cl-bodge/canvas
-                               cl-bodge/host claw)
+                               cl-bodge/host)
   :pathname "ui/"
   :serial t
   :components ((:file "packages")

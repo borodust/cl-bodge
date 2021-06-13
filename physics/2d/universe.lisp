@@ -6,8 +6,8 @@
 
 (defhandle universe-handle
   :initform (float-features:with-float-traps-masked t
-              (%cp:space-new))
-  :closeform (%cp:space-free *handle-value*))
+              (%chipmunk:space-new))
+  :closeform (%chipmunk:space-free *handle-value*))
 
 
 (defclass universe (foreign-object)
@@ -33,26 +33,26 @@
 
 
 (defun universe-locked-p (universe)
-  (= %cp:+true+ (%cp:space-is-locked (handle-value-of universe))))
+  (= %chipmunk:+true+ (%chipmunk:space-is-locked (handle-value-of universe))))
 
 
 (defun %remove-and-free-shape (universe shape-handle)
   (flet ((%destroy-shape ()
-           (%cp:space-remove-shape (handle-value-of universe) (value-of shape-handle))
+           (%chipmunk:space-remove-shape (handle-value-of universe) (value-of shape-handle))
            (destroy-handle shape-handle)))
     (invoke-between-observations #'%destroy-shape)))
 
 
 (defun %remove-and-free-constraint (universe constraint-handle)
   (flet ((%destroy-constraint ()
-           (%cp:space-remove-constraint (handle-value-of universe) (value-of constraint-handle))
+           (%chipmunk:space-remove-constraint (handle-value-of universe) (value-of constraint-handle))
            (destroy-handle constraint-handle)))
     (invoke-between-observations #'%destroy-constraint)))
 
 
 (defun %remove-and-free-body (universe body-handle)
   (flet ((%destroy-body ()
-           (%cp:space-remove-body (handle-value-of universe) (value-of body-handle))
+           (%chipmunk:space-remove-body (handle-value-of universe) (value-of body-handle))
            (destroy-handle body-handle)))
     (invoke-between-observations #'%destroy-body)))
 
@@ -62,7 +62,7 @@
     (once-only (arbiter)
       `(with-slots ((,store ptr-store)) *active-universe*
          (c-let ((,vec :pointer :from ,store))
-           (%cp:arbiter-get-shapes ,arbiter (,vec 0 &) (,vec 1 &))
+           (%chipmunk:arbiter-get-shapes ,arbiter (,vec 0 &) (,vec 1 &))
            (let ((,this (find-shape *active-universe* (cffi:pointer-address (,vec 0))))
                  (,that (find-shape *active-universe* (cffi:pointer-address (,vec 1)))))
              ,@body))))))
@@ -76,8 +76,8 @@
     (if-let (pre-solve-fu on-pre-solve)
       (with-colliding-shapes (this that) arbiter
         (let ((*arbiter* arbiter))
-          (if (funcall pre-solve-fu this that) %cp:+true+ %cp:+false+)))
-      %cp:+true+)))
+          (if (funcall pre-solve-fu this that) %chipmunk:+true+ %chipmunk:+false+)))
+      %chipmunk:+true+)))
 
 
 (cffi:defcallback post-solve-callback :void ((arbiter :pointer)
@@ -92,8 +92,8 @@
 
 
 (defmethod initialize-instance :after ((this universe) &key)
-  (c-let ((collision-handler %cp:collision-handler
-                             :from (%cp:space-add-default-collision-handler
+  (c-let ((collision-handler %chipmunk:collision-handler
+                             :from (%chipmunk:space-add-default-collision-handler
                                     (handle-value-of this))))
     (setf (collision-handler :pre-solve-func) (cffi:callback pre-solve-callback)
           (collision-handler :post-solve-func) (cffi:callback post-solve-callback))))
@@ -109,18 +109,18 @@
 
 
 (defun universe-static-body (universe)
-  (%cp:space-get-static-body (handle-value-of universe)))
+  (%chipmunk:space-get-static-body (handle-value-of universe)))
 
 
 (defmethod (setf simulation-engine-gravity) ((value vec2) (this chipmunk-engine) (universe universe))
   (with-cp-vect (vec value)
-    (%cp:space-set-gravity (handle-value-of universe) vec))
+    (%chipmunk:space-set-gravity (handle-value-of universe) vec))
   value)
 
 
 (defmethod simulation-engine-gravity ((this chipmunk-engine) (universe universe))
   (with-cp-vect (vec)
-    (%cp:space-get-gravity vec (handle-value-of universe))
+    (%chipmunk:space-get-gravity vec (handle-value-of universe))
     (init-bodge-vec (vec2) vec)))
 
 
@@ -129,6 +129,6 @@
         (*observing-p* t)
         (*post-observation-hooks* nil))
     (float-features:with-float-traps-masked t
-      (%cp:space-step (handle-value-of universe) (cp-float time-step))
+      (%chipmunk:space-step (handle-value-of universe) (cp-float time-step))
       (loop for hook in *post-observation-hooks*
             do (funcall hook)))))

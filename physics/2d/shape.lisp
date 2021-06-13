@@ -5,7 +5,7 @@
 ;;; SHAPE
 ;;;
 (defhandle shape-handle
-  :closeform (%cp:shape-free *handle-value*))
+  :closeform (%chipmunk:shape-free *handle-value*))
 
 
 (defclass chipmunk-shape (disposable)
@@ -45,7 +45,7 @@
 
 (defun add-space-shape (universe shape)
   (flet ((%add ()
-           (%cp:space-add-shape (handle-value-of universe) (handle-value-of shape))))
+           (%chipmunk:space-add-shape (handle-value-of universe) (handle-value-of shape))))
     (invoke-between-observations #'%add)))
 
 
@@ -57,13 +57,13 @@
 
 (defmethod initialize-instance ((this segment-shape) &rest args
                                 &key start end body universe)
-  (c-with ((a %cp:vect)
-           (b %cp:vect))
+  (c-with ((a %chipmunk:vect)
+           (b %chipmunk:vect))
     (init-cp-vect (a &) start)
     (init-cp-vect (b &) end)
     (apply #'call-next-method this
            :handle (make-shape-handle
-                    (%cp:segment-shape-new (body-handle-or-static universe body) a b (cp-float 0.0)))
+                    (%chipmunk:segment-shape-new (body-handle-or-static universe body) a b (cp-float 0.0)))
            args)))
 
 
@@ -97,7 +97,7 @@
       (let ((shape (simulation-engine-make-segment-shape engine universe origin end
                                                          :body body
                                                          :substance substance)))
-        (%cp:segment-shape-set-neighbors (handle-value-of shape)
+        (%chipmunk:segment-shape-set-neighbors (handle-value-of shape)
                                          (init-cp-vect cp-vect-prev (or prev origin))
                                          (init-cp-vect cp-vect-next (or next end)))
         shape))))
@@ -142,7 +142,7 @@
     (setf (zero-vect :x) (cp-float (if offset (x offset) 0))
           (zero-vect :y) (cp-float (if offset (y offset) 0)))
     (apply #'call-next-method this
-           :handle (make-shape-handle (%cp:circle-shape-new (body-handle-or-static universe body)
+           :handle (make-shape-handle (%chipmunk:circle-shape-new (body-handle-or-static universe body)
                                                             (cp-float radius) zero-vect))
            args)))
 
@@ -168,8 +168,8 @@
 (defmethod initialize-instance ((this polygon-shape) &rest args
                                 &key points body universe radius)
   (let ((point-count (length points)))
-    (c-with ((f-points %cp:vect :count point-count)
-             (f-transform %cp:transform))
+    (c-with ((f-points %chipmunk:vect :count point-count)
+             (f-transform %chipmunk:transform))
       (setf (f-transform :a) (cp-float 1)
             (f-transform :b) (cp-float 0)
             (f-transform :c) (cp-float 0)
@@ -182,7 +182,7 @@
                      (f-points i :y) (cp-float (y point))))
       (apply #'call-next-method this
              :handle (make-shape-handle (float-features:with-float-traps-masked t
-                                          (%cp:poly-shape-new (body-handle-or-static universe body)
+                                          (%chipmunk:poly-shape-new (body-handle-or-static universe body)
                                                               point-count
                                                               (f-points &)
                                                               (f-transform &)
@@ -210,7 +210,7 @@
 (defmethod initialize-instance ((this box-shape) &rest args
                                 &key width height body universe radius &allow-other-keys)
   (apply #'call-next-method this
-         :handle (make-shape-handle (%cp:box-shape-new (body-handle-or-static universe body)
+         :handle (make-shape-handle (%chipmunk:box-shape-new (body-handle-or-static universe body)
                                                        (cp-float width)
                                                        (cp-float height)
                                                        (cp-float (or radius 0))))
