@@ -14,6 +14,7 @@
                 #:image->foreign-array)
   (:export graphics-system
            graphics
+           graphics-context
            graphics-context-assembly-flow
            for-graphics
            reset-viewport

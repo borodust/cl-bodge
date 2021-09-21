@@ -62,7 +62,10 @@
 (defmethod dispatch ((this graphics-system) (task function) invariant &rest args
                      &key context disposing)
   (with-slots (main-context) this
-    (let ((context (if context context main-context)))
+    (let ((context (if (or (eq context nil)
+                           (eq context t))
+                       main-context
+                       context)))
       (if disposing
           (apply #'execute-with-context context task :important-p t
                                                      :priority :highest
@@ -93,6 +96,10 @@
 
 (define-system-function viewport-height graphics-system ()
   (%framebuffer-height-of *graphics-context*))
+
+
+(define-system-function graphics-context graphics-system ()
+  *graphics-context*)
 
 
 (definline graphics ()

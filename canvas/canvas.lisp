@@ -11,11 +11,12 @@
 
 
 (defclass canvas (disposable)
-  ((handle :initarg :handle :reader %handle-of)))
+  ((handle :initarg :handle :reader %handle-of)
+   (gx-ctx :initarg :context)))
 
 
-(define-destructor canvas (handle)
-  (run (for-graphics :disposing t ()
+(define-destructor canvas (handle gx-ctx)
+  (run (for-graphics :disposing t :context gx-ctx()
          (bodge-canvas:destroy-canvas handle))))
 
 
@@ -23,7 +24,8 @@
     (canvas-class width height &key (pixel-ratio 1.0) (antialiased t))
   (make-instance canvas-class
                  :handle (bodge-canvas:make-canvas width height :pixel-ratio pixel-ratio
-                                                                :antialiased antialiased)))
+                                                                :antialiased antialiased)
+                 :context (graphics-context)))
 
 (defun render-canvas (canvas renderer)
   (let ((*canvas* canvas))
