@@ -10,6 +10,8 @@
                   #:stroke-width
 
                   #:scissors
+                  #:reset-scissors
+                  #:with-scissors
                   #:move-to
                   #:line-to
                   #:bezier-to
